@@ -23,6 +23,30 @@ chmod 744 mk.sh
 ./mk.sh
 ```
 
+## Intel/FFTW build
+
+For an Intel compiler environment, use the separate FFTW build path. FFTW is
+not vendored in this repository; `tools/build_fftw3.sh` downloads the official
+FFTW source tarball and installs it under `tools/fftw-3.3.11/install` by
+default.
+
+```sh
+./tools/build_fftw3.sh
+cd FPSEID21/tddft_2022October
+FFTW_ROOT=$PWD/../../tools/fftw-3.3.11/install ./mk_ifort.sh
+```
+
+The default TDDFT compiler wrapper is `mpiifort`. Override it when needed:
+
+```sh
+FC=mpiifx FFTW_ROOT=$PWD/../../tools/fftw-3.3.11/install ./mk_ifort.sh
+```
+
+This build uses `fft_fftw.f` instead of the NEC ASL FFT wrapper. FFTW itself is
+distributed under the GNU GPL; see the official FFTW download page for source
+and license details:
+https://www.fftw.org/download.html
+
 Look for:
 
 ```text
@@ -35,10 +59,12 @@ Instrumented files:
 
 - `FPSEID21/tddft_2022October/prof_timer.f`
 - `FPSEID21/tddft_2022October/mk.sh`
+- `FPSEID21/tddft_2022October/mk_ifort.sh`
 - `FPSEID21/tddft_2022October/pspw_tm11_Vext_Avec_v4_alloc.f`
 - `FPSEID21/tddft_2022October/tmevl10_Avec_v4.f`
 - `FPSEID21/tddft_2022October/FFT_ASL_new.f`
 - `FPSEID21/tddft_2022October/fft_fftw.f`
+- `tools/build_fftw3.sh`
 
 The original FPSEID21 source is distributed by AIST:
 https://staff.aist.go.jp/yoshi-miyamoto/

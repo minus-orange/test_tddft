@@ -13,11 +13,17 @@ C
       integer*8 plancfp,plancbp
 C
       integer nthrds,omp_get_num_threads
+      integer iret
 C
 !$OMP PARALLEL
       nthrds=omp_get_num_threads()
 !$OMP END PARALLEL
 !!!! for fftw init !!!!
+      call dfftw_init_threads(iret)
+      if (iret.eq.0) then
+        write(6,*) 'ERROR: dfftw_init_threads failed'
+        stop
+      endif
 !     CRITERIA=FFTW_ESTIMATE
 !     CRITERIA=FFTW_PATIENT
       CRITERIA=FFTW_MEASURE

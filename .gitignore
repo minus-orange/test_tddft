@@ -8,3 +8,5 @@ cg_exe*
 sd_exe*
 *.tar.gz
 *.patch
+tools/build/
+tools/fftw-*/install/
