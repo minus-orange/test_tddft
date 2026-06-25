@@ -6,3 +6,5 @@ compile.out
 tddft_exe
 cg_exe*
 sd_exe*
+*.tar.gz
+*.patch

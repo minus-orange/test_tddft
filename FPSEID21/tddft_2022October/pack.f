@@ -1,0 +1,2026 @@
+C************************************************************
+      SUBROUTINE KWGT(NUMKQ,VECK,WGT,NK,IBRAV,CELLDM,OMEGA,PGIND,NKK)
+C************************************************************
+C     各ブリルアン・ゾーンのWEIGHT FACTORを計算する
+C                            SLAVE SUBROUTINE: BVEC, WEIGHT
+C                                   (1990-04-12) OSAMU SUGINO
+C
+      IMPLICIT REAL*8(A-H,O-Z)
+      include 'mpif.h'
+      DIMENSION VECK(3,NUMKQ),WGT(NUMKQ)
+      REAL*8 B(3),CELLDM(6),KVEC(3)
+      INTEGER PGIND,ILOC(3)
+      DATA SR3/1.73205080756888D+00/
+C
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+c
+C     FAC ADJUSTS THE WEIGHTS SO THAT THE SUM OF UNITY OVER THE FULL
+C     BRILLOUIN ZONE (INCLUDING THE POINT-GROUP ROTATIONS CARRIED OUT
+C     IN SUBROUTINE RHOOFR) IS 2 (FOR SPIN).
+C
+      CALL BVEC(IBRAV,NK,B,CELLDM,V0,FAC,LIM,ISTR,L1,L2,L3)
+      NMAX=2*NK-1
+      NKK=0
+      DO 40 J=1,NMAX,2
+C
+C        DETERMINATION OF LIM1
+C
+      LIM1=J
+      IF(ISTR.GE.12) LIM1=2*NMAX+1
+      IF(ISTR.EQ.8) LIM1=NMAX
+      IF(ISTR.EQ.6.AND.PGIND.EQ.2) LIM1=NMAX
+      IF(ISTR.EQ.7.AND.PGIND.EQ.2) LIM1=NMAX
+      IF(ISTR.EQ.4.AND.PGIND.EQ.2) LIM1=2*J-1
+      IF(ISTR.EQ.4.AND.PGIND.EQ.3) LIM1=2*NMAX+1
+      DO 39 M=1,LIM1,2
+C
+C        DETERMINATION OF MK
+C
+      MK=M
+      IF(ISTR.EQ.4.AND.PGIND.GT.1) MK=M-(J+1)
+      IF(ISTR.GE.12) MK=M-(NMAX+1)
+C
+C        DETERMINATION OF LIM2
+C
+      LIM2=NMAX
+      IF(ISTR.LT.3.AND.PGIND.EQ.2) LIM2=J
+      IF(ISTR.EQ.3.AND.PGIND.EQ.2) LIM2=MIN0(J,LIM-J)
+      IF(ISTR.LE.3.AND.PGIND.EQ.1) LIM2=M
+      IF(ISTR.EQ.14) LIM2=2*NMAX+1
+      DO 38 L=1,LIM2,2
+C
+C        DETERMINATION OF LK
+C
+      LK=L
+      IF(ISTR.EQ.14) LK=L-(NMAX+1)
+C
+C        CALCULATION OF K-VECTOR
+C
+      IF(L1*J+L2*M+L3*L.GT.LIM) GO TO 39
+      ILOC(1)=J
+      ILOC(2)=MK
+      ILOC(3)=LK
+      KVEC(1)=B(1)*ILOC(1)
+      KVEC(2)=B(2)*ILOC(2)
+      KVEC(3)=B(3)*ILOC(3)
+      IF(ISTR.NE.4) GO TO 31
+      SAVE=KVEC(1)
+      KVEC(1)=KVEC(2)
+      KVEC(2)=SAVE
+      IF(PGIND.NE.2.OR.MK.GT.0.) GO TO 31
+      SAVE=(KVEC(1)+SR3*KVEC(2))/2.D0
+      KVEC(2)=(KVEC(2)-SR3*KVEC(1))/2.D0
+      KVEC(1)=SAVE
+C
+   31 NKK=NKK+1
+      VECK(1,NKK)=KVEC(1)
+      VECK(2,NKK)=KVEC(2)
+      VECK(3,NKK)=KVEC(3)
+C     WRITE(6,*) ' ##J,L,M,NKK,NUMKQ##',J,L,M,NKK,NUMKQ
+CTEMP WRITE(6,'(''  ##  KVEC='',3F15.7)') (KVEC(I),I=1,3)
+ccc      IF(NKK.GT.NUMKQ) STOP '  NUMKQ TOO SMALL'
+      IF(NKK.GT.NUMKQ) then
+      if ( my_rank.eq.0 ) write(6,*)'NUMKQ TOO SMALL'
+      STOP
+      ENDIF
+      CALL WEIGHT(ISTR,PGIND,LIM,J,MK,L,W)
+      W=FAC*W
+C
+C        DETERMINATION OF VOL
+C
+      VOL=W*V0
+      IF(ISTR.EQ.4.AND.PGIND.EQ.1.AND.J.EQ.M) VOL=VOL/2.D0
+      IF(ISTR.EQ.4.AND.PGIND.EQ.3.AND.(M.EQ.1.OR.M.EQ.LIM1))VOL=VOL/2.D0
+      WGT(NKK)=VOL/OMEGA
+CTEMP WRITE(6,'(''  ##WEIGHT='',2F15.7)') VOL,VOL/OMEGA
+   38 CONTINUE
+   39 CONTINUE
+   40 CONTINUE
+      RETURN
+      END
+C************************************************************
+      SUBROUTINE BVEC(IBRAV,NK,B,CELLDM,V0,FAC,LIM,ISTR,L1,L2,L3)
+C************************************************************
+C
+C SYMMETRY BUSINESS
+C                                   (1990-04-12) OSAMU SUGINO
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      include 'mpif.h'
+      DIMENSION B(3),CELLDM(6)
+      DATA SR3/1.73205080756888D+00/
+C
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+C
+      N=NK
+      FAC=2.D0
+      BD=1.D0/(2.D0*DFLOAT(N))
+      L1=0
+      L2=0
+      L3=0
+      LIM=2*N
+      ISTR=IBRAV
+      GO TO (2,4,6,8,10,12,14,16,18,20,22,24,26,28),IBRAV
+C
+C SC LATTICE
+C
+    2 BD=BD/2.D0
+      DO 3 I=1,3
+    3 B(I)=BD
+      GO TO 30
+C
+C FCC LATTICE
+C
+    4 L1=1
+      L2=1
+      L3=1
+      LIM=3*N+2
+      FAC=FAC/4.D0
+      DO 5 I=1,3
+    5 B(I)=BD
+      GO TO 30
+C
+C BCC LATTICE
+C
+    6 L1=1
+      L2=1
+      L3=0
+      LIM=2*N
+      FAC=FAC/2.D0
+      DO 7 I=1,3
+    7 B(I)=BD
+      GO TO 30
+C
+C HEX(P),TRIG(P) LATTICE
+C
+    8 B(1)=BD/SR3
+      B(2)=B(1)/SR3
+      CBYA=CELLDM(3)
+      B(3)=BD/(2.D0*CBYA)
+      FAC=FAC*SR3*CBYA/2.D0
+      GO TO 30
+C
+C TRIG(R) LATTICE
+C
+   10 TERM1=SQRT(1.D0+2.D0*CELLDM(4))
+      TERM2=SQRT(1.D0-CELLDM(4))
+      B(1)=BD/(SQRT(2.D0)*TERM2)
+      B(2)=B(1)/SR3
+      B(3)=BD/(2.D0*SR3*TERM1)
+      ISTR=4
+      FAC=FAC*TERM1*TERM2*TERM2
+      GO TO 30
+C
+C TETR(P) LATTICE
+C
+   12 BD=BD/2.D0
+      B(1)=BD
+      B(2)=BD
+      CBYA=CELLDM(3)
+      B(3)=BD/CBYA
+      FAC=FAC*CBYA
+      GO TO 30
+C
+C TETRA(I) LATTICE
+C
+   14 B(1)=BD
+      B(2)=BD
+      CBYA=CELLDM(3)
+      B(3)=BD/(2.D0*CBYA)
+      L1=1
+      L2=1
+      LIM=2*N
+      FAC=FAC*CBYA/2.D0
+      GO TO 30
+C
+C ORTH(P) LATTICE
+C
+   16 BD=BD/2.D0
+      B(1)=BD
+      B(2)=BD/CELLDM(2)
+      B(3)=BD/CELLDM(3)
+      FAC=FAC*CELLDM(2)*CELLDM(3)
+      GO TO 30
+C
+C XXXXX
+C
+   18 GO TO 110
+C
+C XXXXX
+C
+   20 GO TO 110
+C
+C XXXXX
+C
+   22 GO TO 110
+C
+C MCLN(P) LATTICE
+C
+   24 BD=BD/2.D0
+      SIN=SQRT(1.D0-CELLDM(4)**2)
+      B(1)=BD
+      B(2)=BD/(CELLDM(2)*SIN)
+      B(3)=BD/CELLDM(3)
+      FAC=FAC*CELLDM(2)*CELLDM(3)*SIN
+      GO TO 30
+C
+C XXXXX
+C
+   26 GO TO 110
+C
+C TCLN(P) LATTICE
+C
+   28 BD=BD/2.D0
+      SINGAM=SQRT(1.D0-CELLDM(6)**2)
+      B(1)=BD
+      B(2)=BD/(CELLDM(2)*SINGAM)
+      TERM=SQRT((1.D0+2.D0*CELLDM(4)*CELLDM(5)*CELLDM(6)-CELLDM(4)**2
+     &    -CELLDM(5)**2-CELLDM(6)**2)/(1.0-CELLDM(6)**2))
+      B(3)=BD/(CELLDM(3)*TERM)
+      FAC=FAC*CELLDM(2)*CELLDM(3)*SINGAM*TERM
+C
+C FINAL BUSINESS
+C
+   30 V0=8.D0*B(1)*B(2)*B(3)
+      RETURN
+C
+C***** ERROR EXIT ROUTINE***
+C
+  110 if ( my_rank.eq.0 ) WRITE(6,120) IBRAV
+  120 FORMAT(' BRAVAIS LATTICE',I3,' NOT PROGRAMMED. STOPPING')
+      STOP
+      END
+C***********************************************************
+      SUBROUTINE WEIGHT(ISTR,PGIND,LIM,KK,LL,MM,W)
+C***********************************************************
+C                                   (1990-04-12) OSAMU SUGINO
+C     REDUCTION OF WEIGHTS FOR SPECIAL POINTS.
+C     ASSUMES K,L, AND M NONNEGATIVE.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      INTEGER PGIND
+      GO TO (1,1,1,25,25,10,10,25,25,25,25,25,25,25),ISTR
+    1 K=KK
+      L=MAX0(LL,MM)
+      M=MIN0(LL,MM)
+      Q=2.D0
+      IF(K.NE.L.AND.L.NE.M) Q=1.D0
+      IF(K.EQ.L.AND.L.EQ.M) Q=6.D0
+      IF(L.EQ.M) Q=Q/DFLOAT(PGIND)
+      P=8.D0
+      IF(M.EQ.0) P=P/2.D0
+      IF(L.EQ.0) P=P/2.D0
+      IF(K.EQ.0) P=P/2.D0
+      W=P/(8.D0*Q)
+C     REDUCTION OF WEIGHT FOR CUBES ON ZONE SURFACE.
+      IF(ISTR.EQ.2.AND.K+L+M.GT.LIM-5) W=W/2.D0
+      IF(ISTR.EQ.3.AND.K+L.EQ.LIM.AND.L.NE.M) W=W/2.D0
+      IF(ISTR.EQ.3.AND.K+L.EQ.LIM.AND.L.EQ.M) W=W/3.D0
+      IF(ISTR.EQ.3.AND.K+L.EQ.LIM.AND.K.EQ.L.AND.L.EQ.M)
+     &  W=3.D0*W/4.D0
+      RETURN
+   10 W=1.D0
+      IF(PGIND.EQ.1.AND.KK.EQ.LL) W=0.5D0
+      IF(ISTR.EQ.7.AND.KK+LL.EQ.LIM) W=W/2.D0
+      RETURN
+   25 W=1.D0
+      RETURN
+      END
+C********************************************************
+      SUBROUTINE SMAT(PGIND,S,NTOT,IBRAV)
+C********************************************************
+      include 'mpif.h'
+      INTEGER*4 S(3,3,48),PGIND,PIND(32)
+      DATA PIND/1,1,3,4,5,6,6,8,9,8,11,12,11,14,15,16,14,18,19,18,21,
+     1 22,23,21,25,26,25,28,28,30,31,30/
+C
+C     PIND REMOVES INVERSION FROM THE POINT GROUP (IF THE GROUP CON-
+C     TAINED IT ORIGINALLY), SAVING A FACTOR TWO BECAUSE OF TIME-
+C     REVERSAL SYMMETRY.
+C
+      call MPI_COMM_RANK(MPI_COMM_WORD,my_rank,ierr)
+C
+C     GET ROTATION MATRIX S
+C
+      GO TO (21,22,23,21,24,21,25,21,100,100,100,21,100,21),IBRAV
+   21 CALL PGSYM(PIND(PGIND),S,NTOT)
+      GO TO 40
+   22 CALL FCCSYM(PIND(PGIND),S,NTOT)
+      GO TO 40
+   23 CALL BCCSYM(PIND(PGIND),S,NTOT)
+      GO TO 40
+   24 CALL TRGSYM(PIND(PGIND),S,NTOT)
+      GO TO 40
+   25 CALL BCTSYM(PIND(PGIND),S,NTOT)
+   40 RETURN
+c  100 STOP' UNACCEPTABLE POINT GROUP SPECIFIED'
+  100 continue
+      if ( my_rank.eq.0 )write(6,*)
+     &   ' UNACCEPTABLE POINT GROUP SPECIFIED'
+      STOP
+      END
+CCC                *** SYMMETRY PACKAGE ***
+      SUBROUTINE PGSYM(PGIND,S,NTOT)
+C   SETS UP THE POINT-GROUP ROTATION MATRICES FOR ALL 32 POINT GROUPS
+C   FOR THE SIMPLE (P) BRAVAIS LATTICES.
+C   THESE MATRICES ALL HAVE INTEGER ELEMENTS, AND EXPRESS THE RELATIONS
+C   BETWEEN THE PRIMITIVE BASIS VECTORS DUE TO EACH POINT-GROUP
+C   ROTATION.  THE SPECIAL AXIS IS ALWAYS THE Z-AXIS, ONE BASAL-PLANE
+C   VECTOR IS ALWAYS ALONG X, AND THE OTHER BASAL-PLANE VECTOR IS AT
+C   ANGLE BETA FOR MONOCLINIC (BETA IS NOT ACTUALLY USED), AT 120
+C   DEGREES FOR TRIGONAL AND HEXAGONAL(P) GROUPS, AND AT 90 DEGREES FOR
+C   REMAINING GROUPS.
+C   SUBROUTINE TRGSYM TAKES CARE OF THE TRIGONAL(R) GROUPS, SUBROUTINE
+C   FCCSYM TAKES CARE OF THE CUBIC (F) GROUPS, SUBROUTINE BCCSYM TAKES
+C   CARE OF THE CUBIC (I) GROUPS, AND SUBROUTINE BCTSYM TAKES CARE OF
+C   THE TETRAGONAL (I) GROUPS.  FOR THESE LATTER
+C   GROUPS, THE CRYSTALLOGRAPHIC VECTORS ARE CHOSEN
+C   DIFFERENTLY.  FOR THE TRICLINIC GROUPS, THE MATRICES ARE
+C   SIMPLY IDENTITY AND INVERSION.
+C
+C   PGIND IS THE POINT-GROUP INDEX, DEFINED AS FOLLOWS:
+C
+C   PGIND   GROUP     PGIND   GROUP     PGIND   GROUP     PGIND   GROUP
+C    1     1 (C1)       9     3M (C3V)    17   4/MMM(D4H)   25   222(D2)
+C    2    <1>(CI)      10     <3>M(D3D)   18   6 (C6)       26  MM2(C2V)
+C    3     2 (C2)      11     4 (C4)      19   <6>(C3H)     27  MMM(D2H)
+C    4     M (C1H)     12     <4>(S4)     20   6/M(C6H)     28  23 (T)
+C    5     2/M(C2H)    13     4/M(C4H)    21   622(D6)      29  M3 (TH)
+C    6     3 (C3)      14     422(D4)     22   6MM(C6V)     30  432 (O)
+C    7     <3>(C3I)    15     4MM(C4V)    23   <6>M2(D3H)   31 <4>3M(TD)
+C    8     32 (D3)     16    <4>2M(D3D)   24    6/MMM(D6H)  32  M3M(OH)
+C
+      include 'mpif.h'
+      INTEGER*4 PGIND,S(3,3,48),SUM
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      IF(PGIND.LT.1) GO TO 100
+      DO 1 K=1,48
+      DO 1 J=1,3
+      DO 1 I=1,3
+    1 S(I,J,K)=0
+      DO 2 I=1,3
+    2 S(I,I,1)=1
+      IF(PGIND.GT.2) GO TO 5
+C   TRICLINIC GROUPS HERE.
+C  POINT GROUP 1.
+      NTOT=1
+      IF(PGIND.EQ.1) RETURN
+C   ADD INVERSION FOR <1>.
+      NTOT=2
+      DO 3 I=1,3
+    3 S(I,I,2)=-1
+      RETURN
+C   MONOCLINIC GROUPS HERE.
+    5 IF(PGIND.GT.5) GO TO 10
+      NTOT=2
+      DO 6 I=1,3
+      S(I,I,2)=1
+      S(I,I,3)=1
+    6 S(I,I,4)=1
+      IF(PGIND.GT.3) GO TO 7
+C  POINT GROUP 2.
+      S(1,1,2)=-1
+      S(2,2,2)=-1
+      RETURN
+    7 IF(PGIND.GT.4) GO TO 8
+C   POINT GROUP M.
+      S(3,3,2)=-1
+      RETURN
+    8 NTOT=4
+C   POINT GROUP 2/M.
+      S(1,1,2)=-1
+      S(2,2,2)=-1
+      S(3,3,3)=-1
+      DO 9 I=1,3
+    9 S(I,I,4)=-1
+      RETURN
+C   TRIGONAL GROUPS HERE.
+   10 IF(PGIND.GT.10) GO TO 20
+C  POINT GROUP 3.
+      NTOT=3
+      S(1,2,2)=1
+      S(2,1,2)=-1
+      S(2,2,2)=-1
+      S(3,3,2)=1
+      S(1,1,3)=-1
+      S(1,2,3)=-1
+      S(2,1,3)=1
+      S(3,3,3)=1
+      IF(PGIND.EQ.6) RETURN
+      IF(PGIND.EQ.7.OR.PGIND.EQ.10) GO TO 15
+      NTOT=6
+C   SET UP C2X.
+      S(1,1,4)=1
+      S(3,3,4)=-1
+      S(2,1,4)=-1
+      S(2,2,4)=-1
+      IF(PGIND.EQ.8) GO TO 12
+C   SET UP MX.
+      DO 11 J=1,3
+      DO 11 I=1,3
+   11 S(I,J,4)=-S(I,J,4)
+      S(3,3,4)=1
+C  POINT GROUP 32 =3(X)C2X OR 3M = 3(X)MX.
+   12 DO 14 KIND=2,3
+      DO 14 I=1,3
+      DO 14 J=1,3
+      SUM=0
+      DO 13 K=1,3
+   13 SUM=SUM+S(I,K,4)*S(K,J,KIND)
+   14 S(I,J,KIND+3)=SUM
+      RETURN
+   15 NTOT=6
+C   POINT GROUP <3> = 3(X)I
+      DO 16 KIND=1,3
+      DO 16 J=1,3
+      DO 16 I=1,3
+   16 S(I,J,KIND+3)=-S(I,J,KIND)
+      IF(PGIND.EQ.7) RETURN
+C   POINT GROUP <3>M = <3>(X)MX
+      NTOT=12
+      S(1,1,7)=-1
+      S(2,1,7)=1
+      S(2,2,7)=1
+      S(3,3,7)=1
+      DO 18 KIND=2,6
+      DO 18 J=1,3
+      DO 18 I=1,3
+      SUM=0
+      DO 17 K=1,3
+   17 SUM=SUM+S(I,K,7)*S(K,J,KIND)
+   18 S(I,J,KIND+6)=SUM
+      RETURN
+C   HERE FOR TETRAGONAL GROUPS.
+   20 IF(PGIND.GT.17) GO TO 40
+C   POINT GROUP 4.
+      NTOT=4
+      S(1,2,2)=1
+      S(2,1,2)=-1
+      S(3,3,2)=1
+      S(1,1,3)=-1
+      S(2,2,3)=-1
+      S(3,3,3)=1
+      S(1,2,4)=-1
+      S(2,1,4)=1
+      S(3,3,4)=1
+      IF(PGIND.EQ.11) RETURN
+      IF(PGIND.NE.12.AND.PGIND.NE.16) GO TO 25
+C   POINT GROUP <4>.
+      DO 21 KIND=2,4,2
+      DO 21 J=1,3
+      DO 21 I=1,3
+   21 S(I,J,KIND)=-S(I,J,KIND)
+      IF(PGIND.EQ.12) RETURN
+C   POINT GROUP <4>2M = <4>(X)C2X.
+      NTOT=8
+      S(1,1,5)=1
+      S(2,2,5)=-1
+      S(3,3,5)=-1
+      DO 23 KIND=2,4
+      DO 23 J=1,3
+      DO 23 I=1,3
+      SUM=0
+      DO 22 K=1,3
+   22 SUM=SUM+S(I,K,5)*S(K,J,KIND)
+   23 S(I,J,KIND+4)=SUM
+      RETURN
+   25 NTOT=8
+      IF(PGIND.NE.13) GO TO 26
+C   POINT GROUP 4/M = MZ(X)4
+      S(1,1,5)=1
+      S(2,2,5)=1
+      S(3,3,5)=-1
+      GO TO 30
+   26 IF(PGIND.NE.15) GO TO 27
+C   POINT GROUP 4MM = MX(X)4.
+      S(1,1,5)=-1
+      S(2,2,5)=1
+      S(3,3,5)=1
+      GO TO 30
+C   POINT GROUPS 422 = C2X(X)4 AND 4/MMM = I(X)422.
+   27 S(1,1,5)=1
+      S(2,2,5)=-1
+      S(3,3,5)=-1
+   30 DO 32 KIND=2,4
+      DO 32 J=1,3
+      DO 32 I=1,3
+      SUM=0
+      DO 31 K=1,3
+   31 SUM=SUM+S(I,K,5)*S(K,J,KIND)
+   32 S(I,J,KIND+4)=SUM
+      IF(PGIND.NE.17) RETURN
+      NTOT=16
+      DO 34 KIND=1,8
+      DO 34 J=1,3
+      DO 34 I=1,3
+   34 S(I,J,KIND+8)=-S(I,J,KIND)
+      RETURN
+C   HERE FOR HEXAGONAL POINT GROUPS.
+   40 IF(PGIND.GT.24) GO TO 60
+      NTOT=6
+C   POINT GROUP 6.
+      S(1,1,2)=1
+      S(1,2,2)=1
+      S(2,1,2)=-1
+      S(1,2,3)=1
+      S(2,1,3)=-1
+      S(2,2,3)=-1
+      S(1,1,4)=-1
+      S(2,2,4)=-1
+      S(1,1,5)=-1
+      S(1,2,5)=-1
+      S(2,1,5)=1
+      S(1,2,6)=-1
+      S(2,1,6)=1
+      S(2,2,6)=1
+      DO 41 I=2,6
+   41 S(3,3,I)=1
+      IF(PGIND.EQ.18) RETURN
+      IF(PGIND.NE.19.AND.PGIND.NE.23) GO TO 45
+C   POINT GROUP <6>.
+      DO 42 KIND=2,6,2
+      DO 42 J=1,3
+      DO 42 I=1,3
+   42 S(I,J,KIND)=-S(I,J,KIND)
+      IF(PGIND.EQ.19) RETURN
+C   POINT GROUP <6>M2 = C2Y(X)<6>.
+      NTOT=12
+      S(1,1,7)=-1
+      S(2,2,7)=1
+      S(3,3,7)=-1
+      DO 44 KIND=2,6
+      DO 44 J=1,3
+      DO 44 I=1,3
+      SUM=0
+      DO 43 K=1,3
+   43 SUM=SUM+S(I,K,7)*S(K,J,KIND)
+   44 S(I,J,KIND+6)=SUM
+      RETURN
+   45 NTOT=12
+      IF(PGIND.NE.20) GO TO 47
+C   POINT GROUP 6/M = I(X)6
+      DO 46 KIND=1,6
+      DO 46 J=1,3
+      DO 46 I=1,3
+   46 S(I,J,KIND+6)=-S(I,J,KIND)
+      RETURN
+   47 IF(PGIND.NE.22) GO TO 48
+C   POINT GROUP 6MM = MX(X)6
+      S(1,1,7)=-1
+      S(2,2,7)=1
+      S(3,3,7)=1
+      GO TO 50
+C   POINT GROUPS 622 = C2X(X)6 AND 6/MMM = I(X)622.
+   48 S(1,1,7)=1
+      S(2,2,7)=-1
+      S(3,3,7)=-1
+   50 DO 52 KIND=2,6
+      DO 52 J=1,3
+      DO 52 I=1,3
+      SUM=0
+      DO 51 K=1,3
+   51 SUM=SUM+S(I,K,7)*S(K,J,KIND)
+   52 S(I,J,KIND+6)=SUM
+      IF(PGIND.NE.24) RETURN
+      NTOT=24
+      DO 53 KIND=1,12
+      DO 53 J=1,3
+      DO 53 I=1,3
+   53 S(I,J,KIND+12)=-S(I,J,KIND)
+      RETURN
+C   HERE FOR ORTHORHOMBIC POINT GROUPS.
+   60 IF(PGIND.GT.27) GO TO 70
+      NTOT=4
+      IF(PGIND.NE.26) GO TO 64
+C   POINT GROUP MM2.
+      DO 61 KIND=2,4
+      DO 61 I=1,3
+   61 S(I,I,KIND)=1
+      S(1,1,2)=-1
+      S(2,2,3)=-1
+      S(1,1,4)=-1
+      S(2,2,4)=-1
+      RETURN
+C   POINT GROUP 222.
+   64 DO 65 KIND=2,4
+      DO 65 I=1,3
+   65 S(I,I,KIND)=-1
+      S(1,1,2)=1
+      S(2,2,3)=1
+      S(3,3,4)=1
+      IF(PGIND.EQ.25) RETURN
+C   POINT GROUP MMM = I(X)222
+      NTOT=8
+      DO 66 KIND=1,4
+      DO 66 J=1,3
+      DO 66 I=1,3
+   66 S(I,J,KIND+4)=-S(I,J,KIND)
+      RETURN
+C   HERE FOR CUBIC POINT GROUPS.
+   70 IF(PGIND.GT.32) GO TO 100
+      NTOT=12
+C   POINT GROUP 23.
+      DO 71 KIND=2,4
+      DO 71 I=1,3
+   71 S(I,I,KIND)=-1
+      S(1,1,2)=1
+      S(2,2,3)=1
+      S(3,3,4)=1
+      S(1,2,5)=1
+      S(2,3,5)=1
+      S(3,1,5)=1
+      S(1,3,6)=1
+      S(2,1,6)=1
+      S(3,2,6)=1
+      DO 74 KIND=5,6
+      DO 74 JIND=2,4
+      DO 74 J=1,3
+      DO 74 I=1,3
+      SUM=0
+      DO 72 K=1,3
+   72 SUM=SUM+S(I,K,JIND)*S(K,J,KIND)
+   74 S(I,J,KIND+2*JIND-2)=SUM
+      IF(PGIND.EQ.28) RETURN
+      NTOT=24
+      IF(PGIND.NE.29) GO TO 76
+C   POINT GROUP M3 = I(X)23
+      DO 75 KIND=1,12
+      DO 75 J=1,3
+      DO 75 I=1,3
+   75 S(I,J,KIND+12)=-S(I,J,KIND)
+      RETURN
+   76 IF(PGIND.EQ.31) GO TO 80
+C   POINT GROUP 432 = C4X(X)23
+      S(1,1,13)=1
+      S(2,3,13)=1
+      S(3,2,13)=-1
+      DO 78 KIND=2,12
+      DO 78 J=1,3
+      DO 78 I=1,3
+      SUM=0
+      DO 77 K=1,3
+   77 SUM=SUM+S(I,K,13)*S(K,J,KIND)
+   78 S(I,J,KIND+12)=SUM
+      IF(PGIND.EQ.30) RETURN
+C   POINT GROUP M3M = I(X)432
+      NTOT=48
+      DO 79 KIND=1,24
+      DO 79 J=1,3
+      DO 79 I=1,3
+   79 S(I,J,KIND+24)=-S(I,J,KIND)
+      RETURN
+C   POINT <4>3M = <C4X>(X)23
+   80 S(1,1,13)=-1
+      S(2,3,13)=-1
+      S(3,2,13)=1
+      DO 85 KIND=2,12
+      DO 85 J=1,3
+      DO 85 I=1,3
+      SUM=0
+      DO 84 K=1,3
+   84 SUM=SUM+S(I,K,13)*S(K,J,KIND)
+   85 S(I,J,KIND+12)=SUM
+      RETURN
+C   HERE IF PGIND EXCEEDS 32 OR IS LESS THAN 1.
+  100 if ( my_rank.eq.0 ) WRITE(6,110) PGIND
+  110 FORMAT(' POINT-GROUP INDEX',I4,' IS NOT BETWEEN 1 AND 32. STOPPING
+     1 ')
+      STOP
+      END
+      SUBROUTINE PGSYM2(PGIND,S,NTOT)
+C   THIS ROUTINE TAKES CARE OF THE D2D SYMMETRY IN SUPERLATTICE
+C   STRUCTURE CONSISTING OF ORIGINAL FCC LATTICE.
+C   THE CASE OF PGIND=16 HS BEEN ONLY SET UP.
+C        DECEMBER 4, 1986  **** AO *********
+C
+C   PGIND IS THE POINT-GROUP INDEX, DEFINED AS FOLLOWS:
+C
+C   PGIND   GROUP     PGIND   GROUP     PGIND   GROUP     PGIND   GROUP
+C    1     1 (C1)       9     3M (C3V)    17   4/MMM(D4H)   25   222(D2)
+C    2    <1>(CI)      10     <3>M(D3D)   18   6 (C6)       26  MM2(C2V)
+C    3     2 (C2)      11     4 (C4)      19   <6>(C3H)     27  MMM(D2H)
+C    4     M (C1H)     12     <4>(S4)     20   6/M(C6H)     28  23 (T)
+C    5     2/M(C2H)    13     4/M(C4H)    21   622(D6)      29  M3 (TH)
+C    6     3 (C3)      14     422(D4)     22   6MM(C6V)     30  432 (O)
+C    7     <3>(C3I)    15     4MM(C4V)    23   <6>M2(D3H)   31 <4>3M(TD)
+C    8     32 (D3)     16      D2D        24    6/MMM(D6H)  32  M3M(OH)
+C
+      include 'mpif.h'
+      INTEGER*4 PGIND,S(3,3,48),SUM
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      IF(PGIND.LT.1) GO TO 100
+      DO 1 K=1,48
+      DO 1 J=1,3
+      DO 1 I=1,3
+    1 S(I,J,K)=0
+      DO 2 I=1,3
+    2 S(I,I,1)=1
+      IF(PGIND.GT.2) GO TO 5
+C   TRICLINIC GROUPS HERE.
+C  POINT GROUP 1.
+      NTOT=1
+      IF(PGIND.EQ.1) RETURN
+C   ADD INVERSION FOR <1>.
+      NTOT=2
+      DO 3 I=1,3
+    3 S(I,I,2)=-1
+      RETURN
+C   MONOCLINIC GROUPS HERE.
+    5 IF(PGIND.GT.5) GO TO 10
+      NTOT=2
+      DO 6 I=1,3
+      S(I,I,2)=1
+      S(I,I,3)=1
+    6 S(I,I,4)=1
+      IF(PGIND.GT.3) GO TO 7
+C  POINT GROUP 2.
+      S(1,1,2)=-1
+      S(2,2,2)=-1
+      RETURN
+    7 IF(PGIND.GT.4) GO TO 8
+C   POINT GROUP M.
+      S(3,3,2)=-1
+      RETURN
+    8 NTOT=4
+C   POINT GROUP 2/M.
+      S(1,1,2)=-1
+      S(2,2,2)=-1
+      S(3,3,3)=-1
+      DO 9 I=1,3
+    9 S(I,I,4)=-1
+      RETURN
+C   TRIGONAL GROUPS HERE.
+   10 IF(PGIND.GT.10) GO TO 20
+C  POINT GROUP 3.
+      NTOT=3
+      S(1,2,2)=1
+      S(2,1,2)=-1
+      S(2,2,2)=-1
+      S(3,3,2)=1
+      S(1,1,3)=-1
+      S(1,2,3)=-1
+      S(2,1,3)=1
+      S(3,3,3)=1
+      IF(PGIND.EQ.6) RETURN
+      IF(PGIND.EQ.7.OR.PGIND.EQ.10) GO TO 15
+      NTOT=6
+C   SET UP C2X.
+      S(1,1,4)=1
+      S(3,3,4)=-1
+      S(2,1,4)=-1
+      S(2,2,4)=-1
+      IF(PGIND.EQ.8) GO TO 12
+C   SET UP MX.
+      DO 11 J=1,3
+      DO 11 I=1,3
+   11 S(I,J,4)=-S(I,J,4)
+      S(3,3,4)=1
+C  POINT GROUP 32 =3(X)C2X OR 3M = 3(X)MX.
+   12 DO 14 KIND=2,3
+      DO 14 I=1,3
+      DO 14 J=1,3
+      SUM=0
+      DO 13 K=1,3
+   13 SUM=SUM+S(I,K,4)*S(K,J,KIND)
+   14 S(I,J,KIND+3)=SUM
+      RETURN
+   15 NTOT=6
+C   POINT GROUP <3> = 3(X)I
+      DO 16 KIND=1,3
+      DO 16 J=1,3
+      DO 16 I=1,3
+   16 S(I,J,KIND+3)=-S(I,J,KIND)
+      IF(PGIND.EQ.7) RETURN
+C   POINT GROUP <3>M = <3>(X)MX
+      NTOT=12
+      S(1,1,7)=-1
+      S(2,1,7)=1
+      S(2,2,7)=1
+      S(3,3,7)=1
+      DO 18 KIND=2,6
+      DO 18 J=1,3
+      DO 18 I=1,3
+      SUM=0
+      DO 17 K=1,3
+   17 SUM=SUM+S(I,K,7)*S(K,J,KIND)
+   18 S(I,J,KIND+6)=SUM
+      RETURN
+C   HERE FOR TETRAGONAL GROUPS.
+   20 IF(PGIND.GT.17) GO TO 40
+C   POINT GROUP 4.
+      NTOT=4
+      S(1,2,2)=1
+      S(2,1,2)=-1
+      S(3,3,2)=1
+      S(2,1,3)=-1
+      S(1,2,3)=-1
+      S(3,3,3)=-1
+      S(1,2,4)=1
+      S(2,1,4)=1
+      S(3,3,4)=-1
+      IF(PGIND.EQ.11) RETURN
+      IF(PGIND.NE.12.AND.PGIND.NE.16) GO TO 25
+C   POINT GROUP <4>.
+      IF(PGIND.EQ.12) RETURN
+C   POINT GROUP <4>2M = <4>(X)C2X.
+      NTOT=8
+      S(1,1,5)=1
+      S(2,2,5)=-1
+      S(3,3,5)=1
+      S(1,1,6)=-1
+      S(2,2,6)=1
+      S(3,3,6)=1
+      DO 23 KIND=5,6
+      DO 23 J=1,3
+      DO 23 I=1,3
+      SUM=0
+      DO 22 K=1,3
+   22 SUM=SUM+S(I,K,3)*S(K,J,KIND)
+   23 S(I,J,KIND+2)=SUM
+      RETURN
+   25 NTOT=8
+      IF(PGIND.EQ.16.and.my_rank.eq.0) WRITE(6,8888)
+ 8888 FORMAT(/////' ** PGSYM2:   WRONG PATH****** '///)
+      IF(PGIND.NE.13) GO TO 26
+C   POINT GROUP 4/M = MZ(X)4
+      S(1,1,5)=1
+      S(2,2,5)=1
+      S(3,3,5)=-1
+      GO TO 30
+   26 IF(PGIND.NE.15) GO TO 27
+C   POINT GROUP 4MM = MX(X)4.
+      S(1,1,5)=-1
+      S(2,2,5)=1
+      S(3,3,5)=1
+      GO TO 30
+C   POINT GROUPS 422 = C2X(X)4 AND 4/MMM = I(X)422.
+   27 S(1,1,5)=1
+      S(2,2,5)=-1
+      S(3,3,5)=-1
+   30 DO 32 KIND=2,4
+      DO 32 J=1,3
+      DO 32 I=1,3
+      SUM=0
+      DO 31 K=1,3
+   31 SUM=SUM+S(I,K,5)*S(K,J,KIND)
+   32 S(I,J,KIND+4)=SUM
+      IF(PGIND.NE.17) RETURN
+      NTOT=16
+      DO 34 KIND=1,8
+      DO 34 J=1,3
+      DO 34 I=1,3
+   34 S(I,J,KIND+8)=-S(I,J,KIND)
+      RETURN
+C   HERE FOR HEXAGONAL POINT GROUPS.
+   40 IF(PGIND.GT.24) GO TO 60
+      NTOT=6
+C   POINT GROUP 6.
+      S(1,1,2)=1
+      S(1,2,2)=1
+      S(2,1,2)=-1
+      S(1,2,3)=1
+      S(2,1,3)=-1
+      S(2,2,3)=-1
+      S(1,1,4)=-1
+      S(2,2,4)=-1
+      S(1,1,5)=-1
+      S(1,2,5)=-1
+      S(2,1,5)=1
+      S(1,2,6)=-1
+      S(2,1,6)=1
+      S(2,2,6)=1
+      DO 41 I=2,6
+   41 S(3,3,I)=1
+      IF(PGIND.EQ.18) RETURN
+      IF(PGIND.NE.19.AND.PGIND.NE.23) GO TO 45
+C   POINT GROUP <6>.
+      DO 42 KIND=2,6,2
+      DO 42 J=1,3
+      DO 42 I=1,3
+   42 S(I,J,KIND)=-S(I,J,KIND)
+      IF(PGIND.EQ.19) RETURN
+C   POINT GROUP <6>M2 = C2Y(X)<6>.
+      NTOT=12
+      S(1,1,7)=-1
+      S(2,2,7)=1
+      S(3,3,7)=-1
+      DO 44 KIND=2,6
+      DO 44 J=1,3
+      DO 44 I=1,3
+      SUM=0
+      DO 43 K=1,3
+   43 SUM=SUM+S(I,K,7)*S(K,J,KIND)
+   44 S(I,J,KIND+6)=SUM
+      RETURN
+   45 NTOT=12
+      IF(PGIND.NE.20) GO TO 47
+C   POINT GROUP 6/M = I(X)6
+      DO 46 KIND=1,6
+      DO 46 J=1,3
+      DO 46 I=1,3
+   46 S(I,J,KIND+6)=-S(I,J,KIND)
+      RETURN
+   47 IF(PGIND.NE.22) GO TO 48
+C   POINT GROUP 6MM = MX(X)6
+      S(1,1,7)=-1
+      S(2,2,7)=1
+      S(3,3,7)=1
+      GO TO 50
+C   POINT GROUPS 622 = C2X(X)6 AND 6/MMM = I(X)622.
+   48 S(1,1,7)=1
+      S(2,2,7)=-1
+      S(3,3,7)=-1
+   50 DO 52 KIND=2,6
+      DO 52 J=1,3
+      DO 52 I=1,3
+      SUM=0
+      DO 51 K=1,3
+   51 SUM=SUM+S(I,K,7)*S(K,J,KIND)
+   52 S(I,J,KIND+6)=SUM
+      IF(PGIND.NE.24) RETURN
+      NTOT=24
+      DO 53 KIND=1,12
+      DO 53 J=1,3
+      DO 53 I=1,3
+   53 S(I,J,KIND+12)=-S(I,J,KIND)
+      RETURN
+C   HERE FOR ORTHORHOMBIC POINT GROUPS.
+   60 IF(PGIND.GT.27) GO TO 70
+      NTOT=4
+      IF(PGIND.NE.26) GO TO 64
+C   POINT GROUP MM2.
+      DO 61 KIND=2,4
+      DO 61 I=1,3
+   61 S(I,I,KIND)=1
+      S(1,1,2)=-1
+      S(2,2,3)=-1
+      S(1,1,4)=-1
+      S(2,2,4)=-1
+      RETURN
+C   POINT GROUP 222.
+   64 DO 65 KIND=2,4
+      DO 65 I=1,3
+   65 S(I,I,KIND)=-1
+      S(1,1,2)=1
+      S(2,2,3)=1
+      S(3,3,4)=1
+      IF(PGIND.EQ.25) RETURN
+C   POINT GROUP MMM = I(X)222
+      NTOT=8
+      DO 66 KIND=1,4
+      DO 66 J=1,3
+      DO 66 I=1,3
+   66 S(I,J,KIND+4)=-S(I,J,KIND)
+      RETURN
+C   HERE FOR CUBIC POINT GROUPS.
+   70 IF(PGIND.GT.32) GO TO 100
+      NTOT=12
+C   POINT GROUP 23.
+      DO 71 KIND=2,4
+      DO 71 I=1,3
+   71 S(I,I,KIND)=-1
+      S(1,1,2)=1
+      S(2,2,3)=1
+      S(3,3,4)=1
+      S(1,2,5)=1
+      S(2,3,5)=1
+      S(3,1,5)=1
+      S(1,3,6)=1
+      S(2,1,6)=1
+      S(3,2,6)=1
+      DO 74 KIND=5,6
+      DO 74 JIND=2,4
+      DO 74 J=1,3
+      DO 74 I=1,3
+      SUM=0
+      DO 72 K=1,3
+   72 SUM=SUM+S(I,K,JIND)*S(K,J,KIND)
+   74 S(I,J,KIND+2*JIND-2)=SUM
+      IF(PGIND.EQ.28) RETURN
+      NTOT=24
+      IF(PGIND.NE.29) GO TO 76
+C   POINT GROUP M3 = I(X)23
+      DO 75 KIND=1,12
+      DO 75 J=1,3
+      DO 75 I=1,3
+   75 S(I,J,KIND+12)=-S(I,J,KIND)
+      RETURN
+   76 IF(PGIND.EQ.31) GO TO 80
+C   POINT GROUP 432 = C4X(X)23
+      S(1,1,13)=1
+      S(2,3,13)=1
+      S(3,2,13)=-1
+      DO 78 KIND=2,12
+      DO 78 J=1,3
+      DO 78 I=1,3
+      SUM=0
+      DO 77 K=1,3
+   77 SUM=SUM+S(I,K,13)*S(K,J,KIND)
+   78 S(I,J,KIND+12)=SUM
+      IF(PGIND.EQ.30) RETURN
+C   POINT GROUP M3M = I(X)432
+      NTOT=48
+      DO 79 KIND=1,24
+      DO 79 J=1,3
+      DO 79 I=1,3
+   79 S(I,J,KIND+24)=-S(I,J,KIND)
+      RETURN
+C   POINT <4>3M = <C4X>(X)23
+   80 S(1,1,13)=-1
+      S(2,3,13)=-1
+      S(3,2,13)=1
+      DO 85 KIND=2,12
+      DO 85 J=1,3
+      DO 85 I=1,3
+      SUM=0
+      DO 84 K=1,3
+   84 SUM=SUM+S(I,K,13)*S(K,J,KIND)
+   85 S(I,J,KIND+12)=SUM
+      RETURN
+C   HERE IF PGIND EXCEEDS 32 OR IS LESS THAN 1.
+  100 if ( my_rank.eq.0 ) WRITE(6,110) PGIND
+  110 FORMAT(' POINT-GROUP INDEX',I4,' IS NOT BETWEEN 1 AND 32. STOPPING
+     1 ')
+      STOP
+      END
+      SUBROUTINE TRGSYM(PGIND,S,NTOT)
+C   SETS UP THE ROTATION MATRICES FOR TRIGONAL(R) GROUPS.  FOR THESE
+C   GROUPS, THE Z-AXIS IS CHOSEN AS THE 3-FOLD AXIS, BUT THE
+C   CRYSTALLOGRAPHIC VECTORS FORM A THREE-FOLD STAR AROUND THE Z-AXIS,
+C   AND THE PRIMITIVE CELL IS A SIMPLE RHOMBOHEDRON.
+C   IF C IS THE COSINE OF THE ANGLE BETWEEN ANY PAIR OF CRYSTALLO-
+C   GRAPHIC VECTORS, AND IF TX=SQRT((1-C)/2), TY=SQRT((1-C)/6),
+C   TZ=SQRT((1+2C)/3), THE CRYSTALLOGRAPHIC VECTORS ARE
+C         A1=A(0,2TY,TZ),  A2=A(TX,-TY,TZ),  A3=A(-TX,-TY,TZ).
+C
+      include 'mpif.h'
+      INTEGER*4 PGIND,S(3,3,48),SUM
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      IF(PGIND.LT.6.OR.PGIND.GT.10) GO TO 100
+      DO 1 K=1,48
+      DO 1 J=1,3
+      DO 1 I=1,3
+    1 S(I,J,K)=0
+      DO 2 I=1,3
+    2 S(I,I,1)=1
+C  POINT GROUP 3.
+      NTOT=3
+      S(1,3,2)=1
+      S(2,1,2)=1
+      S(3,2,2)=1
+      S(1,2,3)=1
+      S(2,3,3)=1
+      S(3,1,3)=1
+      IF(PGIND.EQ.6) RETURN
+      IF(PGIND.EQ.7.OR.PGIND.EQ.10) GO TO 15
+      NTOT=6
+C   SET UP C2X.
+      S(1,1,4)=-1
+      S(3,2,4)=-1
+      S(2,3,4)=-1
+      IF(PGIND.EQ.8) GO TO 12
+C   SET UP MX.
+      DO 11 J=1,3
+      DO 11 I=1,3
+   11 S(I,J,4)=-S(I,J,4)
+C  POINT GROUP 32 =3(X)C2X OR 3M = 3(X)MX.
+   12 DO 14 KIND=2,3
+      DO 14 I=1,3
+      DO 14 J=1,3
+      SUM=0
+      DO 13 K=1,3
+   13 SUM=SUM+S(I,K,4)*S(K,J,KIND)
+   14 S(I,J,KIND+3)=SUM
+      RETURN
+   15 NTOT=6
+C   POINT GROUP <3> = 3(X)I
+      DO 16 KIND=1,3
+      DO 16 J=1,3
+      DO 16 I=1,3
+   16 S(I,J,KIND+3)=-S(I,J,KIND)
+      IF(PGIND.EQ.7) RETURN
+C   POINT GROUP <3>M = <3>(X)MX
+      NTOT=12
+      S(1,1,7)=1
+      S(2,3,7)=1
+      S(3,2,7)=1
+      DO 18 KIND=2,6
+      DO 18 J=1,3
+      DO 18 I=1,3
+      SUM=0
+      DO 17 K=1,3
+   17 SUM=SUM+S(I,K,7)*S(K,J,KIND)
+   18 S(I,J,KIND+6)=SUM
+      RETURN
+  100 if ( my_rank.eq.0 ) WRITE(6,110) PGIND
+  110 FORMAT(' POINT GROUP',I3,' IS NOT TRIGONAL. STOPPING')
+      STOP
+      END
+      SUBROUTINE FCCSYM(PGIND,S,NTOT)
+      include 'mpif.h'
+      INTEGER*4 PGIND,S(3,3,48),SUM
+C   POINT GROUP ROTATION MATRICES FOR THE FCC BRAVAIS LATTICE.  IT IS
+C   ASSUMED THAT A1=(A/2)(-1,0,1), A2=(A/2)(0,1,1), A3=(A/2)(-1,1,0).
+C   THE ROTATION MATRICES EXPRESS HOW THESE BASIS VECTORS ARE TRANS-
+C   FROMED INTO ONE ANOTHER BY POINT-GROUP ROTATIONS.
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      IF(PGIND.LT.28.OR.PGIND.GT.32) GO TO 100
+      DO 10 K=1,48
+      DO 10 J=1,3
+      DO 10 I=1,3
+   10 S(I,J,K)=0
+      DO 11 I=1,3
+   11 S(I,I,1)=1
+      NTOT=12
+C   POINT GROUP 23.
+      S(1,2,2)=-1
+      S(1,3,2)=1
+      S(2,2,2)=-1
+      S(3,1,2)=1
+      S(3,2,2)=-1
+      S(1,1,3)=-1
+      S(2,1,3)=-1
+      S(2,3,3)=1
+      S(3,1,3)=-1
+      S(3,2,3)=1
+      S(1,2,4)=1
+      S(1,3,4)=-1
+      S(2,1,4)=1
+      S(2,3,4)=-1
+      S(3,3,4)=-1
+      S(1,3,5)=-1
+      S(2,2,5)=1
+      S(2,3,5)=-1
+      S(3,1,5)=1
+      S(3,3,5)=-1
+      S(1,1,6)=-1
+      S(1,3,6)=1
+      S(2,1,6)=-1
+      S(2,2,6)=1
+      S(3,1,6)=-1
+      DO 74 KIND=5,6
+      DO 74 JIND=2,4
+      DO 74 J=1,3
+      DO 74 I=1,3
+      SUM=0
+      DO 72 K=1,3
+   72 SUM=SUM+S(I,K,JIND)*S(K,J,KIND)
+   74 S(I,J,KIND+2*JIND-2)=SUM
+      IF(PGIND.EQ.28) RETURN
+      NTOT=24
+      IF(PGIND.NE.29) GO TO 76
+C   POINT GROUP M3 = I(X)23
+      DO 75 KIND=1,12
+      DO 75 J=1,3
+      DO 75 I=1,3
+   75 S(I,J,KIND+12)=-S(I,J,KIND)
+      RETURN
+   76 IF(PGIND.EQ.31) GO TO 80
+C   POINT GROUP 432 = C4X(X)23
+      S(1,3,13)=1
+      S(2,1,13)=-1
+      S(2,3,13)=1
+      S(3,2,13)=-1
+      S(3,3,13)=1
+      DO 78 KIND=2,12
+      DO 78 J=1,3
+      DO 78 I=1,3
+      SUM=0
+      DO 77 K=1,3
+   77 SUM=SUM+S(I,K,13)*S(K,J,KIND)
+   78 S(I,J,KIND+12)=SUM
+      IF(PGIND.EQ.30) RETURN
+C   POINT GROUP M3M = I(X)432
+      NTOT=48
+      DO 79 KIND=1,24
+      DO 79 J=1,3
+      DO 79 I=1,3
+   79 S(I,J,KIND+24)=-S(I,J,KIND)
+      RETURN
+C   POINT <4>3M = <C4X>(X)23
+   80 S(1,3,13)=-1
+      S(2,1,13)=1
+      S(2,3,13)=-1
+      S(3,2,13)=1
+      S(3,3,13)=-1
+      DO 85 KIND=2,12
+      DO 85 J=1,3
+      DO 85 I=1,3
+      SUM=0
+      DO 84 K=1,3
+   84 SUM=SUM+S(I,K,13)*S(K,J,KIND)
+   85 S(I,J,KIND+12)=SUM
+      RETURN
+C   HERE IF PGIND EXCEEDS 32 OR IS LESS THAN 28.
+  100 if (my_rank.eq.0 ) WRITE(6,110) PGIND
+  110 FORMAT(' POINT-GROUP INDEX',I4,' IS NOT BETWEEN 28 AND 32 FOR A CU
+     1BIC GROUP. STOPPING')
+      STOP
+      END
+      SUBROUTINE BCCSYM(PGIND,S,NTOT)
+      include 'mpif.h'
+C   POINT GROUP ROTATION MATRICES FOR CUBIC (BCC) BRAVAIS LATTICE.
+C   IT IS ASSUMED THAT A1=(A/2)(1,1,1), A2=(A/2)(-1,1,1),
+C   A3=(A/2)(-1,-1,1).  THE ROTATION MATRICES EXPRESS HOW THESE BASIS
+C   VECTORS ARE TRANSFORMED INTO ONE ANOTHER BY POINT-GROUP ROTATIONS.
+      INTEGER*4 PGIND,S(3,3,48),SUM
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      DO 1 K=1,48
+      DO 1 J=1,3
+      DO 1 I=1,3
+    1 S(I,J,K)=0
+      DO 2 I=1,3
+    2 S(I,I,1)=1
+      IF(PGIND.LT.28.OR.PGIND.GT.32) GO TO 100
+      NTOT=12
+C   POINT GROUP 23.
+      S(1,2,2)=-1
+      S(2,1,2)=-1
+      S(3,1,2)=-1
+      S(3,2,2)=1
+      S(3,3,2)=-1
+      S(1,1,3)=-1
+      S(1,2,3)=1
+      S(1,3,3)=-1
+      S(2,3,3)=-1
+      S(3,2,3)=-1
+      S(1,3,4)=1
+      S(2,1,4)=1
+      S(2,2,4)=-1
+      S(2,3,4)=1
+      S(3,1,4)=1
+      S(1,1,5)=1
+      S(2,1,5)=1
+      S(2,2,5)=-1
+      S(2,3,5)=1
+      S(3,2,5)=-1
+      S(1,1,6)=1
+      S(2,3,6)=-1
+      S(3,1,6)=-1
+      S(3,2,6)=1
+      S(3,3,6)=-1
+      DO 74 KIND=5,6
+      DO 74 JIND=2,4
+      DO 74 J=1,3
+      DO 74 I=1,3
+      SUM=0
+      DO 72 K=1,3
+   72 SUM=SUM+S(I,K,JIND)*S(K,J,KIND)
+   74 S(I,J,KIND+2*JIND-2)=SUM
+      IF(PGIND.EQ.28) RETURN
+      NTOT=24
+      IF(PGIND.NE.29) GO TO 76
+C   POINT GROUP M3 = I(X)23
+      DO 75 KIND=1,12
+      DO 75 J=1,3
+      DO 75 I=1,3
+   75 S(I,J,KIND+12)=-S(I,J,KIND)
+      RETURN
+   76 IF(PGIND.EQ.31) GO TO 80
+C   POINT GROUP 432 = C4X(X)23
+      S(1,3,13)=-1
+      S(2,1,13)=-1
+      S(2,2,13)=1
+      S(2,3,13)=-1
+      S(3,2,13)=1
+      DO 78 KIND=2,12
+      DO 78 J=1,3
+      DO 78 I=1,3
+      SUM=0
+      DO 77 K=1,3
+   77 SUM=SUM+S(I,K,13)*S(K,J,KIND)
+   78 S(I,J,KIND+12)=SUM
+      IF(PGIND.EQ.30) RETURN
+C   POINT GROUP M3M = I(X)432
+      NTOT=48
+      DO 79 KIND=1,24
+      DO 79 J=1,3
+      DO 79 I=1,3
+   79 S(I,J,KIND+24)=-S(I,J,KIND)
+      RETURN
+C   POINT <4>3M = <C4X>(X)23
+   80 S(1,3,13)=1
+      S(2,1,13)=1
+      S(2,2,13)=-1
+      S(2,3,13)=1
+      S(3,2,13)=-1
+      DO 85 KIND=2,12
+      DO 85 J=1,3
+      DO 85 I=1,3
+      SUM=0
+      DO 84 K=1,3
+   84 SUM=SUM+S(I,K,13)*S(K,J,KIND)
+   85 S(I,J,KIND+12)=SUM
+      RETURN
+C   HERE IF PGIND EXCEEDS 32 OR IS LESS THAN 28.
+  100 if ( my_rank.eq.0 )WRITE(6,110) PGIND
+  110 FORMAT(' POINT-GROUP INDEX',I4,' IS NOT BETWEEN 28 AND 32 FOR A CU
+     1BIC GROUP. STOPPING')
+      STOP
+      END
+      SUBROUTINE BCTSYM(PGIND,S,NTOT)
+      include 'mpif.h'
+C   POINT GROUP ROTATION MATRICES FOR TETRAGONAL (I) BRAVAIS LATTICES.
+C   IT IS ASSUMED THAT A1=(A/2,A/2,C/2), A2=(A/2,-A/2,C/2), AND
+C   A3=(-A/2,-A/2,C/2).  THE ROTATION MATRICES EXPRESS HOW THESE
+C   BASIS VECTORS ARE TRANSFORMED INTO ONE ANOTHER BY POINT GROUP
+C   ROTATIONS.
+      INTEGER*4 PGIND,S(3,3,48),SUM
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      DO 1 K=1,48
+      DO 1 J=1,3
+      DO 1 I=1,3
+    1 S(I,J,K)=0
+      DO 2 I=1,3
+    2 S(I,I,1)=1
+      IF(PGIND.LT.11.OR.PGIND.GT.17) GO TO 40
+C   POINT GROUP 4.
+      NTOT=4
+      S(1,2,2)=1
+      S(2,3,2)=1
+      S(3,1,2)=1
+      S(3,2,2)=-1
+      S(3,3,2)=1
+      S(1,3,3)=1
+      S(2,1,3)=1
+      S(2,2,3)=-1
+      S(2,3,3)=1
+      S(3,1,3)=1
+      S(1,1,4)=1
+      S(1,2,4)=-1
+      S(1,3,4)=1
+      S(2,1,4)=1
+      S(3,2,4)=1
+      IF(PGIND.EQ.11) RETURN
+      IF(PGIND.NE.12.AND.PGIND.NE.16) GO TO 25
+C   POINT GROUP <4>.
+      DO 21 KIND=2,4,2
+      DO 21 J=1,3
+      DO 21 I=1,3
+   21 S(I,J,KIND)=-S(I,J,KIND)
+      IF(PGIND.EQ.12) RETURN
+C   POINT GROUP <4>2M = <4>(X)C2X.
+      NTOT=8
+      S(1,1,5)=-1
+      S(1,2,5)=1
+      S(1,3,5)=-1
+      S(2,3,5)=-1
+      S(3,2,5)=-1
+      DO 23 KIND=2,4
+      DO 23 J=1,3
+      DO 23 I=1,3
+      SUM=0
+      DO 22 K=1,3
+   22 SUM=SUM+S(I,K,5)*S(K,J,KIND)
+   23 S(I,J,KIND+4)=SUM
+      RETURN
+   25 NTOT=8
+      IF(PGIND.NE.13) GO TO 26
+C   POINT GROUP 4/M = MZ(X)4
+      S(1,3,5)=-1
+      S(2,1,5)=-1
+      S(2,2,5)=1
+      S(2,3,5)=-1
+      S(3,1,5)=-1
+      GO TO 30
+   26 IF(PGIND.NE.15) GO TO 27
+C   POINT GROUP 4MM = MX(X)4.
+      S(1,1,5)=1
+      S(1,2,5)=-1
+      S(1,3,5)=1
+      S(2,3,5)=1
+      S(3,2,5)=1
+      GO TO 30
+C   POINT GROUPS 422 = C2X(X)4 AND 4/MMM = I(X)422.
+   27 S(1,1,5)=-1
+      S(1,2,5)=1
+      S(1,3,5)=-1
+      S(2,3,5)=-1
+      S(3,2,5)=-1
+   30 DO 32 KIND=2,4
+      DO 32 J=1,3
+      DO 32 I=1,3
+      SUM=0
+      DO 31 K=1,3
+   31 SUM=SUM+S(I,K,5)*S(K,J,KIND)
+   32 S(I,J,KIND+4)=SUM
+      IF(PGIND.NE.17) RETURN
+      NTOT=16
+      DO 34 KIND=1,8
+      DO 34 J=1,3
+      DO 34 I=1,3
+   34 S(I,J,KIND+8)=-S(I,J,KIND)
+      RETURN
+   40 if ( my_rank.eq.0 ) WRITE(6,45) PGIND
+   45 FORMAT(' POINT-GROUP INDEX',I3,' IS NOT BETWEEN 11 AND 17 FOR A TE
+     1TRAGONAL GROUP. STOPPING')
+      STOP
+      END
+C     SUBROUTINE PGCON(PGIND,S,SC,NTOT)
+C***  CONVERTS TO CARTESIAN ORTHOGONAL FORM THE ROTATION MATRICES S
+C***  FOR ALL THE 32 POINT GROUPS OF THE SIMPLE (P) BRAVAIS LATTICE.
+C***  THE CARTESIAN MATRICES SC ARE GIVEN IN OUTPUT.
+C***  NOTICE THAT WITHIN THE ADOPTED CONVENTIONS THE S MATRICES
+C***  OPERATE ON ROW VECTORS AND THE SC MATRICES OPERATE ON COLUMN
+C***  VECTORS.
+C     IMPLICIT REAL*8 (A-H,O-Z)
+C     INTEGER*4 PGIND,S(3,3,48)
+C     DIMENSION SC(3,3,24),E1(3,3),E0(3,3),ST(3,3)
+C     DATA SR3/1.732050807568877/
+C     DO 10 I=1,3
+C     DO 10 J=1,3
+C     E0(I,J)=0.D0
+C10   E1(I,J)=0.D0
+C     DO 15 I=1,3
+C     E0(I,I)=1.D0
+C15   E1(I,I)=1.D0
+C     IF(PGIND.GE.6.AND.PGIND.LE.10) GO TO 200
+C     IF(PGIND.GE.18.AND.PGIND.LE.24) GO TO 200
+C     GO TO 100
+C*    HERE FOR TRIGONAL AND HEXAGONAL GROUPS
+C200  E0(2,1)=-0.5D0
+C     E0(2,2)=0.5D0*SR3
+C100  DO 110 IROT=1,NTOT
+C     DO 120 I=1,3
+C     DO 120 J=1,3
+C120  ST(J,I)=DFLOAT(S(I,J,IROT))
+C     CALL CONVT(E1,E0,ST)
+C     DO 130 I=1,3
+C     DO 130 J=1,3
+C130  SC(I,J,IROT)=ST(I,J)
+C110  CONTINUE
+C     RETURN
+C     END
+C     SUBROUTINE FCCCON(PGIND,S,SC,NTOT)
+C***  CONVERTS TO CARTESIAN ORTHOGONAL FORM THE ROTATION MATRICES S
+C***  FOR THE FCC BRAVAIS LATTICE.
+C***  THE CARTESIAN MATRICES SC ARE GIVEN IN OUTPUT.
+C***  NOTICE THAT WITHIN THE ADOPTED CONVENTIONS THE S MATRICES
+C***  OPERATE ON ROW VECTORS AND THE SC MATRICES OPERATE ON COLUMN
+C***  VECTORS.
+C     IMPLICIT REAL*8 (A-H,O-Z)
+C     INTEGER*4 PGIND,S(3,3,48)
+C     DIMENSION SC(3,3,24),E1(3,3),E0(3,3),ST(3,3)
+C     DATA SR2/1.414213562373095D+00/
+C     IF(PGIND.LT.28.OR.PGIND.GT.32) GO TO 100
+C     DO 10 I=1,3
+C     DO 10 J=1,3
+C     E0(I,J)=0.D0
+C10   E1(I,J)=0.D0
+C     DO 15 I=1,3
+C15   E1(I,I)=1.D0
+C     F=1.D0/SR2
+C     E0(1,1)=-F
+C     E0(1,3)=F
+C     E0(2,2)=F
+C     E0(2,3)=F
+C     E0(3,1)=-F
+C     E0(3,2)=F
+C     DO 20 IROT=1,NTOT
+C     DO 30 I=1,3
+C     DO 30 J=1,3
+C30   ST(J,I)=DFLOAT(S(I,J,IROT))
+C     CALL CONVT(E1,E0,ST)
+C     DO 40 I=1,3
+C     DO 40 J=1,3
+C40   SC(I,J,IROT)=ST(I,J)
+C20   CONTINUE
+C     RETURN
+C100  WRITE(6,110) PGIND
+C110  FORMAT(' POINT-GROUP INDEX',I4,' IS NOT BETWEEN 28 AND 32 FOR A CU
+C    1BIC GROUP. STOPPING')
+C     STOP
+C     END
+      SUBROUTINE BCCCON(PGIND,S,SC,NTOT)
+C***  CONVERTS TO CARTESIAN ORTHOGONAL FORM THE ROTATION MATRICES S
+C***  FOR THE BCC BRAVAIS LATTICE.
+C***  THE CARTESIAN MATRICES SC ARE GIVEN IN OUTPUT.
+C***  NOTICE THAT WITHIN THE ADOPTED CONVENTIONS THE S MATRICES
+C***  OPERATE ON ROW VECTORS AND THE SC MATRICES OPERATE ON COLUMN
+C***  VECTORS.
+      IMPLICIT REAL*8 (A-H,O-Z)
+      include 'mpif.h'
+      INTEGER*4 PGIND,S(3,3,48)
+      DIMENSION SC(3,3,24)
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      if ( my_rank.eq.0 ) WRITE(6,10)
+10    FORMAT(' THE SUBROUTINE BCCCON HAS NOT YET BEEN PROGRAMMED. STOPPI
+     1NG.')
+      STOP
+      END
+      SUBROUTINE TRGCON(PGIND,S,SC,NTOT)
+C***  CONVERTS TO CARTESIAN ORTHOGONAL FORM THE ROTATION MATRICES S
+C***  FOR THE TRIGONAL(R) GROUPS.
+C***  THE CARTESIAN MATRICES SC ARE GIVEN IN OUTPUT.
+C***  NOTICE THAT WITHIN THE ADOPTED CONVENTIONS THE S MATRICES
+C***  OPERATE ON ROW VECTORS AND THE SC MATRICES OPERATE ON COLUMN
+C***  VECTORS.
+      IMPLICIT REAL*8 (A-H,O-Z)
+      include 'mpif.h'
+      INTEGER*4 PGIND,S(3,3,48)
+      DIMENSION SC(3,3,24)
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      if (my_rank.eq.0 ) WRITE(6,10)
+10    FORMAT(' THE SUBROUTINE TRGCON HAS NOT YET BEEN PROGRAMMED. STOPPI
+     1NG.')
+      STOP
+      END
+      SUBROUTINE BCTCON(PGIND,S,SC,NTOT)
+C***  CONVERTS TO CARTESIAN ORTHOGONAL FORM THE ROTATION MATRICES S
+C***  FOR THE TETRAGONAL (I) BRAVAIS LATTICE.
+C***  THE CARTESIAN MATRICES SC ARE GIVEN IN OUTPUT.
+C***  NOTICE THAT WITHIN THE ADOPTED CONVENTIONS THE S MATRICES
+C***  OPERATE ON ROW VECTORS AND THE SC MATRICES OPERATE ON COLUMN
+C***  VECTORS.
+      IMPLICIT REAL*8 (A-H,O-Z)
+      include 'mpif.h'
+      INTEGER*4 PGIND,S(3,3,48)
+      DIMENSION SC(3,3,24)
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      if ( my_rank.eq.0 ) WRITE(6,10)
+10    FORMAT(' THE SUBROUTINE BCTCON HAS NOT YET BEEN PROGRAMMED. STOPPI
+     1NG.')
+      STOP
+      END
+C ASL SUBROUTINE CONVT(E1,E0,ST)
+C***  GIVEN THE UNIT VECTORS E1 AND E0 CONVERTS TO THE FRAME 1 THE
+C***  MATRIX ST ORIGINALLY GIVEN IN THE FRAME 0.
+C***  IT IS EXPLICITLY TAKEN INTO ACCOUNT THAT 1 IS CARTESIAN FRAME.
+C     IMPLICIT REAL*8 (A-H,O-Z)
+C     DIMENSION E1(3,3),E0(3,3),ST(3,3),G0(3,3),A(3,3),AT(3,3),R(3,3)
+C     DIMENSION W(3), IPVT(3), DET(2)
+C     E=-1.D0
+C     DO 10 I=1,3
+C     DO 10 J=1,3
+C     SUM1=0.D0
+C     SUM=0.D0
+C     DO 20 K=1,3
+C     SUM1=SUM1+E0(I,K)*E1(J,K)
+C  20 SUM=SUM+E0(I,K)*E0(J,K)
+C     A(I,J)=SUM1
+C     AT(J,I)=SUM1
+C  10 G0(I,J)=SUM
+CCC   CALL MA22BD(G0,3,3,W,E)
+CIMSL IDGT=8
+CIMSL CALL LINV2F( G0, 3, 3, G00, IDGT, W, IER )
+C ASL
+C     IER=0
+C     CALL DBGMLU(G0,3,3,IPVT,IER)
+C     CALL DBGMDI(G0,3,3,IPVT,DET,-1,W,IER)
+C     IF(IER.GT.100 ) GO TO 99
+CIMSL DO 30 I=1,3
+CIMSL DO 30 J=1,3
+C  30 G0(I,J)=G00(I,J)
+C     CALL RPROD(3,3,G0,A,R)
+C     CALL RPROD(3,3,ST,R,G0)
+C     CALL RPROD(3,3,AT,G0,ST)
+C     RETURN
+C  99 WRITE(6,999) IER
+C 999 FORMAT(' SUBROUTINE CONVT: ERROR CONDITION=',I5,' IN ASL')
+CC    STOP
+CC    END
+C     SUBROUTINE CONVT(E1,E0,ST)
+C***  GIVEN THE UNIT VECTORS E1 AND E0 CONVERTS TO THE FRAME 1 THE
+C***  MATRIX ST ORIGINALLY GIVEN IN THE FRAME 0.
+C***  IT IS EXPLICITLY TAKEN INTO ACCOUNT THAT 1 IS CARTESIAN FRAME.
+C     IMPLICIT REAL*8 (A-H,O-Z)
+C     DIMENSION E1(3,3),E0(3,3),ST(3,3),G0(3,3),A(3,3),AT(3,3),R(3,3)
+C     DIMENSION W(18), G00(3,3)
+C     E=-1.D0
+C     DO 10 I=1,3
+C     DO 10 J=1,3
+C     SUM1=0.D0
+C     SUM=0.D0
+C     DO 20 K=1,3
+C     SUM1=SUM1+E0(I,K)*E1(J,K)
+C  20 SUM=SUM+E0(I,K)*E0(J,K)
+C     A(I,J)=SUM1
+C     AT(J,I)=SUM1
+C  10 G0(I,J)=SUM
+C
+C     IER=0
+C     IDGT=12
+C     CALL LINV2F( G0, 3, 3, G00, IDGT, W, IER )
+C ** TEMP
+C         DO 1000 I=1,3
+C         DO 1000 J=1,3
+C         STD=0.0D+00
+C         IF(I.EQ.J) STD=1.0D+00
+C           CHK=0.0D+00
+C           DO 1010 K=1,3
+C1010       CHK=CHK+G0(I,K)*G00(K,J)
+C           CHK=ABS( CHK-STD )
+C           IF(CHK.GT.0.1D-10) IER=700+IER
+C1000     CONTINUE
+C ** TEMP END
+C     IF(IER.GT.100 ) GO TO 99
+C
+C     DO 30 I=1,3
+C     DO 30 J=1,3
+C  30 G0(I,J)=G00(I,J)
+C     CALL RPROD(3,3,G0,A,R)
+C     CALL RPROD(3,3,ST,R,G0)
+C     CALL RPROD(3,3,AT,G0,ST)
+C     RETURN
+C  99 WRITE(6,999) IER
+C 999 FORMAT(' SUBROUTINE CONVT: ERROR CONDITION=',I5,' IN IMSL')
+C     STOP
+C     END
+CCC   SUBROUTINE PARITY(SC,SCP,IP,NROT)
+C***  COMPUTES THE PARITY IP = DET( SC ) FOR ALL THE ROTATION
+C***  MATRICES SC AND CONSTRUCTS THE PROPER ROTATION MATRICES SCP.
+C***  IF IP = 1, SCP = SC ;
+C***  IF IP =-1, SCP = (-I) * SC, WHERE I IS THE IDENTITY MATRIX.
+CCC   IMPLICIT REAL*8 (A-H,O-Z)
+CIMSL DIMENSION  SC(3,3,24),SCP(3,3,24),A(3,3),UL(3,3),IPVT(3)
+CIM  &         , EQUIL(3)
+CC    DIMENSION  SC(3,3,24),SCP(3,3,24),A(3,3),DE(2),IPVT(3)
+CC   &         , WK(3)
+CC    INTEGER IP(24)
+CC    DO 10 IROT=1,NROT
+CC    DO 12 I=1,3
+CC    DO 12 J=1,3
+CC 12 A(I,J)=SC(I,J,IROT)
+CCC   CALL MA21CD(A,3,3,DET,IDET,W)
+CIMSL IDGT=6
+CIMSL CALL LUDATF( A, UL, 3, 3, IDGT, D1, D2, IPVT, EQUIL, WA, IER )
+CIMSL DET=D1*2**D2
+C ASL
+C TEMP
+C     WRITE(6,1100) IROT, (( SC(I,J,IROT), J=1,3), I=1,3 )
+C1100 FORMAT(/' PARITY: IROT = ',I4,' SC:'/(10D13.5))
+C TEMP END
+CC    IER=0
+CC    CALL DBGMLU(A,3,3,IPVT,IER)
+CC    CALL DBGMDI(A,3,3,IPVT,DE,1,WK,IER)
+CC    IF(IER.NE.0) GOTO 99
+CC    DET=DE(1)*( 10.0D+00**DE(2) )
+C *** TEMP
+CC    WRITE(6,*) '    **  DE(1) & DE(2) DET  = ',DE(1),DE(2),DET
+C *** TEMP END
+C
+CC    IP(IROT)=1
+CC    IF(DET.LT.0.D0) IP(IROT)=-1
+CC    DO 14 I=1,3
+CC    DO 14 J=1,3
+CC 14 SCP(I,J,IROT)=SC(I,J,IROT)*DFLOAT(IP(IROT))
+CC 10 CONTINUE
+C **** TEMP
+C      WRITE(6,1000) IP
+C1000 FORMAT(//' PARITY: IP = '/(16I4))
+C **** TEMP END
+C     RETURN
+CCC*************** LAST CARD OF SYMPK *********************************
+C  99 WRITE(6,999) IER
+C 999 FORMAT(/' SUB. PARITY.... ERROR IN ASL: IER = ',I5)
+CC    STOP
+CC    END
+      SUBROUTINE PARITY(SC,SCP,IP,NROT)
+C***  COMPUTES THE PARITY IP = DET( SC ) FOR ALL THE ROTATION
+C***  MATRICES SC AND CONSTRUCTS THE PROPER ROTATION MATRICES SCP.
+C***  IF IP = 1, SCP = SC ;
+C***  IF IP =-1, SCP = (-I) * SC, WHERE I IS THE IDENTITY MATRIX.
+      IMPLICIT REAL*8 (A-H,O-Z)
+      DIMENSION  SC(3,3,24),SCP(3,3,24),IP(24)
+C
+      DO 10 IROT=1,NROT
+        DET =   SC(1,1,IROT) * SC(2,2,IROT) * SC(3,3,IROT)
+     &        + SC(1,2,IROT) * SC(2,3,IROT) * SC(3,1,IROT)
+     &        + SC(2,1,IROT) * SC(3,2,IROT) * SC(1,3,IROT)
+     &        - SC(1,3,IROT) * SC(2,2,IROT) * SC(3,1,IROT)
+     &        - SC(1,1,IROT) * SC(2,3,IROT) * SC(3,2,IROT)
+     &        - SC(1,2,IROT) * SC(2,1,IROT) * SC(3,3,IROT)
+C
+                        IP(IROT)=1
+        IF(DET.LT.0.D0) IP(IROT)=-1
+          DO 14 I=1,3
+          DO 14 J=1,3
+   14     SCP(I,J,IROT)=SC(I,J,IROT)*DFLOAT(IP(IROT))
+   10 CONTINUE
+C **** TEMP
+CC     WRITE(6,1000) IP
+C1000 FORMAT(//' PARITY: IP = '/(16I4))
+C **** TEMP END
+      RETURN
+CCC*************** LAST CARD OF SYMPK *********************************
+      END
+C******************************************************
+      SUBROUTINE GRAM(P,M1,N1,M2,N2)
+      IMPLICIT REAL*8(A-H,O-Z)
+      include 'mpif.h'
+      COMPLEX*16 P(M1,M2),CTEMP
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      DO 62 I=1,N2
+         DO 64 J=1,I-1
+            CTEMP=(0.D0,0.D0)
+            DO 66 K=1,N1
+   66       CTEMP=CTEMP+P(K,I)*DCONJG(P(K,J))
+            DO 68 K=1,N1
+   68       P(K,I)=P(K,I)-CTEMP*P(K,J)
+C           WRITE(6,*) ' ORTH ',I,J,CTEMP
+   64    CONTINUE
+C        NORMALIZATION
+         TEMP=0.D0
+         DO 70 K=1,N1
+   70    TEMP=TEMP+DBLE(P(K,I)*DCONJG(P(K,I)))
+         IF(TEMP.LT.1.D-10 .and. my_rank.eq.0 ) THEN
+            WRITE(6,*) ' WAVEFUNCTION NEARLY LINEAR INDEPENDENT',
+     &                 I,TEMP
+         ENDIF
+         TEMP=1.D0/SQRT(TEMP)
+         DO 72 K=1,N1
+   72    P(K,I)=P(K,I)*TEMP
+   62 CONTINUE
+      RETURN
+      END
+C***********************************************************
+      SUBROUTINE GGEN2(NGQ,NG2,NG2Q,NG,G,G2,X,TPIBA2,GCUT2)
+      IMPLICIT REAL*8 (A-H,O-Z)
+      include 'mpif.h'
+      DIMENSION G(4,NGQ),G2(4,NG2Q),X(3)
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      NG2=1
+      DO 1 I=1,NG
+      IF(NG2.GT.NG2Q) GOTO 100
+      G2(1,NG2)=X(1)+G(1,I)
+      G2(2,NG2)=X(2)+G(2,I)
+      G2(3,NG2)=X(3)+G(3,I)
+      G2(4,NG2)=G2(1,NG2)**2 + G2(2,NG2)**2 + G2(3,NG2)**2
+      GDIF= G2(4,NG2)*TPIBA2
+      IF(GDIF.GT.GCUT2) GOTO 1
+      NG2=NG2+1
+    1 CONTINUE
+      NG2=NG2-1
+C     WRITE(6,200) GCUT2,NG2
+C 200 FORMAT('   PLANE WAVE BASIS SET: GCUT2= ',F12.3,'  NG2= ',I5)
+C
+      DO 20 IG=1,NG2
+        DO 30 JG=IG,NG2
+          IF( G2(4,JG).GE.G2(4,IG) ) GOTO 30
+            DO 15 IR=1,4
+              Q=G2(IR,IG)
+              G2(IR,IG)=G2(IR,JG)
+              G2(IR,JG)=Q
+   15       CONTINUE
+   30   CONTINUE
+   20 CONTINUE
+      RETURN
+  100 if ( my_rank.eq.0 ) WRITE(6,110) GCUT2
+  110 FORMAT(' GCUT2=',1PE12.4,' IS TOO BIG. STOPPING')
+      STOP
+      END
+C****************************************************************
+      SUBROUTINE LATGEN(IBRAV,CELLDM,A1,A2,A3,OMEGA)
+C
+C   SETS UP THE CRYSTALLOGRAPHIC VECTORS A1,A2, AND A3.
+C   IBRAV AND CELLDM ARE DEFINED IN THE TABLE AT THE BEGINNING
+C   OF SUBROUTINE KSUM.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      include 'mpif.h'
+      REAL*8 CELLDM(6),A1(3),A2(3),A3(3)
+      DATA SR3/1.73205080756888D+00/
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      DO 50 IR=1,3
+      A1(IR)=0.D0
+      A2(IR)=0.D0
+   50 A3(IR)=0.D0
+      GO TO (2,4,6,8,10,12,14,16,18,20,22,24,26,28),IBRAV
+C     IBRAV=1:SIMPLE CUBIC
+    2 A1(1)=CELLDM(1)
+      A2(2)=CELLDM(1)
+      A3(3)=CELLDM(1)
+      GO TO 100
+C     IBRAV=2:FCC
+C     A1=(-A/2,  0,A/2)
+C     A2=(   0,A/2,A/2)
+C     A3=(-A/2,A/2,  0)
+    4 TERM=CELLDM(1)/2.D0
+      A1(1)=-TERM
+      A1(3)=TERM
+      A2(2)=TERM
+      A2(3)=TERM
+      A3(1)=-TERM
+      A3(2)=TERM
+      GO TO 100
+C     IBRAV=3:BCC
+C     A1=( A/2, A/2,A/2)
+C     A2=(-A/2, A/2,A/2)
+C     A3=(-A/2,-A/2,A/2)
+    6 TERM=CELLDM(1)/2.D0
+      DO 71 IR=1,3
+      A1(IR)=TERM
+      A2(IR)=TERM
+   71 A3(IR)=TERM
+      A2(1)=-TERM
+      A3(1)=-TERM
+      A3(2)=-TERM
+      GO TO 100
+C     IBRAV=4:TRIG,HEX
+C     A1=( A/2, A/2,A/2)
+C     A2=( A/2, A/2,A/2)
+C     A3=( A/2, A/2,A/2)
+    8 CBYA=CELLDM(3)
+      A1(1)=CELLDM(1)
+      A2(1)=-CELLDM(1)/2.D0
+      A2(2)=CELLDM(1)*SR3/2.D0
+      A3(3)=CELLDM(1)*CBYA
+      GO TO 100
+   10 TERM1=SQRT(1.D0+2.D0*CELLDM(4))
+      TERM2=SQRT(1.D0-CELLDM(4))
+      A1(2)=SQRT(2.D0)*CELLDM(1)*TERM2/SR3
+      A1(3)=CELLDM(1)*TERM1/SR3
+      A2(1)=CELLDM(1)*TERM2/SQRT(2.D0)
+      A2(2)=-A2(1)/SR3
+      A2(3)=A1(3)
+      A3(1)=-A2(1)
+      A3(2)=A2(2)
+      A3(3)=A1(3)
+      GO TO 100
+   12 CBYA=CELLDM(3)
+      A1(1)=CELLDM(1)
+      A2(2)=CELLDM(1)
+      A3(3)=CELLDM(1)*CBYA
+      GO TO 100
+   14 CBYA=CELLDM(3)
+      A1(1)=CELLDM(1)/2.D0
+      A1(2)=A1(1)
+      A1(3)=CBYA*CELLDM(1)/2.D0
+      A2(1)=A1(1)
+      A2(2)=-A1(1)
+      A2(3)=A1(3)
+      A3(1)=-A1(1)
+      A3(2)=-A1(1)
+      A3(3)=A1(3)
+      GO TO 100
+   16 A1(1)=CELLDM(1)
+      A2(2)=CELLDM(1)*CELLDM(2)
+      A3(3)=CELLDM(1)*CELLDM(3)
+      GO TO 100
+   18 GO TO 110
+   20 GO TO 110
+   22 GO TO 110
+   24 SIN=SQRT(1.D0-CELLDM(4)**2)
+      A1(1)=CELLDM(1)
+      A2(1)=CELLDM(1)*CELLDM(2)*CELLDM(4)
+      A2(2)=CELLDM(1)*CELLDM(2)*SIN
+      A3(3)=CELLDM(1)*CELLDM(3)
+      GO TO 100
+   26 GO TO 110
+   28 SINGAM=SQRT(1.D0-CELLDM(6)**2)
+      TERM=SQRT((1.D0+2.D0*CELLDM(4)*CELLDM(5)*CELLDM(6)
+     1 -CELLDM(4)**2-CELLDM(5)**2-CELLDM(6)**2)/(1.D0-CELLDM(6)**2))
+      A1(1)=CELLDM(1)
+      A2(1)=CELLDM(1)*CELLDM(2)*CELLDM(6)
+      A2(2)=CELLDM(1)*CELLDM(2)*SINGAM
+      A3(1)=CELLDM(1)*CELLDM(3)*CELLDM(5)
+      A3(2)=CELLDM(1)*CELLDM(3)*(CELLDM(4)-CELLDM(5)*CELLDM(6))/SINGAM
+      A3(3)=CELLDM(1)*CELLDM(3)*TERM
+  100 OMEGA=0.D0
+      S=1.D0
+      I=1
+      J=2
+      K=3
+  101 DO 102 IPERM=1,3
+      OMEGA=OMEGA+S*A1(I)*A2(J)*A3(K)
+      L=I
+      I=J
+      J=K
+      K=L
+  102 CONTINUE
+      I=2
+      J=1
+      K=3
+      S=-S
+      IF(S.LT.0.D0) GO TO 101
+      OMEGA=ABS(OMEGA)
+      RETURN
+  110 if ( my_rank.eq.0 ) WRITE(6,120) IBRAV
+  120 FORMAT(' BRAVAIS LATTICE',I3,' NOT PROGRAMMED. STOPPING')
+      STOP
+      END
+C****************************************************************
+C     SUBROUTINE GGEN(A,A1,A2,A3,B1,B2,B3,NRX,NRY,NRZ,NXYZ,
+C    &                NG,NGQ,G,I2G,GCUT)
+C
+C   GENERATES THE RECIPROCAL LATTICE VECTORS WITH LENGTH SQUARED
+C   LESS THAN GCUT, AND RETURNS THEM IN ORDER OF INCREASING LENGTH.
+C      G=I*B1+J*B2+K*B3,
+C   WHERE B1,B2,B3 ARE THE VECTORS DEFINING THE RECIPROCAL LATTICE,
+C   THE G'S ARE IN UNITS OF 2PI/A, WHERE A IS THE LATTICE CONSTANT.
+C   (I.E. TRUE G IS OBTAINED BY MULTIPLYING THE G'S WITH 2π/A.)
+C                                   (1990-04-12) OSAMU SUGINO
+C   SLAVE SUBROUTINE:RECIP
+C   INPUT:A?(3), LATTICE VECTOR
+C   OUTPUT:G(NG), RECIPROCAL LATTICE VECTORS
+C
+C     IMPLICIT REAL*8 (A-H,O-Z)
+C     REAL*8 A1(3),A2(3),A3(3),B1(3),B2(3),B3(3),T(4)
+C     DIMENSION I2G(NGQ),G(4,NGQ)
+C     CALL RECIPS(A,A1,A2,A3,B1,B2,B3)
+C     WRITE(6,3002) (B1(I),B2(I),B3(I),I=1,3)
+C3002 FORMAT(' B-VECTORS'/,3(' ',3F15.7/))
+C     NG=1
+C     TNRM1=2*NRX-1
+C     TNRM2=2*NRY-1
+C     TNRM3=2*NRZ-1
+C     DO 10 I1=1,TNRM1
+C     I=I1-NRX
+C     DO 10 J1=1,TNRM2
+C     J=J1-NRY
+C     DO 10 K1=1,TNRM3
+C     K=K1-NRZ
+C     G2=0.D0
+C     DO 5 IR=1,3
+C     T(IR)=DBLE(I)*B1(IR)+DBLE(J)*B2(IR)+DBLE(K)*B3(IR)
+C   5 G2=G2+T(IR)*T(IR)
+C     IF(G2.GT.GCUT) GO TO 10
+C     DO 6 IR=1,3
+C   6 G(IR,NG)=T(IR)
+C     G(4,NG)=G2
+C     N1=I+1
+C     IF(I.LT.0) N1=N1+NRX
+C     N2=J+1
+C     IF(J.LT.0) N2=N2+NRY
+C     N3=K+1
+C     IF(K.LT.0) N3=N3+NRZ
+C     I2G(NG)=N1+(N2-1)*NRX+(N3-1)*NRX*NRY
+C     NG=NG+1
+C     IF(NG.GT.NGQ) GO TO 100
+C  10 CONTINUE
+C     NG=NG-1
+C     WRITE(6,130) GCUT,NG,NXYZ*4.0*3.141593/3.0/8.0
+C 130 FORMAT(' GCUT=',F15.7,' NG=',I8,' NG EFFICIENT=',F15.7)
+C
+C   REORDER THE G'S IN ORDER OF INCREASING MAGNITUDE.
+C     DO 20 IG=1,NG
+C     DO 20 JG=IG,NG
+C     IF(G(4,JG).GE.G(4,IG)) GO TO 20
+C     DO 15 IR=1,4
+C     Q=G(IR,IG)
+C     G(IR,IG)=G(IR,JG)
+C  15 G(IR,JG)=Q
+C     IS=I2G(IG)
+C     I2G(IG)=I2G(JG)
+C     I2G(JG)=IS
+C  20 CONTINUE
+C     RETURN
+C 100 WRITE(6,110) GCUT,NGQ
+C 110 FORMAT(' GCUT=',1PE12.4,' IS TOO BIG. STOPPING',I3)
+C     STOP
+C     END
+C***************************************************************
+      SUBROUTINE RECIPS(A,A1,A2,A3,B1,B2,B3)
+C
+C   GENERATES THE RECIPROCAL LATTICE VECTORS B1,B2,B3 GIVEN THE REAL
+C   SPACE VECTORS A1,A2,A3.  THE B'S ARE UNITS OF 2PI/A.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      REAL*8 A1(3),A2(3),A3(3),B1(3),B2(3),B3(3)
+C
+C CALCULATE THE VOLUME OF UNIT CELL 'DEN'
+C
+      DEN=0.D0
+      I=1
+      J=2
+      K=3
+      S=1.D0
+    1 DO 2 IPERM=1,3
+         DEN=DEN+S*A1(I)*A2(J)*A3(K)
+         L=I
+         I=J
+         J=K
+         K=L
+    2 CONTINUE
+      I=2
+      J=1
+      K=3
+      S=-S
+      IF(S.LT.0.) GO TO 1
+c
+c  UNIT VECTORS FOR THE RECIPROCAL LATTICE B1,B2,B3
+C  THE B'S ARE MADE DIMENSION-LESS BY MULTIPLYING WITH 'A'
+C
+      I=1
+      J=2
+      K=3
+      DEN=A/ABS(DEN)
+      DO 5 IR=1,3
+         B1(IR)=DEN*(A2(J)*A3(K)-A2(K)*A3(J))
+         B2(IR)=DEN*(A3(J)*A1(K)-A3(K)*A1(J))
+         B3(IR)=DEN*(A1(J)*A2(K)-A1(K)*A2(J))
+         L=I
+         I=J
+         J=K
+         K=L
+    5 CONTINUE
+      RETURN
+      END
+C ***************************
+      SUBROUTINE SUCOM0
+C     BLOCK DATA
+      COMMON /ZSUCOM/ MLEVEL, NOUT
+C     DATA MLEVEL, NOUT / 1, 6/
+      MLEVEL=1
+      NOUT=6
+      END
