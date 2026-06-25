@@ -1,0 +1,8 @@
+*.o
+*.mod
+*.L
+make.out
+compile.out
+tddft_exe
+cg_exe*
+sd_exe*
