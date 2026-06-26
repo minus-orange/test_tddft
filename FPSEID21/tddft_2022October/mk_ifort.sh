@@ -8,13 +8,17 @@ set -eu
 #   FFTW_ROOT  FFTW3 installation prefix containing include/ and lib/.
 #
 # Optional:
+#   CC         C compiler wrapper for the FFTW thread API shim. Default: mpicc
 #   FFLAGS     Additional Fortran flags.
+#   CFLAGS     Additional C flags.
 #   LDFLAGS    Additional linker flags.
 #   FFTW_LIBS  FFTW libraries. Default: -lfftw3_omp -lfftw3
 
 FC=${FC:-mpiifort}
+CC=${CC:-mpicc}
 FFTW_ROOT=${FFTW_ROOT:-}
 FFLAGS=${FFLAGS:-"-O3 -traceback -qopenmp"}
+CFLAGS=${CFLAGS:-"-O2"}
 LDFLAGS=${LDFLAGS:-}
 FFTW_LIBS=${FFTW_LIBS:-"-lfftw3_omp -lfftw3"}
 
@@ -32,6 +36,8 @@ if [ ! -f "$FFTW_ROOT/include/fftw3.f" ]; then
 fi
 
 set -x
+"$CC" $CFLAGS -I"$FFTW_ROOT/include" -c fftw_threads_fwrap.c \
+  -o fftw_threads_fwrap.o
 "$FC" $FFLAGS \
   -I"$FFTW_ROOT/include" \
   -o tddft_exe \
@@ -41,5 +47,5 @@ set -x
   frprmn_tm12_check_Vext_Avec_v4.f pack.f tdep.f vpj_gen.f \
   electf4_Vext_Avec.f gga_lib_3_PBE.f \
   pspw_tm11_Vext_Avec_v4_alloc.f tmevl10_Avec_v4.f bannerTDDFT.f \
-  fft_fftw.f \
+  fft_fftw.f omp_clock.f fftw_threads_fwrap.o \
   -L"$FFTW_ROOT/lib" $LDFLAGS $FFTW_LIBS

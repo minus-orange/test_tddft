@@ -19,7 +19,6 @@
       include 'mpif.h'
       integer id
       real*8 pt,pt0
-      real*8 MPI_Wtime
       integer pc,prank
       common /profdata/ pt(64),pt0(64),pc(64),prank
       if (id.lt.1 .or. id.gt.64) return
@@ -32,7 +31,6 @@
       include 'mpif.h'
       integer id
       real*8 pt,pt0
-      real*8 MPI_Wtime
       integer pc,prank
       common /profdata/ pt(64),pt0(64),pc(64),prank
       if (id.lt.1 .or. id.gt.64) return

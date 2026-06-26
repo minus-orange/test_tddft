@@ -42,6 +42,13 @@ The default TDDFT compiler wrapper is `mpiifort`. Override it when needed:
 FC=mpiifx FFTW_ROOT=$PWD/../../tools/fftw-3.3.11/install ./mk_ifort.sh
 ```
 
+GNU/OpenMPI builds can use Homebrew or system FFTW:
+
+```sh
+FC=mpifort CC=mpicc FFLAGS="-O2 -fopenmp -fallow-argument-mismatch -fallow-invalid-boz" \
+  FFTW_ROOT=/opt/homebrew/opt/fftw ./mk_ifort.sh
+```
+
 This build uses `fft_fftw.f` instead of the NEC ASL FFT wrapper. FFTW itself is
 distributed under the GNU GPL; see the official FFTW download page for source
 and license details:
@@ -64,6 +71,12 @@ Both scripts default to `FC=ifort`. Override the compiler or flags when needed:
 
 ```sh
 FC=ifx FFLAGS="-O3 -qopenmp -traceback" ./mk_ifort.sh
+```
+
+GNU builds were checked with:
+
+```sh
+FC=gfortran FFLAGS="-O2 -fopenmp -fallow-argument-mismatch -fallow-invalid-boz" ./mk_ifort.sh
 ```
 
 ## Static call tree
