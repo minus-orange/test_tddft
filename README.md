@@ -47,6 +47,15 @@ distributed under the GNU GPL; see the official FFTW download page for source
 and license details:
 https://www.fftw.org/download.html
 
+## Static call tree
+
+The TDDFT build-source call tree is generated in `docs/tddft_call_tree.md`.
+Regenerate it with:
+
+```sh
+tools/generate_tddft_call_tree.sh
+```
+
 Look for:
 
 ```text
