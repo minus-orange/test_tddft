@@ -47,6 +47,25 @@ distributed under the GNU GPL; see the official FFTW download page for source
 and license details:
 https://www.fftw.org/download.html
 
+## CG/SD Intel builds
+
+The non-TDDFT CG and SD source trees are included with Intel-oriented wrapper
+scripts. Build them from each source directory:
+
+```sh
+cd FPSEID21/cg_GGA_f_code
+./mk_ifort.sh
+
+cd ../sd_GGA_f_compact_code
+./mk_ifort.sh
+```
+
+Both scripts default to `FC=ifort`. Override the compiler or flags when needed:
+
+```sh
+FC=ifx FFLAGS="-O3 -qopenmp -traceback" ./mk_ifort.sh
+```
+
 ## Static call tree
 
 The TDDFT build-source call tree is generated in `docs/tddft_call_tree.md`.
