@@ -45,7 +45,7 @@ FC=mpiifx FFTW_ROOT=$PWD/../../tools/fftw-3.3.11/install ./mk_ifort.sh
 GNU/OpenMPI builds can use Homebrew or system FFTW:
 
 ```sh
-FC=mpifort CC=mpicc FFLAGS="-O2 -fopenmp -fallow-argument-mismatch -fallow-invalid-boz" \
+FC=mpifort CC=mpicc FFLAGS="-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz" \
   FFTW_ROOT=/opt/homebrew/opt/fftw ./mk_ifort.sh
 ```
 
@@ -76,7 +76,7 @@ FC=ifx FFLAGS="-O3 -qopenmp -traceback" ./mk_ifort.sh
 GNU builds were checked with:
 
 ```sh
-FC=gfortran FFLAGS="-O2 -fopenmp -fallow-argument-mismatch -fallow-invalid-boz" ./mk_ifort.sh
+FC=gfortran FFLAGS="-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz" ./mk_ifort.sh
 ```
 
 ## Static call tree

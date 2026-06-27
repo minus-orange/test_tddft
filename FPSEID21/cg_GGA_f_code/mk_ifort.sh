@@ -5,11 +5,18 @@ set -eu
 #
 # Optional environment:
 #   FC      Fortran compiler. Default: ifort
-#   FFLAGS  Fortran flags. Default: -O3 -mcmodel=medium -qopenmp -traceback
+#   FFLAGS  Fortran flags. Default depends on FC.
 #   LDFLAGS Additional linker flags.
 
 FC=${FC:-ifort}
-FFLAGS=${FFLAGS:-"-O3 -mcmodel=medium -qopenmp -traceback"}
+case "$FC" in
+  *gfortran*)
+    FFLAGS=${FFLAGS:-"-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz"}
+    ;;
+  *)
+    FFLAGS=${FFLAGS:-"-O3 -mcmodel=medium -qopenmp -traceback"}
+    ;;
+esac
 LDFLAGS=${LDFLAGS:-}
 OUT=${OUT:-cg_exe}
 

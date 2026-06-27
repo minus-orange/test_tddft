@@ -9,7 +9,7 @@ set -eu
 #
 # Optional:
 #   CC         C compiler wrapper for the FFTW thread API shim. Default: mpicc
-#   FFLAGS     Additional Fortran flags.
+#   FFLAGS     Fortran flags. Default depends on FC.
 #   CFLAGS     Additional C flags.
 #   LDFLAGS    Additional linker flags.
 #   FFTW_LIBS  FFTW libraries. Default: -lfftw3_omp -lfftw3
@@ -17,7 +17,14 @@ set -eu
 FC=${FC:-mpiifort}
 CC=${CC:-mpicc}
 FFTW_ROOT=${FFTW_ROOT:-}
-FFLAGS=${FFLAGS:-"-O3 -traceback -qopenmp"}
+case "$FC" in
+  *gfortran*|*mpifort*)
+    FFLAGS=${FFLAGS:-"-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz"}
+    ;;
+  *)
+    FFLAGS=${FFLAGS:-"-O3 -traceback -qopenmp"}
+    ;;
+esac
 CFLAGS=${CFLAGS:-"-O2"}
 LDFLAGS=${LDFLAGS:-}
 FFTW_LIBS=${FFTW_LIBS:-"-lfftw3_omp -lfftw3"}
