@@ -49,6 +49,9 @@ FC=mpifort CC=mpicc FFLAGS="-O2 -fopenmp -fno-automatic -fallow-argument-mismatc
   FFTW_ROOT=/opt/homebrew/opt/fftw ./mk_ifort.sh
 ```
 
+The Intel/default build keeps using the original source files. GNU builds use
+the `_gnu.f` source variants only where GNU Fortran needs compatibility fixes.
+
 This build uses `fft_fftw.f` instead of the NEC ASL FFT wrapper. FFTW itself is
 distributed under the GNU GPL; see the official FFTW download page for source
 and license details:
@@ -78,6 +81,9 @@ GNU builds were checked with:
 ```sh
 FC=gfortran FFLAGS="-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz" ./mk_ifort.sh
 ```
+
+The Intel/default build keeps using the original source files. GNU builds use
+the `_gnu.f` source variants only where GNU Fortran needs compatibility fixes.
 
 ## Static call tree
 

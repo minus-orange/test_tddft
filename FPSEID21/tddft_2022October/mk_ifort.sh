@@ -20,9 +20,13 @@ FFTW_ROOT=${FFTW_ROOT:-}
 case "$FC" in
   *gfortran*|*mpifort*)
     FFLAGS=${FFLAGS:-"-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz"}
+    LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE_gnu.f}
+    RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
     ;;
   *)
     FFLAGS=${FFLAGS:-"-O3 -traceback -qopenmp"}
+    LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE.f}
+    RARR3_SRC=${RARR3_SRC:-rarr3.f}
     ;;
 esac
 CFLAGS=${CFLAGS:-"-O2"}
@@ -48,8 +52,8 @@ set -x
 "$FC" $FFLAGS \
   -I"$FFTW_ROOT/include" \
   -o tddft_exe \
-  cpu_block.f prof_timer.f lib4_ASL_2_check_Vext_SXACE.f \
-  rarr3.f tm_inputs.f \
+  cpu_block.f prof_timer.f "$LIB4_SRC" \
+  "$RARR3_SRC" tm_inputs.f \
   rexgenDummy.f dipole.f orbanly_part_f.f smatchk2.f \
   frprmn_tm12_check_Vext_Avec_v4.f pack.f tdep.f vpj_gen.f \
   electf4_Vext_Avec.f gga_lib_3_PBE.f \

@@ -72,136 +72,146 @@ C            SUBROUTINE CRYST,STRUC,ELECTF
 C
       IMPLICIT REAL*8 (A-H,O-Z)
 C*******************************************************
-c *** for Cu2S cubic cell with Ecut=62 Ry
+c *** for Ce-doped YAG cube cell with a=12.12816873 a.u. 61 Ry
 C  ***** !!!!  promote single electron !!!!
-c      PARAMETER(NRX=39,NRY=39,NRZ=39,NXYZ=NRX*NRY*NRZ, ! NRX,NRY,NRZ: read from file
-c     &          NFLQ =14,NVIRTQ = 10, MXBND=NFLQ+NVIRTQ, ! NFLQ, NVIRTQ: read from file
+c      PARAMETER(NRX=39,NRY=39,NRZ=39,NXYZ=NRX*NRY*NRZ,
+c     &          NFLQ =14,NVIRTQ = 10, MXBND=NFLQ+NVIRTQ,
 c     &          NBNDQ = NFLQ + NVIRTQ,
-c     &          NGQ=25000,NG2Q=2600, NUMKQ=10 ) ! NGQ, NG2Q, NUMKQ: read from file
-c      PARAMETER(NTAUQ=3,NTYQ=2,NUMQ=3, NCRQ=2, LREQ=3) ! NTAUQ,NTYPQ, read from file
-      PARAMETER(LATQ=800,MESHQ=1000,NUMQ=3,NCRQ=2,LREQ=3) ! remain as is!
+c     &          NGQ=NXYZ,NG2Q=NXYZ, NUMKQ=10 )
+c      PARAMETER(NTAUQ=3,NTYQ=2,NUMQ=3, NCRQ=2, LREQ=3)
+      PARAMETER(NUMQ=3, NCRQ=2, LREQ=3)
+      PARAMETER(LATQ=800,MESHQ=1000)
 C*******************************************************
 c      PARAMETER(MBLKQ=(NBNDQ-1)/MXBND + 1  )
-      PARAMETER (MBLKQ=1)
+      PARAMETER(MBLKQ= 1  )
       PARAMETER(NTYQ2=4)
       PARAMETER (IRLATQ=144,NARF=IRLATQ)
       PARAMETER (NAS=144,NAD=72)
+      DIMENSION  RVEC(4,LATQ),RR(LATQ),NWK(LATQ)
+      DIMENSION RKK(IRLATQ),KG(3,IRLATQ),KZ(3,IRLATQ,48),NSY(IRLATQ)
+      DIMENSION RCOSIN(NAS,IRLATQ),CCO(-NAD:NAD),SK(3,NAS),WK(NAS)
+      DIMENSION JDR(48,NAS),MM(3,10000),NJD(NAS)
+      INTEGER*4   S
+      DIMENSION   S(3,3,48)
       COMMON/AVEC/A1(3),A2(3),A3(3),B1(3),B2(3),B3(3), COVA, ALAT
       COMMON/CONSTS/NG,NUMK,NBND,NTOT,OMEGA,GCUT2,ESELF,NTYPE
       COMMON/COMFIX/FATM(3,101),NFIX,IFATM(101)
-      COMMON/COMOPT/IOPT(10,5) ! remain as is
-      COMMON/SAITO2/IBUN(4,NTYQ2) ! remain as is
-      DIMENSION RKK(IRLATQ),KG(3,IRLATQ),KZ(3,IRLATQ,48),NSY(IRLATQ) ! remain as is
-      DIMENSION RCOSIN(NAS,IRLATQ),CCO(-NAD:NAD),SK(3,NAS),WK(NAS) ! remain as is
-      DIMENSION   IFACX(30),IFACY(30),IFACZ(30)
-      INTEGER*4   S
-      DIMENSION   S(3,3,48)
-      dimension   CELLDM(6)
-      DIMENSION JDR(48,NAS),MM(3,10000),NJD(NAS)  ! remain as is
-      DIMENSION  RVEC(4,LATQ),RR(LATQ),NWK(LATQ)
-      DATA IFIL2,IFIL3,IFIL4,IFIL5,IFIL6,IFIL7
-     &     /  30,   32,   33,   34,   35,   36/
+      COMMON/COMOPT/IOPT(10,5)
+      COMMON/SAITO2/IBUN(4,NTYQ2)
+      COMMON/SMOOTH/ADUMP
 c
       complex*16, allocatable, save, dimension(:) :: RHO1,RHO2,RHO3,
-     &                            RHO4,VG,RHOG,WSAVEX,WSAVEY,WSAVEZ
+     &                                               RHO4,VG,RHOG,
+     &         WSAVEX,WSAVEY,WSAVEZ
       complex*16, allocatable, save, dimension(:,:) :: WORK2
 c
-      complex*16, allocatable, save, dimension(:) :: DZ,DXX,DYY,DZZ,
-     &                              DXY,DYZ,DZX,VWORK
+      real*8, allocatable, save, dimension(:) :: RHO,CELLDM
+      real*8, allocatable, save, dimension(:,:) :: G,YLM,GDUMP
+      real*8, allocatable, save, dimension(:,:,:) :: G2
 c
-      real*8, allocatable, save, dimension (:) :: RHO
-      real*8, allocatable, save, dimension (:,:) :: G,YLM
-      real*8, allocatable, save, dimension (:,:,:) :: G2
-      integer*4, allocatable, save, dimension (:) :: LX1,LX2,LY1,LY2,
-     &                                             LZ1,LZ2
-      integer*4, allocatable, save, dimension(:) :: I2G,NG2,NUMTY,NUMC,
-     &                                               MXOFL
-      integer*4, allocatable, save, dimension(:) :: I2GG,INDX
-      integer*4, allocatable, save, dimension(:,:) :: J2G,NIDN
-      real*8, allocatable, save, dimension(:) :: WGT,ZV
-      real*8, allocatable, save, dimension(:,:) :: VECK,RC0,COR
+      integer*4, allocatable, save, dimension(:) :: IFACX,IFACY,IFACZ,
+     &        LX1,LX2,LY1,LY2,LZ1,LZ2,I2G,NG2,NUMTY,MXOFL,NUMC
+      integer*4, allocatable, save, dimension(:,:) :: J2G,NIDN,NGNK
 c
-      complex*16, allocatable,save, dimension(:,:,:) :: COEF
-      complex*16, allocatable,save, dimension(:,:) :: DCOEF,CWK1,CWK2
-     &                                            ,CL1,CL2,CL3,HD,HDO
+      real*8, allocatable, save, dimension(:) :: ZV,ZZ,WGT
+      real*8, allocatable, save, dimension(:,:) :: RC0,COR
+
+c *****
+      complex*16, allocatable, save, dimension(:,:) :: DCOEF,CL1
+      complex*16, allocatable, save, dimension(:,:,:) :: COEF
 c
-      real*8, allocatable, save, dimension(:) :: ZZ,EXPG
-      real*8, allocatable, save, dimension(:,:) :: VGA,vn1,vn2,Vchg
-     & ,FORCE,TAU,WORK, CTAU,DFORCE,SFORCE,OCC,EE,GG, ALPPP,BETAPP
-      integer*4, allocatable, save, dimension (:,:) :: IOWF
-      real*8, allocatable, save, dimension (:,:,:) ::  VPP
-      integer*4, allocatable, save, dimension (:,:,:) :: IOVP
+      real*8, allocatable, save, dimension(:,:) :: VGA, vn1,vn2,
+     &        Vchg,FORCE,TAU,WORK,CTAU
+      real*8, allocatable, save, dimension(:,:,:) :: OUT
+c
+      real*8, allocatable, save, dimension(:,:) :: DFORCE, SFORCE,VECK
+      real*8, allocatable, save, dimension(:,:,:) :: VPP
       real*8, allocatable, save, dimension(:,:,:,:,:) :: VPJ
-      real*8, allocatable, save, dimension (:,:,:) :: OUT
+      integer*4, allocatable,save,dimension (:,:) :: IOWF,NGNL
+      integer*4, allocatable,save,dimension(:,:,:) :: IOVP
 c
-      real*8, allocatable, save, dimension (:,:) :: EBNDW,VINT
-      real*8, allocatable, save, dimension (:) :: EW,PE
+      real*8, allocatable,save,dimension(:,:) :: OCC,EE,GG
+     &        ,ALPPP,BETAPP
+      real*8, allocatable,save,dimension(:) :: ee2,ee3,ee4,EXPG
+
+ccc
+c     work area for orthogonarization
+      complex*16, allocatable,save,dimension(:,:) :: sig,x0,x1,
+     &     work1,work20
 c
-      real*8, allocatable, save, dimension(:,:) :: EENL
-      real*8, allocatable, save, dimension (:,:,:) :: FXNL,FYNL,FZNL
+      real*8, allocatable,save,dimension(:) :: EW,PE,fdump
+      real*8, allocatable,save,dimension(:,:) :: EBNDW, VINT,EENL
+      real*8, allocatable,save,dimension(:,:,:) :: FXNL,FYNL,FZNL
+cC
+      DATA IFIL2,IFIL3,IFIL4,IFIL5,IFIL6,IFIL7
+     &     /  30,   32,   33,   34,   35,   36/
+C
+      call bannerSD
+c *** this is mpi version only
+      call clock0
 c
       read(54,*)NRX,NRY,NRZ  ! read mesh
       NXYZ=NRX*NRY*NRZ
-      read(54,*)NGQ,NG2Q  ! read # of G-grid for charge and Wfs
+      read(54,*)NGQdummy,NG2Qdummy  ! read dummies
+      NGQ=NXYZ
+      NG2Q=NXYZ
       read(54,*)NUMKQ  ! read # of irreducible k-points
       read(54,*)NFLQ,NVIRTQ     ! read full band and others
       NBNDQ=NFLQ+NVIRTQ
       MXBND=NBNDQ
       read(54,*)NTAUQ,NTYQ      ! read # of atoms and atomic types
-
-      allocate  ( RHO1(NXYZ),RHO2(NXYZ),RHO3(NXYZ),RHO4(NXYZ),
+c
+      allocate (  RHO1(NXYZ),RHO2(NXYZ),RHO3(NXYZ),RHO4(NXYZ),
      &            VG(NXYZ),RHOG(NXYZ),WORK2(NG2Q,7),
      &            WSAVEX(NRX),WSAVEY(NRY),WSAVEZ(NRZ) )
-c **** for GGA but DX and DY are covered by RHO1 and RHO2
-      allocate  (  DZ(NXYZ),DXX(NXYZ),DYY(NXYZ),DZZ(NXYZ)
-     &                    ,DXY(NXYZ),DYZ(NXYZ),DZX(NXYZ),VWORK(NXYZ) )
-c *** higher dimention is needed in YLM for f-orbitals
-      allocate (  RHO(NXYZ), G(4,NGQ), G2(4,NG2Q,NUMKQ), YLM(NG2Q,16) )
-      allocate ( LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
-     &            LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)  )
-      allocate ( I2G(NGQ),J2G(NG2Q,NUMKQ),NG2(NUMKQ),
-     &            VECK(3,NUMKQ),WGT(NUMKQ),
-     &            NUMTY(NTYQ),NIDN(NTAUQ,NTYQ),
-     &            ZV(NTYQ),RC0(NCRQ,NTYQ),
-     &            COR(NCRQ,NTYQ),NUMC(NTYQ), MXOFL(NTYQ) )
-      allocate ( I2GG(NGQ),INDX(NGQ) )
-      allocate (  COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,MXBND)
-     &          , CWK1(NG2Q,MXBND),CWK2(NG2Q,MXBND) )
-      allocate (  CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND),
-     &            HD(NG2Q,MXBND),HDO(NG2Q,MXBND)  )
+c
+      allocate (  RHO(NXYZ), G(4,NGQ), G2(4,NG2Q,NUMKQ), YLM(NG2Q,16)
+     &           ,GDUMP(NG2Q,NUMKQ) )
+c
+      allocate ( IFACX(30),IFACY(30),IFACZ(30),
+     &          LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
+     &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ) )
+      allocate ( I2G(NGQ),J2G(NG2Q,NUMKQ),NG2(NUMKQ),NGNL(NTYQ,NUMKQ) )
+      allocate ( VECK(3,NUMKQ),WGT(NUMKQ),CELLDM(6)  )
+      allocate ( NUMTY(NTYQ),NIDN(NTAUQ,NTYQ), MXOFL(NTYQ),NUMC(NTYQ) )
+      allocate ( ZV(NTYQ),RC0(NCRQ,NTYQ), COR(NCRQ,NTYQ)  )
+c 
+      allocate ( COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,MXBND),CL1(NG2Q,10) )
       allocate ( VGA(NGQ,NTYQ),vn1(2*nxyz,2),vn2(2*nxyz,2)
-     & ,Vchg(NGQ,NTYQ) )
-      allocate (  FORCE(3,NTAUQ),TAU(3,NTAUQ),OUT(NBNDQ,3,NUMKQ),
+     &          ,Vchg(NGQ,NTYQ) )
+      allocate ( FORCE(3,NTAUQ),TAU(3,NTAUQ),OUT(NBNDQ,3,NUMKQ),
      &           WORK(6,NTAUQ), CTAU(3,NTAUQ) )
-      allocate (  DFORCE(3,NTAUQ),SFORCE(3,NTAUQ),ZZ(NTAUQ)
-     &         ,VPP(3,4,NTYQ),VPJ(NG2Q,3,4,NTYQ,NUMKQ)
-     &          ,IOWF(MBLKQ,NUMKQ),IOVP(2,NTYQ,NUMKQ) )
-      allocate ( OCC(NBNDQ,NUMKQ),EE(NBNDQ,NUMKQ)
-     &  ,GG(4,NGQ),EXPG(NGQ),ALPPP(4,NTYQ),BETAPP(4,NTYQ)  )
-
-      allocate ( EBNDW(NBNDQ,198),EW(NBNDQ),PE(NBNDQ*IRLATQ),
-     &          VINT(NBNDQ,IRLATQ) )
-      allocate (  EENL(NBNDQ,NUMKQ),FXNL(NTAUQ,NBNDQ,NUMKQ),
-     &          FYNL(NTAUQ,NBNDQ,NUMKQ),FZNL(NTAUQ,NBNDQ,NUMKQ) )
-C
+c
+      allocate( DFORCE(3,NTAUQ),SFORCE(3,NTAUQ),ZZ(NTAUQ),VPP(3,4,NTYQ),
+     &       VPJ(NG2Q,3,4,NTYQ,NUMKQ),IOWF(MBLKQ,NUMKQ),
+     &       IOVP(2,NTYQ,NUMKQ) )
+c
+      allocate ( OCC(NBNDQ,NUMKQ),EE(NBNDQ,NUMKQ),ee2(nbndq),ee3(nbndq),
+     &    ee4(nbndq),GG(4,NGQ),EXPG(NGQ),ALPPP(4,NTYQ),BETAPP(4,NTYQ)  )
+c  ** for orthgonaization
+      allocate (  sig(mxbnd,mxbnd),x0(mxbnd,mxbnd),
+     &    x1(mxbnd,mxbnd),work1(mxbnd,mxbnd),work20(mxbnd,mxbnd)   )
+c
+      allocate(  EBNDW(NBNDQ,IRLATQ),EW(NBNDQ),PE(NBNDQ*IRLATQ),
+     &          VINT(NBNDQ,IRLATQ)  )
+      allocate ( EENL(NBNDQ,NUMKQ),FXNL(NTAUQ,NBNDQ,NUMKQ),
+     &          FYNL(NTAUQ,NBNDQ,NUMKQ),FZNL(NTAUQ,NBNDQ,NUMKQ)  )
+      allocate ( fdump(NXYZ) )  ! dumping factor for charge & V
 C *******************************************************************
-C
-      call bannerCG
-c ++++ next is OMP only
-      call clock0
-c +++ for checking dimension of DCOEF
-      if (MXBND.lt.15 ) then
-       write(6,*)' WARNING: incase of d-electrons DCOEF is too small'
-      elseif (MXBND.lt.21) then
-       write(6,*)' WARNING: incase of f-electrons DCOEF is too small'
-      endif
 C
 c      if ( ntyq.lt.2 ) then
 c       write(6,*)' WARNNING! NTYQ should be bigger than 2.'
 c       stop
 c      endif
-c
-      IF( MXBND*NG2Q .LT. NBNDQ*NBNDQ ) STOP
+c  ***  smoothening factor ADUMP = 1.0d0 applied for RHO, VHXC
+      IF ( IOPT(8,1).eq.1 .and. MXBND.LT.10 ) then
+       write(6,*)' For GGA calculation, MXBND should be grater than 10!'
+       stop
+      endif
+      IF ( MXBND.NE.NBNDQ ) STOP ' NBNDQ should be MXBND '
+c      IF( MXBND*NG2Q .LT. NBNDQ*NBNDQ ) STOP
+c     & ' ALLOCATION ERROR: MXBND NG2Q NBNDQ..'
+      IF( NG2Q .LT. NBNDQ ) STOP
      & ' ALLOCATION ERROR: MXBND NG2Q NBNDQ..'
       IF( NAS.LT.3 ) STOP ' NAS SHOULD BE LARGER THAN 3 FOR DIPERSION'
 C
@@ -286,11 +296,18 @@ C     RHO4 IS USED AS INDEX
       CALL CRYST( NRX, NRY, NRZ, NXYZ, NG, NGQ,
      &            NBNDQ, NBND, ZVAL, NFL, NPFL, NUMK, NUMKQ,
      &            CELLDM, NTOT, S, VECK, WGT, G, I2G, OMEGA, GCUT,
-c     &            GCUT2, GRAT, GG, RHO3, RHO4, OCC, LATQ, RVEC, RCUT, ! original
-     &            GCUT2, GRAT, GG, I2GG, INDX, OCC, LATQ, RVEC, RCUT,
+     &            GCUT2, GRAT, GG, RHO3, RHO4, OCC, LATQ, RVEC, RCUT,
      &            NLV, RR, NWK, NTAUQ, NTYQ, NTYPE, TAU, CTAU, NUMTY,
      &            NIDN, RKK, KG, KZ, NSY, NEXPND, RCOSIN, CCO, NKMESH,
      &            SK, WK, JDR, MM, NJD, NDX, NDY, NDZ, MXOFL )
+c *** ADUMP: Smoothing factor for RHO & VHXC
+      ADUMP= GCUT2/( ( PI*2.D0/CELLDM(1) )**2 )
+      ATEMP= ADUMP/10.d0
+      do ig=1,NXYZ
+c      wari=dexp( (G(4,ig)-4*ADUMP)/ATEMP ) + 1.d0
+      wari=dexp( (G(4,ig)-ADUMP)/ATEMP ) + 1.d0
+      fdump(ig)=1.d0/wari
+      enddo
 C
       CALL CLOCK(TIM)
       WRITE(6,7002) TIM
@@ -305,7 +322,7 @@ C
      &             WGT, OCC, NTOT, S, NFL, NPFL, NKMESH, NEXPND,
      &             RCOSIN, NSY, VINT, WSAVEX, WSAVEY, WSAVEZ, IFACX,
      &             IFACY, IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2
-     &            )
+     &             ,RHO4,GG,EXPG,GDUMP,fdump)
 C
 C
       CALL CLOCK(TIM)
@@ -323,26 +340,34 @@ C        ***ALPPP AND BETAPP*** AND IBUN IN /SAITO2/
       BETAPP(2,1)=5.D0
       BETAPP(3,1)=5.D0
       BETAPP(4,1)=5.D0
-c      if ( ntyq.gt.1 ) then
-c      ALPPP(1,2)=0.80D0
-c      ALPPP(2,2)=1.05D0
-c      ALPPP(3,2)=1.00D0
+c      ALPPP(1,2)=1.00D0
+c      ALPPP(2,2)=1.00D0
 c      BETAPP(1,2)=5.D0
 c      BETAPP(2,2)=5.D0
-c      BETAPP(3,2)=5.D0
-c      endif
-c      IBUN(1,1)=1  ! 1 for BHS Cu(In) & K s-orbital
-c      IBUN(2,1)=1
-c      IBUN(3,1)=0  ! 1 for 3d of Cu
-      IBUN(1,1)=0  ! 
+c **
+c     if ( ntyq.gt.1 ) then
+CCC   ALPPP(1,2)=0.80D0
+CCC   ALPPP(2,2)=1.05D0
+CCC   BETAPP(1,2)=5.D0
+CCC   BETAPP(2,2)=5.D0
+c     endif
+      IBUN(1,1)=0  ! 1 for Ce s-orbital or K s-orbital
       IBUN(2,1)=0
       IBUN(3,1)=0
       IBUN(4,1)=0
+      IBUN(1,2)=0  ! 1 for Y s-orbital or K s-orbital
+      IBUN(2,2)=0
+      IBUN(3,2)=0
+      IBUN(1,3)=0  ! 1 for Al s-orbital or K s-orbital
+      IBUN(2,3)=0
+      IBUN(1,4)=0  ! 1 for O s-orbital or K s-orbital
+      IBUN(2,4)=0
+c      IBUN(1,2)=0  ! 1 for As s-orbital or K s-orbital
+c      IBUN(2,2)=0
 C            IBUN=1 PARTITION   0 NOT
       WRITE(6,*) ' ATOM TYPE: NTYPE = ', NTYPE
       DO 6002 ITP = 1, NTYPE
-c      DO 6002 LLL=1,3
-      DO 6002 LLL=1,4
+      DO 6002 LLL=1,2
  6002 IF(IBUN(LLL,ITP).NE.0) WRITE(6,6006) LLL, ITP, ALPPP(LLL,ITP),
      &                                               BETAPP(LLL,ITP)
  6006 FORMAT('    REAL SPACE PARTITION IS DONE FOR ',I1,'-TH L OF '
@@ -354,7 +379,7 @@ C
 c     &             NUMKQ, NUMK, G2, RHO2, RHO3, NUMTY, NTYQ, NTYPE,
      &    NUMKQ, NUMK, G2, RHO2,VGA,Vchg, RHO3, NUMTY, NTYQ, NTYPE,
      &             VPJ, VPP, NCRQ, ZV, RC0, COR, NUMC, ALPPP, BETAPP,
-     &             IOVP, MXOFL
+     &             IOVP, MXOFL, ADUMP,ATEMP,NGNL
      &            )
 C
 C   ***   INITIAL CHARGE DENSITY FROM THE OVERLAP OF ATOM CHARGE
@@ -372,41 +397,41 @@ C
 c     &             NUMKQ, NUMK, G2, RHO2, RHO3, NUMTY, NTYQ, NTYPE,
      &        NUMKQ, NUMK, G2, RHO2,VGA,Vchg,RHO3, NUMTY, NTYQ, NTYPE,
      &             VPJ, VPP, NCRQ, ZV, RC0, COR, NUMC, ALPPP, BETAPP,
-     &             IOVP, MXOFL
+     &             IOVP, MXOFL, ADUMP, ATEMP,NGNL
      &            )
 C
       CALL CLOCK(TIM)
       WRITE(6,7006) TIM
  7006 FORMAT(23X,'****  CPU TIME AFT PRENON: ',F15.7,' SEC')
+c *** temp check
+c      miya=13
+c      if (miya.eq.13) stop
+c *** temp check: end
 C
-c      IF(IOPT(2,1).EQ.1) THEN
-      IF(IOPT(2,1).EQ.1 .or. IOPT(2,1).EQ.7) THEN
+      IF(IOPT(2,1).EQ.1) THEN
 C
 C   **********   DISPERSION
 C
-      if ( iopt(2,1).eq.1 ) then
        WRITE(6,6666)
  6666  FORMAT(//'  ***  BAND DISPERSION: '/)
-      else
-       WRITE(6,6667)
- 6667  FORMAT(//'  ***  Orbital analysis at general k-points: '/)
-      endif
 C
 C
 c      CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
-      CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ,VN1,VN2,NG, NGQ, NG2, NG2Q,
+      CALL FRPRMN(1,NRX,NRY,NRZ,NXYZ,VN1,VN2,NG, NGQ, NG2, NG2Q,
      &             NBNDQ, NBNDQ, NFL, NPFL, NDX, NDY, NDZ,
-     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+cc     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+     &             NUMK, NUMKQ, COEF, DCOEF, CL1, 
 cc     &             CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,
-     &   CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
-     &             RHO4, RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S,
-     &             NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
-     &             MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
-     &             TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
-     &             NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
-     &             SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
-     &             IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL 
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+cc     &   CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
+     &   YLM, G, G2,GDUMP, RHO, RHO1, RHO2, RHO3,VGA,
+     &   RHO4, RHOG, VECK, OCC, EE,EE2,EE3,EE4,WGT, TPIBA, VG, S,
+     &         NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
+     &         MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
+     &         TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
+     &         NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
+     &         SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
+     &         IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
+     &  ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
       CALL CLOCK(TIM)
       WRITE(6,7008) TIM
@@ -450,11 +475,11 @@ c     &              YLM, G, G2, RHO1, RHO2, RHO3, OMEGA, TPIBA, VG,
      &   YLM, G, G2, RHO1, RHO2, RHO3,VGA,Vchg,OMEGA, TPIBA, VG,
      &   I2G, J2G, WORK2, OUT, VPJ(1,1,1,1,1), VPP, IOWF,
      &              NCRQ, ZV, RC0, COR, NUMC,
-     &              NTAUQ, NTYQ, NTYPE, LREQ, GCUT2, VECK, EE,
+     &   NTAUQ, NTYQ, NTYPE, LREQ, GCUT2, VECK, EE,EE2,EE3,EE4,
      &              TAU, NUMTY, NIDN, ALPPP, BETAPP, IOVP,
      &              WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &              LX1, LX2, LY1, LY2, LZ1, LZ2,   NUMKQ, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     &  ,sig,x0,x1,work1,work20,GG,RHO4,NGNL(1,1) )
 C
       WRITE(6,7012)
  7012 FORMAT(/
@@ -463,42 +488,6 @@ C
       EBNDW(IB,ISER) = OUT(IB,1,1)
   655 WRITE(6,656) IB,(OUT(IB,IG,1),IG=1,3)
   656 FORMAT('   BAND ',I4,3E15.7)
-c *** Start orbital analysis
-      if ( iopt(2,1).eq.7 ) then
-      call clock(t0)
-      write(6,*)' Orbital analysis !!!  at k= ',skx,sky,skz
-      ik=1
-      if ( g2(4,1,1).gt.1.d-08 ) then
-      do ig=1,ng2(1)
-      g2(4,ig,1)=dsqrt(g2(4,ig,1))
-      enddo
-      else
-      do ig=2,ng2(1)
-      g2(4,ig,1)=dsqrt(g2(4,ig,1))
-      enddo
-      end if
-cc
-      do iblk=1,mblk
-       if ( iblk.eq.mblk ) then
-        nb=mod(nbnd-1,mxbnd )+1
-       else
-        nb=mxbnd
-       end if
-      ibi=mxbnd*(iblk-1)
-       do ib=1,nbndq
-      iband=ibi+ib
-      call orbanly(iband,1,coef(1,iband,1),rho1,rho2,ng2q,
-     &     ng2(1),g2(1,1,1),cwk1,
-     &     tau,ntauq,numty,ntyq,ntype,tpiba,mxofl,omega)
-       enddo
-       do ig=1,ng2(1)
-       g2(4,ig,1)=g2(4,ig,1)**2
-       enddo
-      enddo
-      call clock(t1)
-      write(6,*)' Orbital analysis took ',t1-t0,' seconds '
-      end if
-cc
  9999  CONTINUE
 C
  9980 WRITE(6,9962)
@@ -516,26 +505,28 @@ C
       ELSEIF(IOPT(2,1).EQ.2) THEN
 C *******   FORCE CHECK
 c      CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
-      CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ,vn1,vn2, NG, NGQ, NG2, NG2Q,
+      CALL FRPRMN(1,NRX,NRY,NRZ,NXYZ,vn1,vn2,NG,NGQ,NG2,NG2Q,
      &             NBNDQ, NBNDQ, NFL, NPFL, NDX, NDY, NDZ,
-     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+c     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+     &             NUMK, NUMKQ, COEF, DCOEF,  CL1, 
 c     &             CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,
-     &  CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
-     &             RHO4, RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S,
-     &             NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
-     &             MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
+c     &  CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
+     &  YLM, G, G2,GDUMP, RHO, RHO1, RHO2, RHO3,VGA,
+     &  RHO4, RHOG, VECK, OCC, EE,EE2,EE3,EE4, WGT, TPIBA, VG, S,
+     &             NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF,IOVP,
+     &         MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE,LREQ,
      &             TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
      &             NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
-     &             SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
-     &             IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     &         SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX,IFACY,
+     &         IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
+     & ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
       CALL CLOCK(TIM)
       WRITE(6,7008) TIM
 C
        CALL ELECTF( MXBND, MBLK, NXYZ, NG, NGQ, NG2, NG2Q,
      &              NBNDQ, NBNDQ, NUMK, NUMKQ, COEF, DCOEF,
-     &              YLM, G, EXPG, G2, RHO, RHO4, RHO1, RHO2, RHOG,
+     &      YLM, G, EXPG, G2,GDUMP, RHO, RHO4, RHO1, RHO2, RHOG,
      &              TPIBA, ETOT, VG, S, NTOT, I2G, WORK2, VPJ, VPP,
      &              IOWF, IOVP, OMEGA, FORCE, DFORCE, SFORCE,
      &              NTAUQ, NTYQ, NTYPE, LREQ, LATQ, RVEC, NLV,
@@ -543,8 +534,7 @@ C
      &              VINT, NSY, FXNL, FYNL, FZNL,
      &              TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
 cc     &              ZZ, ZVAL, NPFL, MXOFL, OCC                      )
-     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK
+     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA,NGNL,CL1
      &                  ,NRX,NRY,NRZ
      &                  ,WSAVEX,WSAVEY,WSAVEZ
      &                  ,LX1,LX2,LY1
@@ -561,26 +551,28 @@ C ****
      &                 , ( TAU(KK,J), KK=1,3 )
 C ****
 c      CALL FRPRMN( 0, NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
-      CALL FRPRMN( 0, NRX, NRY, NRZ, NXYZ,vn1,vn2, NG, NGQ, NG2, NG2Q,
+      CALL FRPRMN(0,NRX,NRY,NRZ,NXYZ,vn1,vn2,NG,NGQ,NG2,NG2Q,
      &             NBNDQ, NBNDQ, NFL, NPFL, NDX, NDY, NDZ,
-     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+c     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+     &             NUMK, NUMKQ, COEF, DCOEF, CL1,
 c     &             CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,
-     &   CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
-     &             RHO4, RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S,
+c     &   CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
+     &   YLM, G, G2,GDUMP, RHO, RHO1, RHO2, RHO3,VGA,
+     &   RHO4, RHOG, VECK, OCC, EE,EE2,EE3,EE4, WGT, TPIBA, VG, S,
      &             NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
      &             MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
      &             TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
      &             NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
-     &             SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
+     &             SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ,IFACX,IFACY,
      &             IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     &  ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
       CALL CLOCK(TIM)
       WRITE(6,7008) TIM
 C
        CALL ELECTF( MXBND, MBLK, NXYZ, NG, NGQ, NG2, NG2Q,
      &              NBNDQ, NBNDQ, NUMK, NUMKQ, COEF, DCOEF,
-     &              YLM, G, EXPG, G2, RHO, RHO4, RHO1, RHO2, RHOG,
+     &      YLM, G, EXPG, G2,GDUMP, RHO, RHO4, RHO1, RHO2, RHOG,
      &              TPIBA, ETOT, VG, S, NTOT, I2G, WORK2, VPJ, VPP,
      &              IOWF, IOVP, OMEGA, FORCE, DFORCE, SFORCE,
      &              NTAUQ, NTYQ, NTYPE, LREQ, LATQ, RVEC, NLV,
@@ -588,8 +580,7 @@ C
      &              VINT, NSY, FXNL, FYNL, FZNL,
      &              TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
 c     &              ZZ, ZVAL, NPFL, MXOFL, OCC                      )
-     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK
+     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA,NGNL ,CL1
      &                  ,NRX,NRY,NRZ
      &                  ,WSAVEX,WSAVEY,WSAVEZ
      &                  ,LX1,LX2,LY1
@@ -616,24 +607,26 @@ C ******   STEEPEST DECENT
 c      CALL FRPRMN( ISTRT, NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
       CALL FRPRMN( ISTRT, NRX, NRY, NRZ, NXYZ,
      &  vn1,vn2,NG, NGQ, NG2, NG2Q,NBNDQ, NBNDQ, NFL, NPFL,
-     & NDX, NDY, NDZ,NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+c     & NDX, NDY, NDZ,NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+     & NDX, NDY, NDZ,NUMK, NUMKQ, COEF, DCOEF, CL1, 
 c     &             CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,
-     &       CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
-     &             RHO4, RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S,
-     &             NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
-     &             MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
+c     &       CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
+     &        YLM, G, G2,GDUMP, RHO, RHO1, RHO2, RHO3,VGA,
+     &  RHO4, RHOG, VECK, OCC, EE, EE2,EE3,EE4,WGT, TPIBA, VG, S,
+     &           NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
+     &           MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
      &             TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
      &             NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
-     &             SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
-     &             IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     &           SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
+     &           IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
+     &  ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
       CALL CLOCK(TIM)
       WRITE(6,7008) TIM
 C
        CALL ELECTF( MXBND, MBLK, NXYZ, NG, NGQ, NG2, NG2Q,
      &              NBNDQ, NBNDQ, NUMK, NUMKQ, COEF, DCOEF,
-     &              YLM, G, EXPG, G2, RHO, RHO4, RHO1, RHO2, RHOG,
+     &      YLM, G, EXPG, G2,GDUMP, RHO, RHO4, RHO1, RHO2, RHOG,
      &              TPIBA, ETOT, VG, S, NTOT, I2G, WORK2, VPJ, VPP,
      &              IOWF, IOVP, OMEGA, FORCE, DFORCE, SFORCE,
      &              NTAUQ, NTYQ, NTYPE, LREQ, LATQ, RVEC, NLV,
@@ -641,8 +634,7 @@ C
      &              VINT, NSY, FXNL, FYNL, FZNL,
      &              TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
 cc     &              ZZ, ZVAL, NPFL, MXOFL, OCC                      )
-     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK
+     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA ,NGNL ,CL1
      &                  ,NRX,NRY,NRZ
      &                  ,WSAVEX,WSAVEY,WSAVEZ
      &                  ,LX1,LX2,LY1
@@ -669,19 +661,21 @@ C
      &'  ***  LOCAL DENSITY OF STATES: K SAMPLING = ',I4/)
 C
 c      CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
-      CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ,vn1,vn2,NG, NGQ, NG2, NG2Q,
+      CALL FRPRMN(1,NRX,NRY,NRZ,NXYZ,vn1,vn2,NG, NGQ, NG2, NG2Q,
      &             NBNDQ, NBNDQ, NFL, NPFL, NDX, NDY, NDZ,
-     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+c     &             NUMK,NUMKQ,COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+     &             NUMK,NUMKQ,COEF, DCOEF,  CL1, 
 c     &             CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,
-     &        CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
-     &             RHO4, RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S,
-     &             NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
-     &             MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
-     &             TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
-     &             NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
-     &             SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
-     &             IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+c     &        CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
+     &         YLM, G, G2,GDUMP, RHO, RHO1, RHO2, RHO3,VGA,
+     &  RHO4, RHOG, VECK, OCC, EE,EE2,EE3,EE4, WGT, TPIBA, VG, S,
+     &        NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
+     &        MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
+     &        TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
+     &        NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
+     &        SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
+     &        IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
+     &  ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
       CALL CLOCK(TIM)
       WRITE(6,7008) TIM
@@ -712,7 +706,7 @@ C            VECK IN UNIT OF 2 * PAI / ALAT
  7330   FORMAT(' **  K VECTORS IN UNIT OF 2*PI/A: ',3F8.4,
      &        ' WGT = ',F8.4)
         CALL G2VECT( NGQ, NG, NG2Q, NG2(1), VECK(1,1), G, G2(1,1,1), 
-     &               J2G(1,1), I2G, TPIBA, GCUT2 )
+     &               J2G(1,1), I2G, TPIBA, GCUT2,GG,RHO3,RHO4 )
 C
         WRITE(13) IKK, WGT(1), NG2(1), ( J2G(IG,1), IG = 1, NG2(1) )
 C             
@@ -722,7 +716,7 @@ C
 c     &               NUMKQQ, NUMK, G2(1,1,1), RHO2, RHO3, NUMTY, 
      &   NUMKQQ, NUMK, G2(1,1,1), RHO2,VGA,Vchg,RHO3, NUMTY, 
      &   NTYQ, NTYPE, VPJ(1,1,1,1,1), VPP, NCRQ, ZV, RC0, COR, 
-     &               NUMC, ALPPP, BETAPP, IOVP(1,1,1), MXOFL )
+     &   NUMC, ALPPP, BETAPP, IOVP(1,1,1), MXOFL ,ADUMP,ATEMP,NGNL)
 C
         if ( MBLK.ne.1 ) then
          write(6,*)' MBLK is not one but',MBLK,' STOPPING...'
@@ -801,16 +795,19 @@ ccc          WRITE(71,REC=IOWF(IBLK,1)) COEF
  7600   CONTINUE
 C
         ITCF = 50
-        CALL CGDIAG( 0.1D-08, ITCF, NRX, NRY, NRZ, NXYZ, NG2(1), 
+        CALL SDDIAG( 0.1D-08, ITCF, NRX, NRY, NRZ, NXYZ, NG2(1), 
 cc     &               NG2Q, NBNDQ, NBNDQ, COEF, DCOEF, CWK1, CWK2, 
-     &      NG2Q, NBNDQ, NBNDQ, COEF(1,1,1), DCOEF, CWK1, CWK2, 
-     &               CL1, CL2, CL3, HD, HDO, YLM, G2(1,1,1), RHO1,
+c     &      NG2Q, NBNDQ, NBNDQ, COEF(1,1,1), DCOEF, CWK1, CWK2, 
+     &      NG2Q, NBNDQ, NBNDQ, COEF(1,1,1), DCOEF, 
+c     &               CL1, CL2, CL3, HD, HDO, YLM, G2(1,1,1), RHO1,
+c     &               CL1,YLM, G2(1,1,1),GDUMP(1,1), RHO1,
+     &               YLM, G2(1,1,1),GDUMP(1,1), RHO1,
      &               RHO2, RHO3, TPIBA, VG, J2G(1,1), WORK2, 
      &     OUT(1,1,1), VPJ(1,1,1,1,1), VPP, IOWF(1,1), IOVP(1,1,1),
      &               MXBND, MBLK, OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, 
-     &               TAU, NUMTY, NIDN, EE(1,1), WSAVEX, WSAVEY, 
+     &    TAU, NUMTY, NIDN, EE(1,1),EE2,EE3,EE4, WSAVEX, WSAVEY, 
      &               WSAVEZ, IFACX, IFACY, IFACZ, LX1, LX2, LY1, 
-     &               LY2, LZ1, LZ2,     MXOFL                      )
+     &   LY2, LZ1, LZ2,MXOFL,sig,x0,x1,work1,work20,0,NGNL(1,1))
 C
           DO 960 IBLK = 1, MBLK
 cc            READ(71,REC=IOWF(IBLK,1)) COEF
@@ -864,12 +861,10 @@ C *******  NO OF DIRECTIONS IN SEARCHING THE MINIMUM IN CG SCHEME
 C ******* REAL SPACE MEASURE WHICH COULD BE REGARDED AS ZERO:
 C                      IF NEW COORDINATES DIFFER FROM THE PREVIOUS
 C                      JUST BY EPS, THEN RETURN FROM LINMIN.
-c      EPS=0.005D+00
-      EPS=0.001D+00
+      EPS=0.005D+00
 C ******* IF THE TOTAL ENERGY DOES NOT CHANGE BY MORE THAN EDECR,
 C                      THEN RETURN FROM LINMIN.  UNIT = HR
-c      EDECR = 0.001D+00
-      EDECR = 0.0005D+00
+      EDECR = 0.001D+00
 C
       CALL DCGMIN( KCONT, NCYC, N, N2, TAU, ETOT, FORCE, OKSTEP, EPS,
      &             EDECR,
@@ -878,9 +873,10 @@ C
      &             NBNDQ, NFL, NPFL, NDX, NDY, NDZ,
 c     &             NUMK, NUMKQ,
      &             NUMK, NUMKQ,VGA,vn1,vn2,
-     &             COEF, DCOEF, CWK1, CWK2, CL1, CL2, CL3, HD, HDO,
-     &             YLM, G, EXPG, G2, RHO, RHO1, RHO2, RHO3, RHO4,
-     &             RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S, NTOT,
+c     &             COEF, DCOEF, CWK1, CWK2, CL1, CL2, CL3, HD, HDO,
+     &             COEF, DCOEF,  CL1,
+     &   YLM, G, EXPG, G2,GDUMP, RHO, RHO1, RHO2, RHO3, RHO4,
+     &   RHOG, VECK, OCC, EE, EE2,EE3,EE4,WGT, TPIBA, VG, S, NTOT,
      &             I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
      &             MXBND, MBLK, OMEGA, ZVAL, DFORCE, SFORCE,
      &             NTAUQ, NTYQ, NTYPE, LREQ, NUMTY, NIDN,
@@ -889,7 +885,7 @@ c     &             NUMK, NUMKQ,
      &             WK, SK, NSY, KZ, FXNL, FYNL, FZNL,
      &             WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &             LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     &  ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
       WRITE(6,6600) NN, EDECR, EPS
  6600 FORMAT(//' **** COME BACK FROM DCGMIN: NN = ',I4,' EDECR = '
@@ -931,26 +927,28 @@ C
 C     FOR NOOPT
 CC
 c      CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
-      CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ,vn1,vn2,NG, NGQ, NG2, NG2Q,
+      CALL FRPRMN(1,NRX,NRY,NRZ,NXYZ,vn1,vn2,NG, NGQ, NG2, NG2Q,
      &             NBNDQ, NBNDQ, NFL, NPFL, NDX, NDY, NDZ,
-     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+     &            NUMK, NUMKQ, COEF, DCOEF,  CL1, 
+c     &            NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
 c     &             CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,
-     &       CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
-     &             RHO4, RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S,
-     &             NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
-     &             MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
-     &             TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
-     &             NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
-     &             SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
-     &             IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+c     &       CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
+     &        YLM, G, G2,GDUMP, RHO, RHO1, RHO2, RHO3,VGA,
+     &   RHO4, RHOG, VECK, OCC, EE, EE2,EE3,EE4,WGT, TPIBA, VG, S,
+     &       NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
+     &       MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
+     &       TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
+     &       NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
+     &       SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
+     &       IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
+     &   ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
       CALL CLOCK(TIM)
       WRITE(6,7008) TIM
 C
        CALL ELECTF( MXBND, MBLK, NXYZ, NG, NGQ, NG2, NG2Q,
      &              NBNDQ, NBNDQ, NUMK, NUMKQ, COEF, DCOEF,
-     &              YLM, G, EXPG, G2, RHO, RHO4, RHO1, RHO2, RHOG,
+     &      YLM, G, EXPG, G2,GDUMP, RHO, RHO4, RHO1, RHO2, RHOG,
      &              TPIBA, ETOT, VG, S, NTOT, I2G, WORK2, VPJ, VPP,
      &              IOWF, IOVP, OMEGA, FORCE, DFORCE, SFORCE,
      &              NTAUQ, NTYQ, NTYPE, LREQ, LATQ, RVEC, NLV,
@@ -958,8 +956,7 @@ C
      &              VINT, NSY, FXNL, FYNL, FZNL,
      &              TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
 ccc     &              ZZ, ZVAL, NPFL, MXOFL, OCC                      )
-     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK
+     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA ,NGNL ,CL1
      &                  ,NRX,NRY,NRZ
      &                  ,WSAVEX,WSAVEY,WSAVEZ
      &                  ,LX1,LX2,LY1
@@ -998,9 +995,10 @@ C*****************************************************************
      &             NBNDQ, NFL, NPFL, NDX, NDY, NDZ,
 c     &             NUMK, NUMKQ,
      &             NUMK, NUMKQ,VGA,vn1,vn2,
-     &             COEF, DCOEF, CWK1, CWK2, CL1, CL2, CL3, HD, HDO,
-     &             YLM, G, EXPG, G2, RHO, RHO1, RHO2, RHO3, RHO4,
-     &             RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S, NTOT,
+c     &             COEF, DCOEF, CWK1, CWK2, CL1, CL2, CL3, HD, HDO,
+     &             COEF, DCOEF, CL1, 
+     &  YLM, G, EXPG, G2,GDUMP, RHO, RHO1, RHO2, RHO3, RHO4,
+     &   RHOG, VECK, OCC, EE,EE2,EE3,EE4, WGT, TPIBA, VG, S, NTOT,
      &             I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
      &             MXBND, MBLK, OMEGA, ZVAL, DFORCE, SFORCE,
      &             NTAUQ, NTYQ, NTYPE, LREQ, NUMTY, NIDN,
@@ -1009,16 +1007,15 @@ c     &             NUMK, NUMKQ,
      &             WK, SK, NSY, KZ, FXNL, FYNL, FZNL,
      &             WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &             LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     & ,sig,x0,x1,work1,work20,fdump,NGNL )
       IMPLICIT REAL*8(A-H,O-Z)
       DIMENSION   TAU(N), GRAD(N), WORK(N2)
 c      COMPLEX*16  COEF(NG2Q,MXBND), DCOEF(NG2Q,MXBND),
-      COMPLEX*16  COEF(NG2Q,MXBND,NUMKQ), DCOEF(NG2Q,MXBND),
-     &            CWK1(NG2Q,MXBND), CWK2(NG2Q,MXBND)
-c      COMPLEX*16  CL1(NG2Q), CL2(NG2Q), CL3(NG2Q),
-c     &            HD(NG2Q), HDO(NG2Q)
-      COMPLEX*16  CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND),
-     &            HD(NG2Q,MXBND),HDO(NG2Q,MXBND)
+      COMPLEX*16  COEF(NG2Q,MXBND,NUMKQ), DCOEF(NG2Q,MXBND)
+c     &            ,CWK1(NG2Q,MXBND), CWK2(NG2Q,MXBND)
+c      COMPLEX*16  CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND),
+c     &            HD(NG2Q,MXBND),HDO(NG2Q,MXBND)
+      COMPLEX*16  CL1(NG2Q,MXBND)
 C     COMPLEX*16 CTEMP,CHD
 C
 c      REAL*8 RHO(NXYZ),YLM(NG2Q,4),OUT(NBNDQ,3,NUMKQ),VECK(3,NUMKQ)
@@ -1038,9 +1035,7 @@ C
 c     &           VG(NXYZ),WORK2(NG2Q,3)
 c     &           VG(NXYZ),WORK2(NG2Q,5)
      &           VG(NXYZ),WORK2(NG2Q,7)
-c ****  for GGA
-      COMPLEX*16 DZ(NXYZ),DXX(NXYZ),DYY(NXYZ),DZZ(NXYZ)
-     &                   ,DXY(NXYZ),DYZ(NXYZ),DZX(NXYZ),VWORK(NXYZ)
+      dimension fdump(NXYZ)
       INTEGER*4 S(3,3,48)
       COMPLEX*16 WSAVEX(NRX),WSAVEY(NRY),WSAVEZ(NRZ)
       DIMENSION IFACX(30),IFACY(30),IFACZ(30)
@@ -1048,7 +1043,7 @@ c ****  for GGA
      &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
       DIMENSION I2G(NGQ),J2G(NG2Q,NUMKQ),NG2(NUMKQ)
       DIMENSION G(4,NGQ),G2(4,NG2Q,NUMKQ),WGT(NUMKQ)
-      DIMENSION EXPG(NGQ)
+      DIMENSION EXPG(NGQ),GDUMP(NG2Q,NUMKQ)
       DIMENSION NUMTY(NTYQ),NIDN(NTAUQ,NTYQ),
      &          ZV(NTYQ),RC0(NCRQ,NTYQ),
      &          COR(NCRQ,NTYQ),NUMC(NTYQ), MXOFL(NTYQ)
@@ -1057,7 +1052,14 @@ c      DIMENSION VPJ(NG2Q,3,2,NTYQ,NUMKQ),VPP(3,2,NTYQ),IOWF(MBLK,NUMKQ),
 c      DIMENSION VPJ(NG2Q,3,3,NTYQ,NUMKQ),VPP(3,3,NTYQ),IOWF(MBLK,NUMKQ),
       DIMENSION VPJ(NG2Q,3,4,NTYQ,NUMKQ),VPP(3,4,NTYQ),IOWF(MBLK,NUMKQ),
      &          IOVP(2,NTYQ,NUMKQ),OCC(NBNDQ,NUMKQ),EE(NBNDQ,NUMKQ)
+      DIMENSION NGNL(NTYQ,NUMKQ)
+      dimension ee2(nbndq),ee3(nbndq),ee4(nbndq)
       DIMENSION DFORCE(3,NTAUQ),SFORCE(3,NTAUQ),RVEC(4,LATQ),ZZ(NTAUQ)
+ccc
+c     work area for orthogonization
+      complex*16  sig(mxbnd,mxbnd),x0(mxbnd,mxbnd),
+     &    x1(mxbnd,mxbnd),work1(mxbnd,mxbnd),work20(mxbnd,mxbnd)
+C
       COMMON/COMOPT/IOPT(10,5)
       DIMENSION FXNL(NTAUQ,NBNDQ,NUMKQ),FYNL(NTAUQ,NBNDQ,NUMKQ),
      &          FZNL(NTAUQ,NBNDQ,NUMKQ)
@@ -1070,20 +1072,18 @@ C **                              CASE OF CONTINUATION
                                   IF(KCONT.EQ.1)  GOTO 500
 C
 C ***
-c      CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
-      CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ,vn1,vn2,NG, NGQ, NG2, NG2Q,
+      CALL FRPRMN(1,NRX,NRY,NRZ, NXYZ,vn1,vn2,NG, NGQ, NG2, NG2Q,
      &             NBNDQ, NBNDQ, NFL, NPFL, NDX, NDY, NDZ,
-     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
-c     &             CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,
-     &       CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
-     &             RHO4, RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S,
-     &             NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
-     &             MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
-     &             TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
+     &             NUMK, NUMKQ, COEF, DCOEF,  CL1, 
+     &        YLM, G, G2,GDUMP, RHO, RHO1, RHO2, RHO3,VGA,
+     &    RHO4, RHOG, VECK, OCC, EE,EE2,EE3,EE4, WGT, TPIBA, VG, S,
+     &       NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
+     &       MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
+     &       TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
      &             NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
-     &             SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
-     &             IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     &        SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
+     &        IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
+     & ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
       CALL CLOCK(TIM)
       WRITE(6,7008) TIM
@@ -1091,7 +1091,7 @@ C
 C
        CALL ELECTF( MXBND, MBLK, NXYZ, NG, NGQ, NG2, NG2Q,
      &              NBNDQ, NBNDQ, NUMK, NUMKQ, COEF, DCOEF,
-     &              YLM, G, EXPG, G2, RHO, RHO4, RHO1, RHO2, RHOG,
+     &     YLM, G, EXPG, G2,GDUMP, RHO, RHO4, RHO1, RHO2, RHOG,
      &              TPIBA, ETOT, VG, S, NTOT, I2G, WORK2, VPJ, VPP,
      &              IOWF, IOVP, OMEGA, GRAD, DFORCE, SFORCE,
      &              NTAUQ, NTYQ, NTYPE, LREQ, LATQ, RVEC, NLV,
@@ -1099,8 +1099,7 @@ C
      &              VINT, NSY, FXNL, FYNL, FZNL,
      &              TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
 ccc     &              ZZ, ZVAL, NPFL, MXOFL, OCC                      )
-     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK
+     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA,NGNL ,CL1
      &                  ,NRX,NRY,NRZ
      &                  ,WSAVEX,WSAVEY,WSAVEZ
      &                  ,LX1,LX2,LY1
@@ -1214,12 +1213,11 @@ C ***** TEMP CARE END
       CALL LINMIN( KCONT, N, TAU, ETOT, GRAD, WORK, ALPHA,
      &             CC1, CC2, CC3, EDECR, IFN, MAXFN-IFN, IER,
      &             NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
-c     &             NBNDQ, NFL, NPFL, NDX, NDY, NDZ, NUMK, NUMKQ,
      &       NBNDQ, NFL, NPFL, NDX, NDY, NDZ, NUMK, NUMKQ,VGA,
      &       vn1,vn2,
-     &             COEF, DCOEF, CWK1, CWK2, CL1, CL2, CL3, HD, HDO,
-     &             YLM, G, EXPG, G2, RHO, RHO1, RHO2, RHO3, RHO4,
-     &             RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S, NTOT,
+     &             COEF, DCOEF,  CL1,
+     &   YLM, G, EXPG, G2,GDUMP, RHO, RHO1, RHO2, RHO3, RHO4,
+     &   RHOG, VECK, OCC, EE, EE2,EE3,EE4,WGT, TPIBA, VG, S, NTOT,
      &             I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
      &             MXBND, MBLK, OMEGA, ZVAL, DFORCE, SFORCE,
      &             NTAUQ, NTYQ, NTYPE, LREQ, NUMTY, NIDN,
@@ -1228,7 +1226,7 @@ c     &             NBNDQ, NFL, NPFL, NDX, NDY, NDZ, NUMK, NUMKQ,
      &             RCOSIN, WK, SK, NSY, KZ, FXNL, FYNL, FZNL,
      &             WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &             LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     &  ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
 C *******   CASE OF TIME OUT  **********
              IF(IER.EQ.1) THEN
@@ -1275,12 +1273,11 @@ C*****************************************************************
      &     LINMIN( KCONT, N, TAU, ETOT, GRAD, D, T,
      &             CC1, CC2, CC3, EDECR, KF, MOST, IEX,
      &             NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
-c     &             NBNDQ, NFL, NPFL, NDX, NDY, NDZ, NUMK, NUMKQ,
      &          NBNDQ, NFL, NPFL, NDX, NDY, NDZ, NUMK, NUMKQ,VGA,
      &          vn1,vn2,
-     &             COEF, DCOEF, CWK1, CWK2, CL1, CL2, CL3, HD, HDO,
-     &             YLM, G, EXPG, G2, RHO, RHO1, RHO2, RHO3, RHO4,
-     &             RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S, NTOT,
+     &             COEF, DCOEF,  CL1,
+     &   YLM, G, EXPG, G2,GDUMP, RHO, RHO1, RHO2, RHO3, RHO4,
+     &   RHOG, VECK, OCC, EE, EE2,EE3,EE4,WGT, TPIBA, VG, S, NTOT,
      &             I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
      &             MXBND, MBLK, OMEGA, ZVAL, DFORCE, SFORCE,
      &             NTAUQ, NTYQ, NTYPE, LREQ, NUMTY, NIDN,
@@ -1289,7 +1286,7 @@ c     &             NBNDQ, NFL, NPFL, NDX, NDY, NDZ, NUMK, NUMKQ,
      &             RCOSIN, WK, SK, NSY, KZ, FXNL, FYNL, FZNL,
      &             WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &             LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     & ,sig,x0,x1,work1,work20,fdump,NGNL )
 C  UNIVARIATE MINIMIZATION TRANSLATED FROM PHIL WOLFE'S APL PGM
 C  'LINEG'. SEARCHES FOR MINIMUM OF FUNCTION EVALUATED BY
 C  'CALL FUNCT(N,TAU,ETOT,GRAD)' ALONG THE SEARCH DIRECTION D.
@@ -1311,16 +1308,13 @@ C  SEARCH IS BY EXTRAPOLATION FOLLOWED BY CLEVER CUBIC INTERPOLATION--
      &              AL(3), ALL(3), AR(3), ARR(3), GN, AM, IHELP, MODE
       DIMENSION TAU(N),GRAD(N),D(N)
 c      COMPLEX*16 COEF(NG2Q,MXBND), DCOEF(NG2Q,MXBND),
-      COMPLEX*16 COEF(NG2Q,MXBND,NUMKQ), DCOEF(NG2Q,MXBND),
-     &           CWK1(NG2Q,MXBND), CWK2(NG2Q,MXBND)
-c      COMPLEX*16 CL1(NG2Q),CL2(NG2Q),CL3(NG2Q)
-c      COMPLEX*16 HD(NG2Q), HDO(NG2Q)
-      COMPLEX*16 CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND)
-      COMPLEX*16 HD(NG2Q,MXBND), HDO(NG2Q,MXBND)
-c **** for GGA
-      COMPLEX*16 DZ(NXYZ),DXX(NXYZ),DYY(NXYZ),DZZ(NXYZ)
-     &                   ,DXY(NXYZ),DYZ(NXYZ),DZX(NXYZ),VWORK(NXYZ)
+      COMPLEX*16 COEF(NG2Q,MXBND,NUMKQ), DCOEF(NG2Q,MXBND)
+c     &           ,CWK1(NG2Q,MXBND), CWK2(NG2Q,MXBND)
+c      COMPLEX*16 CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND)
+c      COMPLEX*16 HD(NG2Q,MXBND), HDO(NG2Q,MXBND)
+      COMPLEX*16 CL1(NG2Q,MXBND)
       DIMENSION EXPG(NGQ)
+      DIMENSION NGNL(NTYQ,NUMKQ)
 C     COMPLEX*16 CTEMP,CHD
 C
 c      REAL*8 RHO(NXYZ),YLM(NG2Q,4),OUT(NBNDQ,3,NUMKQ),VECK(3,NUMKQ)
@@ -1332,6 +1326,7 @@ C
      &          VINT(NBNDQ,IRLATQ),EENL(NBNDQ,NUMKQ),
      &          RCOSIN(NAS,IRLATQ),WK(NAS),SK(3,NAS),NSY(IRLATQ),
      &          KZ(3,IRLATQ,48)
+      dimension fdump(nxyz)
 C
 c ***
       dimension VGA(NGQ,NTYQ),vn1(2*nxyz,2),vn2(2*nxyz,2)
@@ -1347,7 +1342,7 @@ C***  WORK ARRAYS FOR FOURIER TRANSFORM
      &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
 C
       DIMENSION I2G(NGQ),J2G(NG2Q,NUMKQ),NG2(NUMKQ)
-      DIMENSION G(4,NGQ),G2(4,NG2Q,NUMKQ),WGT(NUMKQ)
+      DIMENSION G(4,NGQ),G2(4,NG2Q,NUMKQ),WGT(NUMKQ),GDUMP(NG2Q,NUMKQ)
       DIMENSION NUMTY(NTYQ),NIDN(NTAUQ,NTYQ),
      &          ZV(NTYQ),RC0(NCRQ,NTYQ),
      &          COR(NCRQ,NTYQ),NUMC(NTYQ), MXOFL(NTYQ)
@@ -1356,11 +1351,25 @@ c      DIMENSION VPJ(NG2Q,3,2,NTYQ,NUMKQ),VPP(3,2,NTYQ),IOWF(MBLK,NUMKQ),
 c      DIMENSION VPJ(NG2Q,3,3,NTYQ,NUMKQ),VPP(3,3,NTYQ),IOWF(MBLK,NUMKQ),
       DIMENSION VPJ(NG2Q,3,4,NTYQ,NUMKQ),VPP(3,4,NTYQ),IOWF(MBLK,NUMKQ),
      &          IOVP(2,NTYQ,NUMKQ),OCC(NBNDQ,NUMKQ),EE(NBNDQ,NUMKQ)
+      dimension ee2(nbndq),ee3(nbndq),ee4(nbndq)
+ccc
+c     work area for orthogonization
+      complex*16  sig(mxbnd,mxbnd),x0(mxbnd,mxbnd),
+     &    x1(mxbnd,mxbnd),work1(mxbnd,mxbnd),work20(mxbnd,mxbnd)
+C
       DIMENSION DFORCE(3,NTAUQ),SFORCE(3,NTAUQ),RVEC(4,LATQ),ZZ(NTAUQ)
       COMMON/COMOPT/IOPT(10,5)
       DIMENSION FXNL(NTAUQ,NBNDQ,NUMKQ),FYNL(NTAUQ,NBNDQ,NUMKQ),
      &          FZNL(NTAUQ,NBNDQ,NUMKQ)
 C
+c *** temp check
+c       write(6,*)' in sub. LINMIN ...'
+c       do i=1,n
+c         write(6,*)tau(i)
+c       enddo
+c       miya=13
+c       if ( miya.eq.13 ) stop 'check'
+c *** temp check: end
 C
       ISTRT = 0
       IOSH = 0
@@ -1406,21 +1415,47 @@ C
 C
       TLAST=T
       ELAST=ETOT
+c *** temp check
+c       write(6,*)' in sub. LINMIN ...just before FRPRMN'
+c       do i=1,n
+c         write(6,*)tau(i)
+c       enddo
+c      write(6,*)' NRX NRY NRZ = ',NRX,NRY,NRZ
+c      write(6,*)' NXYZ = ',NXYZ
+c      write(6,*)' NG = ',NG
+c      write(6,*)' NGQ = ',NGQ
+c      write(6,*)' NBNDQ = ',NBNDQ
+c      write(6,*)' NUMK = ',NUMK
+c      write(6,*)' NUMKQ = ',NUMKQ
+cc      write(6,*)' NG2 = ',NG2
+cc      write(6,*)' NG2Q = ',NG2Q
+c      write(6,*)' NTYQ = ',NTYQ
+c      write(6,*)' NTAUQ = ',NTAUQ
+cc       write(6,*)' vn1 '
+cc       write(6,*)( vn1(i,1),i=1,nxyz,100)
+cc       write(6,*)' vn2 '
+cc       write(6,*)( vn2(i,1),i=1,nxyz,100)
+c       write(6,*)'  Next: FRPRMN '
+c       miya=13
+c       if ( miya.eq.13 ) stop 'check'
+c *** temp check: end
 C ***
 c      CALL FRPRMN( ISTRT, NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
-      CALL FRPRMN(ISTRT, NRX, NRY, NRZ, NXYZ,vn1,vn2,NG, NGQ, NG2, NG2Q,
+      CALL FRPRMN(ISTRT,NRX, NRY, NRZ, NXYZ,vn1,vn2,NG,NGQ,NG2,NG2Q,
      &             NBNDQ, NBNDQ, NFL, NPFL, NDX, NDY, NDZ,
-     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+c     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+     &             NUMK, NUMKQ, COEF, DCOEF,  CL1, 
 c     &             CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,
-     &          CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
-     &             RHO4, RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S,
+c     &          CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
+     &           YLM, G, G2,GDUMP, RHO, RHO1, RHO2, RHO3,VGA,
+     &  RHO4, RHOG, VECK, OCC, EE,EE2,EE3,EE4, WGT, TPIBA, VG, S,
      &             NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
-     &             MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
+     &           MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
      &             TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
      &             NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
-     &             SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
-     &             IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     &           SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
+     &           IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
+     &  ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
       CALL CLOCK(TIM)
       WRITE(6,7008) TIM
@@ -1428,7 +1463,7 @@ C
 C
        CALL ELECTF( MXBND, MBLK, NXYZ, NG, NGQ, NG2, NG2Q,
      &              NBNDQ, NBNDQ, NUMK, NUMKQ, COEF, DCOEF,
-     &              YLM, G, EXPG, G2, RHO, RHO4, RHO1, RHO2, RHOG,
+     &       YLM, G, EXPG, G2,GDUMP, RHO, RHO4, RHO1, RHO2, RHOG,
      &              TPIBA, ETOT, VG, S, NTOT, I2G, WORK2, VPJ, VPP,
      &              IOWF, IOVP, OMEGA, GRAD, DFORCE, SFORCE,
      &              NTAUQ, NTYQ, NTYPE, LREQ, LATQ, RVEC, NLV,
@@ -1436,8 +1471,7 @@ C
      &              VINT, NSY, FXNL, FYNL, FZNL,
      &              TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
 cc     &              ZZ, ZVAL, NPFL, MXOFL, OCC                      )
-     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK
+     &              ZZ, ZVAL, NPFL, MXOFL, OCC,VGA,NGNL ,CL1
      &                  ,NRX,NRY,NRZ
      &                  ,WSAVEX,WSAVEY,WSAVEZ
      &                  ,LX1,LX2,LY1
@@ -1595,9 +1629,9 @@ C           ---RHOOFK
 C           !
 C           ---RHOGET
 C           !
-C           ---DMIXP --> potextr
+C           ---DMIXP
 C           !
-C           ---CGDIAG---HLOCAL
+C           ---SDDIAG---HLOCAL
 C                    !
 C                    ---NONLOC
 C                    !
@@ -1607,26 +1641,27 @@ C*****************************************************************
 c     &           ( ISTRT, NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
      &   ( ISTRT, NRX, NRY, NRZ, NXYZ,VN1,VN2, NG, NGQ, NG2, NG2Q,
      &             NBNDQ, NBND, NFL, NPFL, NDX, NDY, NDZ,
-     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+cc     &             NUMK, NUMKQ, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+     &             NUMK, NUMKQ, COEF, DCOEF, CL1, 
 c     &             CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,
-     &         CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
-     &             RHO4, RHOG, VECK, OCC, EE, WGT, TPIBA, VG, S,
+c     &         CL3, HD, HDO, YLM, G, G2, RHO, RHO1, RHO2, RHO3,VGA,
+     &    YLM, G, G2,GDUMP, RHO, RHO1, RHO2, RHO3,VGA,
+     &    RHO4, RHOG, VECK, OCC, EE,EE2,EE3,EE4, WGT, TPIBA, VG, S,
      &             NTOT, I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF, IOVP,
-     &             MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
-     &             TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
+     &           MXBND, MBLK, OMEGA, ZVAL, NTAUQ, NTYQ, NTYPE, LREQ,
+     &           TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
      &             NKMESH, NEXPND, EBNDW, EW, PE, VINT, RCOSIN,
-     &             SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
+     &            SK, NSY, KZ, WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY,
      &             IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
-     &           ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK  )
+     &  ,sig,x0,x1,work1,work20,fdump,NGNL )
 C
       IMPLICIT REAL*8(A-H,O-Z)
 C
       PARAMETER (IRLATQ=144,NAS=144)
 C *********** <<<<<< CAUTION >>>>>> *************
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC      PARAMETER( KBSQ=18 )
-c      PARAMETER( NDXQ=10 ,NDYQ=10 ,NDZQ=10, NVIRTQ =20 )
-c      PARAMETER( NDXQ=10 ,NDYQ=10 ,NDZQ=10, NVIRTQ =80 )
-      PARAMETER( NDXQ=10 ,NDYQ=10 ,NDZQ=10, NVIRTQ =56 )
+c      PARAMETER( NDXQ=10 ,NDYQ=10 ,NDZQ=10, NVIRTQ =10)
+      PARAMETER( NDXQ=10 ,NDYQ=10 ,NDZQ=10, NVIRTQ =56)
 CC  *****  CARE ****
       PARAMETER( NB21Q= NVIRTQ - 1              )
 CC  *****  CARE END ****
@@ -1649,12 +1684,12 @@ c ****
       DIMENSION YY(IDIMQ)
 C
 c      COMPLEX*16  COEF(NG2Q,MXBND), DCOEF(NG2Q,MXBND),
-      COMPLEX*16  COEF(NG2Q,MXBND,NUMKQ), DCOEF(NG2Q,MXBND),
-     &            CWK1(NG2Q,MXBND), CWK2(NG2Q,MXBND)
-c      COMPLEX*16 CL1(NG2Q),CL2(NG2Q),CL3(NG2Q)
-c      COMPLEX*16 HD (NG2Q),HDO(NG2Q)
-      COMPLEX*16 CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND)
-      COMPLEX*16 HD(NG2Q,MXBND),HDO(NG2Q,MXBND)
+      COMPLEX*16  COEF(NG2Q,MXBND,NUMKQ), DCOEF(NG2Q,MXBND)
+c     &           ,CWK1(NG2Q,MXBND), CWK2(NG2Q,MXBND)
+c      COMPLEX*16 CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND)
+c      COMPLEX*16 HD(NG2Q,MXBND),HDO(NG2Q,MXBND)
+c      COMPLEX*16 CL1(NG2Q,MXBND)
+      COMPLEX*16 CL1(NG2Q,10)
 C
 c      REAL*8 RHO(NXYZ),YLM(NG2Q,4),OUT(NBNDQ,3,NUMKQ),VECK(3,NUMKQ)
 c      REAL*8 RHO(NXYZ),YLM(NG2Q,9),OUT(NBNDQ,3,NUMKQ),VECK(3,NUMKQ)
@@ -1664,9 +1699,6 @@ C
 c     &           VG(NXYZ),WORK2(NG2Q,3)
 c     &           VG(NXYZ),WORK2(NG2Q,5)
      &           VG(NXYZ),WORK2(NG2Q,7)
-c ***  for GGA but DX and DY are covered by RHO1 and RHO2
-      COMPLEX*16 DZ(NXYZ),DXX(NXYZ),DYY(NXYZ),DZZ(NXYZ),
-     &                    DXY(NXYZ),DYZ(NXYZ),DZX(NXYZ),VWORK(NXYZ)
       INTEGER*4 S(3,3,48)
 C   WORKING ARRAYS FOR FOURIER TRANSFORM
       COMPLEX*16 WSAVEX(NRX),WSAVEY(NRY),WSAVEZ(NRZ)
@@ -1674,7 +1706,7 @@ C   WORKING ARRAYS FOR FOURIER TRANSFORM
       DIMENSION LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
      &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
       DIMENSION I2G(NGQ),J2G(NG2Q,NUMKQ),NG2(NUMKQ)
-      DIMENSION G(4,NGQ),G2(4,NG2Q,NUMKQ),WGT(NUMKQ)
+      DIMENSION G(4,NGQ),G2(4,NG2Q,NUMKQ),WGT(NUMKQ),GDUMP(NG2Q,NUMKQ)
       DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ),
      &          ZV(NTYQ),RC0(NCRQ,NTYQ),
      &          COR(NCRQ,NTYQ),NUMC(NTYQ), MXOFL(NTYQ)
@@ -1683,18 +1715,25 @@ c      DIMENSION VPJ(NG2Q,3,2,NTYQ,NUMKQ),VPP(3,2,NTYQ),IOWF(MBLK,NUMKQ),
 c      DIMENSION VPJ(NG2Q,3,3,NTYQ,NUMKQ),VPP(3,3,NTYQ),IOWF(MBLK,NUMKQ),
       DIMENSION VPJ(NG2Q,3,4,NTYQ,NUMKQ),VPP(3,4,NTYQ),IOWF(MBLK,NUMKQ),
      &          IOVP(2,NTYQ,NUMKQ),OCC(NBNDQ,NUMKQ),EE(NBNDQ,NUMKQ)
+      DIMENSION NGNL(NTYQ,NUMKQ)
+      dimension ee2(nbndq),ee3(nbndq),ee4(nbndq)
       COMMON/COMOPT/IOPT(10,5)
       COMMON/COMFRP/RMIX,TR2,ITCMAX,ITMAX,ITC1,ITC7
       COMMON /AVEC/  A1(3), A2(3), A3(3), B1(3), B2(3), B3(3)
      &             , COVA, ALAT
-c
-      COMMON /DOSCAL/NBNDI1,NBNDI2,EDWN,EUP,EDD
 C
       DIMENSION EBNDW(NBNDQ,IRLATQ),PE(NBNDQ*IRLATQ),RCOSIN(NAS,IRLATQ)
       DIMENSION EW(NBNDQ),VINT(NBNDQ,IRLATQ),SK(3,NAS),KZ(3,IRLATQ,48),
      &          NSY(IRLATQ)
 c ****
       dimension VGA(NGQ,NTYQ),VN1(2*nxyz,2),VN2(2*nxyz,2)
+ccc
+      dimension fdump(NXYZ)
+c     work area for orthogonization
+      complex*16  sig(mxbnd,mxbnd),x0(mxbnd,mxbnd),
+     &    x1(mxbnd,mxbnd),work1(mxbnd,mxbnd),work20(mxbnd,mxbnd)
+      COMMON/SMOOTH/ADUMP
+C 
 C
 C *****
               IF( NPFL .EQ. 0 ) GO TO 4321
@@ -1747,33 +1786,34 @@ C
       CALL VOFRHO(NRX,NRY,NRZ,NXYZ,NG,NGQ,G,TPIBA,
      & RHO1,RHO2,RHO3,RHO,RHOG,I2G,
      & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2
-     & ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK )
+     & ,CL1(1,1),CL1(1,2),CL1(1,3),CL1(1,4),CL1(1,5)
+     & ,CL1(1,6),CL1(1,7),CL1(1,8),CL1(1,9),CL1(1,10)  )
 C
 C     CALL CLOCK(TIM)
 C6002 FORMAT(23X,'****  FRPRMN: AFT VOFRHO: ',F15.7,' SEC')
 C     WRITE(6,6002) TIM
 C
-C *** temp check
-c      write(6,*)' AFTER VOFRHO: plot rho3'
-c      write(6,*)(RHO3(IG),IG=1,NXYZ,5000)
-c      write(6,*)' AFTER VOFRHO: plot rho4'
-c      write(6,*)(RHO4(IG),IG=1,NXYZ,5000)
-c *** temp check : end
 C     POTENTIAL VG
 C
-!$omp parallel default(shared)
-!$omp do private(IG)
       DO 502 IG=1,NXYZ
   502 VG(IG)=RHO3(IG)+RHO4(IG)
-!$omp enddo
-!$omp end parallel
+c *** Smoothing 
+      adump4=4*adump
+      do ig=1,nxyz
+      jg=i2g(ig)
+      vg(jg)=vg(jg)*fdump(ig)
+      enddo
       CALL FFT3BX(NRX,NRY,NRZ,NXYZ,VG,RHO1,
      & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
 C
-C *** temp check
-c      write(6,*)' AFTER VOFRHO: plot VG'
-c      write(6,*)(VG(IG),IG=1,NXYZ,1000)
-c *** temp check : end
+c ***  temp check
+c      miya=13
+c      if ( miya.eq.13) then
+c      write(6,*)' VG in real space '
+c      write(6,*)( VG(i),i=1,1500,100 )
+c      stop
+c      endif
+c ***  temp check : end
 C
 C#################################################################
       ICONV=0
@@ -1801,26 +1841,28 @@ C
       EKINE=0.D0
       DO 2000 IK=1,NUMK
 c *** temp check
-c       write(6,*)'  before CGDIAG IK = ',IK
+       write(6,*)'  before SDDIAG IK = ',IK
 c *** temp check end
+      isd=1
 C
-      CALL CGDIAG( RDIF0, ITCF, NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q,
-c     &             NBNDQ, NBND, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
-     &    NBNDQ, NBND, COEF(1,1,IK), DCOEF, CWK1, CWK2, CL1, CL2,
-     &             CL3, HD, HDO, YLM, G2(1,1,IK), RHO1, RHO2, RHO3,
+      CALL SDDIAG( RDIF0, ITCF, NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q,
+c     &    NBNDQ, NBND, COEF(1,1,IK), DCOEF,  CL1, 
+     &    NBNDQ, NBND, COEF(1,1,IK), DCOEF,   
+     &   YLM, G2(1,1,IK),GDUMP(1,IK), RHO1, RHO2, RHO3,
      &             TPIBA, VG, J2G(1,IK), WORK2, OUT(1,1,IK),
      &             VPJ(1,1,1,1,IK),VPP,
      &             IOWF(1,IK), IOVP(1,1,IK), MXBND, MBLK,
      &             OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU, NUMTY,
-     &             NIDN, EE(1,IK), WSAVEX, WSAVEY, WSAVEZ, IFACX,
-     &             IFACY, IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL)
+     &   NIDN, EE(1,IK),EE2,EE3,EE4, WSAVEX, WSAVEY, WSAVEZ, IFACX,
+     &             IFACY, IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2, MXOFL
+     & ,sig,x0,x1,work1,work20,isd,NGNL(1,IK) )
 C
 C     CALL CLOCK(TIM)
-C6004 FORMAT(23X,'****  FRPRMN: AFT CGDIAG: ',F15.7,' SEC')
+C6004 FORMAT(23X,'****  FRPRMN: AFT SDDIAG: ',F15.7,' SEC')
 C     WRITE(6,6004) TIM
 C
 c *** temp check
-c       write(6,*)'  after CGDIAG IK = ',IK
+       write(6,*)'  after SDDIAG IK = ',IK
 c       if ( IK.eq.NUMK ) stop ' check end '
 c *** temp check end
  2000 CONTINUE
@@ -1882,15 +1924,10 @@ c      endif
 c ***  temp check end
   630 CONTINUE
 c ****  temp check
-c       miya=13
+c       miya=12
 c       if ( miya.eq.13 ) then
 c        write(6,*)' END of RHOOFK !! '
-c        sum=0
-c        do i=1,nxyz
-c        sum=sum+rho(i)
-c        enddo
-c        sum=sum*omega
-c        write(6,*)' Total charge of fully occupied bands = ',sum
+c        write(6,*)' NKMESH NEXPND = ',NKMESH,NEXPND
 c       stop
 c       endif
 C ****
@@ -2017,9 +2054,9 @@ C ****
  8500            CONTINUE
 C ****
       CALL RHOGET( NRX, NRY, NRZ, NXYZ, RHO, RHO1, RHOG,
-     &             NTOT, S, OMEGA, ZVAL,
+     &             NTOT, S, OMEGA, ZVAL,RHO2,I2G,G,
      &             WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
-     &             LX1, LX2, LY1, LY2, LZ1, LZ2                   )
+     &             LX1, LX2, LY1, LY2, LZ1, LZ2,fdump   )
 C
 C
 C     CALL CLOCK(TIM)
@@ -2030,26 +2067,22 @@ C
      &             RHO1, RHO2, RHO3, RHO, RHOG, I2G,
      &             WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &             LX1, LX2, LY1, LY2, LZ1, LZ2
-     & ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK )
+     & ,CL1(1,1),CL1(1,2),CL1(1,3),CL1(1,4),CL1(1,5)
+     & ,CL1(1,6),CL1(1,7),CL1(1,8),CL1(1,9),CL1(1,10)  )
 C
 C     CALL CLOCK(TIM)
 C6010 FORMAT(23X,'****  FRPRMN: AFT VOFRHO: ',F15.7,' SEC')
 C     WRITE(6,6010) TIM
 C
 C
-!$omp parallel default(shared)
-!$omp do private(IG)
       DO 503 IG=1,NXYZ
   503 RHO1(IG)=RHO3(IG)+RHO4(IG)
-!$omp enddo
-!$omp end parallel
-c ** temp check
-c      write(6,*)' in CGDIAG after 503: RHO3 and RHO4'
-c      write(6,*)'  RHO3  '
-c      write(6,*)(RHO3(IG),IG=1,NXYZ,1000)
-c      write(6,*)'  RHO4  '
-c      write(6,*)(RHO4(IG),IG=1,NXYZ,1000)
-c ** temp check : end
+c *** Smoothing
+      adump4=4*adump
+      do ig=1,nxyz
+      jg=i2g(ig)
+      RHO1(jg)=RHO1(jg)*fdump(ig)
+      enddo
       CALL FFT3BX( NRX, NRY, NRZ, NXYZ, RHO1, RHO2,
      &             WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &             LX1, LX2, LY1, LY2, LZ1, LZ2                 )
@@ -2057,12 +2090,8 @@ C
 C     PRINT OUT CONVERGENCE OF THE POTENTIAL
 C
       RDIF=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:RDIF)
       DO 24 IG=1,NXYZ
    24 RDIF=RDIF+ABS(VG(IG)-RHO1(IG))**2
-!$omp enddo
-!$omp endparallel
       RDIF=RDIF/NXYZ
 C ******
              RDIF0 = RDIF * 0.5D+00
@@ -2072,11 +2101,8 @@ C ******
   124 FORMAT('     *** ITR #',I3,'  CONVERGENCE OF THE POTENTIAL IS '
      &      ,' **',D15.7)
       IF(RDIF.LT.TR2) then
-c ** store all local potential
-      write(6,*)' Store SCF local potential '
-      rewind 90
-      write(90)( dreal(rho1(IG)),IG=1,NXYZ )
-c ** store end
+      write(6,*)' Local SCF potential has been stored!'
+      write(90)(dreal( RHO1(IR) )*13.6d0*2,IR=1,NXYZ )
       write(6,*)' Fourier components of eigen values'
       do 9428 ib=nbnd1,nfl+npfl
       write(6,4427) ib
@@ -2096,16 +2122,15 @@ C        PANDEY'S EXTRAPOLATION (1) REAL SPACE
 c         CALL DMIXP( RHO1, VG, RMIX, R2, TR3, ITS, 3, NXYZ*2, 11, 12,
 c         CALL DMIXP3( RHO1, VG, RMIX, R2, TR3, ITS, 3, NXYZ*2, 11, 12,
 c     &               RHO2, RHO3,VN1,VN2, NXYZ*2)
-         CALL potextr( RHO1, VG, RMIX, R2, TR3, ITS,  NXYZ*2, 
+         CALL potextr( RHO1, VG, RMIX, R2, TR3, ITS,  NXYZ*2,
      &               RHO2, RHO3,VN1,VN2)
-c *** temp check
-c         write(6,*)'place1:  after potextr ITS=',ITS,' R2 =',R2
-c         write(6,*) ' ITS = ',ITS
-c         write(6,*)' A = '
-c         write(6,*)(dreal( RHO1(IG) ),IG=1,10 )
-c         write(6,*)' B = '
-c         write(6,*)(dreal(   VG(IG) ),IG=1,10 )
-c *** temp check: end
+c **** change isd
+         if ( r2.le.1.d-02 ) then
+          isd=1
+         else
+          isd=0
+         endif
+c
          IF(R2.LE.TR3) GOTO 1999
 C
       ELSEIF(IOPT(7,1).EQ.2) THEN
@@ -2120,14 +2145,18 @@ C        PANDEY'S EXTRAPOLATION (2) G SPACE
 c         CALL DMIXP( RHO1, VG, RMIX, R2, TR3, ITS, 3, NXYZ*2, 11, 12,
 c         CALL DMIXP3( RHO1, VG, RMIX, R2, TR3, ITS, 3, NXYZ*2, 11, 12,
 c     &               RHO2, RHO3,VN1,VN2, NXYZ*2)
-         CALL potextr( RHO1, VG, RMIX, R2, TR3, ITS, NXYZ*2, 
+         CALL potextr( RHO1, VG, RMIX, R2, TR3, ITS,  NXYZ*2,
      &               RHO2, RHO3,VN1,VN2)
-c *** temp check
-         write(6,*)'place 2:  after potextr ITS=',ITS,' R2 =',R2
-c *** temp check: end
          CALL FFT3BX( NRX, NRY, NRZ, NXYZ, VG, RHO2,
      &                WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &                LX1, LX2, LY1, LY2, LZ1, LZ2                   )
+c **** change isd
+         if ( r2.le.1.d-02 ) then
+          isd=1
+         else
+          isd=0
+         endif
+c
          IF(R2.LE.TR3) GOTO 1999
 C
       ELSEIF(IOPT(7,1).EQ.3) THEN
@@ -2138,37 +2167,33 @@ C        PANDEY-KB'S EXTRAPOLATION
          CALL FFT3FX( NRX, NRY, NRZ, NXYZ, RHO1, RHO2,
      &                WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &                LX1, LX2, LY1, LY2, LZ1, LZ2                )
-!$omp parallel default(shared)
-!$omp do private(IG,JG)
          DO 33 IG=2,NG
          JG=I2G(IG)
          RHO1(JG)=RHO1(JG)*G(4,IG)/(G(4,IG)+1.92D0)
          VG  (JG)=VG  (JG)*G(4,IG)/(G(4,IG)+1.92D0)
    33    CONTINUE
-!$omp enddo
-!$omp end parallel
          TR3=1.D-15
 c         CALL DMIXP( RHO1, VG, RMIX, R2, TR3, ITS, 3, NXYZ*2, 11, 12,
 c         CALL DMIXP3( RHO1, VG, RMIX, R2, TR3, ITS, 3, NXYZ*2, 11, 12,
 c     &               RHO2, RHO3,VN1,VN2, NXYZ*2)
          CALL potextr( RHO1, VG, RMIX, R2, TR3, ITS, NXYZ*2,
      &               RHO2, RHO3,VN1,VN2)
-c *** temp check
-         write(6,*)'place 3:  after potextr ITS=',ITS,' R2 =',R2
-c *** temp check: end
-!$omp parallel default(shared)
-!$omp do private(IG,JG)
          DO 35 IG=2,NG
          JG=I2G(IG)
          VG  (JG)=VG  (JG)/G(4,IG)*(G(4,IG)+1.92D0)
    35    CONTINUE
-!$omp enddo
-!$omp end parallel
          CALL FFT3BX( NRX, NRY, NRZ, NXYZ, VG, RHO2,
      &                WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &                LX1, LX2, LY1, LY2, LZ1, LZ2                 )
 C        DO 37 IG=1,NXYZ
 C  37    VG(IG)=RHO2(IG)
+c **** change isd
+         if ( r2.le.1.d-02 ) then
+          isd=1
+         else
+          isd=0
+         endif
+c
          IF(R2.LE.TR3) GOTO 1999
 C
       ELSEIF(IOPT(7,1).EQ.4) THEN
@@ -2187,28 +2212,18 @@ CCC        B   =1.92
          CALL FFT3FX( NRX, NRY, NRZ, NXYZ, RHO1, RHO2,
      &                WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &                LX1, LX2, LY1, LY2, LZ1, LZ2                )
-!$omp parallel default(shared)
-!$omp do private(IG)
          DO 27 IG=1,NXYZ
    27    RHO2(IG)=VG(IG)+RMIX*(RHO1(IG)-VG(IG))
-!$omp enddo
-!$omp do private(IG,JG)
          DO 25 IG=2,NG
          JG=I2G(IG)
          RHO2(JG)=VG(JG)+RMIX*(RHO1(JG)-VG(JG))
      &           *G(4,IG)/(G(4,IG)+1.92D0)
    25    CONTINUE
-!$omp enddo
-!$omp end parallel
          CALL FFT3BX( NRX, NRY, NRZ, NXYZ, RHO2, VG,
      &                WSAVEX, WSAVEY, WSAVEZ, IFACX,I FACY, IFACZ,
      &                LX1, LX2, LY1, LY2, LZ1, LZ2                )
-!$omp parallel default(shared)
-!$omp do private(IG)
          DO 37 IG=1,NXYZ
    37    VG(IG)=RHO2(IG)
-!$omp enddo
-!$omp end parallel
       ENDIF
 C *******************************  EXTRAPOLATION END
 C
@@ -2238,16 +2253,14 @@ C
       CALL CLOCK(TIM)
  6004 FORMAT(23X,'****  FRPRMN: ',F15.7,' SEC')
       WRITE(6,6004) TIM
-c *****  temp
-c      stop 'not continued!'
 C
  1999 CONTINUE
-c
+C
 c *** Start G-space to R-space FFT conversion of each wavefunctions
       if ( iopt(2,1).eq.5 ) then
       do 1997 ik=1,numk
        do 1996 iblk=1,mblk
-ccc      read(71,rec=iowf(iblk,ik))coef
+ccc      read(71,rec=iowf(iblk,ik))coef  
         if ( iblk.eq.mblk ) then
          nb=mod(nbnd-1,mxbnd )+1
         else
@@ -2261,14 +2274,10 @@ C
           RHO1(JG)=(0.D0,0.D0)
           ENDDO
 *VDIR NODEP(RHO1)
-!$omp parallel default(shared)
-!$omp do private(IG,JG)
           DO IG=1,NG2(ik)
           JG=J2G(IG,IK)
           RHO1(JG)=COEF(IG,IBAND,IK)
           ENDDO
-!$omp enddo
-!$omp end parallel
 C
          CALL FFT3BX(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,
      & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
@@ -2278,7 +2287,6 @@ c
  1996  continue
  1997 continue
       endif
-C
 c *** Start orbital analysis
       if ( iopt(2,1).eq.4 ) then
       call clock(t0)
@@ -2296,19 +2304,11 @@ c *** Start orbital analysis
       write(6,*)'  for the third k-point'
       end if
       if ( g2(4,1,ik).gt.1.d-08 ) then
-!$omp parallel default(shared)
-!$omp do private(ig)
       do 1009 ig=1,ng2(ik)
  1009 g2(4,ig,ik)=dsqrt(g2(4,ig,ik)) 
-!$omp enddo
-!$omp end parallel
       else
-!$omp parallel default(shared)
-!$omp do private(ig)
       do 1008 ig=2,ng2(ik)
  1008 g2(4,ig,ik)=dsqrt(g2(4,ig,ik)) 
-!$omp enddo
-!$omp end parallel
       end if
       do 1011 iblk=1,mblk
 ccc      read(71,rec=iowf(iblk,ik))coef  
@@ -2320,67 +2320,21 @@ ccc      read(71,rec=iowf(iblk,ik))coef
       ibi=mxbnd*(iblk-1)
       do 1452 ib=1,nb
       iband=ibi+ib
+c ***  for special treatment
+      ngg2=ng2(ik)/18
       call orbanly(iband,ik,coef(1,iband,ik),rho1,rho2,ng2q,
-     &     ng2(ik),g2(1,1,ik),cwk1,
+cc     &     ng2(ik),g2(1,1,ik),cl1,
+     &     ngg2,g2(1,1,ik),cl1,
      &     tau,ntauq,numty,ntyq,ntype,tpiba,mxofl,omega)
  1452 continue
  1011 continue
-!$omp parallel default(private)
-!$omp do private(ig)
       do 1007 ig=1,ng2(ik)
       g2(4,ig,ik)=g2(4,ig,ik)**2
  1007 continue
-!$omp enddo
-!$omp end parallel
  1010 continue
       call clock(t1)
       write(6,*)' Orbital analysis took ',t1-t0,' seconds '  
       end if
-c
-c
-c
-c   Density of states ( option !! )
-c
-c
-C
-      if ( iopt(2,1).eq.6 ) then
-c      READ(5,*) EDD   ! energy resolution ( eV )
-      EF=EF*13.6d0*2
-      EF1=EF-EDWN
-      EF2=EF+EUP
-      EF1=EF1
-      EF2=EF2
-      write(6,*)
-      write(6,*)' Before calling DOSGEN '
-      write(6,*)' EF = ',EF,'  eV'
-      write(6,*)' EF1= ',EF1,' eV'
-      write(6,*)' EF2= ',EF2,' eV'
-      write(6,*)' NBNDI1 = ',NBNDI1,' NBNDI2 = ',NBNDI2
-c *** temp check
-       miya=12
-      if ( miya.eq.13 ) stop
-c *** temp check
-C
-      IBKK=0
-      DO 246 KK=1,NEXPND
-      DO 246 IB=1,NBNDI2-NBNDI1+1
-      IBKK=IBKK+1
-      PE(IBKK)=EBNDW(NBNDI1+IB-1,KK)*13.6d0*2
-  246 CONTINUE
-C
-      call clock(t00)
-      CALL DOSGEN(PE,EF,EF1,EF2,YY,IDIMQ
-     &        ,NDX,NDY,NDZ,NBNDI1,NBNDI2,NEXPND,48,IIL,IRL
-     &        ,NSY,KZ,IRLATQ,EDD )
-      call clock(t01)
-      write(6,*)' DOS calculation took ',t01-t00,' seconds'
-      write(6,*)'  ---  stopping  ----'
-      stop
-      end if
-C
-c
-c   Density of states :  end
-c
 C
          IF( NPFL .GT. 0 ) WRITE(6,6040) EF * 27.212D+00
  6040    FORMAT(//'    *****     EF = ',D18.10,' EV'/)
@@ -2469,7 +2423,8 @@ C
       DIMENSION  NG2(NUMK ), IOWF(MBLK,NUMKQ)
 c      COMPLEX*16 COEF(NG2Q,MXBND)
       COMPLEX*16 COEF(NG2Q,MXBND,NUMKQ)
-      REAL*4     RHO1(*), RHO2(*)
+c      REAL*4     RHO1(*), RHO2(*)
+      REAL*8     RHO1(*), RHO2(*)
 C
       IF(IOPT(4,2).EQ.0) THEN
          IWF=23
@@ -2506,21 +2461,23 @@ C
      &              NG2, NG2Q, NBNDQ, NBND,
      &              COEF, DCOEF, CWK1, CWK2, CL1, CL2, CL3, HD, HDO,
 c     &              YLM, G, G2, RHO1, RHO2, RHO3, OMEGA, TPIBA, VG,
-     &   YLM, G, G2, RHO1, RHO2, RHO3, VGA,Vchg, OMEGA, TPIBA, VG,
+     &   YLM, G, G2,GDUMP,RHO1, RHO2, RHO3, VGA,Vchg, OMEGA, TPIBA, VG,
      &              I2G, J2G, WORK2, OUT, VPJ, VPP, IOWF,
      &              NCRQ, ZV, RC0, COR, NUMC,
-     &              NTAUQ, NTYQ, NTYPE, LREQ, GCUT2, VECK, EE,
+     &  NTAUQ, NTYQ, NTYPE, LREQ, GCUT2, VECK, EE,EE2,EE3,EE4,
      &              TAU, NUMTY, NIDN, ALPPP, BETAPP, IOVP,
      &              WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
-     &              LX1, LX2, LY1, LY2, LZ1, LZ2, NUMKQ2, MXOFL    )
+     &              LX1, LX2, LY1, LY2, LZ1, LZ2, NUMKQ2, MXOFL
+     &  ,sig,x0,x1,work1,work20,GG,J2GG,NGNL )
 C
       IMPLICIT REAL*8(A-H,O-Z)
 c      COMPLEX*16 CL1(NG2Q),CL2(NG2Q),CL3(NG2Q)
 c      COMPLEX*16 HD(NG2Q),HDO(NG2Q)
-      COMPLEX*16 CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND)
+c      COMPLEX*16 CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND)
+      COMPLEX*16 CL1(NG2Q,10),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND)
       COMPLEX*16 HD(NG2Q,MXBND),HDO(NG2Q,MXBND)
       COMPLEX*16 CTEMP
-      DIMENSION EE(NBNDQ)
+      DIMENSION EE(NBNDQ),ee2(nbndq),ee3(nbndq),ee4(nbndq)
 c      DIMENSION ALPPP(2,NTYQ),BETAPP(2,NTYQ),IOVP(2,NTYQ),
 c      DIMENSION ALPPP(3,NTYQ),BETAPP(3,NTYQ),IOVP(2,NTYQ),
       DIMENSION ALPPP(4,NTYQ),BETAPP(4,NTYQ),IOVP(2,NTYQ),
@@ -2541,7 +2498,8 @@ c     &           VG(NXYZ),WORK2(NG2Q,5)
       DIMENSION LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
      &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
       DIMENSION I2G(NGQ),J2G(NG2Q)
-      DIMENSION G(4,NGQ),G2(4,NG2Q)
+      DIMENSION G(4,NGQ),G2(4,NG2Q),GDUMP(NG2Q)
+      DIMENSION GG(4,NGQ),J2GG(NG2Q)
       DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ)
 c      DIMENSION VPJ(NG2Q,3),VPP(3),IOWF(MBLK,NUMKQ2)
 c      DIMENSION VPJ(NG2Q,3,2,NTYQ),VPP(3,2,NTYQ),IOWF(MBLK,NUMKQ2)
@@ -2549,6 +2507,12 @@ c      DIMENSION VPJ(NG2Q,3,3,NTYQ),VPP(3,3,NTYQ),IOWF(MBLK,NUMKQ2)
       DIMENSION VPJ(NG2Q,3,4,NTYQ),VPP(3,4,NTYQ),IOWF(MBLK,NUMKQ2)
 c *****
       dimension VGA(NG2Q,NTYQ),Vchg(NG2Q,NTYQ)
+      dimension NGNL(NTYQ)
+ccc
+c     work area for orthogonization
+      complex*16  sig(mxbnd,mxbnd),x0(mxbnd,mxbnd),
+     &    x1(mxbnd,mxbnd),work1(mxbnd,mxbnd),work20(mxbnd,mxbnd)
+C 
 C
       DATA EPS/1.D-10/
       PI=4.D0*ATAN(1.D0)
@@ -2559,7 +2523,8 @@ C     WRITE(6,'(2X,3F15.7)') (VECK(I),I=1,3)
 C
 C     MAKE G2VECTOR CORRESPONDING TO VECK
 C
-      CALL G2VECT(NGQ,NG,NG2Q,NG2,VECK,G,G2,J2G,I2G,TPIBA,GCUT2)
+      CALL G2VECT(NGQ,NG,NG2Q,NG2,VECK,G,G2,J2G,I2G,TPIBA,GCUT2
+     &           ,GG,J2GG,RHO3,GDUMP)
 C
       NUMK=1
       NUMKQ=1
@@ -2567,7 +2532,7 @@ C
 c     &             NUMKQ, NUMK, G2, RHO2, RHO3, NUMTY, NTYQ, NTYPE,
      &    NUMKQ, NUMK, G2, RHO2,VGA,Vchg,RHO3, NUMTY, NTYQ, NTYPE,
      &             VPJ, VPP, NCRQ, ZV, RC0, COR, NUMC, ALPPP,
-     &             BETAPP, IOVP, MXOFL                            )
+     &             BETAPP, IOVP, MXOFL,ADUMP,ATEMP,NGNL       )
 C
        DO 401 IBLK = 1, MBLK
          IF( IBLK.EQ.MBLK ) THEN
@@ -2638,15 +2603,16 @@ cc        WRITE(71,REC=IOWF(IBLK,1)) COEF
   600  CONTINUE
 C
 C
-      ITCF=100 ! or more to prevent eigenvalue-missing
-      CALL CGDIAG( 0.1D-11, ITCF, NRX, NRY, NRZ, NXYZ, NG2, NG2Q,
-     &             NBNDQ, NBND, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
-     &             CL3, HD, HDO, YLM, G2, RHO1, RHO2, RHO3,
+      ITCF=50
+      CALL SDDIAG( 0.1D-08, ITCF, NRX, NRY, NRZ, NXYZ, NG2, NG2Q,
+c     &             NBNDQ, NBND, COEF, DCOEF, CWK1, CWK2, CL1, CL2,
+     &             NBNDQ, NBND, COEF, DCOEF, CWK1, CWK2,  CL2,
+     &    CL3, HD, HDO, YLM, G2,GDUMP, RHO1, RHO2, RHO3,
      &             TPIBA, VG, J2G, WORK2, OUT, VPJ, VPP, IOWF,
      &             IOVP, MXBND, MBLK, OMEGA, NTAUQ, NTYQ, NTYPE,
-     &             LREQ, TAU, NUMTY, NIDN, EE, WSAVEX, WSAVEY, WSAVEZ,
+     &   LREQ,TAU,NUMTY,NIDN,EE,EE2,EE3,EE4,WSAVEX, WSAVEY, WSAVEZ,
      &             IFACX, IFACY, IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2,
-     &             MXOFL                                             )
+     &             MXOFL,sig,x0,x1,work1,work20,0,NGNL)
 C
       RETURN
       END
@@ -2661,7 +2627,8 @@ C***************************************************************
      &             OMEGA, ZVAL, IOWF, RHO, RHOG, RHO1, RHO2, RHO3,
      &             WGT, OCC, NTOT, S, NFL, NPFL, NKMESH, NEXPND,
      &             RCOSIN, NSY, VINT, WSAVEX, WSAVEY, WSAVEZ, IFACX,
-     &             IFACY, IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2        )
+     &             IFACY, IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2,
+     &             INDX,GG,J2GG,GDUMP,fdump )
       IMPLICIT REAL*8 (A-H,O-Z)
 C *******   TEMP   CARE!!    *************
       PARAMETER (IRLATQ=144,NAS=144)
@@ -2672,6 +2639,8 @@ c      COMPLEX*16 COEF(NG2Q,MXBND), DCOEF(NG2Q,MXBND),
       DIMENSION G(4,NGQ),G2(4,NG2Q,NUMKQ),I2G(NGQ),J2G(NG2Q,NUMKQ),
      &          VECK(3,NUMKQ),NG2(NUMKQ),RHO(NXYZ),IOWF(MBLK,NUMKQ),
      &          WGT(NUMKQ),OCC(NBNDQ,NUMKQ)
+      DIMENSION GG(4,NGQ),INDX(NG2Q),J2GG(NG2Q),GDUMP(NG2Q,NUMKQ)
+     &         ,fdump(NG2Q)
       INTEGER*4 S(3,3,48)
 C     WORK ARRYS FOR FOURIER TRANSFORM
       COMPLEX*16 WSAVEX(NRX),WSAVEY(NRY),WSAVEZ(NRZ)
@@ -2683,10 +2652,10 @@ C     WORK ARRYS FOR FOURIER TRANSFORM
       COMMON/COMOPT/IOPT(10,5)
       COMMON/COMINI/MAXG2
       COMMON/AVEC/A1(3),A2(3),A3(3),B1(3),B2(3),B3(3), COVA, ALAT
+      COMMON/SMOOTH/ADUMP
 C
       CALL PREFFT(NRX,NRY,NRZ,NXYZ,
      & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
-C
 C
       PI=4.D0*ATAN(1.D0)
       TPIBA2=TPIBA*TPIBA
@@ -2696,35 +2665,61 @@ C
       IG2=1
       DO 1 I=1,NG
       IF(IG2.GT.NG2Q) GOTO 100
-      G2(1,IG2,IK)=VECK(1,IK)+G(1,I)
-      G2(2,IG2,IK)=VECK(2,IK)+G(2,I)
-      G2(3,IG2,IK)=VECK(3,IK)+G(3,I)
-      G2(4,IG2,IK)=G2(1,IG2,IK)**2 + G2(2,IG2,IK)**2 + G2(3,IG2,IK)**2
-      GDIF= G2(4,IG2,IK)*TPIBA2
-      IF(GDIF.GT.GCUT2) GOTO 1
-      J2G(IG2,IK)=I2G(I)
+c      G2(1,IG2,IK)=VECK(1,IK)+G(1,I)
+c      G2(2,IG2,IK)=VECK(2,IK)+G(2,I)
+c      G2(3,IG2,IK)=VECK(3,IK)+G(3,I)
+c      G2(4,IG2,IK)=G2(1,IG2,IK)**2 + G2(2,IG2,IK)**2 + G2(3,IG2,IK)**2
+c      GDIF= G2(4,IG2,IK)*TPIBA2
+      GG(1,IG2)=VECK(1,IK)+G(1,I)
+      GG(2,IG2)=VECK(2,IK)+G(2,I)
+      GG(3,IG2)=VECK(3,IK)+G(3,I)
+      GG(4,IG2)=GG(1,IG2)**2 + GG(2,IG2)**2 + GG(3,IG2)**2
+      GDIF= GG(4,IG2)*TPIBA2
+ccc      IF(GDIF.GT.GCUT2) GOTO 1  !!! comment out for full grids
+c      J2G(IG2,IK)=I2G(I)
+      J2GG(IG2)=I2G(I)
       IG2=IG2+1
     1 CONTINUE
       IG2=IG2-1
+      CALL INDEXX(IG2,GG,INDX)
+      DO IG=1,IG2
+      G2(1,IG,IK)=GG(1,INDX(IG))
+      G2(2,IG,IK)=GG(2,INDX(IG))
+      G2(3,IG,IK)=GG(3,INDX(IG))
+      G2(4,IG,IK)=GG(4,INDX(IG))
+      J2G(IG,IK)=J2GG(INDX(IG))
+      ENDDO
+      GFAC=GCUT2/TPIBA2
+      DO IG=1,IG2
+      IF ( G2(4,IG,IK).LE.GFAC ) THEN
+      GDUMP(IG,IK)=G2(4,IG,IK)
+      ELSE
+      GDUMP(IG,IK)=GFAC
+      ENDIF
+      ENDDO
       WRITE(6,200) IK, GCUT2,IG2
   200 FORMAT(' PLANE WAVE BASIS SET FOR K = ',I3,': GCUT2= ',F9.3,' RY'
-     &,'  NG2= ',I5)
+     &,'  NG2= ',I10)
       NG2(IK)=IG2
 C
-      DO 20 IG=1,NG2(IK)
-        DO 30 JG=IG,NG2(IK)
-          IF( G2(4,JG,IK).GE.G2(4,IG,IK) ) GOTO 30
-            DO 15 IR=1,4
-              Q=G2(IR,IG,IK)
-              G2(IR,IG,IK)=G2(IR,JG,IK)
-              G2(IR,JG,IK)=Q
-   15       CONTINUE
-            IR=J2G(IG,IK)
-            J2G(IG,IK)=J2G(JG,IK)
-            J2G(JG,IK)=IR
-   30   CONTINUE
-   20 CONTINUE
-   10 CONTINUE
+c *** Following argolisms is too slow for FFT grids!
+c      write(6,*)' sorting has started !'
+c      DO 20 IG=1,NG2(IK)
+c        DO 30 JG=IG,NG2(IK)
+c          IF( G2(4,JG,IK).GE.G2(4,IG,IK) ) GOTO 30
+c            DO 15 IR=1,4
+c              Q=G2(IR,IG,IK)
+c              G2(IR,IG,IK)=G2(IR,JG,IK)
+c              G2(IR,JG,IK)=Q
+c   15       CONTINUE
+c            IR=J2G(IG,IK)
+c            J2G(IG,IK)=J2G(JG,IK)
+c            J2G(JG,IK)=IR
+c   30   CONTINUE
+c   20 CONTINUE
+c      write(6,*)' sorting has finished !'
+c
+   10 CONTINUE   ! end of k-loop
 C
       IF(IOPT(4,1).EQ.0) THEN
          DO 400 IK=1,NUMK
@@ -2746,6 +2741,12 @@ Care
 c  401    WRITE(71,REC=IOWF(IBLK,IK)) COEF
   401    continue
   400    CONTINUE
+      ELSEIF (IOPT(4,1).eq.2) then
+       write(6,*)' Now calling WFFFT !! '
+         call WFFFT(NUMK,NUMKQ,MXBND,NBND,NG2,NG2Q,
+     &   NRX,NRY,NRZ,NXYZ,COEF,RHO1,RHO2,
+     &   WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
+     &   LX1, LX2, LY1, LY2, LZ1, LZ2 ,j2g           )
       ELSE
 C ***
          CALL WFREAD(       MXBND, MBLK, NUMK, NUMKQ, NBND, COEF, NG2,
@@ -2825,7 +2826,7 @@ cccc         WRITE(71,REC=IOWF(IBLK,IK)) COEF
  5000 CONTINUE
 C ***
       ENDIF
-      IF(IOPT(3,1).EQ.0) THEN
+      IF(IOPT(3,1).EQ.0) THEN  ! charge is made internally
          RHO0=ZVAL/OMEGA
          DO 460 I=1,NXYZ
   460    RHO(I)=RHO0
@@ -2834,7 +2835,23 @@ C ***
          CALL FFT3FX( NRX, NRY, NRZ, NXYZ, RHOG, RHO1,
      &                WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &                LX1, LX2, LY1, LY2, LZ1, LZ2                )
-      ELSEIF(IOPT(3,1).EQ.1) THEN
+c *** Smoothing !!
+c         adump4=4*adump
+c         do ig=2,nxyz
+c         jg=i2g(ig)
+c         rhog(jg)=rhog(jg)*fdump(ig)
+c         enddo
+c         DO IG=1,NXYZ
+c         RHO2(IG)=RHOG(IG)
+c         ENDDO
+c         CALL FFT3BX( NRX, NRY, NRZ, NXYZ, RHO2, RHO1,
+c     &                WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
+c     &                LX1, LX2, LY1, LY2, LZ1, LZ2                )
+c         DO IG=1,NXYZ
+c         RHO(IG)=DBLE(RHO2(IG))
+c         ENDDO
+c *** Smoothing !! : END
+      ELSEIF(IOPT(3,1).EQ.1) THEN ! charge is read from file
          REWIND 20
          READ(20) RHO
          DO 464 IG=1,NXYZ
@@ -2842,7 +2859,23 @@ C ***
          CALL FFT3FX( NRX, NRY, NRZ, NXYZ, RHOG, RHO1,
      &                WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &                LX1, LX2, LY1, LY2, LZ1, LZ2                 )
-      ELSEIF(IOPT(3,1).EQ.2) THEN
+c *** Smoothing !!
+c         adump4=4*adump
+c         do ig=2,nxyz
+c         jg=i2g(ig)
+c         rhog(jg)=rhog(jg)*fdump(ig)
+c         enddo
+c         DO IG=1,NXYZ
+c         RHO2(IG)=RHOG(IG)
+c         ENDDO
+c         CALL FFT3BX( NRX, NRY, NRZ, NXYZ, RHO2, RHO1,
+c     &                WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
+c     &                LX1, LX2, LY1, LY2, LZ1, LZ2                )
+c         DO IG=1,NXYZ
+c         RHO(IG)=DBLE(RHO2(IG))
+c         ENDDO
+c *** Smoothing !! : END
+      ELSEIF(IOPT(3,1).EQ.2) THEN ! charge is read from file (continue SCF)
          DO 467 I=1,NXYZ
   467    RHOG(I)=(0.D0,0.D0)
          REWIND 20
@@ -2858,6 +2891,13 @@ c ***  check
          write(6,*)' check: charge is read from file 20'
          write(6,*)' ng, idum = ',ng,idum
          write(6,*)
+c *** Smoothing !!
+c         adump4=4*adump
+c         do ig=2,nxyz
+c         jg=i2g(ig)
+c         rhog(jg)=rhog(jg)*fdump(ig)
+c         enddo
+c *** Smoothing !! : END
 c ***  check end
          DO 465 IG=1,NXYZ
   465    RHO2(IG)=RHOG(IG)
@@ -2866,7 +2906,7 @@ c ***  check end
      &                LX1, LX2, LY1, LY2, LZ1, LZ2                )
          DO 466 IG=1,NXYZ
   466    RHO(IG)=DBLE(RHO2(IG))
-      ELSEIF(IOPT(3,1).EQ.3) THEN
+      ELSEIF(IOPT(3,1).EQ.3) THEN ! charge is made from pseudoWF
          DO 701 I=1,NXYZ
   701    RHO(I)=0.D0
          REWIND 25
@@ -2901,7 +2941,7 @@ C *****
                      END IF
 C *****
         CALL RHOGET( NRX, NRY, NRZ, NXYZ, RHO, RHO1, RHOG, NTOT, S,
-     &               OMEGA, ZVAL, WSAVEX, WSAVEY, WSAVEZ,
+     &               OMEGA, ZVAL,RHO2,I2G,G, WSAVEX, WSAVEY, WSAVEZ,
      &               IFACX, IFACY, IFACZ, LX1, LX2, LY1, LY2,
      &               LZ1, LZ2                                     )
 C
@@ -2913,10 +2953,37 @@ C
       STOP
       END
 C
+      SUBROUTINE WFFFT(NUMK,NUMKQ,MXBND,NBND,NG2,NG2Q,
+     &   NRX,NRY,NRZ,NXYZ,COEF,RHO1,RHO2,
+     &   WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
+     &   LX1, LX2, LY1, LY2, LZ1, LZ2 ,j2g           )
+      implicit double precision(a-h,o-z)
+      complex*16 coef(ng2q,mxbnd,numkq)
+      complex*16 rho1(nxyz),rho2(nxyz)
+C     WORK ARRYS FOR FOURIER TRANSFORM
+      COMPLEX*16 WSAVEX(NRX),WSAVEY(NRY),WSAVEZ(NRZ)
+      DIMENSION IFACX(30),IFACY(30),IFACZ(30)
+      DIMENSION LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
+     &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
+      dimension ng2(numkq),j2g(ng2q,numkq)
+      do 1 ik=1,numk
+       do 2 ib=1,mxbnd
+       read(88)( rho1(ir),ir=1,nxyz )
+         CALL FFT3FX( NRX, NRY, NRZ, NXYZ, RHO1, RHO2,
+     &                WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
+     &                LX1, LX2, LY1, LY2, LZ1, LZ2                )
+       do 3 ig=1,ng2(ik)
+        j2=j2g(ig,ik)
+   3    coef(ig,ib,ik)=rho1(j2)
+   2   continue 
+   1  continue
+      end
+C
       SUBROUTINE WFREAD(
      &                   MXBND, MBLK, NUMK, NUMKQ, NBND, COEF, NG2,
      &                   MAXG2, IOWF, NG2Q, RHO1, RHO2           )
-      REAL*4     RHO1(*), RHO2(*)
+c      REAL*4     RHO1(*), RHO2(*)
+      REAL*8     RHO1(*), RHO2(*)
       COMPLEX*16 COEF(NG2Q,MXBND,NUMKQ)
       DIMENSION IOWF(MBLK,NUMKQ),NG2(NUMKQ)
 C
@@ -2950,965 +3017,6 @@ c  451   WRITE(71,REC=IOWF(IBLK,IK)) COEF
 C
       RETURN
       END
-C
-C------------PROGRAM UNIT CGDIAG-------------------------
-C********************************************************
-C                                (1990-11-28) OSAMU SUGINO
-C          TO ADAPT YAMAUCHI PRG (1992-04-27) OSAMU SUGINO
-C                NOTE THAT NBNDQ=NBND
-C
-C          CGDIAG---HLOCAL
-C                 1
-C                 --NONLOC
-C                 1
-C                 --BNDROT
-C                 1
-C                 --DIAGK----zheevvl (By Prof. Y. Yoshimoto
-C                 1
-C                 --GETYLM
-C                 1
-C                 --SEPPOT
-C
-C**************************************************************
-      SUBROUTINE CGDIAG( OSHI, ITCF, NRX, NRY, NRZ, NXYZ, NG2, NG2Q,
-     &                   NBNDQ, NBND, P, HP, PJ, HPJ, CL1, CL2,
-     &                   CL3, HD, HDO, YLM, G2, RHO1, RHO2, RHO3,
-     &                   TPIBA, VG, J2G, WORK2, OUT, VPJ,
-     &                   VPP,
-     &                   IOWF, IOVP, MXBND, MBLK,
-     &                   OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU, NUMTY,
-     &                   NIDN, EE, WSAVEX, WSAVEY, WSAVEZ, IFACX,
-     &                   IFACY, IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2,
-     &                   MXOFL                                      )
-C
-      IMPLICIT REAL*8(A-H,O-Z)
-      COMPLEX*16  P(NG2Q,MXBND), HP(NG2Q,MXBND),
-     &            PJ(NG2Q,MXBND), HPJ(NG2Q,MXBND)
-c      COMPLEX*16 CL1(NG2Q),CL2(NG2Q),CL3(NG2Q)
-c      COMPLEX*16 HD(NG2Q),HDO(NG2Q)
-      COMPLEX*16 CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND)
-      COMPLEX*16 HD(NG2Q,MXBND),HDO(NG2Q,MXBND)
-      COMPLEX*16 CTEMP
-      DIMENSION IOWF(MBLK),IOVP(2,NTYQ)
-C
-c      REAL*8 YLM(NG2Q,4),OUT(NBNDQ,3),EE(NBNDQ)
-c      REAL*8 YLM(NG2Q,9),OUT(NBNDQ,3),EE(NBNDQ)
-      REAL*8 YLM(NG2Q,16),OUT(NBNDQ,3),EE(NBNDQ)
-      COMPLEX*16 RHO1(NXYZ),RHO2(NXYZ),RHO3(NXYZ),
-c     &           VG(NXYZ),WORK2(NG2Q,3)
-c     &           VG(NXYZ),WORK2(NG2Q,5)
-     &           VG(NXYZ),WORK2(NG2Q,7)
-      COMPLEX*16 WSAVEX(NRX),WSAVEY(NRY),WSAVEZ(NRZ)
-      DIMENSION IFACX(30),IFACY(30),IFACZ(30)
-      DIMENSION LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
-     &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
-      DIMENSION J2G(NG2Q),G2(4,NG2Q)
-      DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ),MXOFL(NTYQ)
-c      DIMENSION VPJ(NG2Q,3),VPP(3)
-c      DIMENSION VPJ(NG2Q,3,2,NTYQ),VPP(3,2,NTYQ)
-c      DIMENSION VPJ(NG2Q,3,3,NTYQ),VPP(3,3,NTYQ)
-      DIMENSION VPJ(NG2Q,3,4,NTYQ),VPP(3,4,NTYQ)
-C
-      DATA IFIL2,IFIL3,IFIL4,IFIL5,IFIL6,IFIL7
-     &     /  30,   32,   33,   34,   35,   36/
-CCC      CALL CLOCK(TIM0)
-      PI=4.D0*ATAN(1.D0)
-      TPIBA2=TPIBA**2
-C
-      DO 910  JJB = 1, MBLK
-         IF(JJB.EQ.MBLK) THEN
-            NJ=MOD(NBND-1,MXBND)+1
-         ELSE
-            NJ=MXBND
-         ENDIF
-      IBI=MXBND*(JJB-1)
-ccc      READ(71,REC=IOWF(JJB)) P
-C
-      CALL HLOCAL( NRX, NRY, NRZ, NXYZ, NG2, NG2Q, NJ,
-     &             P, HP, RHO1, RHO2, VG, J2G, WSAVEX, WSAVEY, WSAVEZ,
-     &             IFACX, IFACY, IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2  )
-C
-c *** temp check
-c      miya=14
-c      if (miya.eq.13) then
-c       write(6,*)' in sub FRPRNM: just before calling NONLOC '
-c       write(6,*)' check COEF '
-c       do IB=1,NBND
-c        write(6,*)' IB=',IB
-c        write(6,1826)( P(IG,IB),IG=1,NG2,1000)
-c       enddo
-cc       stop
-c 1826 format(4D14.6)
-c      endif
-c *** temp check: end
-      CALL NONLOC( NXYZ, NG2, NG2Q, NJ,
-     &             P, HP, YLM, G2, RHO2, RHO3, TPIBA, WORK2, VPJ,
-     &             VPP, OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU, NUMTY,
-     &             NIDN, IOVP, MXOFL                                )
-C
-C        SAVE HP (HAMILTONIAN x WAVEFUNCTION)
-C
-cc      WRITE(IFIL3,REC=JJB) HP
-C
-  910 CONTINUE
-c  *** store P HP in PJ HPJ
-c      do ib=1,mxbnd
-c       do ig=1,ng2
-c         PJ(ig,ib)= P(ig,ib)
-c        HPJ(ig,ib)=HP(ig,ib)
-c       enddo
-c      enddo
-C 
-c ***  temp check
-      if ( MBLK.ne.1 ) then
-       write(6,*)' MBLK is ',MBLK,' not one STOPPING'
-       stop
-      endif
-c ***  temp check : end
-C     CG LOOP BEGINS HERE
-C
-      DO 2000 ITC=1,ITCF
-C
-c  *** store P HP in PJ HPJ
-      do ib=1,mxbnd
-!$omp parallel default(shared)
-!$omp do private(ig)
-       do ig=1,ng2
-         PJ(ig,ib)= P(ig,ib)
-        HPJ(ig,ib)=HP(ig,ib)
-       enddo
-!$omp enddo
-!$omp end parallel
-      enddo
-C 
-C
-      DO 911 JJB = 1, MBLK
-         IF(JJB.EQ.MBLK) THEN
-            NJ=MOD(NBND-1,MXBND)+1
-         ELSE
-            NJ=MXBND
-         ENDIF
-      IBI=MXBND*(JJB-1)
-c      READ(71,REC=IOWF(JJB)) P
-c      READ(IFIL3,REC=JJB)    HP
-C
-CC    CALCULATE EIGENVALUE
-C
-        DO 69 JB=1,NJ
-        TEMP=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:TEMP)
-          DO 68 IG=1,NG2
-   68     TEMP=TEMP+DBLE(DCONJG(P(IG,JB))*HP(IG,JB))
-!$omp enddo
-!$omp end parallel
-        EE(IBI+JB)=TEMP
-   69   OUT(IBI+JB,1)=TEMP*27.212D0
-c ***  temp check
-c       write(6,*)' ITC = ',ITC
-c       write(6,*)' expectation values; ',( out(ibi+jb),jb=1,nj )
-c ***  temp check: end
-C
-C     CALCULATE RESIDUAL VECTOR; ELIMINATION OF THE DIAGONAL PART
-C
-        DO 100 IB=1,NJ
-        CTEMP=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CTEMP)
-          DO 109 IG=1,NG2
-  109     CTEMP=CTEMP+DCONJG(P(IG,IB))*HP(IG,IB)
-!$omp enddo
-!$omp end parallel
-!$omp parallel default(shared)
-!$omp do private(IG)
-        DO IG=1,NG2
-c  100   HP(IG,IB)=HP(IG,IB)-CTEMP*P(IG,IB)
-        CL1(IG,IB)=HP(IG,IB)-CTEMP*P(IG,IB)
-        ENDDO
-!$omp enddo
-!$omp end parallel
-  100   CONTINUE
-C
-C     CHECK CONVERGENCE
-C
-        DO 591 IB=1,NJ
-        SUM=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:SUM)
-          DO 592 IG=1,NG2
-c  592     SUM=SUM+DBLE(DCONJG(HP(IG,IB))*HP(IG,IB))
-  592     SUM=SUM+DBLE(DCONJG(CL1(IG,IB))*CL1(IG,IB))
-!$omp enddo
-!$omp end parallel
-  591   OUT(IB+IBI,2)=SUM
-C
-C
-C     PRECONDITIONING OF THE SEARCHING VECTOR HP
-C
-        DO 582 IB=1,NJ
-        SUM=0.D0
-        SUM1=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:SUM1),reduction(+:SUM)
-          DO 583 IG=1,NG2
-          SUM1=SUM1+DBLE(P(IG,IB)*DCONJG(P(IG,IB)))
-  583     SUM=SUM+DBLE(G2(4,IG)*DCONJG(P(IG,IB))*P(IG,IB))
-!$omp enddo
-!$omp end parallel
-            IF( ABS(SUM).LE.1.D-13) THEN
-              SUM=0.D0
-            ELSE
-              SUM=1.D0/SUM
-            ENDIF
-!$omp parallel default(shared)
-!$omp do private(IG,X,Y)
-          DO 584 IG=1,NG2
-          X=G2(4,IG)*SUM
-          Y=(27.D0+18.D0*X+12.D0*X**2+8.D0*X**3)/
-     &      (27.D0+18.D0*X+12.D0*X**2+8.D0*X**3+16.D0*X**4)
-c  584     HP(IG,IB)=HP(IG,IB)*Y
-  584     CL1(IG,IB)=CL1(IG,IB)*Y
-!$omp enddo
-!$omp end parallel
-  582   CONTINUE
-C
-C
-      CALL HLOCAL( NRX, NRY, NRZ, NXYZ, NG2, NG2Q, NJ,
-c     &             HP, P, RHO1, RHO2, VG, J2G, WSAVEX, WSAVEY, WSAVEZ,
-     &           CL1,HD, RHO1, RHO2, VG, J2G, WSAVEX, WSAVEY, WSAVEZ,
-     &             IFACX, IFACY, IFACZ, LX1, LX2, LY1, LY2, LZ1, LZ2  )
-C
-      CALL NONLOC( NXYZ, NG2, NG2Q, NJ,
-c     &             HP, P, YLM, G2, RHO2, RHO3, TPIBA, WORK2,
-     &           CL1,HD, YLM, G2, RHO2, RHO3, TPIBA, WORK2,
-     &             VPJ, VPP, OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU,
-     &             NUMTY, NIDN, IOVP, MXOFL                        )
-C
-c        DO 917 JB=1,NJ
-c          DO 924 IG = 1, NG2
-c          CL1(IG) = HP(IG,JB)
-c  924     CL2(IG) =  P(IG,JB)
-c          CL1(IG,JB) = HP(IG,JB)
-c  924      HD(IG,JB) =  P(IG,JB)
-c                WRITE(IFIL4,REC=JB+IBI) CL1
-c                WRITE(IFIL5,REC=JB+IBI) CL2
-c  917   CONTINUE
-C
-  911 CONTINUE
-C ***
-C
-      CALL BNDROT( MBLK, MXBND, ITC, IOWF,
-     &             IFIL2, IFIL3, IFIL4, IFIL5, IFIL6, IFIL7,
-     &             NG2, NG2Q, NBNDQ, NBND, P, HP, PJ, HPJ,
-     &             CL1, CL2, CL3, HD, HDO, G2, OUT          )
-C
-c ***  temp check
-C
-CC    CALCULATE EIGENVALUE
-C
-c        DO JB=1,NJ
-c        TEMP=0.D0
-c          DO IG=1,NG2
-c          TEMP=TEMP+DBLE(DCONJG(P(IG,JB))*HP(IG,JB))
-c          enddo
-c        EE(IBI+JB)=TEMP
-c        OUT(IBI+JB,1)=TEMP*27.212D0
-c        enddo
-c       write(6,*)' After bndrot '
-c       write(6,*)' expectation values; ',( out(ibi+jb),jb=1,nj )
-c ***  temp check: end
-C        CALL CLOCK(TIM)
-C6008    FORMAT(23X,'****  CGDIAG: AFT BNDROT: ',F15.7,' SEC')
-C        WRITE(6,6008) TIM
-C
-C E
-      I1=1
-C WK1 ARRAY[1..NBND,1..6] OF REAL*8
-      I2=I1+NBND
-C WK2 ARRAY[1..NBND] OF COMPLEX*16
-      I3=I2+NBND*3
-C IFLG ARRAY[1..NBND] OF INTEGER*4
-      I4=I3+NBND
-C IWK ARRAY[1..NBND] OF INTEGER*4
-      I5=I4+NBND
-C PHASE ARRAY[1..NBND] OF COMPLEX*16
-      I6=I5+NBND
-      I7=I6+NBND
-      IF(I7.GT.NXYZ) STOP 'I7>NXYZ'
-      IASIG = MXBND/2
-      IF( 2*IASIG*NG2Q .LT. NBND*NBND )
-     &             STOP 'CGDIAG: ALLOCATION ERROR OF IASIG'
-      IASIG1 = IASIG + 1
-C
-      CALL DIAGK( MBLK, MXBND, IOWF, IFIL3, IFIL6, IFIL7,
-     &            NG2, NG2Q, NBND, P, HP, PJ(1,1), HPJ(1,1),
-c     &            HPJ(1,IASIG1), RHO1(I1), RHO1(I2), RHO1(I3),
-     &            RHO1(I1), RHO1(I2), RHO1(I3),
-     &            RHO1(I4), RHO1(I5), RHO1(I6),CL1,HD          )
-C
-c ***  temp check
-C
-CC    CALCULATE EIGENVALUE
-C
-c        DO JB=1,NJ
-c        TEMP=0.D0
-c          DO IG=1,NG2
-c          TEMP=TEMP+DBLE(DCONJG(P(IG,JB))*HP(IG,JB))
-c          enddo
-c        EE(IBI+JB)=TEMP
-c        OUT(IBI+JB,1)=TEMP*27.212D0
-c        enddo
-c       write(6,*)' After diagk '
-c       write(6,*)' expectation values; ',( out(ibi+jb),jb=1,nj )
-c       if ( ITC.eq.ITCF ) then
-c       write(6,*)' for check STOPPING '
-c       stop
-c       endif
-c ***  temp check: end
-C
-C        CALL CLOCK(TIM)
-C6010    FORMAT(23X,'****  CGDIAG: AFT DIAGK: ',F15.7,' SEC')
-C        WRITE(6,6010) TIM
-C
-                      NNN = NBNDQ-40
-         IF(NNN.LT.1) NNN = 1
-         DO 8000 IB = NNN, NBNDQ
-         IF( ABS(OUT(IB,2)) .GT. OSHI) GO TO 8010
- 8000    CONTINUE
-         GO TO 2010
- 8010    CONTINUE
-C ****
- 2000 CONTINUE
- 2010 CONTINUE
-C
-      RETURN
-      END
-C********************************************************
-C     BAND BAND ROTATION
-C                                (1991-01-17) OSAMU SUGINO
-C**************************************************************
-      SUBROUTINE BNDROT( MBLK, MXBND, ITC, IOWF,
-     &                   IFIL2, IFIL3, IFIL4, IFIL5, IFIL6, IFIL7,
-     &                   NG2, NG2Q, NBNDQ, NBND, P, HP, PJ, HPJ,
-     &                   CL1, CL2, CL3, HD, HDO, G2, OUT          )
-C
-      IMPLICIT REAL*8(A-H,O-Z)
-      COMPLEX*16  P(NG2Q,MXBND), HP(NG2Q,MXBND),
-     &            PJ(NG2Q,MXBND), HPJ(NG2Q,MXBND)
-c      COMPLEX*16 CL1(NG2Q),CL2(NG2Q),CL3(NG2Q),HD(NG2Q),HDO(NG2Q)
-      COMPLEX*16 CL1(NG2Q,MXBND),CL2(NG2Q,MXBND),CL3(NG2Q,MXBND)
-     &          ,HD(NG2Q,MXBND),HDO(NG2Q,MXBND)
-      COMPLEX*16 CTEMP,CHD
-      REAL*8 OUT(NBNDQ,3)
-      DIMENSION G2(4,NG2Q),IOWF(MBLK)
-C
-      DO 1100 IBLK = 1, MBLK
-c      READ(71,REC=IOWF(IBLK)) P
-c      READ(IFIL3,REC=IBLK)    HP
-C
-        IF(IBLK.LT.MBLK) THEN
-          MBN = MXBND
-        ELSE
-          MBN = MOD(NBND-1,MXBND) + 1
-        END IF
-      IBI = MXBND * (IBLK-1)
-C
-        DO 1110 IBND = 1, MBN
-        IB = IBI + IBND
-c        READ(IFIL4,REC=IB) CL1
-c        READ(IFIL5,REC=IB) HD
-C
-C        ORTHOGONALIZE CL1 TO OTHER OCCUPIED BANDS P
-C
-          DO 600 JBLK = 1, MBLK
-c            IF(JBLK.GE.IBLK) THEN
-c              READ(71,REC=IOWF(JBLK)) PJ
-c              READ(IFIL3,REC=JBLK)    HPJ
-c            ELSE
-c              READ(IFIL6,REC=JBLK) PJ
-c              READ(IFIL7,REC=JBLK) HPJ
-c            ENDIF
-            IF(JBLK.LT.MBLK) THEN
-              JMBN = MXBND
-            ELSE
-              JMBN = MOD(NBND-1,MXBND) + 1
-            END IF
-          JBI = MXBND * (JBLK-1)
-            DO 610 JBND = 1, JMBN
-            JB = JBI + JBND
-              IF(JB.GE.IB .OR. JBLK.LT.IBLK) THEN
-                CTEMP=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CTEMP)
-                DO 612 IG=1,NG2
-  612           CTEMP=CTEMP+DCONJG(PJ(IG,JB))*CL1(IG,IB)
-!$omp enddo
-!$omp end parallel
-!$omp parallel default(shared)
-!$omp do private(IG)
-                DO 614 IG=1,NG2
-                CL1(IG,IB)=CL1(IG,IB)-CTEMP*PJ(IG,JB)
-                HD (IG,IB)=HD (IG,IB)-CTEMP*HPJ(IG,JB)
-  614           CONTINUE
-!$omp enddo
-!$omp end parallel
-              ELSE
-                CTEMP=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CTEMP)
-                DO 616 IG=1,NG2
-  616           CTEMP=CTEMP+DCONJG(P(IG,JB))*CL1(IG,IB)
-!$omp enddo
-!$omp end parallel
-!$omp parallel default(shared)
-!$omp do private(IG)
-                DO 618 IG=1,NG2
-                CL1(IG,IB)=CL1(IG,IB)-CTEMP*P(IG,JB)
-                HD (IG,IB)=HD (IG,IB)-CTEMP*HP(IG,JB)
-  618           CONTINUE
-!$omp enddo
-!$omp end parallel
-              END IF
-  610       CONTINUE
-  600     CONTINUE
-C
-C        CL1:PRESENT GRDIENT
-C        CL2:PREVIOUS GRADIENT
-C        CL3:PREVIOUS SEARCHING VECTOR
-        IF(ITC.EQ.1.OR.MOD(ITC,5).EQ.0) THEN
-CCC     IF(ITC.GT.0) THEN
-!$omp parallel default(shared)
-!$omp do private(IG)
-           DO 11 IG=1,NG2
-           CL2(IG,IB)=-CL1(IG,IB)
-           CL3(IG,IB)= CL2(IG,IB)
-           CL1(IG,IB)= CL3(IG,IB)
-           HD (IG,IB)=-HD (IG,IB)
-           HDO(IG,IB)= HD (IG,IB)
-   11      CONTINUE
-!$omp enddo
-!$omp end parallel
-        ELSE
-ccc           READ(IFIL2,REC=IB) CL2,CL3,HDO
-           GG=0.D0
-           DGG=0.D0
-C
-C        PRECONDITIONING OPERATION
-C
-           SUM=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:SUM)
-           DO 14 IG=1,NG2
-   14      SUM=SUM+DBLE(G2(4,IG)*DCONJG(P(IG,IBND))*P(IG,IBND))
-!$omp enddo
-!$omp end parallel
-             IF(ABS(SUM).LE.1.D-13) THEN
-               SUM=0.D0
-             ELSE
-               SUM=1.D0/SUM
-             ENDIF
-!$omp parallel default(shared)
-!$omp do private(IG,X,Y),reduction(+:GG),reduction(+:DGG)
-           DO 12 IG=1,NG2
-           X=G2(4,IG)*SUM
-           Y=(27.D0+18.D0*X+12.D0*X**2+8.D0*X**3+16.D0*X**4)/
-     &       (27.D0+18.D0*X+12.D0*X**2+8.D0*X**3)
-           GG =GG +DBLE(Y*CL2(IG,IB)*DCONJG(CL2(IG,IB)))
-           DGG=DGG+DBLE(Y*DCONJG(CL1(IG,IB)+CL2(IG,IB))*CL1(IG,IB))
-   12      CONTINUE
-!$omp enddo
-!$omp end parallel
-           IF(GG.EQ.0.D0) GOTO 1100
-           GAM=DGG/GG
-!$omp parallel default(shared)
-!$omp do private(IG)
-           DO 13 IG=1,NG2
-           CL2(IG,IB)=-CL1(IG,IB)
-           CL3(IG,IB)= CL2(IG,IB)+GAM*CL3(IG,IB)
-           CL1(IG,IB)= CL3(IG,IB)
-           HD (IG,IB)=-HD (IG,IB)+GAM*HDO(IG,IB)
-           HDO(IG,IB)= HD (IG,IB)
-   13      CONTINUE
-!$omp enddo
-!$omp end parallel
-C
-C        ORTHOGONALIZE CL1 TO ALL OTHER OCCUPIED BANDS
-C
-          DO 620 JBLK = 1, MBLK
-c            IF(JBLK.GE.IBLK) THEN
-c              READ(71,REC=IOWF(JBLK)) PJ
-c              READ(IFIL3,REC=JBLK)    HPJ
-c            ELSE
-c              READ(IFIL6,REC=JBLK) PJ
-c              READ(IFIL7,REC=JBLK) HPJ
-c            ENDIF
-            IF(JBLK.LT.MBLK) THEN
-              JMBN = MXBND
-            ELSE
-              JMBN = MOD(NBND-1,MXBND) + 1
-            END IF
-          JBI = MXBND * (JBLK-1)
-            DO 630 JBND = 1, JMBN
-            JB = JBI + JBND
-              IF(JB.GE.IB .OR. JBLK.LT.IBLK) THEN
-                CTEMP=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CTEMP)
-                DO 632 IG=1,NG2
-  632           CTEMP=CTEMP+DCONJG(PJ(IG,JB))*CL1(IG,IB)
-!$omp enddo
-!$omp end parallel
-!$omp parallel default(shared)
-!$omp do private(IG)
-                DO 634 IG=1,NG2
-                CL1(IG,IB)=CL1(IG,IB)-CTEMP*PJ(IG,JB)
-                HD (IG,IB)=HD (IG,IB)-CTEMP*HPJ(IG,JB)
-  634           CONTINUE
-!$omp enddo
-!$omp end parallel
-              ELSE
-                CTEMP=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CTEMP)
-                DO 636 IG=1,NG2
-  636           CTEMP=CTEMP+DCONJG(P(IG,JB))*CL1(IG,IB)
-!$omp enddo
-!$omp end parallel
-!$omp parallel default(shared)
-!$omp do private(IG)
-                DO 638 IG=1,NG2
-                CL1(IG,IB)=CL1(IG,IB)-CTEMP*P(IG,JB)
-                HD (IG,IB)=HD (IG,IB)-CTEMP*HP(IG,JB)
-  638           CONTINUE
-!$omp enddo
-!$omp end parallel
-              END IF
-  630       CONTINUE
-  620     CONTINUE
-C
-        ENDIF
-C ********
-cc        WRITE(IFIL2,REC=IB) CL2,CL3,HDO
-C
-C        NORMALIZE CL1
-C
-        TNORM=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:TNORM)
-          DO 720 IG=1,NG2
-  720     TNORM =TNORM +DBLE(DCONJG(CL1(IG,IB))*CL1(IG,IB))
-!$omp enddo
-!$omp end parallel
-        TNORM=1.D0/SQRT(TNORM)
-!$omp parallel default(shared)
-!$omp do private(IG)
-          DO 722 IG=1,NG2
-          CL1(IG,IB)=CL1(IG,IB)*TNORM
-          HD (IG,IB)=HD (IG,IB)*TNORM
-  722     CONTINUE
-!$omp enddo
-!$omp end parallel
-C
-        CHC=0.D0
-        CHD=(0.D0,0.D0)
-        DHD=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CHC),reduction(+:DHD)
-!$omp+,reduction(+:CHD)
-          DO 20 IG=1,NG2
-          CHC = CHC + DBLE( DCONJG(P(IG,IBND))*HP(IG,IBND) )
-          DHD = DHD + DBLE( DCONJG(CL1(IG,IB))*HD(IG,IB) )
-          CHD = CHD +       DCONJG(P(IG,IBND))*HD(IG,IB)
-   20     CONTINUE
-!$omp enddo
-!$omp end parallel
-C
-C
-      TEMP1=(DHD-CHC)+SQRT((DHD-CHC)**2+4.D0*DBLE(DCONJG(CHD)*CHD))
-      TEMP1=TEMP1*0.5D0
-      TEMP2=SQRT(DBLE(DCONJG(CHD)*CHD)+TEMP1**2)
-      TEMP2=1.D0/TEMP2
-!$omp parallel default(shared)
-!$omp do private(IG)
-        DO 30 IG=1,NG2
-        P (IG,IBND)=(TEMP1*P (IG,IBND)-DCONJG(CHD)*CL1(IG,IB))*TEMP2
-        HP(IG,IBND)=(TEMP1*HP(IG,IBND)-DCONJG(CHD)*HD (IG,IB))*TEMP2
-   30   CONTINUE
-!$omp enddo
-!$omp end parallel
-C
-C     SIN(ROTATION ANGLE)
-C
-        ERP=1.d-08
-        OUT(IB,3)=SQRT(1.D0-(TEMP1*TEMP2)**2+ERP)
-C
- 1110   CONTINUE
-C
-c      WRITE(IFIL6,REC=IBLK)  P
-c      WRITE(IFIL7,REC=IBLK) HP
-c ***  store P & HP
-C
- 1100 CONTINUE
-      do ib=1,mxbnd
-!$omp parallel default(shared)
-!$omp do private(ig)
-       do ig=1,ng2
-        CL1(ig,ib)= P(ig,ib)
-         HD(ig,ib)=HP(ig,ib)
-       enddo
-!$omp enddo
-!$omp end parallel
-      enddo
-      RETURN
-      END
-C****************************************************
-      SUBROUTINE DIAGK( MBLK, MXBND, IOWF, IFIL3, IFIL6, IFIL7,
-c     &                  NG2, NG2Q, NBND, P, HP, A, VR,VI, E, WK1, WK2,
-     &                  NG2, NG2Q, NBND, P, HP, A, BB, E, WK1, WK2,
-c     &                  IFLG, IWK, PHASE                       )
-     &                  IFLG, IWK, PHASE  ,CL1,HD            )
-      use eigsystm
-      IMPLICIT REAL*8 (A-H,O-Z)
-      COMPLEX*16 P(NG2Q,MXBND),HP(NG2Q,MXBND)
-      COMPLEX*16 CL1(NG2Q,MXBND),HD(NG2Q,MXBND)
-      COMPLEX*16 CTEMP,PHASE(NBND),A(NBND,NBND),WK2(NBND)
-      COMPLEX*16 CCTEMP
-      COMPLEX*16 BB(NBND,NBND)
-c      DIMENSION  VR(NBND,NBND),VI(NBND,NBND),E(NBND),
-      DIMENSION  E(NBND),
-     &           WK1(NBND,6),IWK(NBND),IFLG(NBND),IOWF(MBLK)
-C
-      DO 100 IBLK = 1, MBLK
-c      READ(IFIL6,REC=IBLK) P
-        IF( IBLK.LT.MBLK ) THEN
-          IBN = MXBND
-        ELSE
-          IBN = MOD(NBND-1,MXBND) + 1
-        END IF
-      IBI = MXBND * (IBLK-1)
-        DO 110 JBLK = 1, IBLK
-c        READ(IFIL7,REC=JBLK) HP
-          IF( JBLK.LT.MBLK ) THEN
-            JBN = MXBND
-          ELSE
-            JBN = MOD(NBND-1,MXBND) + 1
-          END IF
-        JBI = MXBND * (JBLK-1)
-          DO 120 IBND = 1, IBN
-          IB = IBI + IBND
-          DO 122 JBND = 1, JBN
-          JB = JBI + JBND
-          IF(JB.GT.IB) GO TO 120
-            CTEMP = ( 0.0D+00, 0.0D+00 )
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CTEMP)
-              DO 109 IG = 1, NG2
-c  109         CTEMP = CTEMP + DCONJG( P(IG,IBND) ) * HP(IG,JBND)
-  109         CTEMP = CTEMP + DCONJG( CL1(IG,IBND) )*HD(IG,JBND)
-!$omp enddo
-!$omp end parallel
-          A(IB,JB) =         CTEMP
-          A(JB,IB) = DCONJG( CTEMP )
-  122     CONTINUE
-  120     CONTINUE
-  110   CONTINUE
-  100 CONTINUE
-C
-c****  Copy right Prof. Yoshihide Yoshimoto 
-c   icom: dymmy but used in MPI version
-c use YY diagtool
-c 
-      ntsk=2
-c ** preconditioning of eigen vector
-c      call zhegv1vl(nbnd,bb,a,nbnd,e,ntsk,icomm,ier)
-      call zheevvl(nbnd,a,nbnd,e,ier,ntsk,icomm)
-c      call zheevvl(nbnd,a,nbnd,e,ier,ntsk,icomm,BB,WK2,P)
-C****************ROTATE P**************************
-      DO 500 IBLK = 1, MBLK
-        IF(IBLK.LT.MBLK) THEN
-          IBN = MXBND
-        ELSE
-          IBN = MOD(NBND-1,MXBND) + 1
-        END IF
-      IBI = MXBND * (IBLK-1)
-                         DO 502 IB = 1, IBN
-                         DO IG = 1, NG2
-c  502                    HP(IG,IB) = (0.0D+00,0.0D+00)
-                         P(IG,IB) = (0.0D+00,0.0D+00)
-                         ENDDO
-  502                    CONTINUE
-C
-        DO 510 JBLK = 1, MBLK
-          IF(JBLK.LT.MBLK) THEN
-            JBN = MXBND
-          ELSE
-            JBN = MOD(NBND-1,MXBND) + 1
-          END IF
-        JBI = MXBND * (JBLK-1)
-c        READ(IFIL6,REC=JBLK) P  ! P is CL1
-          DO 505 IB = 1, IBN
-          IBAND = IBI + IB
-            DO 517 JB = 1, JBN
-            JBAND = JBI + JB
-!$omp parallel default(shared)
-!$omp do private(IG)
-              DO 520 IG = 1, NG2
-c  520         HP(IG,IB) = HP(IG,IB) + P(IG,JB) *
-  520         P(IG,IB) = P(IG,IB) +CL1(IG,JB) *
-c     &                        DCMPLX(VR(JBAND,IBAND),VI(JBAND,IBAND))
-     &                        A(JBAND,IBAND)
-!$omp enddo
-!$omp end parallel
-  517       CONTINUE
-  505     CONTINUE
-  510    CONTINUE
-         DO 530 IB = 1, IBN
-         IBAND = IBI + IB
-c         PHASE(IBAND) = DCONJG( HP(1,IB) ) / ABS( HP(1,IB) )
-         PHASE(IBAND) = DCONJG( P(1,IB) ) / ABS( P(1,IB) )
-!$omp parallel default(shared)
-!$omp do private(IG)
-            DO 525 IG = 1, NG2
-c  525       HP(IG,IB) = HP(IG,IB) * PHASE(IBAND)
-  525       P(IG,IB) = P(IG,IB) * PHASE(IBAND)
-!$omp enddo
-!$omp end parallel
-  530    CONTINUE
-C
-c      WRITE(71,REC=IOWF(IBLK)) HP
-  500 CONTINUE
-C
-C****************ROTATE HP**************************
-      DO 600 IBLK = 1, MBLK
-        IF(IBLK.LT.MBLK) THEN
-          IBN = MXBND
-        ELSE
-          IBN = MOD(NBND-1,MXBND) + 1
-        END IF
-      IBI = MXBND * (IBLK-1)
-                         DO 602 IB = 1, IBN
-                         DO 602 IG = 1, NG2
-  602                    HP(IG,IB) = (0.0D+00,0.0D+00)
-C
-        DO 610 JBLK = 1, MBLK
-          IF(JBLK.LT.MBLK) THEN
-            JBN = MXBND
-          ELSE
-            JBN = MOD(NBND-1,MXBND) + 1
-          END IF
-        JBI = MXBND * (JBLK-1)
-c        READ(IFIL7,REC=JBLK) P  ! P is HD 
-          DO 605 IB = 1, IBN
-          IBAND = IBI + IB
-            DO 617 JB = 1, JBN
-            JBAND = JBI + JB
-c            CCTEMP=DCMPLX(VR(JBAND,IBAND),VI(JBAND,IBAND))
-            CCTEMP=A(JBAND,IBAND)
-!$omp parallel default(shared)
-!$omp do private(IG)
-              DO 620 IG = 1, NG2
-cc  620         HP(IG,IB) = HP(IG,IB) + P(IG,JB) *
-  620         HP(IG,IB) = HP(IG,IB) + HD(IG,JB) *
-c     &                        DCMPLX(VR(JBAND,IBAND),VI(JBAND,IBAND))
-     &                       CCTEMP 
-!$omp enddo
-!$omp end parallel
-  617       CONTINUE
-  605     CONTINUE
-  610    CONTINUE
-         DO 630 IB = 1, IBN
-         IBAND = IBI + IB
-!$omp parallel default(shared)
-!$omp do private(IG)
-            DO 625 IG = 1, NG2
-  625       HP(IG,IB) = HP(IG,IB) * PHASE(IBAND)
-!$omp enddo
-!$omp end parallel
-  630    CONTINUE
-C
-cc      WRITE(IFIL3,REC=IBLK) HP
-  600 CONTINUE
-C
-C **
-C
-      RETURN
-      END
-C*****************************************************************
-      SUBROUTINE HLOCAL( NRX, NRY, NRZ, NXYZ, NG2, NG2Q, NBND,
-     &                   COEF, DCOEF, RHO1, RHO2, VG, J2G,
-     &                   WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
-     &                   LX1, LX2, LY1, LY2, LZ1, LZ2                )
-C
-      IMPLICIT REAL*8 (A-H,O-Z)
-      COMPLEX*16 RHO1(NXYZ),RHO2(NXYZ),
-     &           COEF(NG2Q,NBND),DCOEF(NG2Q,NBND),
-     &           VG(NXYZ)
-      COMPLEX*16 WSAVEX(NRX),WSAVEY(NRY),WSAVEZ(NRZ)
-      DIMENSION IFACX(30),IFACY(30),IFACZ(30)
-      DIMENSION LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
-     &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
-      DIMENSION J2G(NG2Q)
-C
-C     MAIN LOOP
-C
-      DO 1010 IB=1,NBND
-C
-         DO 101 JG=1,NXYZ
-  101    RHO1(JG)=(0.D0,0.D0)
-*VDIR NODEP(RHO1)
-!$omp parallel default(shared)
-!$omp do private(IG,JG)
-         DO 100 IG=1,NG2
-         JG=J2G(IG)
-  100    RHO1(JG)=COEF(IG,IB)
-!$omp enddo
-!$omp end parallel
-C
-         CALL FFT3BX(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,
-     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
-C
-C        RHO1:WAVEFN IN REAL SPACE
-C        VG:POTENTIAL IN REAL SPACE
-C
-!$omp parallel default(shared)
-!$omp do private(I)
-         DO 300 I=1,NXYZ
-  300    RHO2(I)=VG(I)*RHO1(I)
-!$omp enddo
-!$omp end parallel
-         CALL FFT3FX(NRX,NRY,NRZ,NXYZ,RHO2,RHO1,
-     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
-C
-!$omp parallel default(shared)
-!$omp do private(IG,JG)
-         DO 110 IG=1,NG2
-         JG=J2G(IG)
-  110    DCOEF(IG,IB)=RHO2(JG)
-!$omp enddo
-!$omp end parallel
-c ** temp check
-c         write(6,*)' IB = ',IB
-c         write(6,*)' DCOEF(IG,IB) '
-c         write(6,*)(DCOEF(IG,IB),IG=1,NXYZ,1000)
-c ** temp check end
-C
- 1010 CONTINUE
-C
-C      CALL CLOCK(TIM1)
-C     WRITE(6,*) ' NBND = ',NBND
-C     WRITE(6,*) ' HLOCAL: CPTIME=',TIM1
-C     WRITE(6,*) ' REAL CPU_TIME : ',(TIM1-TIM0)/DBLE(NBND)
-      RETURN
-      END
-C*****************************************************************
-      SUBROUTINE NONLOC( NXYZ, NG2, NG2Q, NBND,
-     &                   COEF, DCOEF, YLM, G2, RHO2, RHOA, TPIBA,
-     &                   WORK2, VPJ, VPP, OMEGA, NTAUQ, NTYQ,
-     &                   NTYPE, LREQ, TAU, NUMTY, NIDN, IOVP, MXOFL )
-C
-C                                   (1990-04-12) OSAMU SUGINO
-C        INPUT  COEF
-C
-      IMPLICIT REAL*8 (A-H,O-Z)
-c      REAL*8 RHOA(NXYZ),YLM(NG2Q,4)
-c      REAL*8 RHOA(NXYZ),YLM(NG2Q,9)
-      REAL*8 RHOA(NXYZ),YLM(NG2Q,16)
-      COMPLEX*16 RHO2(NXYZ),
-     &           COEF(NG2Q,NBND),DCOEF(NG2Q,NBND),
-c     &           WORK2(NG2Q,3)
-c     &           WORK2(NG2Q,5)
-     &           WORK2(NG2Q,7)
-      DIMENSION G2(4,NG2Q)
-      DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ), MXOFL(NTYQ)
-c      DIMENSION VPJ(NG2Q,3),VPP(3),IOVP(2,NTYQ)
-c      DIMENSION VPJ(NG2Q,3,2,NTYQ),VPP(3,2,NTYQ),IOVP(2,NTYQ)
-c      DIMENSION VPJ(NG2Q,3,3,NTYQ),VPP(3,3,NTYQ),IOVP(2,NTYQ)
-      DIMENSION VPJ(NG2Q,3,4,NTYQ),VPP(3,4,NTYQ),IOVP(2,NTYQ)
-      PI=4.D0*ATAN(1.D0)
-      TPI=2.D0*PI
-      FPI=4.D0*PI
-      TPIBA2=TPIBA**2
-C
-!$omp parallel default(shared)
-!$omp do private(IG)
-         DO 581 IG=1,NG2
-         RHOA(IG)=G2(4,IG)*0.5D0*TPIBA2
-  581    CONTINUE
-!$omp enddo
-!$omp end parallel
-         DO 584 IB=1,NBND
-!$omp parallel default(shared)
-!$omp do private(IG)
-         DO IG=1,NG2
-         DCOEF(IG,IB)=DCOEF(IG,IB)+RHOA(IG)*COEF(IG,IB)
-         ENDDO
-!$omp enddo
-!$omp end parallel
-  584    CONTINUE
-C
-!$omp parallel default(shared)
-!$omp do private(IG)
-         DO 588 IG=1,NG2
-  588    RHOA(IG)=SQRT(G2(4,IG))*TPIBA
-!$omp enddo
-!$omp end parallel
-c *** temp check
-c      write(6,*)' Before GETYLM '
-c      DO IB=1,NBND
-c       write(6,*)' IB = ',IB
-c       write(6,*)' ** DCOEF ** '
-c       write(6,*)(DCOEF(IG,IB),IG=1,NG2,1000)
-c       write(6,*)' ** COEF ** '
-c       write(6,*)(COEF(IG,IB),IG=1,NG2,1000)
-c      ENDDO
-c *** temp check :end
-         CALL GETYLM(NG2Q,NG2,G2,RHOA,YLM,TPIBA)
-c *** temp check
-c      write(6,*)' Before SEPPOT '
-c      DO IB=1,NBND
-c       write(6,*)' IB = ',IB
-c       write(6,*)' ** DCOEF ** '
-c       write(6,*)(DCOEF(IG,IB),IG=1,NG2,25000)
-c       write(6,*)' ** COEF ** '
-c       write(6,*)(COEF(IG,IB),IG=1,NG2,25000)
-c      ENDDO
-c *** temp check
-c      miya=14
-c      if (miya.eq.13) then
-c       write(6,*)' in sub NONLOC: just before calling SEPPOT '
-c       write(6,*)' check COEF '
-c       do IB=1,NBND
-c        write(6,*)' IB=',IB
-c        write(6,1826)( COEF(IG,IB),IG=1,NG2,1000)
-c       enddo
-cc       stop
-c 1826 format(4D14.6)
-c      endif
-c *** temp check: end
-c *** temp check :end
-         CALL SEPPOT( NG2Q, NG2, NBND, G2,
-     &   VPJ, VPP, YLM, RHO2, WORK2(1,1), WORK2(1,2),WORK2(1,3),
-     &   WORK2(1,4),WORK2(1,5),WORK2(1,6),WORK2(1,7),
-     &   COEF, DCOEF, TPIBA, IOVP, OMEGA,
-     &                NTAUQ, NTYQ, LREQ, TAU, NTYPE, NUMTY, NIDN,
-     &                MXOFL                                       )
-  580 CONTINUE
-c *** temp check
-c      write(6,*)' After SEPPOT '
-c      DO IB=1,NBND
-c       write(6,*)' IB = ',IB
-c       write(6,*)' ** DCOEF ** '
-c       write(6,*)(DCOEF(IG,IB),IG=1,NG2,25000)
-c       write(6,*)' ** COEF ** '
-c       write(6,*)(COEF(IG,IB),IG=1,NG2,25000)
-c      ENDDO
-c *** temp check :end
-C     CALL CLOCK(TIM1)
-C     WRITE(6,*) ' NBND = ',NBND
-C     WRITE(6,*) ' NONLOC CPTIME:',TIM1-TIM0
-C     WRITE(6,*) ' REAL CPU_TIME : ',(TIM1-TIM0)/DBLE(NBND)
-      RETURN
-      END
 C***********************************************************
       SUBROUTINE GETYLM(NG2Q,NG2,G2K,RHOA,YLM,TPIBA)
       IMPLICIT REAL*8(A-H,O-Z)
@@ -3923,7 +3031,7 @@ C
       F11=SQRT( 3.D0 / ( 8.D0*PI) )
       F20=SQRT( 5.d0 / (16.d0*PI) )
       F22=SQRT(15.d0 / (32.d0*PI) )
-      F21=SQRT(15.d0 / ( 8.d0*PI) ) 
+      F21=SQRT(15.d0 / ( 8.d0*PI) )
       F30=SQRT( 7.D0 / (16.d0*PI) )
       F31=SQRT(21.d0 / (64.D0*PI) )
       F32=SQRT(105.D0/ (32.D0*PI) )
@@ -3952,7 +3060,7 @@ C
       DO 10 IG=ISTA,NG2
       R=RHOA(IG)/TPIBA
       R2=R*R
-      R3=R2*R
+      R3=R*R2
       YLM(IG,1)=F00
       YLM(IG,2)=F10*G2K(3,IG)/R
       YLM(IG,3)=F11*G2K(1,IG)/R
@@ -3970,14 +3078,27 @@ C
       YLM(IG,15)=F31*G2K(1,IG)*( 5*G2K(3,IG)**2 -R2 ) /R3
       YLM(IG,16)=F31*G2K(2,IG)*( 5*G2K(3,IG)**2 -R2 ) /R3
    10 CONTINUE
+c *** temp check
+c      write(6,*)' in GETYLM check for RHOA'
+c      write(6,*)(RHOA(IG),IG=1,100,10)
+c      write(6,*)' in GETYLM check for G2K'
+c      write(6,*)(G2K(2,IG),IG=1,100,10)
+c      write(6,*)' in GETYLM check for YLM -4'
+c      write(6,*)(YLM(IG,4),IG=1,100,10)
+c      write(6,*)' in GETYLM check for YLM -5'
+c      write(6,*)(YLM(IG,5),IG=1,100,10)
+c      write(6,*)' in GETYLM check for YLM -6'
+c      write(6,*)(YLM(IG,6),IG=1,100,10)
+c *** temp check: end
       RETURN
       END
 C****************************************************************
       SUBROUTINE SEPPOT( NG2Q, NG2, NBND, G2K, VPJ, VPP,
-     & YLM, EXTAU, WORK1, WORK2, WORK3, WORK4, WORK5,WORK6,WORK7,
-     & COEF, DCOEF,
+c     &   YLM, EXTAU, WORK1, WORK2, WORK3, WORK4,WORK5,COEF, DCOEF,
+     &   YLM, EXTAU, WORK1, WORK2, WORK3, WORK4,WORK5,WORK6,WORK7,
+     &   COEF, DCOEF,
      &                   TPIBA, IOVP, OMEGA, NTAUQ, NTYQ, LREQ,
-     &                   TAU, NTYPE, NUMTY, NIDN, MXOFL           )
+     &                   TAU, NTYPE, NUMTY, NIDN, MXOFL,iopt,NGNL )
 C
 C               PARTITIONED POTENTIAL (1992-02-28) OSAMU SUGINO
 C
@@ -3986,17 +3107,18 @@ c      DIMENSION G2K(4,NG2Q),YLM(NG2Q,4)
 c      DIMENSION G2K(4,NG2Q),YLM(NG2Q,9)
       DIMENSION G2K(4,NG2Q),YLM(NG2Q,16)
       COMPLEX*16 COEF(NG2Q,NBND),DCOEF(NG2Q,NBND),
-     & WORK1(NG2Q),WORK2(NG2Q),WORK3(NG2Q),WORK4(NG2Q),WORK5(NG2Q)
-     &,WORK6(NG2Q),WORK7(NG2Q)
-     & ,EXTAU(NG2Q)
-      COMPLEX*16 Y00,Y11,Y12,Y13,Y21,Y22,Y23,Y24,Y25
-     &  ,Y31,Y32,Y33,Y34,Y35,Y36,Y37
-     & ,CT1,CT2,CT3,CT4,CT5,CT6,CT7
+     &    WORK1(NG2Q),WORK2(NG2Q),WORK3(NG2Q),WORK4(NG2Q),WORK5(NG2Q)
+     &   ,WORK6(NG2Q),WORK7(NG2Q)
+     &   ,EXTAU(NG2Q)
+      COMPLEX*16 Y00,Y11,Y12,Y13
+     &          ,Y21,Y22,Y23,Y24,Y25,Y31,Y32,Y33,Y34,Y35,Y36,Y37
+     &          ,CT1,CT2,CT3,CT4,CT5,CT6,CT7
       DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ),
 c     &          VPJ(NG2Q,3),VPP(3),IOVP(2,NTYQ), MXOFL(NTYQ)
 c     &    VPJ(NG2Q,3,2,NTYQ),VPP(3,2,NTYQ),IOVP(2,NTYQ), MXOFL(NTYQ)
 c     &    VPJ(NG2Q,3,3,NTYQ),VPP(3,3,NTYQ),IOVP(2,NTYQ), MXOFL(NTYQ)
      &    VPJ(NG2Q,3,4,NTYQ),VPP(3,4,NTYQ),IOVP(2,NTYQ), MXOFL(NTYQ)
+      dimension NGNL(NTYQ)
       PARAMETER(NTYQ2=4)
 c      COMMON/SAITO2/IBUN(2,NTYQ2)
 c      COMMON/SAITO2/IBUN(3,NTYQ2)
@@ -4017,100 +3139,62 @@ C ****
 C
       DO 20 IATM=1,NATM
       ITAU=NIDN(IATM,ITY)
-!$omp parallel default(shared)
-!$omp do private(IG,TEMP)
-        DO 22 IG=1,NG2
+c        DO 22 IG=1,NG2
+        DO 22 IG=1,NGNL(ITY)
         TEMP=TPIBA*(G2K(1,IG)*TAU(1,ITAU)+G2K(2,IG)*TAU(2,ITAU)
      &             +G2K(3,IG)*TAU(3,ITAU))
         EXTAU(IG)=DCMPLX(COS(TEMP),SIN(TEMP))
    22   CONTINUE
-!$omp enddo
-!$omp end parallel
-C
 c *** temp check
-c      miya=14
-c      if (miya.eq.13) then
-c       write(6,*)' in sub SEPPOT: just before DO 30 '
-c       write(6,*)' check COEF '
-c       do IB=1,NBND
-c        write(6,*)' IB=',IB
-c        write(6,1826)( COEF(IG,IB),IG=1,NG2,1000)
-c       enddo
-cc       stop
-c 1826 format(4D14.6)
-c      endif
-c *** temp check: end
+c      write(6,*)' sub SEPPOT:check in making EXTAU'
+c      write(6,*)' G2K - 3 '
+c      write(6,*)(G2K(3,IG),IG=1,100,10)
+c      write(6,*)' EXYAU'
+c      write(6,*)(EXTAU(IG),IG=1,100,10)
+c *** temp check end
+C
       DO 30 LI=1,LMAX
       L=LI-1
 ccc      READ(82,REC=IOVP(LI,ITY)) VPP, VPJ
 C
       IF(L.EQ.0.AND.IBUN(1,ITY).NE.1) THEN
 C             NO PARTITIONING
-!$omp parallel default(shared)
-!$omp do private(IG,Y00)
-         DO 50 IG=1,NG2
+c         DO 50 IG=1,NG2
+         DO 50 IG=1,NGNL(ITY)
          Y00=DCMPLX(YLM(IG,1),0.D0)
    50    WORK1(IG)=Y00*EXTAU(IG)*VPJ(IG,1,LI,ITY)
-!$omp enddo
-!$omp end parallel
          DO 52 IB=1,NBND
             CT1=(0.D0,0.D0)
-c *** temp check
-c            write(6,*)' in sub. SEPPOT: IB = ',IB
-c            write(6,*)'  *** COEF ***'
-c            write(6,*)(COEF(IG,IB),IG=1,NG2,25000)
-c *** temp check :end
-!$omp parallel default(shared) 
-!$omp do private(IG),reduction(+:CT1)
-            DO 54 IG=1,NG2
+c            DO 54 IG=1,NG2
+            DO 54 IG=1,NGNL(ITY)
    54       CT1=CT1+COEF(IG,IB)*WORK1(IG)
-!$omp enddo
-!$omp end parallel
             CT1=CT1/VPP(1,LI,ITY)/OMEGA
-!$omp parallel default(shared)
-!$omp do private(IG)
-            DO 56 IG=1,NG2
+c            DO 56 IG=1,NG2
+            DO 56 IG=1,NGNL(ITY)
    56       DCOEF(IG,IB)=DCOEF(IG,IB)+CT1*DCONJG(WORK1(IG))
-!$omp enddo
-!$omp end parallel
-c *** temp check
-c            write(6,*)' in sub. SEPPOT: IB = ',IB
-c            write(6,*)'  *** DCOEF ***'
-c            write(6,*)(DCOEF(IG,IB),IG=1,NG2,25000)
-c *** temp check :end
    52    CONTINUE
       ELSEIF(L.EQ.0) THEN
 C             PARTITIONING
          DO 1200 IP=2,3
-!$omp parallel default(shared)
-!$omp do private(IG,Y00)
-         DO 1050 IG=1,NG2
+c         DO 1050 IG=1,NG2
+         DO 1050 IG=1,NGNL(ITY)
            Y00=DCMPLX(YLM(IG,1),0.D0)
  1050      WORK1(IG)=Y00*EXTAU(IG)*VPJ(IG,IP,LI,ITY)
-!$omp enddo
-!$omp end parallel
          DO 1052 IB=1,NBND
             CT1=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT1)
-            DO 1054 IG=1,NG2
+c            DO 1054 IG=1,NG2
+            DO 1054 IG=1,NGNL(ITY)
  1054       CT1=CT1+COEF(IG,IB)*WORK1(IG)
-!$omp enddo
-!$omp end parallel
             CT1=CT1/VPP(IP,LI,ITY)/OMEGA
-!$omp parallel default(shared)
-!$omp do private(IG)
-            DO 1056 IG=1,NG2
+c            DO 1056 IG=1,NG2
+            DO 1056 IG=1,NGNL(ITY)
  1056         DCOEF(IG,IB)=DCOEF(IG,IB)+CT1*DCONJG(WORK1(IG))
-!$omp enddo
-!$omp end parallel
  1052    CONTINUE
  1200    CONTINUE
       ELSEIF(L.EQ.1.AND.IBUN(2,ITY).NE.1) THEN
 C             NO PARTITIONING
-!$omp parallel default(shared)
-!$omp do private(IG,Y11,Y12,Y13)
-         DO 60 IG=1,NG2
+c         DO 60 IG=1,NG2
+         DO 60 IG=1,NGNL(ITY)
          Y11=DCMPLX( YLM(IG,2), 0.D0)
          Y12=DCMPLX(-YLM(IG,3),YLM(IG,4))
          Y13=DCMPLX( YLM(IG,3),YLM(IG,4))
@@ -4118,42 +3202,32 @@ C             NO PARTITIONING
          WORK2(IG)=EXTAU(IG)*Y12*VPJ(IG,1,LI,ITY)
          WORK3(IG)=EXTAU(IG)*Y13*VPJ(IG,1,LI,ITY)
    60    CONTINUE
-!$omp enddo
-!$omp end parallel
          DO 62 IB=1,NBND
             CT1=(0.D0,0.D0)
             CT2=(0.D0,0.D0)
             CT3=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT1),reduction(+:CT2)
-!$omp+ ,reduction(+:CT3)
-            DO 64 IG=1,NG2
+c            DO 64 IG=1,NG2
+            DO 64 IG=1,NGNL(ITY)
             CT1=CT1+COEF(IG,IB)*WORK1(IG)
             CT2=CT2+COEF(IG,IB)*WORK2(IG)
             CT3=CT3+COEF(IG,IB)*WORK3(IG)
    64       CONTINUE
-!$omp enddo
-!$omp end parallel
             CT1=CT1/VPP(1,LI,ITY)/OMEGA
             CT2=CT2/VPP(1,LI,ITY)/OMEGA
             CT3=CT3/VPP(1,LI,ITY)/OMEGA
-!$omp parallel default(shared)
-!$omp do private(IG)
-            DO 66 IG=1,NG2
+c            DO 66 IG=1,NG2
+            DO 66 IG=1,NGNL(ITY)
             DCOEF(IG,IB)=DCOEF(IG,IB)
      &           +CT1*DCONJG(WORK1(IG))
      &           +CT2*DCONJG(WORK2(IG))
      &           +CT3*DCONJG(WORK3(IG))
    66       CONTINUE
-!$omp enddo
-!$omp end parallel
    62    CONTINUE
       ELSEIF(L.EQ.1) THEN
 C             PARTITIONING
          DO 1261 IP=2,3
-!$omp parallel default(shared)
-!$omp do private(IG,Y11,Y12,Y13)
-         DO 61 IG=1,NG2
+c         DO 61 IG=1,NG2
+         DO 61 IG=1,NGNL(ITY)
          Y11=DCMPLX( YLM(IG,2), 0.D0)
          Y12=DCMPLX(-YLM(IG,3),YLM(IG,4))
          Y13=DCMPLX( YLM(IG,3),YLM(IG,4))
@@ -4161,42 +3235,41 @@ C             PARTITIONING
          WORK2(IG)=EXTAU(IG)*Y12*VPJ(IG,IP,LI,ITY)
          WORK3(IG)=EXTAU(IG)*Y13*VPJ(IG,IP,LI,ITY)
    61    CONTINUE
-!$omp enddo
-!$omp end parallel
          DO 63 IB=1,NBND
             CT1=(0.D0,0.D0)
             CT2=(0.D0,0.D0)
             CT3=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT1),reduction(+:CT2)
-!$omp+  ,reduction(+:CT3)
-            DO 65 IG=1,NG2
+c            DO 65 IG=1,NG2
+            DO 65 IG=1,NGNL(ITY)
             CT1=CT1+COEF(IG,IB)*WORK1(IG)
             CT2=CT2+COEF(IG,IB)*WORK2(IG)
             CT3=CT3+COEF(IG,IB)*WORK3(IG)
    65       CONTINUE
-!$omp enddo
-!$omp end parallel
             CT1=CT1/VPP(IP,LI,ITY)/OMEGA
             CT2=CT2/VPP(IP,LI,ITY)/OMEGA
             CT3=CT3/VPP(IP,LI,ITY)/OMEGA
-!$omp parallel default(shared)
-!$omp do private(IG)
-            DO 67 IG=1,NG2
+c            DO 67 IG=1,NG2
+            DO 67 IG=1,NGNL(ITY)
             DCOEF(IG,IB)=DCOEF(IG,IB)
      &           +CT1*DCONJG(WORK1(IG))
      &           +CT2*DCONJG(WORK2(IG))
      &           +CT3*DCONJG(WORK3(IG))
    67       CONTINUE
-!$omp enddo
-!$omp end parallel
    63    CONTINUE
  1261    CONTINUE
       ELSEIF(L.EQ.2.AND.IBUN(3,ITY).NE.1) THEN
+c *** temp check
+c         write(6,*)' in SEPPOT'
+c         write(6,*)' NGNL for d-',NGNL(ITY)
+c         write(6,*)' YLM 5 '
+c         write(6,*)(YLM(IG,5),IG=1,100,10)
+c         write(6,*)' EXTAU '
+c         write(6,*)(EXTAU(IG),IG=1,100,10)
+c         write(6,*)' VPJ( partition 1'
+c         write(6,*)( VPJ(IG,1,li,ity),IG=1,100,10)
+c *** temp check: end
 C             NO PARTITIONING
-!$omp parallel default(shared)
-!$omp do private(IG,Y21,Y22,Y23,Y24,Y25)
-         DO 81 IG=1,NG2
+         DO 81 IG=1,NGNL(ITY)
          Y21=DCMPLX( YLM(IG,5), 0.D0)
          Y22=DCMPLX( YLM(IG,6), YLM(IG,7))
          Y23=DCMPLX( YLM(IG,6),-YLM(IG,7))
@@ -4208,34 +3281,30 @@ C             NO PARTITIONING
          WORK4(IG)=EXTAU(IG)*Y24*VPJ(IG,1,LI,ITY)
          WORK5(IG)=EXTAU(IG)*Y25*VPJ(IG,1,LI,ITY)
    81    CONTINUE
-!$omp enddo
-!$omp end parallel
+c *** temp check
+c         write(6,*)'IN SEPPOT VPJ for d',VPJ(100,1,3,ITY)
+c         write(6,*)'IN SEPPOT YLM 5',YLM(100,5)
+c         write(6,*)'IN SEPPOT WORK 5',WORK5(100)
+c *** temp check : end
          DO 82 IB=1,NBND
             CT1=(0.D0,0.D0)
             CT2=(0.D0,0.D0)
             CT3=(0.D0,0.D0)
             CT4=(0.D0,0.D0)
             CT5=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT1),reduction(+:CT2)
-!$omp+  ,reduction(+:CT3),reduction(+:CT4),reduction(+:CT5)
-            DO 83 IG=1,NG2
+            DO 83 IG=1,NGNL(ITY)
             CT1=CT1+COEF(IG,IB)*WORK1(IG)
             CT2=CT2+COEF(IG,IB)*WORK2(IG)
             CT3=CT3+COEF(IG,IB)*WORK3(IG)
             CT4=CT4+COEF(IG,IB)*WORK4(IG)
             CT5=CT5+COEF(IG,IB)*WORK5(IG)
    83       CONTINUE
-!$omp enddo
-!$omp end parallel
             CT1=CT1/VPP(1,LI,ITY)/OMEGA
             CT2=CT2/VPP(1,LI,ITY)/OMEGA
             CT3=CT3/VPP(1,LI,ITY)/OMEGA
             CT4=CT4/VPP(1,LI,ITY)/OMEGA
             CT5=CT5/VPP(1,LI,ITY)/OMEGA
-!$omp parallel default(shared)
-!$omp do private(IG)
-            DO 84 IG=1,NG2
+            DO 84 IG=1,NGNL(ITY)
             DCOEF(IG,IB)=DCOEF(IG,IB)
      &           +CT1*DCONJG(WORK1(IG))
      &           +CT2*DCONJG(WORK2(IG))
@@ -4243,15 +3312,18 @@ C             NO PARTITIONING
      &           +CT4*DCONJG(WORK4(IG))
      &           +CT5*DCONJG(WORK5(IG))
    84       CONTINUE
-!$omp enddo
-!$omp end parallel
    82    CONTINUE
+c +*** temp check for lowest band
+c          sum=0
+c          do ig=1,NGNL(ITY)
+c           sum=sum+dreal(DCOEF(IG,1)*COEF(IG,1))
+c          enddo
+c          write(6,*)' ity = ',ity,'DCOEF*COEF at band 1 =',sum
+c *** temp check : end
       ELSEIF(L.EQ.2) THEN
 C             PARTITIONING
          DO 1262 IP=2,3
-!$omp parallel default(shared)
-!$omp do private(IG,Y21,Y22,Y23,Y24,Y25)
-         DO 71 IG=1,NG2
+         DO 71 IG=1,NGNL(ITY)
          Y21=DCMPLX( YLM(IG,5), 0.D0)
          Y22=DCMPLX( YLM(IG,6), YLM(IG,7))
          Y23=DCMPLX( YLM(IG,6),-YLM(IG,7))
@@ -4263,34 +3335,25 @@ C             PARTITIONING
          WORK4(IG)=EXTAU(IG)*Y24*VPJ(IG,IP,LI,ITY)
          WORK5(IG)=EXTAU(IG)*Y25*VPJ(IG,IP,LI,ITY)
    71    CONTINUE
-!$omp enddo
-!$omp end parallel
          DO 72 IB=1,NBND
             CT1=(0.D0,0.D0)
             CT2=(0.D0,0.D0)
             CT3=(0.D0,0.D0)
             CT4=(0.D0,0.D0)
             CT5=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT1),reduction(+:CT2)
-!$omp+  ,reduction(+:CT3),reduction(+:CT4),reduction(+:CT5)
-            DO 73 IG=1,NG2
+            DO 73 IG=1,NGNL(ITY)
             CT1=CT1+COEF(IG,IB)*WORK1(IG)
             CT2=CT2+COEF(IG,IB)*WORK2(IG)
             CT3=CT3+COEF(IG,IB)*WORK3(IG)
             CT4=CT4+COEF(IG,IB)*WORK4(IG)
             CT5=CT5+COEF(IG,IB)*WORK5(IG)
    73       CONTINUE
-!$omp enddo
-!$omp end parallel
             CT1=CT1/VPP(IP,LI,ITY)/OMEGA
             CT2=CT2/VPP(IP,LI,ITY)/OMEGA
             CT3=CT3/VPP(IP,LI,ITY)/OMEGA
             CT4=CT4/VPP(IP,LI,ITY)/OMEGA
             CT5=CT5/VPP(IP,LI,ITY)/OMEGA
-!$omp parallel default(shared)
-!$omp do private(IG)
-            DO 74 IG=1,NG2
+            DO 74 IG=1,NGNL(ITY)
             DCOEF(IG,IB)=DCOEF(IG,IB)
      &           +CT1*DCONJG(WORK1(IG))
      &           +CT2*DCONJG(WORK2(IG))
@@ -4298,14 +3361,10 @@ C             PARTITIONING
      &           +CT4*DCONJG(WORK4(IG))
      &           +CT5*DCONJG(WORK5(IG))
    74       CONTINUE
-!$omp enddo
-!$omp end parallel
    72    CONTINUE
  1262    CONTINUE
       ELSEIF(L.EQ.3.AND.IBUN(4,ITY).NE.1) THEN
 C             NO PARTITIONING
-!$omp parallel default(shared)
-!$omp do private(IG,Y31,Y32,Y33,Y34,Y35,Y36,Y37)
          DO 91 IG=1,NG2
          Y31=DCMPLX( YLM(IG,10), 0.D0)
          Y32=DCMPLX(-YLM(IG,11),-YLM(IG,12))
@@ -4322,32 +3381,6 @@ C             NO PARTITIONING
          WORK6(IG)=EXTAU(IG)*Y36*VPJ(IG,1,LI,ITY)
          WORK7(IG)=EXTAU(IG)*Y37*VPJ(IG,1,LI,ITY)
    91    CONTINUE
-!$omp enddo
-c *** temp check
-c         miya=14
-c         if (miya.eq.13) then
-c          write(6,*)' in sub. NONLOC LI=',LI
-c           write(6,*)' check WORK1'
-c            write(6,1881)(WORK1(IG),IG=1,NG2,1000)
-c           write(6,*)' check WORK2'
-c            write(6,1881)(WORK2(IG),IG=1,NG2,1000)
-c           write(6,*)' check WORK3'
-c            write(6,1881)(WORK3(IG),IG=1,NG2,1000)
-c           write(6,*)' check WORK4'
-c            write(6,1881)(WORK4(IG),IG=1,NG2,1000)
-c           write(6,*)' check WORK5'
-c            write(6,1881)(WORK5(IG),IG=1,NG2,1000)
-c           write(6,*)' check WORK6'
-c            write(6,1881)(WORK6(IG),IG=1,NG2,1000)
-c           write(6,*)' check WORK7'
-c            write(6,1881)(WORK7(IG),IG=1,NG2,1000)
-cc         stop 'check-end'
-c           write(6,*)' Now COEF '
-c            write(6,1881)(COEF(IG,IB),IG=1,NG2,1000)
-c         endif
-c 1881    FORMAT(4f12.8)
-c *** temp check: end
-!$omp end parallel
          DO 92 IB=1,NBND
             CT1=(0.D0,0.D0)
             CT2=(0.D0,0.D0)
@@ -4356,10 +3389,6 @@ c *** temp check: end
             CT5=(0.D0,0.D0)
             CT6=(0.D0,0.D0)
             CT7=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT1),reduction(+:CT2)
-!$omp+  ,reduction(+:CT3),reduction(+:CT4),reduction(+:CT5)
-!$omp+  ,reduction(+:CT6),reduction(+:CT7)
             DO 93 IG=1,NG2
             CT1=CT1+COEF(IG,IB)*WORK1(IG)
             CT2=CT2+COEF(IG,IB)*WORK2(IG)
@@ -4369,22 +3398,6 @@ c *** temp check: end
             CT6=CT6+COEF(IG,IB)*WORK6(IG)
             CT7=CT7+COEF(IG,IB)*WORK7(IG)
    93       CONTINUE
-!$omp enddo
-!$omp end parallel
-c ** temp check
-c          miya=14
-c          if (miya.eq.13) then
-c           write(6,*)' in sub. NONLOC check CT1-CT7 '
-c           write(6,*)' CT1-CT2'
-c           write(6,1819)CT1,CT2
-c           write(6,*)' CT3-CT4'
-c           write(6,1819)CT3,CT4
-c           write(6,*)' CT5-CT6'
-c           write(6,1819)CT5,CT6
-c           write(6,*)' CT7'
-c           write(6,1819)CT7
-c          endif
-c ** temp check ; end
             CT1=CT1/VPP(1,LI,ITY)/OMEGA
             CT2=CT2/VPP(1,LI,ITY)/OMEGA
             CT3=CT3/VPP(1,LI,ITY)/OMEGA
@@ -4392,24 +3405,6 @@ c ** temp check ; end
             CT5=CT5/VPP(1,LI,ITY)/OMEGA
             CT6=CT6/VPP(1,LI,ITY)/OMEGA
             CT7=CT7/VPP(1,LI,ITY)/OMEGA
-c *** temp check
-c          miya=14
-c          if (miya.eq.13) then
-c           write(6,*)' in sub. NONLOC check CT1-CT7 again '
-c           write(6,*)' CT1-CT2'
-c           write(6,1819)CT1,CT2
-c           write(6,*)' CT3-CT4'
-c           write(6,1819)CT3,CT4
-c           write(6,*)' CT5-CT6'
-c           write(6,1819)CT5,CT6
-c           write(6,*)' CT7'
-c           write(6,1819)CT7
-c           stop
-c          endif
-c 1819    FORMAT(4D16.8)
-c *** temp check end
-!$omp parallel default(shared)
-!$omp do private(IG)
             DO 94 IG=1,NG2
             DCOEF(IG,IB)=DCOEF(IG,IB)
      &           +CT1*DCONJG(WORK1(IG))
@@ -4420,14 +3415,10 @@ c *** temp check end
      &           +CT6*DCONJG(WORK6(IG))
      &           +CT7*DCONJG(WORK7(IG))
    94       CONTINUE
-!$omp enddo
-!$omp end parallel
    92    CONTINUE
       ELSEIF(L.EQ.3) then
 C             PARTITIONING
          DO 2262 IP=2,3
-!$omp parallel default(shared)
-!$omp do private(IG,Y31,Y32,Y33,Y34,Y35,Y36,Y37)
          DO 101 IG=1,NG2
          Y31=DCMPLX( YLM(IG,10), 0.D0)
          Y32=DCMPLX(-YLM(IG,11),-YLM(IG,12))
@@ -4444,8 +3435,6 @@ C             PARTITIONING
          WORK6(IG)=EXTAU(IG)*Y36*VPJ(IG,IP,LI,ITY)
          WORK7(IG)=EXTAU(IG)*Y37*VPJ(IG,IP,LI,ITY)
   101    CONTINUE
-!$omp enddo
-!$omp end parallel
          DO 102 IB=1,NBND
             CT1=(0.D0,0.D0)
             CT2=(0.D0,0.D0)
@@ -4454,10 +3443,6 @@ C             PARTITIONING
             CT5=(0.D0,0.D0)
             CT6=(0.D0,0.D0)
             CT7=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT1),reduction(+:CT2)
-!$omp+  ,reduction(+:CT3),reduction(+:CT4),reduction(+:CT5)
-!$omp+  ,reduction(+:CT6),reduction(+:CT7)
             DO 103 IG=1,NG2
             CT1=CT1+COEF(IG,IB)*WORK1(IG)
             CT2=CT2+COEF(IG,IB)*WORK2(IG)
@@ -4467,8 +3452,6 @@ C             PARTITIONING
             CT6=CT6+COEF(IG,IB)*WORK6(IG)
             CT7=CT7+COEF(IG,IB)*WORK7(IG)
   103       CONTINUE
-!$omp enddo
-!$omp end parallel
             CT1=CT1/VPP(IP,LI,ITY)/OMEGA
             CT2=CT2/VPP(IP,LI,ITY)/OMEGA
             CT3=CT3/VPP(IP,LI,ITY)/OMEGA
@@ -4476,8 +3459,6 @@ C             PARTITIONING
             CT5=CT5/VPP(IP,LI,ITY)/OMEGA
             CT6=CT6/VPP(IP,LI,ITY)/OMEGA
             CT7=CT7/VPP(IP,LI,ITY)/OMEGA
-!$omp parallel default(shared)
-!$omp do private(IG)
             DO 104 IG=1,NG2
             DCOEF(IG,IB)=DCOEF(IG,IB)
      &           +CT1*DCONJG(WORK1(IG))
@@ -4488,12 +3469,10 @@ C             PARTITIONING
      &           +CT6*DCONJG(WORK6(IG))
      &           +CT7*DCONJG(WORK7(IG))
   104       CONTINUE
-!$omp enddo
-!$omp end parallel
   102    CONTINUE
  2262 CONTINUE
       ELSE
-         STOP ' ILL ORBITAL OR MORE THAN TWO PARTIONING '
+         STOP ' ILL ORBITAL IS INDICATED OR MORE THAN TWO PARTIONING '
       ENDIF
    30 CONTINUE
    20 CONTINUE
@@ -4507,19 +3486,21 @@ C------------PROGRAM UNIT POTENTIAL AND CHARGE---------------------
 C**************************************************************
       SUBROUTINE VOFRHO(NRX,NRY,NRZ,NXYZ,NG,NGQ,G,TPIBA,
      & VCLR,VCSR,VG,RHO,RHOG,I2G,
-     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2,
-     & DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK )
+     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2
+     &,DX,DY,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK )
       IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 RHO(NXYZ)
       COMPLEX*16 VCLR(NXYZ),VCSR(NXYZ),VG(NXYZ),RHOG(NXYZ)
       COMPLEX*16 WSAVEX(NRX),WSAVEY(NRY),WSAVEZ(NRZ)
-c *** for GGA ( VCLR=DX and  VCSR=DY )  
-      COMPLEX*16 DZ(NXYZ),DXX(NXYZ),DYY(NXYZ),DZZ(NXYZ),
-     &                    DXY(NXYZ),DYZ(NXYZ),DZX(NXYZ),VWORK(NXYZ)
+c ***  for GGA 
+      COMPLEX*16 DX(NXYZ),DY(NXYZ),DZ(NXYZ)
+     &      ,DXX(NXYZ),DYY(NXYZ),DZZ(NXYZ)
+     &      ,DXY(NXYZ),DYZ(NXYZ),DZX(NXYZ),VWORK(NXYZ)
       DIMENSION IFACX(30),IFACY(30),IFACZ(30)
       DIMENSION LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
      &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
       DIMENSION I2G(NGQ),G(4,NGQ)
+      COMMON/SMOOTH/ADUMP
       COMMON/COMOPT/IOPT(10,5)
 C
 C     CALCULATE HARTREE AND EXCHANGE-CORRELATION POTENTIAL
@@ -4535,12 +3516,13 @@ C
 C
 C     EXCHANGE CORRELATION CONTRIBUTION TO THE ONE-ELECTRON POTENTIAL
 C
+C
       IF(IGGA.EQ.1) THEN
        CALL G2VXC2(TPIBA,NRX,NRY,NRZ,NXYZ,NG,NGQ,G,
      & VG,RHO,RHOG,I2G,
      & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,
      & LY1,LY2,LZ1,LZ2
-     & , VCLR,VCSR,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK )
+     & , DX,DY,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK )
       ELSE
       CALL S2VXC2(NXYZ,RHO,VG)
       ENDIF
@@ -4553,24 +3535,18 @@ C
    47 VCSR(IG)=(0.D0,0.D0)
 C
 *VDIR NODEP(VCSR)
-!$omp parallel default(shared)
-!$omp do private(IG,JG)
       DO 49 IG=2,NG
       JG=I2G(IG)
    49 VCSR(JG)=0.5D0*FPI*RHOG(JG)/(TPIBA2*G(4,IG))
-!$omp enddo
-!$omp end parallel
-c ** temp check
-c      write(6,*)' in VOFRHO after DO 49: plot VCSR'
-c      write(6,*)(VCSR(IG),IG=1,NXYZ,1000)
-c ** temp check : end
-!$omp parallel default(shared)
-!$omp do private(IG)
       DO 48 IG=1,NXYZ
    48 VG(IG)=VG(IG)+VCSR(IG)*2.D0
-!$omp enddo
-!$omp end parallel
 C
+c *** Smoothing of potential
+c      adump4=4*adump
+c      do ig=2,nxyz
+c      jg=i2g(ig)
+c      vg(jg)=vg(jg)*dexp(-g(4,ig)/adump4)
+c      enddo
 CC      CALL CLOCK(TIM1)
 C     WRITE(6,*) ' VOFRHO: CPTIME=',TIM1-TIM0
       RETURN
@@ -4685,33 +3661,17 @@ ccc      READ(71,REC=IOWF(IBLK)) COEF
                           IF(IB.GT.NFL) GO TO 25
           DO 21 I=1,NXYZ
    21     RHO2(I)=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(I,II)
             DO 23 I=1,NG2
             II=J2G(I)
             RHO2(II)=COEF(I,IBND)
    23       CONTINUE
-!$omp enddo
-!$omp end parallel
-c *** temp check
-c      write(6,*)'in sub RHOOFK: RHO2 '
-c      write(6,*)(RHO2(II),II=1,NXYZ,1000)
-c *** temp check
             CALL FFT3BX( NRX, NRY, NRZ, NXYZ, RHO2, RHO1,
      &      WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &      LX1, LX2, LY1, LY2, LZ1, LZ2 )
-!$omp parallel default(shared)
-!$omp do private(I)
             DO 24 I=1,NXYZ
    24       RHO2(I)=DCONJG(RHO2(I))*RHO2(I)
-!$omp enddo
-!$omp end parallel
-!$omp parallel default(shared)
-!$omp do private(I)
             DO 22 I=1,NXYZ
    22       RHO3(I)=RHO3(I)+RHO2(I)*OCC(IB)
-!$omp enddo
-!$omp end parallel
    30   CONTINUE
    20 CONTINUE
    25                         CONTINUE
@@ -4719,19 +3679,16 @@ C
 C        GATHER RHOG
 C
       FWGT=WGT*2.D0
-!$omp parallel default(shared)
-!$omp do private(I)
       DO 631 I=1,NXYZ
   631 RHO(I)=RHO(I)+DBLE(RHO3(I))*FWGT
-!$omp enddo
-!$omp end parallel
 C
       RETURN
       END
 C*****************************************************************
       SUBROUTINE RHOGET(NRX,NRY,NRZ,NXYZ,RHO,RHO1,RHOG,NTOT,S,OMEGA,
-     & ZVAL,
-     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
+     & ZVAL,RHO2,I2G,G,
+     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2,
+     & FDUMP)
 C
 C                                   (1990-04-12) OSAMU SUGINO
 C                                   (1990-08-21) OSAMU SUGINO
@@ -4743,12 +3700,17 @@ C
       IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 RHO(NXYZ)
       COMPLEX*16 RHO1(NXYZ),RHOG(NXYZ)
+C *** for smoothing !
+      complex*16 RHO2(NXYZ)
+      dimension I2G(NXYZ),G(4,NXYZ)
       INTEGER*4 S(3,3,48)
 C     WORK ARRAYS FOR FOURIER TRANSFORM
       COMPLEX*16 WSAVEX(NRX),WSAVEY(NRY),WSAVEZ(NRZ)
       DIMENSION IFACX(30),IFACY(30),IFACZ(30)
       DIMENSION LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
      &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
+      dimension fdump(NXYZ)
+      COMMON/SMOOTH/ADUMP
 C
 C     #############################################
 C     SYMMETRIZE THE CHARGE DENSITY (IN REAL SPACE)
@@ -4765,12 +3727,8 @@ C
       CALL ROTRA(NRX,NRY,NRZ,NXYZ,RHO,RHO1,LY2,LZ1,LZ2,S,NTOT)
 C
       SUM=0.D0
-!$omp parallel default(shared)
-!$omp do private(I),reduction(+:SUM)
       DO 51 I=1,NXYZ
    51 SUM=SUM+RHO(I)
-!$omp enddo
-!$omp end parallel
       SUM=SUM*OMEGA/DBLE(NXYZ)
 C
 C ********
@@ -4796,14 +3754,31 @@ C
 C
 C        RHO IN K SPACE
 C
-!$omp parallel default(shared)
-!$omp do private(IG)
       DO 551 IG=1,NXYZ
   551 RHOG(IG)=DCMPLX(RHO(IG),0.D0)
-!$omp enddo
-!$omp end parallel
       CALL FFT3FX(NRX,NRY,NRZ,NXYZ,RHOG,RHO1,
      & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
+c *** Smoothing !!
+         adump4=4*adump
+         do ig=1,nxyz
+         jg=i2g(ig)
+         rhog(jg)=rhog(jg)*fdump(ig)
+         enddo
+         DO IG=1,NXYZ
+         RHO2(IG)=RHOG(IG)
+         ENDDO
+         CALL FFT3BX( NRX, NRY, NRZ, NXYZ, RHO2, RHO1,
+     &                WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
+     &                LX1, LX2, LY1, LY2, LZ1, LZ2                )
+         DO IG=1,NXYZ
+         RHO(IG)=DBLE(RHO2(IG))
+         ENDDO
+c *** Smoothing !! : END
+c **** smear negative rho: for SXACE!!
+      rhomin=1.d-12
+      do ir=1,nxyz
+       if (rho(ir).lt.rhomin ) rho(ir)=rhomin
+      enddo
 C     WRITE(6,*) ' RHOG AND SUM',RHOG(1),SUM
 C
       RETURN
@@ -4869,7 +3844,7 @@ C***********************************************************
       SUBROUTINE PRENON(JOPT,NG2Q,NG2,TPIBA,NGQ,NG,G,
 c     &  NUMKQ,NUMK,G2,SPB,WORK3,NUMTY,NTYQ,NTYPE,VPJ,VPP
      &  NUMKQ,NUMK,G2,SPB,VGA,Vchg,WORK3,NUMTY,NTYQ,NTYPE,VPJ,VPP
-     & ,NCRQ,ZV,RC0,COR,NUMC,ALPPP,BETAPP,IOVP, MXOFL)
+     & ,NCRQ,ZV,RC0,COR,NUMC,ALPPP,BETAPP,IOVP, MXOFL,ADUMP,ATEMP,NGNL)
 C***********************************************************
 C
 C               NUMERICAL POTENTIAL (1992-02-28) OSAMU SUGINO
@@ -4879,7 +3854,7 @@ C
 C
       IMPLICIT REAL*8(A-H,O-Z)
 C        INPUT
-      DIMENSION NG2(NUMKQ)
+      DIMENSION NG2(NUMKQ),NGNL(NTYQ,NUMKQ)
       DIMENSION G2(4,NG2Q,NUMKQ),NUMTY(NTYQ),G(4,NGQ)
       DIMENSION ZV(NTYQ),RC0(NCRQ,NTYQ),COR(NCRQ,NTYQ),NUMC(NTYQ)
 c      DIMENSION  BETAPP(2,NTYQ),ALPPP(2,NTYQ),IOVP(2,NTYQ,NUMKQ)
@@ -4888,9 +3863,8 @@ c      DIMENSION  BETAPP(3,NTYQ),ALPPP(3,NTYQ),IOVP(2,NTYQ,NUMKQ)
      &         , MXOFL(NTYQ)
 C        WORK
       DIMENSION SPB(NG2Q),WORK3(NGQ)
-c      PARAMETER(MESHQ=1000, ISPD=5, NTYQ2=4) ! for p-orbitals
-c      PARAMETER(MESHQ=1000, ISPD=6, NTYQ2=4) ! for d-orbitals
-      PARAMETER(MESHQ=1000, ISPD=8, NTYQ2=4) ! for f-orbitals
+c      PARAMETER(MESHQ=1000, ISPD=5, NTYQ2=4)
+      PARAMETER(MESHQ=1000, ISPD=8, NTYQ2=4)
       DIMENSION RAD(MESHQ)
       DIMENSION PSPOT(MESHQ,ISPD),PSPOT2(MESHQ,ISPD)
 c      DIMENSION PHIL(MESHQ,2)
@@ -4908,7 +3882,7 @@ c      DIMENSION VPJ(NG2Q,3,3,NTYQ,NUMKQ),VPP(3,3,NTYQ)
       DIMENSION VPJ(NG2Q,3,4,NTYQ,NUMKQ),VPP(3,4,NTYQ)
 c                        ^ ^
 c                        | |
-c            partitioning   max of L+1 (L: angular momentum)
+c            partitioning   max of L
 C
 c ****
       dimension VGA(NGQ,NTYQ),Vchg(NGQ,NTYQ)
@@ -4950,11 +3924,11 @@ C **
 C
             DO 3611 I=1,MESH
             WORK(I)=ZO(1,ITY)*PHIL(I,1)*PHIL(I,1)
- 3611        CONTINUE
+3611        CONTINUE
               IF( MXOFL(ITY).EQ.1 ) THEN
             DO 3612 I=1,MESH
             WORK(I) = WORK(I) + ZO(2,ITY)*PHIL(I,2)*PHIL(I,2)
- 3612        CONTINUE
+3612        CONTINUE
               END IF
 C
             WRITE(6,9010) ITY, ZO(1,ITY), ZO(2,ITY)
@@ -5059,15 +4033,7 @@ C
         H=LOG(RAD(MESH)/RAD(1))/(MESH-1.D0)
         DO 3300 K=1,MESH
           DO 3310 LI=1,MXL
-c *** subtract local d only from s and p components!!
-c          if (LI.LE.2 ) then
-c          PSPOT(K,LI)=(PSPOT(K,LI)-WORK(K))*H*RAD(K)
-c          else
-c          PSPOT(K,LI)=PSPOT(K,LI)*H*RAD(K)
-c          endif
-c *** otherwise
           PSPOT(K,LI)=(PSPOT(K,LI)-WORK(K))*H*RAD(K)
-c
           AA=BETAPP(LI,ITY)*(RAD(K)-ALPPP(LI,ITY))
           IF(ABS(AA).LT.100.0D0)THEN
             F=1.D0/(1.D0+EXP(AA))
@@ -5110,14 +4076,37 @@ C         WRITE(6,3317) PSPOT(II,2),PSPOT2(II,3),PSPOT2(II,4)
 C
 C*****LOOP OVER K-VECTOR
 C     REWIND 82
+c ****  for smoothing !!!!
+c      do ig=1,NG
+c      wari=dexp( (G(4,ig)-ADUMP)/ATEMP ) + 1.d0
+c      WORK3(ig)=1.d0/dsqrt(wari)
+c      enddo
       DO 1000 IK=1,NUMK
+c ****  for smoothing !!!!
+      do ig=1,NG2(IK)
+c      wari=dexp( (G2(4,ig,ik)-4*ADUMP)/ATEMP ) + 1.d0
+      wari=dexp( (G2(4,ig,ik)-ADUMP)/ATEMP ) + 1.d0
+      WORK3(ig)=1.d0/dsqrt(wari)
+      enddo
+      do ig=1,NG2(IK)
+      if ( WORK3(IG).lt.1.d-02 ) then
+       NGNL(ITY,IK)=ig
+       goto 1920
+      endif
+      enddo
+ 1920 continue
+      write(6,*)' At IK = ',IK,',  Vnl needs ', NGNL(ITY,IK),
+     & ' G-vectors.'
+      write(6,*)' Ratio to full FFT grids = '
+     &       ,DFLOAT(NGNL(ITY,IK))/DFLOAT(NG2(IK))
 C*****LOOP OVER ANGULAR QUANTUM NUMBER
       DO 30 LI=1,MXL
 C*****ZERO CLEAR
         DO 3 J=1,3
         VPP(J,LI,ity)=0.D0
         VV(J)=0.D0
-        DO 3 IG=1,NG2(IK)
+c        DO 3 IG=1,NG2(IK)
+        DO 3 IG=1,NGNL(ITY,IK)
         VPJ(IG,J,LI,ity,ik)=0.D0
     3   CONTINUE
       L=LI-1
@@ -5125,24 +4114,26 @@ C*****LOOP OVER MESH
       SUM=0.D0
       DO 50 I=1,MESH
 C*****CONSTRUCT THE SPHERICAL BESSEL FUNCTION J_L(Q1*R)
-      IF(L.EQ.0) THEN    !   s-orbital
+      IF(L.EQ.0) THEN
          IF(G2(4,1,IK).EQ.0.D0) THEN
             SPB(1)=1.D0
             ISTA=2
          ELSE
             ISTA=1
          ENDIF
-         DO 42 IG=ISTA,NG2(IK)
+c         DO 42 IG=ISTA,NG2(IK)
+         DO 42 IG=ISTA,NGNL(ITY,IK)
          TEMP=SQRT(G2(4,IG,IK))*RAD(I)*TPIBA
    42    SPB(IG)=SIN(TEMP)/TEMP
-      ELSEIF(L.EQ.1) THEN  ! p-orbital
+      ELSEIF(L.EQ.1) THEN
          IF(G2(4,1,IK).EQ.0.D0) THEN
             SPB(1)=0.D0
             ISTA=2
          ELSE
             ISTA=1
          ENDIF
-         DO 44 IG=ISTA,NG2(IK)
+c         DO 44 IG=ISTA,NG2(IK)
+         DO 44 IG=ISTA,NGNL(ITY,IK)
          TEMP=SQRT(G2(4,IG,IK))*RAD(I)*TPIBA
    44    SPB(IG)=(SIN(TEMP)-TEMP*COS(TEMP))/TEMP**2
       ELSEIF(L.EQ.2) THEN ! d-orbital
@@ -5152,7 +4143,7 @@ C*****CONSTRUCT THE SPHERICAL BESSEL FUNCTION J_L(Q1*R)
          ELSE
             ISTA=1
          ENDIF
-         DO 46 IG=ISTA,NG2(IK)
+         DO 46 IG=ISTA,NGNL(ITY,IK)
          TEMP=SQRT(G2(4,IG,IK))*RAD(I)*TPIBA
    46    SPB(IG)=( (3.d0-TEMP**2)*SIN(TEMP)-3.d0*TEMP*COS(TEMP) )
      &           /TEMP**3
@@ -5172,6 +4163,11 @@ C*****CONSTRUCT THE SPHERICAL BESSEL FUNCTION J_L(Q1*R)
      &     *COS(TEMP) )  /TEMP4
          ENDDO
       ENDIF
+c *** Smoothing !!! ***
+c      do ig=1,NG2(ik)
+      do ig=1,NGNL(ity,ik)
+      SPB(ig)=WORK3(ig)*SPB(ig)
+      enddo
 C*****CALCULATE VPP&VPJ
       SUM=SUM+PHIL(I,LI)**2*H*RAD(I)
       VPP(1,li,ity)=VPP(1,li,ity)+PSPOT (I,LI    )*PHIL(I,LI)**2
@@ -5180,15 +4176,16 @@ C*****CALCULATE VPP&VPJ
       VV(1)=VV(1)+(PSPOT (I,LI    )*PHIL(I,LI))**2/H/RAD(I)
       VV(2)=VV(2)+(PSPOT2(I,2*LI-1)*PHIL(I,LI))**2/H/RAD(I)
       VV(3)=VV(3)+(PSPOT2(I,2*LI  )*PHIL(I,LI))**2/H/RAD(I)
-      DO 52 IG=1,NG2(IK)
+c      DO 52 IG=1,NG2(IK)
+      DO 52 IG=1,NGNL(ITY,IK)
       VPJ(IG,1,li,ity,ik)=VPJ(IG,1,li,ity,ik)
      &          +FPI*PSPOT (I,LI    )*PHIL(I,LI)*RAD(I)*SPB(IG)
       VPJ(IG,2,li,ity,ik)=VPJ(IG,2,li,ity,ik)
      &          +FPI*PSPOT2(I,LI*2-1)*PHIL(I,LI)*RAD(I)*SPB(IG)
       VPJ(IG,3,li,ity,ik)=VPJ(IG,3,li,ity,ik)
      &          +FPI*PSPOT2(I,LI*2  )*PHIL(I,LI)*RAD(I)*SPB(IG)
-   52 CONTINUE
-   50 CONTINUE
+   52 CONTINUE  ! end of ig loop
+   50 CONTINUE  ! end of imesh (=radial mesh) loop
       DO 5320 KK=1,MESH
         WORK2(KK)=PHIL(KK,LI)**2
  5320 CONTINUE
@@ -5215,9 +4212,38 @@ C  20    WRITE(6,'(I6,2E15.7)') IG,SQRT(G2(4,IG,IK))*TPIBA,VPJ(IG,1)
 C    &                          /VPP(1)
 C
    30 CONTINUE
+c ****  here review VPJ and redefine cutoff length of G-vectors, NGNL
+      do 152 ig=NGNL(ity,ik),1,-1
+      vmax=0
+      do li=1,mxl
+      v1=dabs( VPJ(ig,1,li,ity,ik) )
+      v2=dabs( VPJ(ig,2,li,ity,ik) )
+      v3=dabs( VPJ(ig,3,li,ity,ik) )
+      v123max=max(v1,v2,v3)
+      vmax=max(vmax,v123max)
+      enddo
+      if ( vmax.gt.1.d-03 ) then
+       NGNL(ity,ik)=ig
+       goto 153
+      endif
+  152 continue
+  153 continue
+c *** temp check
+c      if ( ity*ik.eq.1 ) then
+c      write(6,*)' check VPJ at d-component'
+c      do ig=1,100,10
+c       write(6,*)' VPJ(',ig,')=',vpj(ig,1,3,1,1)
+c      enddo
+c      endif
+c *** temp check: end
+      write(6,*)' Now NGNL has been redefined '
+      ratio=dfloat( NGNL(ity,IK) )/dfloat( NG2(IK) )
+      write(6,1152)ity,ik,NGNL(ity,ik),ratio
  1000 CONTINUE
    10 CONTINUE
       ISAISHO=0
+ 1152 format(' NGNL(',i2,',',i3,')=',i10,
+     & ' Ratio to the full grids = ',f22.16)
 C
       RETURN
       END
@@ -5256,7 +4282,7 @@ c      READ(IWT2) ZV, (RC0(J),J=1,NN), COR(1)
 C
 c      READ(IWT) NVST,MESH
 c      READ(IWT2) NVST2,MESH2
-      READ(IWT,*) NVST,MESH
+      READ(IWT ,*) NVST,MESH
       READ(IWT2,*) NVST2,MESH2
 C
         IF(IST.EQ.ITY) WRITE(6,3330) ITY, ZV
@@ -5275,7 +4301,7 @@ C
 C
 c      READ(IWT) (RAD(K),K=1,MESH)
 c      READ(IWT2)(RAD(K),K=1,MESH)
-      READ(IWT,*) (RAD(K),K=1,MESH)
+      READ(IWT ,*) (RAD(K),K=1,MESH)
       READ(IWT2,*)(RAD(K),K=1,MESH)
 C
 C       READ PSEUDO ORBITALS
@@ -5287,7 +4313,6 @@ c        READ(IWT) (PHIL(K,J),K=1,MESH)
       DO 3151 J=1,NVST2
 C       READ(IWT2) (PHIL2(K),K=1,MESH)
 c        READ(IWT2)
-c        READ(IWT2,*)(WORK(K),K=1,MESH)   ! WORK isdummy here!
         READ(IWT2,*)
  3151 CONTINUE
 C
@@ -5296,7 +4321,7 @@ C
       DO 3201 J=1,NVST
 c        READ(IWT) (PSPOT(K,J),K=1,MESH)
 c        READ(IWT2) (PSPOT2(K,J),K=1,MESH)
-        READ(IWT,*) (PSPOT(K,J),K=1,MESH)
+        READ(IWT ,*) (PSPOT(K,J),K=1,MESH)
         READ(IWT2,*) (PSPOT2(K,J),K=1,MESH)
  3201 CONTINUE
       DO 3251 J=1,NVST2-NVST
@@ -5320,9 +4345,8 @@ c **** temp check: end
 cC ******   ASSUME D COMPONENT IS IN NVST2 = 3 -TH ARRAY
 c      IF( NVST.NE.2 .OR. NVST2.NE.3 ) THEN
 C ******   ASSUME D COMPONENT in higher quantum number IS IN NVST2 = 4 -TH ARRAY
-c      IF( NVST.GT.3 .OR. NVST2.GT.4 ) THEN
-C ******   ASSUME F COMPONENT in higher quantum number IS IN NVST2 = 5 -TH ARRAY
-      IF( NVST.GT.4 .OR. NVST2.GT.5 ) THEN
+c      IF( NVST.GT.3 .OR. NVST2.GT.4) THEN
+      IF( NVST.GT.4 .OR. NVST2.GT.5) THEN
         WRITE(6,6000) NVST, NVST2
  6000   FORMAT(///
      &' ****  PSREAD: NOT PROGRAMMED FOR NVST AND NVST2 = ',2I5)
@@ -5358,7 +4382,7 @@ C
       NUMC=2
       NN=NUMC
 c      READ(IWT ) ZV, (RC0(J),J=1,NN), COR(1)
-      READ(IWT,*) ZV, (RC0(J),J=1,NN), COR(1)
+      READ(IWT ,*) ZV, (RC0(J),J=1,NN), COR(1)
       ZV=-ZV
       COR(2)=1.0D+00-COR(1)
       DO 605 J=1,NN
@@ -5367,8 +4391,7 @@ C
 c      READ(IWT) NVST,MESH
       READ(IWT,*) NVST,MESH
 C
-c        IF(IST.EQ.ITY) WRITE(6,3330) ITY, ZV
-        WRITE(6,3330) ITY, ZV
+        IF(IST.EQ.ITY) WRITE(6,3330) ITY, ZV
      &               ,(COR(JJ),RC0(JJ),JJ=1,NUMC ), NVST, MESH
  3330   FORMAT(/' PSEUDOPOTENTIAL FOR ',I4,'  -TH ATOM: ZV = ',F10.2/
      &    20X,'     COR AND RC0 = ',2D13.5/
@@ -5398,13 +4421,6 @@ C
 c        READ(IWT) (PSPOT(K,J),K=1,MESH)
         READ(IWT,*) (PSPOT(K,J),K=1,MESH)
  3201 CONTINUE
-c **** temp check
-       write(6,*)' ++++ PSPOT +++++ '
-       do J=1,NVST
-        write(6,*)' J = ',J
-        write(6,8181)(PSPOT(K,J),K=1,MESH,100)
-       enddo
- 8181  format(4f12.6)
 C
 C ******   TAKE NVST COMPONENT AS A LOCAL PART
         DO 7011 K=1,MESH
@@ -5434,7 +4450,7 @@ C         SUBTRACT LONG RANGE PART
           R1=RC0(IA)
           R2=COR(IA)
           DO 5600 K=1,MESH
-          WORK(K)=WORK(K)-ZV/RAD(K)*ERF(RAD(K)/R1)*R2
+          WORK(K)=WORK(K)-ZV/RAD(K)*DERF(RAD(K)/R1)*R2
  5600     CONTINUE
  5700   CONTINUE
 C
@@ -5458,10 +4474,6 @@ ccc        WRITE(81) WORK3
 CCC     WRITE(6,*) ' VGT LIST '
 C       DO 30 IG=1,NG
 C  30   WRITE(6,'(I6,2E15.7)') IG,SQRT(G(4,IG))*TPIBA,WORK3(IG)
-c *** temp check
-c        write(6,*)' in sub, PSOFG: WORK3 -> VGA '
-c        write(6,*)(WORK3(I),I=1,NG,2500)
-c **  temp check
         RETURN
         END
 C***********************************************************
@@ -5567,8 +4579,6 @@ cc      READ(81)  VGA
         DO 22 K=1,NUM
           ITAU=NIDN(K,ITY)
 *VDIR NODEP(VG)
-!$omp parallel default(shared)
-!$omp do private(IG,JG,Q,SUM)
           DO 80 IG=2,NG
           JG=I2G(IG)
           Q=TPIBA2*G(4,IG)
@@ -5579,34 +4589,24 @@ cc      READ(81)  VGA
           VG(JG)=VG(JG)+EIGT(IG)*VGA(IG,iTY)
 C     IF(IG.EQ.2) WRITE(6,*) 'VGA(2)',VGA(2),EIGT(IG)
    80     CONTINUE
-!$omp enddo
-!$omp endparallel
 C
 C
       DO 52 IA=1,NUMC(ITY)
       R02=RC0(IA,ITY)**2
 *VDIR NODEP(VG)
-!$omp parallel default(shared)
-!$omp do private(IG,JG,Q)
       DO 82 IG=2,NG
       JG=I2G(IG)
       Q=TPIBA2*G(4,IG)
       VG(JG)=VG(JG)+ZV(ITY)*COR(IA,ITY)*FPI/Q
      &                 *EIGT(IG)*EXP(-0.25D0*Q*R02)
    82 CONTINUE
-!$omp enddo
-!$omp end parallel
    52 CONTINUE
    22   CONTINUE
    20 CONTINUE
 C
 C
-!$omp parallel default(shared)
-!$omp do private(IG)
       DO 70 IG=1,NXYZ
    70 VG(IG)=VG(IG)/OMEGA
-!$omp enddo
-!$omp end parallel
 C
 CC      CALL CLOCK(TIM1)
 C     WRITE(6,*) '  LOCPOT CPTIME:',TIM1-TIM0
@@ -5627,7 +4627,7 @@ C
 C*****************************************************
       SUBROUTINE ELECTF( MXBND, MBLK, NXYZ, NG, NGQ, NG2, NG2Q,
      &                   NBNDQ, NBND, NUMK, NUMKQ, COEF, DCOEF,
-     &                   YLM, G, EXPG, G2, RHO, RHO4, RHO1, RHO2,RHOG,
+     &    YLM, G, EXPG, G2,GDUMP, RHO, RHO4, RHO1, RHO2,RHOG,
      &                   TPIBA, ETOT, VG, S, NTOT, I2G, WORK2, VPJ,
      &                   VPP, IOWF, IOVP, OMEGA, FORCE, DFORCE,
      &                   SFORCE,
@@ -5636,8 +4636,7 @@ C*****************************************************
      &                   VINT, NSY, FXNL, FYNL, FZNL,
      &                   TAU, NUMTY, NIDN, ZV, RC0, COR, NUMC, NCRQ,
 cc     &                   ZZ, ZVAL, NPFL, MXOFL, OCC                 )
-     &                   ZZ, ZVAL, NPFL, MXOFL, OCC,VGA
-     &      ,DZ,DXX,DYY,DZZ,DXY,DYZ,DZX,VWORK
+     &                   ZZ, ZVAL, NPFL, MXOFL, OCC,VGA,NGNL,CL1
      &                  ,NRX,NRY,NRZ
      &                  ,WSAVEX,WSAVEY,WSAVEZ
      &                  ,LX1,LX2,LY1
@@ -5652,12 +4651,9 @@ c      REAL*8 YLM(NG2Q,9),RHO(NXYZ)
 c     &           VG(NXYZ),WORK2(NG2Q,3),RHO4(NXYZ)
 c     &           VG(NXYZ),WORK2(NG2Q,5),RHO4(NXYZ)
      &           VG(NXYZ),WORK2(NG2Q,7),RHO4(NXYZ)
-c  **** for GGA RHO1=DX RHO2=DY ***
-      COMPLEX*16 DZ(NXYZ),VWORK(NXYZ)
-     &     ,DXX(NXYZ),DYY(NXYZ),DZZ(NXYZ)
-     &     ,DXY(NXYZ),DYZ(NXYZ),DZX(NXYZ)
+      COMPLEX*16 CL1(NXYZ,10)
       DIMENSION I2G(NGQ),NG2(NUMKQ)
-      DIMENSION G(4,NGQ),EXPG(NGQ),G2(4,NG2Q,NUMKQ)
+      DIMENSION G(4,NGQ),EXPG(NGQ),G2(4,NG2Q,NUMKQ),GDUMP(NG2Q,NUMKQ)
       DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ),
      &          ZV(NTYQ),RC0(NCRQ,NTYQ),
      &          COR(NCRQ,NTYQ),NUMC(NTYQ), MXOFL(NTYQ)
@@ -5686,6 +4682,7 @@ c *** for FFT
       DIMENSION IFACX(30),IFACY(30),IFACZ(30)
       DIMENSION LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
      &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
+      dimension NGNL(NTYQ,NUMKQ)
 C
 C     CONSTRUCTS THE ONE-ELECTRON POTENTIAL RHO3
 C
@@ -5694,25 +4691,26 @@ cc     &             DELTA,VG,RHO,RHOG,I2G,FORCE,RHO2,
      &             DELTA,VG,RHO,RHOG,I2G,FORCE,VGA,
      &             NTAUQ,NTYQ,NTYPE,TAU,NUMTY,NIDN,
      &             NCRQ,ZV,RC0,COR,NUMC,ZZ, ZVAL,
-     &   ESELF, EWA, ELOCAL, EXC, EH ,RHO2,DZ,DXX,DYY,DZZ,
-     &   DXY,DYZ,DZX,VWORK
-     &  ,NRX,NRY,NRZ
-     &  ,WSAVEX,WSAVEY,WSAVEZ
-     &  ,LX1,LX2,LY1
-     &  ,LY2,LZ1,LZ2
-     &  ,IFACX,IFACY,IFACZ)
+     &             ESELF, EWA, ELOCAL, EXC, EH
+     &  ,CL1(1,1),CL1(1,2),CL1(1,3),CL1(1,4),CL1(1,5)
+     &  ,CL1(1,6),CL1(1,7),CL1(1,8),CL1(1,9),CL1(1,10)
+     &                  ,NRX,NRY,NRZ
+     &                  ,WSAVEX,WSAVEY,WSAVEZ
+     &                  ,LX1,LX2,LY1
+     &                  ,LY2,LZ1,LZ2
+     &                  ,IFACX,IFACY,IFACZ)
 C
 C     CALCULATE NON-LOCAL POTENTIAL CONTRIBUTION
 C
       CALL NONLOCF( MXBND, MBLK, NXYZ, NG2, NG2Q,NBNDQ,NBND,
      &              NUMK, NUMKQ, IOVP,
-     &              RHO4, COEF, DCOEF, YLM, G2, RHO2, TPIBA,
+     &    RHO4, COEF, DCOEF, YLM, G2,GDUMP, RHO2, TPIBA,
      &              DELTA, ETOT, WORK2, VPJ, VPP, IOWF, S, NTOT,
      &              FORCE, DFORCE, SFORCE, LATQ, RVEC, NLV,
      &              OMEGA, NTAUQ, NTYQ, NTYPE, LREQ,
      &              NKMESH, NEXPND, NFL, EE, EENL, RCOSIN, WK, VINT,
      &              NSY, FXNL, FYNL, FZNL,
-     &              TAU, NUMTY, NIDN, EKINE, ENL, NPFL, MXOFL, OCC )
+     &    TAU, NUMTY, NIDN, EKINE, ENL, NPFL, MXOFL, OCC, NGNL )
 C
       CALL CLOCK(TIM)
       WRITE(6,6000) TIM
@@ -5804,6 +4802,7 @@ C
 C *****  INPUT CARE
 c             TOL=50.0D0
           TOL=140.0D0
+c          TOL=280.0D0
 C            EPS=0.0256D0*2.D0
              EPS=0.0256D0
 C *****  INPUT END
@@ -5896,9 +4895,6 @@ C
             DO 1542 K=1,3
               FSUB(K)=0.D0
  1542       CONTINUE
-!$omp parallel default(shared)
-!$omp do private(IG,GDT,EXP1,EXP2),reduction(+:ESUB)
-!$omp+  ,reduction(+:FSUB)
             DO 1543 IG=NG,2,-1
               GDT=G(1,IG)*RX+G(2,IG)*RY+G(3,IG)*RZ
               GDT=GDT*TPIBA
@@ -5909,8 +4905,6 @@ C
               FSUB(2)=FSUB(2)+G(2,IG)*EXP2
               FSUB(3)=FSUB(3)+G(3,IG)*EXP2
  1543       CONTINUE
-!$omp enddo
-!$omp end parallel
             ESUB=ESUB-0.25D0/EPS
 C
 C     ADD TO SUMS (ENERGY AND FORCE)
@@ -6081,7 +5075,7 @@ C *****
 C*****************************************************************
       SUBROUTINE NONLOCF( MXBND, MBLK, NXYZ, NG2, NG2Q, NBNDQ,NBND,
      &                    NUMK, NUMKQ, IOVP,
-     &                    RHOA, COEF, DCOEF, YLM, G2, RHO2,
+     &      RHOA, COEF, DCOEF, YLM, G2,GDUMP, RHO2,
      &                    TPIBA, DELTA, ETOT, WORK2, VPJ, VPP, IOWF,
      &                    S, NTOT,
      &                    FORCE, DFORCE, SFORCE, LATQ, RVEC,NLV,
@@ -6089,7 +5083,7 @@ C*****************************************************************
      &                    NKMESH, NEXPND, NFL, EE, EENL, RCOSIN, WK,
      &                    VINT, NSY, FXNL, FYNL, FZNL,
      &                    TAU, NUMTY, NIDN, EKINE, ENL, NPFL, MXOFL, 
-     &                    OCC                                        )
+     &                    OCC, NGNL                     )
 C
 C
       IMPLICIT REAL*8 (A-H,O-Z)
@@ -6098,10 +5092,11 @@ c      REAL*8 RHOA(NXYZ),YLM(NG2Q,9)
       REAL*8 RHOA(NXYZ),YLM(NG2Q,16)
       COMPLEX*16 RHO2(NXYZ),
 c     &           COEF(NG2Q,MXBND),DCOEF(NG2Q,MXBND),WORK2(NG2Q,3)
+c     &    COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,MXBND),WORK2(NG2Q,3)
 c     &    COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,MXBND),WORK2(NG2Q,5)
      &    COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,MXBND),WORK2(NG2Q,7)
       DIMENSION NG2(NUMKQ),RVEC(4,LATQ)
-      DIMENSION G2(4,NG2Q,NUMKQ),
+      DIMENSION G2(4,NG2Q,NUMKQ),GDUMP(NG2Q,NUMKQ),
      &          FORCE(3,NTAUQ),DFORCE(3,NTAUQ),SFORCE(3,NTAUQ)
       DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ), MXOFL(NTYQ)
       INTEGER*4 S(3,3,48)
@@ -6116,6 +5111,7 @@ c      DIMENSION VPJ(NG2Q,3,3,NTYQ,NUMKQ),VPP(3,3,NTYQ),IOWF(MBLK,NUMKQ),
      &          WK(NUMKQ),VINT(NBNDQ,IRLATQ),NSY(IRLATQ)
       DIMENSION FXNL(NTAUQ,NBNDQ,NUMKQ),FYNL(NTAUQ,NBNDQ,NUMKQ),
      &          FZNL(NTAUQ,NBNDQ,NUMKQ), OCC(NBNDQ,NUMKQ)
+      DIMENSION NGNL(NTYQ,NUMKQ)
       PI=4.D0*ATAN(1.D0)
       TPI=2.D0*PI
       FPI=4.D0*PI
@@ -6169,31 +5165,26 @@ C
             ENDIF
          IBI=MXBND*(JJB-1)
 c         READ(71,REC=IOWF(JJB,IK)) COEF
-!$omp parallel default(shared)
-!$omp do private(IG)
              DO 581 IG=1,NG2(IK)
-             RHOA(IG)=G2(4,IG,IK)*TPIBA2
+c             RHOA(IG)=G2(4,IG,IK)*TPIBA2
+             RHOA(IG)=GDUMP(IG,IK)*TPIBA2
   581        CONTINUE
-!$omp enddo
-!$omp end parallel
            DO 583 IB=1,NJ
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:EE)
              DO 582 IG=1,NG2(IK)
   582        EE(IB+IBI,IK)=EE(IB+IBI,IK)+
 c     &           0.5D0*DBLE(RHOA(IG)*DCONJG(COEF(IG,IB))*COEF(IG,IB))
      &     0.5D0*DBLE(RHOA(IG)*DCONJG(COEF(IG,IB,IK))*COEF(IG,IB,IK))
-!$omp enddo
-!$omp end parallel
   583      CONTINUE
 C
-!$omp parallel default(shared)
-!$omp do private(IG)
              DO 588 IG=1,NG2(IK)
   588        RHOA(IG)=SQRT(G2(4,IG,IK))*TPIBA
-!$omp enddo
-!$omp end parallel
          CALL GETYLM(NG2Q,NG2(IK),G2(1,1,IK),RHOA,YLM,TPIBA)
+c **
+         if (MXBND.LT.21) then
+          write(6,*)' before SEPPOTF: DCOEF needs MXBD begger than 21'
+          stop
+         endif
+c
          CALL SEPPOTF( NG2Q, NG2(IK), NJ, G2(1,1,IK),
 c     &   VPJ,VPP,YLM,RHO2,WORK2(1,1),WORK2(1,2),WORK2(1,3),
      &   VPJ(1,1,1,1,IK),VPP,YLM,RHO2
@@ -6202,7 +5193,7 @@ c     &   VPJ,VPP,YLM,RHO2,WORK2(1,1),WORK2(1,2),WORK2(1,3),
      &   COEF(1,1,IK),DCOEF,TPIBA,IOVP(1,1,IK),
      &   EENL(IBI+1,IK),FXNL(1,IBI+1,IK),FYNL(1,IBI+1,IK),
      &   FZNL(1,IBI+1,IK),
-     &   NTAUQ,NTYQ,LREQ,TAU,NTYPE,NUMTY,NIDN, MXOFL )
+     &   NTAUQ,NTYQ,LREQ,TAU,NTYPE,NUMTY,NIDN, MXOFL,NGNL(1,IK) )
   910 CONTINUE
   580 CONTINUE
       ENL=0.D0
@@ -6428,13 +5419,14 @@ C**************************************************************
      &  DELTA,VG,RHO,RHOG,I2G,FORCE,VGA,
      &  NTAUQ,NTYQ,NTYPE,TAU,NUMTY,NIDN
      & ,NCRQ,ZV,RC0,COR,NUMC,ZZ, ZVAL,
-     &  ESELF, EWA, ELOCAL, EXC, EH ,DRY,DRZ,
-     &  DRXX,DRYY,DRZZ,DRXY,DRYZ,DRZX,VWORK
-     &  ,NRX,NRY,NRZ
-     &  ,WSAVEX,WSAVEY,WSAVEZ
-     &  ,LX1,LX2,LY1
-     &  ,LY2,LZ1,LZ2
-     &  ,IFACX,IFACY,IFACZ)
+     &  ESELF, EWA, ELOCAL, EXC, EH
+     & ,DRX,DRY,DRZ,DRXX,DRYY,DRZZ,DRXY,DRYZ,DRZX,VWORK
+     &                  ,NRX,NRY,NRZ
+     &                  ,WSAVEX,WSAVEY,WSAVEZ
+     &                  ,LX1,LX2,LY1
+     &                  ,LY2,LZ1,LZ2
+     &                  ,IFACX,IFACY,IFACZ)
+c     &
 C
 C     CONSTRUCT LOCAL ONE-ELECTRON POTENTITL AND FORCE
 C               NUMERICAL POTENTIAL (1992-02-28) OSAMU SUGINO
@@ -6444,21 +5436,22 @@ C
       REAL*8 G(4,NGQ),RHO(NXYZ),FORCE(3,NTAUQ),ZZ(NTAUQ)
       REAL*8 EXPG(NGQ)
       COMPLEX*16 EIGT(NXYZ),VG(NXYZ),RHOG(NXYZ),CI,CRG,CTEMP
-c  *** for GGA DRX=EIGT
-      COMPLEX*16 DRY(NXYZ),DRZ(NXYZ),VWORK(NXYZ)
-     &   ,DRXX(NXYZ),DRYY(NXYZ),DRZZ(NXYZ)
-     &   ,DRXY(NXYZ),DRYZ(NXYZ),DRZX(NXYZ)
+c *** for GGA ***
+      COMPLEX*16 DRX(NXYZ),DRY(NXYZ),DRZ(NXYZ)
+     &  ,DRXX(NXYZ),DRYY(NXYZ),DRZZ(NXYZ)
+     &  ,DRXY(NXYZ),DRYZ(NXYZ),DRZX(NXYZ),VWORK(NXYZ)
       DIMENSION I2G(NGQ),VGA(NGQ,NTYQ)
       DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ)
-      COMMON/AVEC/A1(3),A2(3),A3(3),B1(3),B2(3),B3(3),COVA,ALAT
-      DIMENSION EWVEC(4,LATQ)
-      DIMENSION ZV(NTYQ),RC0(NCRQ,NTYQ),COR(NCRQ,NTYQ),NUMC(NTYQ)
-C     DIMENSION AFORCE(3,16),BFORCE(3,16)
-      COMMON/COMOPT/IOPT(10,5)
+c *** for FFT
       COMPLEX*16 WSAVEX(NRX),WSAVEY(NRY),WSAVEZ(NRZ)
       DIMENSION IFACX(30),IFACY(30),IFACZ(30)
       DIMENSION LX1(NXYZ),LX2(NXYZ),LY1(NXYZ),
      &          LY2(NXYZ),LZ1(NXYZ),LZ2(NXYZ)
+      COMMON/AVEC/A1(3),A2(3),A3(3),B1(3),B2(3),B3(3),COVA,ALAT
+      COMMON/COMOPT/IOPT(10,5)
+      DIMENSION EWVEC(4,LATQ)
+      DIMENSION ZV(NTYQ),RC0(NCRQ,NTYQ),COR(NCRQ,NTYQ),NUMC(NTYQ)
+C     DIMENSION AFORCE(3,16),BFORCE(3,16)
       CI=(0.D0,1.D0)
       PI=4.D0*ATAN(1.D0)
       FPI=4.D0*PI
@@ -6515,9 +5508,6 @@ c      READ(81) VGA
       DO 22 K=1,NUM
       ITAU=NIDN(K,ITY)
 *VDIR NODEP(VG)
-!$omp parallel default(shared)
-!$omp do private(IG,JG,Q,SUM,CTEMP,C1,C2,C3,CRG)
-!$omp+ ,reduction(+:ENERGY1),reduction(+:FORCE)
       DO 80 IG=2,NG
       JG=I2G(IG)
       Q=TPIBA2*G(4,IG)
@@ -6539,15 +5529,10 @@ C     AFORCE(3,ITAU)=AFORCE(3,ITAU)+DBLE(-CI*CTEMP*C3*CRG)
       FORCE(2,ITAU)=FORCE(2,ITAU)+DBLE(-CI*CTEMP*C2*CRG)
       FORCE(3,ITAU)=FORCE(3,ITAU)+DBLE(-CI*CTEMP*C3*CRG)
    80 CONTINUE
-!$omp enddo
-!$omp end parallel
 C              LONG RANGE PART
       DO 52 IA=1,NUMC(ITY)
       R02=RC0(IA,ITY)**2
 *VDIR NODEP(VG)
-!$omp parallel default(shared)
-!$omp do private(IG,JG,Q,AA,C1,C2,C3,CRG)
-!$omp+ ,reduction(+:ENERGY2),reduction(+:FORCE)
       DO 82 IG=2,NG
       JG=I2G(IG)
       Q=TPIBA2*G(4,IG)
@@ -6565,8 +5550,6 @@ C     BFORCE(3,ITAU)=BFORCE(3,ITAU)+DBLE(-CI*EIGT(IG)*C3*CRG)
       FORCE(2,ITAU)=FORCE(2,ITAU)+DBLE(-CI*EIGT(IG)*C2*CRG)
       FORCE(3,ITAU)=FORCE(3,ITAU)+DBLE(-CI*EIGT(IG)*C3*CRG)
    82 CONTINUE
-!$omp enddo
-!$omp end parallel
    52 CONTINUE
 C
    22 CONTINUE
@@ -6579,12 +5562,8 @@ C     DO 9031 ITAU=1,NTAUQ
 C9031 WRITE(6,'(23X,3F14.6)') (FORCE(I,ITAU),I=1,3)
 C
       ELOCAL=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:ELOCAL)
       DO 6351 IG=1,NXYZ
  6351 ELOCAL=ELOCAL+DBLE(DCONJG(VG(IG))*RHOG(IG))
-!$omp enddo
-!$omp end parallel
       ELOCAL=OMEGA*ELOCAL
 C
 C         EXCHANGE CORRELATION PART
@@ -6592,10 +5571,10 @@ C         EXCHANGE CORRELATION PART
        CALL G2XC2(TPIBA, NRX,NRY,NRZ,NXYZ,NG,NGQ,G,
      & RHO,RHOG,I2G,
      & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,
-     & LY1,LY2,LZ1,LZ2,EXC,VG,EIGT,DRY,DRZ,
+     & LY1,LY2,LZ1,LZ2,EXC,VG,DRX,DRY,DRZ,
      & DRXX,DRYY,DRZZ,DRXY,DRYZ,DRZX,VWORK)
       ELSE
-       CALL S2XC2(NXYZ,RHO,EXC,VG)
+      CALL S2XC2(NXYZ,RHO,EXC,VG)
       ENDIF
       EXC = OMEGA*EXC/DBLE(NXYZ)
 C
@@ -6610,13 +5589,9 @@ C
 C        HARTREE ENERGY
 C
       EH=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG,JG),reduction(+:EH)
       DO 652 IG=2,NG
       JG=I2G(IG)
   652 EH=EH+0.5D0*FPI*DBLE(DCONJG(RHOG(JG))*RHOG(JG))/(TPIBA2*G(4,IG))
-!$omp enddo
-!$omp end parallel
       EH=OMEGA*EH
 C
 C
@@ -6630,10 +5605,10 @@ C
       SUBROUTINE SEPPOTF(NG2Q,NG2,NBND,G2K,VPJ,VPP,
 c     &  YLM,EXTAU,WORK1,WORK2,WORK3,COEF,DCOEF,TPIBA,
 c     &  YLM,EXTAU,WORK1,WORK2,WORK3,WORK4,WORK5,COEF,DCOEF,TPIBA,
-     &  YLM,EXTAU,WORK1,WORK2,WORK3,WORK4,WORK5,WORK6,WORK7
-     & ,COEF,DCOEF,TPIBA,
+     &  YLM,EXTAU,WORK1,WORK2,WORK3,WORK4,WORK5,WORK6,WORK7,
+     &  COEF,DCOEF,TPIBA,
      &  IOVP,EENL,FXNL,FYNL,FZNL,
-     &  NTAUQ,NTYQ,LREQ,TAU,NTYPE,NUMTY,NIDN, MXOFL )
+     &  NTAUQ,NTYQ,LREQ,TAU,NTYPE,NUMTY,NIDN, MXOFL,NGNL )
 C
 C               PARTITIONED POTENTIAL (1992-02-28) OSAMU SUGINO
 C
@@ -6641,16 +5616,17 @@ C
 c      DIMENSION G2K(4,NG2Q),YLM(NG2Q,4)
 c      DIMENSION G2K(4,NG2Q),YLM(NG2Q,9)
       DIMENSION G2K(4,NG2Q),YLM(NG2Q,16)
+c      COMPLEX*16 COEF(NG2Q,NBND),DCOEF(NG2Q,9),
 c      COMPLEX*16 COEF(NG2Q,NBND),DCOEF(NG2Q,15),
       COMPLEX*16 COEF(NG2Q,NBND),DCOEF(NG2Q,21),
-     &           WORK1(NG2Q),WORK2(NG2Q),WORK3(NG2Q),
-     &           WORK4(NG2Q),WORK5(NG2Q),WORK6(NG2Q),WORK7(NG2Q),
-     &  EXTAU(NG2Q)
+     & WORK1(NG2Q),WORK2(NG2Q),WORK3(NG2Q),WORK4(NG2Q),WORK5(NG2Q),
+     & WORK6(NG2Q),WORK7(NG2Q),
+     & EXTAU(NG2Q)
       COMPLEX*16 Y00,Y11,Y12,Y13,Y21,Y22,Y23,Y24,Y25
      &   ,Y31,Y32,Y33,Y34,Y35,Y36,Y37
      & ,SUKA1,SUKA2,SUKA3,SUKA4,SUKA5,SUKA6,SUKA7
 c     & ,CT(5),CD(3,5)  ! CT: Etot CD: grad 
-     & ,CT(7),CD(3,7)  ! CT: Etot CD: grad 
+     & ,CT(7),CD(3,7)  ! CT: Etot CD: grad
       DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ),
 c     &          VPJ(NG2Q,3),VPP(3),IOVP(2,NTYQ), MXOFL(NTYQ)
 c     &    VPJ(NG2Q,3,2,NTYQ),VPP(3,2,NTYQ),IOVP(2,NTYQ), MXOFL(NTYQ)
@@ -6662,6 +5638,7 @@ c      COMMON/SAITO2/IBUN(3,NTYQ2)
       COMMON/SAITO2/IBUN(4,NTYQ2)
       DIMENSION EENL(NBND),FXNL(NTAUQ,NBND),FYNL(NTAUQ,NBND),
      & FZNL(NTAUQ,NBND)
+      dimension NGNL(NTYQ)
       PI=4.D0*ATAN(1.D0)
       FPI=4.D0*PI
       FPISQ=FPI**2
@@ -6681,15 +5658,12 @@ C *****
       FX=0.D0
       FY=0.D0
       FZ=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG,TEMP)
-        DO 22 IG=1,NG2
+c        DO 22 IG=1,NG2
+        DO 22 IG=1,NGNL(ITY)
         TEMP=TPIBA*(G2K(1,IG)*TAU(1,ITAU)+G2K(2,IG)*TAU(2,ITAU)
      &             +G2K(3,IG)*TAU(3,ITAU))
         EXTAU(IG)=DCMPLX(COS(TEMP),SIN(TEMP))
    22   CONTINUE
-!$omp enddo
-!$omp end parallel
 C
       DO 30 LI=1,LMAX
 cccc      READ(82,REC=IOVP(LI,ITY))  VPP, VPJ
@@ -6702,10 +5676,8 @@ C    &WRITE(6,*) ' VPJ ',IG,VPJ(IG,1)-VPJ(IG,2)-VPJ(IG,3)
 C
       L=LI-1
       IF(L.EQ.0.AND.IBUN(1,ITY).NE.1) THEN
-C         NON PARTITIONING
-!$omp parallel default(shared)
-!$omp do private (IG,Y00,SUKA1)
-         DO 50 IG=1,NG2
+c         DO 50 IG=1,NG2
+         DO 50 IG=1,NGNL(ITY)
          Y00=DCMPLX(YLM(IG,1),0.D0)
          SUKA1=Y00*EXTAU(IG)*VPJ(IG,1,li,ity)
          WORK1(IG)=SUKA1
@@ -6713,23 +5685,18 @@ C         NON PARTITIONING
          DCOEF(IG,2)=SUKA1*G2K(2,IG)
          DCOEF(IG,3)=SUKA1*G2K(3,IG)
    50    CONTINUE
-!$omp enddo
-!$omp end parallel
          DO 52 IB=1,NBND
             CT(1)=(0.D0,0.D0)
             CD(1,1)=(0.D0,0.D0)
             CD(2,1)=(0.D0,0.D0)
             CD(3,1)=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT),reduction(+:CD)
-            DO 54 IG=1,NG2
+c            DO 54 IG=1,NG2
+            DO 54 IG=1,NGNL(ITY)
             CT(1)=CT(1)+COEF(IG,IB)*WORK1(IG)
             CD(1,1)=CD(1,1)+COEF(IG,IB)*DCOEF(IG,1)
             CD(2,1)=CD(2,1)+COEF(IG,IB)*DCOEF(IG,2)
             CD(3,1)=CD(3,1)+COEF(IG,IB)*DCOEF(IG,3)
    54       CONTINUE
-!$omp enddo
-!$omp end parallel
             EENL(IB)=EENL(IB)+CT(1)*DCONJG(CT(1))/VPP(1,li,ity)
             FXNL(ITAU,IB)=FXNL(ITAU,IB)+IMAG(CD(1,1)*DCONJG(CT(1)))
      &              /VPP(1,li,ity)
@@ -6741,9 +5708,8 @@ C         NON PARTITIONING
       ELSEIF(L.EQ.0) THEN
 C           PARTITIONING
          DO 1250 IP=2,3
-!$omp parallel default(shared)
-!$omp do private(IG,Y00,SUKA1)
-         DO 1050 IG=1,NG2
+c         DO 1050 IG=1,NG2
+         DO 1050 IG=1,NGNL(ITY)
          Y00=DCMPLX(YLM(IG,1),0.D0)
          SUKA1=Y00*EXTAU(IG)*VPJ(IG,IP,li,ity)
          WORK1(IG)=SUKA1
@@ -6751,23 +5717,18 @@ C           PARTITIONING
          DCOEF(IG,2)=SUKA1*G2K(2,IG)
          DCOEF(IG,3)=SUKA1*G2K(3,IG)
  1050    CONTINUE
-!$omp enddo
-!$omp end parallel
          DO 1052 IB=1,NBND
             CT(1)=(0.D0,0.D0)
             CD(1,1)=(0.D0,0.D0)
             CD(2,1)=(0.D0,0.D0)
             CD(3,1)=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT),reduction(+:CD)
-            DO 1054 IG=1,NG2
+c            DO 1054 IG=1,NG2
+            DO 1054 IG=1,NGNL(ITY)
             CT(1)=CT(1)+COEF(IG,IB)*WORK1(IG)
             CD(1,1)=CD(1,1)+COEF(IG,IB)*DCOEF(IG,1)
             CD(2,1)=CD(2,1)+COEF(IG,IB)*DCOEF(IG,2)
             CD(3,1)=CD(3,1)+COEF(IG,IB)*DCOEF(IG,3)
  1054       CONTINUE
-!$omp enddo
-!$omp end parallel
             EENL(IB)=EENL(IB)+CT(1)*DCONJG(CT(1))/VPP(IP,li,ity)
             FXNL(ITAU,IB)=FXNL(ITAU,IB)+IMAG(CD(1,1)*DCONJG(CT(1)))
      &              /VPP(IP,li,ity)
@@ -6778,9 +5739,8 @@ C           PARTITIONING
  1052    CONTINUE
  1250    CONTINUE
       ELSEIF(L.EQ.1.AND.IBUN(2,ITY).NE.1) THEN
-!$omp parallel default(shared)
-!$omp do private(IG,Y11,Y12,Y13,SUKA1,SUKA2,SUKA3)
-         DO 60 IG=1,NG2
+c         DO 60 IG=1,NG2
+         DO 60 IG=1,NGNL(ITY)
          Y11=DCMPLX( YLM(IG,2), 0.D0)
          Y12=DCMPLX(-YLM(IG,3),YLM(IG,4))
          Y13=DCMPLX( YLM(IG,3),YLM(IG,4))
@@ -6800,8 +5760,6 @@ C           PARTITIONING
          DCOEF(IG,8)=SUKA3*G2K(2,IG)
          DCOEF(IG,9)=SUKA3*G2K(3,IG)
    60    CONTINUE
-!$omp enddo
-!$omp end parallel
          DO 62 IB=1,NBND
             CT(1)=(0.D0,0.D0)
             CD(1,1)=(0.D0,0.D0)
@@ -6815,9 +5773,8 @@ C           PARTITIONING
             CD(1,3)=(0.D0,0.D0)
             CD(2,3)=(0.D0,0.D0)
             CD(3,3)=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT),reduction(+:CD)
-            DO 64 IG=1,NG2
+c            DO 64 IG=1,NG2
+            DO 64 IG=1,NGNL(ITY)
             CT(1)=CT(1)+COEF(IG,IB)*WORK1(IG)
             CD(1,1)=CD(1,1)+COEF(IG,IB)*DCOEF(IG,1)
             CD(2,1)=CD(2,1)+COEF(IG,IB)*DCOEF(IG,2)
@@ -6831,8 +5788,6 @@ C           PARTITIONING
             CD(2,3)=CD(2,3)+COEF(IG,IB)*DCOEF(IG,8)
             CD(3,3)=CD(3,3)+COEF(IG,IB)*DCOEF(IG,9)
    64       CONTINUE
-!$omp enddo
-!$omp end parallel
             EENL(IB)=EENL(IB)+(CT(1)*DCONJG(CT(1))
      &             +CT(2)*DCONJG(CT(2))
      &             +CT(3)*DCONJG(CT(3)))/VPP(1,li,ity)
@@ -6851,9 +5806,8 @@ C           PARTITIONING
    62    CONTINUE
       ELSEIF(L.EQ.1) THEN
          DO 1261 IP=2,3
-!$omp parallel default(shared)
-!$omp do private(IG,Y11,Y12,Y13,SUKA1,SUKA2,SUKA3)
-         DO 61 IG=1,NG2
+c         DO 61 IG=1,NG2
+         DO 61 IG=1,NGNL(ITY)
          Y11=DCMPLX( YLM(IG,2), 0.D0)
          Y12=DCMPLX(-YLM(IG,3),YLM(IG,4))
          Y13=DCMPLX( YLM(IG,3),YLM(IG,4))
@@ -6873,8 +5827,6 @@ C           PARTITIONING
          DCOEF(IG,8)=SUKA3*G2K(2,IG)
          DCOEF(IG,9)=SUKA3*G2K(3,IG)
    61    CONTINUE
-!$omp enddo
-!$omp end parallel
          DO 63 IB=1,NBND
             CT(1)=(0.D0,0.D0)
             CD(1,1)=(0.D0,0.D0)
@@ -6888,9 +5840,8 @@ C           PARTITIONING
             CD(1,3)=(0.D0,0.D0)
             CD(2,3)=(0.D0,0.D0)
             CD(3,3)=(0.D0,0.D0)
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT),reduction(+:CD)
-            DO 65 IG=1,NG2
+c            DO 65 IG=1,NG2
+            DO 65 IG=1,NGNL(ITY)
             CT(1)=CT(1)+COEF(IG,IB)*WORK1(IG)
             CD(1,1)=CD(1,1)+COEF(IG,IB)*DCOEF(IG,1)
             CD(2,1)=CD(2,1)+COEF(IG,IB)*DCOEF(IG,2)
@@ -6904,8 +5855,6 @@ C           PARTITIONING
             CD(2,3)=CD(2,3)+COEF(IG,IB)*DCOEF(IG,8)
             CD(3,3)=CD(3,3)+COEF(IG,IB)*DCOEF(IG,9)
    65       CONTINUE
-!$omp enddo
-!$omp end parallel
             EENL(IB)=EENL(IB)+(CT(1)*DCONJG(CT(1))
      &             +CT(2)*DCONJG(CT(2))
      &             +CT(3)*DCONJG(CT(3)))/VPP(IP,li,ity)
@@ -6924,10 +5873,17 @@ C           PARTITIONING
    63    CONTINUE
  1261    CONTINUE
       ELSEIF(L.EQ.2.AND.IBUN(3,ITY).NE.1) THEN
-!$omp parallel default(shared)
-!$omp do private(IG,Y21,Y22,Y23,Y24,Y25,
-!$omp+       SUKA1,SUKA2,SUKA3,SUKA4,SUKA5)
-         DO 70 IG=1,NG2
+c *** temp check
+c         write(6,*)' in SEPPOT'
+c         write(6,*)' NGLN=',NGLN(ITY)
+c         write(6,*)' YLM 5 '
+c         write(6,*)(YLM(IG,5),IG=1,100,10)
+c         write(6,*)' EXTAU '
+c         write(6,*)(EXTAU(IG),IG=1,100,10)
+c         write(6,*)' VPJ( partition 1'
+c         write(6,*)( VPJ(IG,1,li,ity),IG=1,100,10)
+c *** temp check: end
+         DO 70 IG=1,NGNL(ITY)
          Y21=DCMPLX( YLM(IG,5), 0.D0 )
          Y22=DCMPLX( YLM(IG,6), YLM(IG,7) )
          Y23=DCMPLX( YLM(IG,6),-YLM(IG,7) )
@@ -6959,8 +5915,6 @@ C           PARTITIONING
          DCOEF(IG,14)=SUKA5*G2K(2,IG)
          DCOEF(IG,15)=SUKA5*G2K(3,IG)
    70    CONTINUE
-!$omp enddo
-!$omp end parallel
        DO 71 IB=1,NBND
          CT(1)=0.D0
          CD(1,1)=0.D0
@@ -6982,9 +5936,7 @@ C           PARTITIONING
          CD(1,5)=0.D0
          CD(2,5)=0.D0
          CD(3,5)=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT),reduction(+:CD)
-         DO 72 IG=1,NG2
+         DO 72 IG=1,NGNL(ITY)
             CT(1)=CT(1)+COEF(IG,IB)*WORK1(IG)
             CD(1,1)=CD(1,1)+COEF(IG,IB)*DCOEF(IG, 1)
             CD(2,1)=CD(2,1)+COEF(IG,IB)*DCOEF(IG, 2)
@@ -7006,8 +5958,6 @@ C           PARTITIONING
             CD(2,5)=CD(2,5)+COEF(IG,IB)*DCOEF(IG,14)
             CD(3,5)=CD(3,5)+COEF(IG,IB)*DCOEF(IG,15)
    72    CONTINUE
-!$omp enddo
-!$omp end parallel
             EENL(IB)=EENL(IB)+(CT(1)*DCONJG(CT(1))
      &             +CT(2)*DCONJG(CT(2))
      &             +CT(3)*DCONJG(CT(3))
@@ -7034,10 +5984,7 @@ C           PARTITIONING
    71  CONTINUE
       ELSEIF(L.EQ.2) THEN
        DO 1280 IP=2,3
-!$omp parallel default(shared)
-!$omp do private(IG,Y21,Y22,Y23,Y24,Y25,
-!$omp+       SUKA1,SUKA2,SUKA3,SUKA4,SUKA5)
-         DO 80 IG=1,NG2
+         DO 80 IG=1,NGNL(ITY)
          Y21=DCMPLX( YLM(IG,5), 0.D0 )
          Y22=DCMPLX( YLM(IG,6), YLM(IG,7) )
          Y23=DCMPLX( YLM(IG,6),-YLM(IG,7) )
@@ -7069,8 +6016,6 @@ C           PARTITIONING
          DCOEF(IG,14)=SUKA5*G2K(2,IG)
          DCOEF(IG,15)=SUKA5*G2K(3,IG)
    80    CONTINUE
-!$omp enddo
-!$omp end parallel
        DO 81 IB=1,NBND
          CT(1)=0.D0
          CD(1,1)=0.D0
@@ -7092,9 +6037,7 @@ C           PARTITIONING
          CD(1,5)=0.D0
          CD(2,5)=0.D0
          CD(3,5)=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT),reduction(+:CD)
-         DO 82 IG=1,NG2
+         DO 82 IG=1,NGNL(ITY)
             CT(1)=CT(1)+COEF(IG,IB)*WORK1(IG)
             CD(1,1)=CD(1,1)+COEF(IG,IB)*DCOEF(IG, 1)
             CD(2,1)=CD(2,1)+COEF(IG,IB)*DCOEF(IG, 2)
@@ -7116,8 +6059,6 @@ C           PARTITIONING
             CD(2,5)=CD(2,5)+COEF(IG,IB)*DCOEF(IG,14)
             CD(3,5)=CD(3,5)+COEF(IG,IB)*DCOEF(IG,15)
    82    CONTINUE
-!$omp enddo
-!$omp end parallel
             EENL(IB)=EENL(IB)+(CT(1)*DCONJG(CT(1))
      &             +CT(2)*DCONJG(CT(2))
      &             +CT(3)*DCONJG(CT(3))
@@ -7145,9 +6086,6 @@ C           PARTITIONING
  1280  CONTINUE
       ELSEIF(L.EQ.3.AND.IBUN(4,ITY).NE.1) THEN
 c ** no partitioning
-!$omp parallel default(shared)
-!$omp do private(IG,Y31,Y32,Y33,Y34,Y35,Y36,Y37
-!$omp+   SUKA1,SUKA2,SUKA3,SUKA4,SUKA5,SUKA6,SUKA7)
          DO 90 IG=1,NG2
          Y31=DCMPLX( YLM(IG,10), 0.D0)
          Y32=DCMPLX(-YLM(IG,11),-YLM(IG,12))
@@ -7192,8 +6130,6 @@ c ** no partitioning
          DCOEF(IG,20)=SUKA7*G2K(2,IG)
          DCOEF(IG,21)=SUKA7*G2K(3,IG)
    90    CONTINUE
-!$omp enddo
-!$omp end parallel
        DO 91 IB=1,NBND
          CT(1)=0.D0
          CD(1,1)=0.D0
@@ -7223,8 +6159,6 @@ c ** no partitioning
          CD(1,7)=0.D0
          CD(2,7)=0.D0
          CD(3,7)=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT),reduction(+:CD)
          DO 92 IG=1,NG2
             CT(1)=CT(1)+COEF(IG,IB)*WORK1(IG)
             CD(1,1)=CD(1,1)+COEF(IG,IB)*DCOEF(IG, 1)
@@ -7255,8 +6189,6 @@ c ** no partitioning
             CD(2,7)=CD(2,7)+COEF(IG,IB)*DCOEF(IG,20)
             CD(3,7)=CD(3,7)+COEF(IG,IB)*DCOEF(IG,21)
    92    CONTINUE
-!$omp enddo
-!$omp end parallel
             EENL(IB)=EENL(IB)+(CT(1)*DCONJG(CT(1))
      &             +CT(2)*DCONJG(CT(2))
      &             +CT(3)*DCONJG(CT(3))
@@ -7291,9 +6223,6 @@ c ** no partitioning
    91  CONTINUE
       ELSEIF(L.EQ.3) THEN
        DO 1380 IP=2,3
-!$omp parallel default(shared)
-!$omp do private(IG,Y31,Y32,Y33,Y34,Y35,Y36,Y37
-!$omp+   SUKA1,SUKA2,SUKA3,SUKA4,SUKA5,SUKA6,SUKA7)
          DO 100 IG=1,NG2
          Y31=DCMPLX( YLM(IG,10), 0.D0)
          Y32=DCMPLX(-YLM(IG,11),-YLM(IG,12))
@@ -7338,8 +6267,6 @@ c ** no partitioning
          DCOEF(IG,20)=SUKA7*G2K(2,IG)
          DCOEF(IG,21)=SUKA7*G2K(3,IG)
   100    CONTINUE
-!$omp enddo
-!$omp end parallel
        DO 101 IB=1,NBND
          CT(1)=0.D0
          CD(1,1)=0.D0
@@ -7369,8 +6296,6 @@ c ** no partitioning
          CD(1,7)=0.D0
          CD(2,7)=0.D0
          CD(3,7)=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:CT),reduction(+:CD)
          DO 102 IG=1,NG2
             CT(1)=CT(1)+COEF(IG,IB)*WORK1(IG)
             CD(1,1)=CD(1,1)+COEF(IG,IB)*DCOEF(IG, 1)
@@ -7401,8 +6326,6 @@ c ** no partitioning
             CD(2,7)=CD(2,7)+COEF(IG,IB)*DCOEF(IG,20)
             CD(3,7)=CD(3,7)+COEF(IG,IB)*DCOEF(IG,21)
   102    CONTINUE
-!$omp enddo
-!$omp end parallel
             EENL(IB)=EENL(IB)+(CT(1)*DCONJG(CT(1))
      &             +CT(2)*DCONJG(CT(2))
      &             +CT(3)*DCONJG(CT(3))
@@ -7602,44 +6525,67 @@ C
       END
 C***************************************************************
       SUBROUTINE G2VECT(NGQ,NG,NG2Q,NG2,VECK,
-     &                  G,G2,J2G,I2G,TPIBA,GCUT2)
+     &          G,G2,GDUMP,J2G,I2G,TPIBA,GCUT2,GG,J2GG,INDX)
       IMPLICIT REAL*8 (A-H,O-Z)
       DIMENSION G(4,NGQ),G2(4,NG2Q),I2G(NGQ),J2G(NG2Q),VECK(3)
+      DIMENSION GG(4,NGQ),J2GG(NG2),INDX(NGQ),GDUMP(NG2Q)
 C
       PI=4.D0*ATAN(1.D0)
       TPIBA2=TPIBA*TPIBA
       IG2=1
       DO 1 I=1,NG
       IF(IG2.GT.NG2Q) GOTO 100
-      G2(1,IG2)=VECK(1)+G(1,I)
-      G2(2,IG2)=VECK(2)+G(2,I)
-      G2(3,IG2)=VECK(3)+G(3,I)
-      G2(4,IG2)=G2(1,IG2)**2 + G2(2,IG2)**2 + G2(3,IG2)**2
-      GDIF= G2(4,IG2)*TPIBA2
-      IF(GDIF.GT.GCUT2) GOTO 1
+c      G2(1,IG2)=VECK(1)+G(1,I)
+c      G2(2,IG2)=VECK(2)+G(2,I)
+c      G2(3,IG2)=VECK(3)+G(3,I)
+c      G2(4,IG2)=G2(1,IG2)**2 + G2(2,IG2)**2 + G2(3,IG2)**2
+c      GDIF= G2(4,IG2)*TPIBA2
+      GG(1,IG2)=VECK(1)+G(1,I)
+      GG(2,IG2)=VECK(2)+G(2,I)
+      GG(3,IG2)=VECK(3)+G(3,I)
+      GG(4,IG2)=GG(1,IG2)**2 + GG(2,IG2)**2 + GG(3,IG2)**2
+      GDIF= GG(4,IG2)*TPIBA2
+cccc      IF(GDIF.GT.GCUT2) GOTO 1  !!! for full grids
 C     WRITE(6,*) ' GDIF ',I,IG2,GDIF,G(4,I)*TPIBA2
-      J2G(IG2)=I2G(I)
+c      J2G(IG2)=I2G(I)
+      J2GG(IG2)=I2G(I)
       IG2=IG2+1
     1 CONTINUE
       IG2=IG2-1
+      CALL INDEXX(IG2,GG,INDX)
+      DO IG=1,IG2
+      G2(1,IG)=GG(1,INDX(IG))
+      G2(2,IG)=GG(2,INDX(IG))
+      G2(3,IG)=GG(3,INDX(IG))
+      G2(4,IG)=GG(4,INDX(IG))
+      J2G(IG)=J2GG(INDX(IG))
+      ENDDO
+      GFAC=GCUT2/TPIBA2
+      DO IG=1,IG2
+      IF ( G2(4,IG).LE.GFAC ) THEN
+      GDUMP(IG)=G2(4,IG)
+      ELSE
+      GDUMP(IG)=GFAC
+      ENDIF
+      ENDDO
       WRITE(6,200) (VECK(I),I=1,3),GCUT2,IG2
   200 FORMAT(' KVECT=',3F9.4,': GCUT2= ',F9.3,'  NG2= ',I5)
       WRITE(6,*) ' NG=',NG
       NG2=IG2
 C
-      DO 20 IG=1,NG2
-        DO 30 JG=IG,NG2
-          IF( G2(4,JG).GE.G2(4,IG) ) GOTO 30
-            DO 15 IR=1,4
-              Q=G2(IR,IG)
-              G2(IR,IG)=G2(IR,JG)
-              G2(IR,JG)=Q
-   15       CONTINUE
-            IR=J2G(IG)
-            J2G(IG)=J2G(JG)
-            J2G(JG)=IR
-   30   CONTINUE
-   20 CONTINUE
+c      DO 20 IG=1,NG2
+c        DO 30 JG=IG,NG2
+c          IF( G2(4,JG).GE.G2(4,IG) ) GOTO 30
+c            DO 15 IR=1,4
+c              Q=G2(IR,IG)
+c              G2(IR,IG)=G2(IR,JG)
+c              G2(IR,JG)=Q
+c   15       CONTINUE
+c            IR=J2G(IG)
+c            J2G(IG)=J2G(JG)
+c            J2G(JG)=IR
+c   30   CONTINUE
+c   20 CONTINUE
       RETURN
   100 WRITE(6,110) GCUT2
   110 FORMAT(' GCUT2=',1PE12.4,' IS TOO BIG. STOPPING')
@@ -7673,20 +6619,23 @@ C
       IMAX=0
       JMAX=0
       KMAX=0
-      TNRM1=2*NRX-1
-      TNRM2=2*NRY-1
-      TNRM3=2*NRZ-1
+c      TNRM1=2*NRX-1
+c      TNRM2=2*NRY-1
+c      TNRM3=2*NRZ-1
+      TNRM1=NRX
+      TNRM2=NRY
+      TNRM3=NRZ
       DO 10 I1=1,TNRM1
-      I=I1-NRX
+      I=I1-NRX/2
       DO 10 J1=1,TNRM2
-      J=J1-NRY
+      J=J1-NRY/2
       DO 10 K1=1,TNRM3
-      K=K1-NRZ
+      K=K1-NRZ/2
       G2=0.D0
       DO 5 IR=1,3
       T(IR)=DBLE(I)*B1(IR)+DBLE(J)*B2(IR)+DBLE(K)*B3(IR)
     5 G2=G2+T(IR)*T(IR)
-      IF(G2.GT.GCUT) GO TO 10
+ccc      IF(G2.GT.GCUT) GO TO 10 !! comment out for full drigds
       IF(ABS(I).GT.IMAX) IMAX=ABS(I)
       IF(ABS(J).GT.JMAX) JMAX=ABS(J)
       IF(ABS(K).GT.KMAX) KMAX=ABS(K)
@@ -7755,20 +6704,43 @@ C
       IMAX=0
       JMAX=0
       KMAX=0
-      TNRM1=2*NRX-1
-      TNRM2=2*NRY-1
-      TNRM3=2*NRZ-1
-      DO 10 I1=1,TNRM1
-      I=I1-NRX
-      DO 10 J1=1,TNRM2
-      J=J1-NRY
-      DO 10 K1=1,TNRM3
-      K=K1-NRZ
+c      TNRM1=2*NRX-1
+c      TNRM2=2*NRY-1
+c      TNRM3=2*NRZ-1
+      TNRM1=NRX
+      TNRM2=NRY
+      TNRM3=NRZ
+c ***  check FFT grids !!!
+      if ( mod( nrx,2).ne.1 ) then
+       write(6,*)' NRX should be odd number !! STOPPING'
+       stop
+      elseif ( mod(nry,2).ne.1 ) then
+       write(6,*)' NRY should be odd number !! STOPPING'
+       stop
+      elseif ( mod(nrz,2).ne.1 ) then
+       write(6,*)' NRZ should be odd number !! STOPPING'
+       stop
+      endif
+c ***  temp check
+c      write(6,*)' TNRM1*TNRM2*TNRM3 = ',TNRM1*TNRM2*TNRM3
+c      write(6,*)'  NXYZ = ',NXYZ
+c      write(6,*)'  NGQ = ',NGQ
+c ***  temp check ; end 
+c
+      DO 10 I1=0,TNRM1-1
+      I=I1-NRX/2
+      DO 10 J1=0,TNRM2-1
+      J=J1-NRY/2
+      DO 10 K1=0,TNRM3-1
+      K=K1-NRZ/2
       G2=0.D0
       DO 5 IR=1,3
       T(IR)=DBLE(I)*B1(IR)+DBLE(J)*B2(IR)+DBLE(K)*B3(IR)
+c      T(IR)=( DBLE(I)-0.5d0 )*B1(IR)
+c     &     +( DBLE(J)-0.5d0 )*B2(IR)
+c     &     +( DBLE(K)-0.5d0 )*B3(IR)
     5 G2=G2+T(IR)*T(IR)
-      IF(G2.GT.GCUT) GO TO 10
+ccc      IF(G2.GT.GCUT) GO TO 10   !!! comment out for FULL grids
       IF(ABS(I).GT.IMAX) IMAX=ABS(I)
       IF(ABS(J).GT.JMAX) JMAX=ABS(J)
       IF(ABS(K).GT.KMAX) KMAX=ABS(K)
@@ -7783,7 +6755,7 @@ C
       IF(K.LT.0) N3=N3+NRZ
       I2GG(NG)=N1+(N2-1)*NRX+(N3-1)*NRX*NRY
       NG=NG+1
-      IF(NG.GT.NGQ) GO TO 100
+      IF(NG.GT.NGQ+1) GO TO 100
    10 CONTINUE
       NG=NG-1
       WRITE(6,130) GCUT,NG,NXYZ*4.0*3.141593/3.0/8.0
@@ -7901,6 +6873,19 @@ C
       DIMENSION IFACX(30),IFACY(30),IFACZ(30)
       DIMENSION LX1(NG),LX2(NG),LY1(NG),LY2(NG),LZ1(NG),LZ2(NG)
 C
+c ***  temp check
+c      write(6,*)' in sub. FFT3FX '
+c      write(6,*)' WSAVEX '
+c      write(6,*)( WSAVEX(ir),ir=1,nrx )
+c      write(6,*)' WSAVEY '
+c      write(6,*)( WSAVEY(ir),ir=1,nry )
+c      write(6,*)' WSAVEZ '
+c      write(6,*)( WSAVEZ(ir),ir=1,nrz )
+c      write(6,*)' RHOG -- input '
+c      write(6,*)((RHOG(i,ig),i=1,2),ig=1,NG,100)
+c      miya=13
+c      if ( miya.eq.13 ) stop 'check in FFT3FX '
+c ***  temp check: end
       CALL FFTSV1(NG,RHOG,WORK)
       CALL CFFT3F(NG,NRX*NRY,NRZ,WORK,RHOG,WSAVEZ,IFACZ)
 C
@@ -8161,7 +7146,7 @@ C
      &'  **** RARR2: NEXPND = ',I4,' IND = ',I2,' SHOULD BE 0')
 C
       IF(IPRINT.NE.0) WRITE(6,100) N
-  100 FORMAT(8X
+  100 FORMAT(8X,
      &'              N = ',I3,'   NO  KR1 KR2 KR3    ADR ')
       IF(IPRINT) 80,88,80
    80 DO 82 KK=1,NKG
@@ -8239,9 +7224,9 @@ C ****
       READ(5,*) NDX, NDY, NDZ
 C
       WRITE(6,6602) NI, NS, ( IS,( SK(I,IS),I=1,3),WK(IS), IS=1,NS )
- 6602 FORMAT(8X
-     &'          TOTAL NO. OF K IN WHOLE BZ = ',I4/8X
-     &'          TOTAL NO. OF K IN WEDGE    = ',I4/8X
+ 6602 FORMAT(8X,
+     &'          TOTAL NO. OF K IN WHOLE BZ = ',I4/8X,
+     &'          TOTAL NO. OF K IN WEDGE    = ',I4/8X,
      &'          NO.            COORDINATES      WK  '/
      & (18X, I3, 3F8.4, 2X, F8.4)  )
       DO 99 IS=1,NS
@@ -9423,31 +8408,19 @@ ccc      READ(71,REC=IOWF(IBLK)) P
              IF( KBND .LE. NFL  .OR. KBND .GT. NFL+NPFL ) GO TO 12
           DO 20 JG=1,NXYZ
    20     RHO1(JG)=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG,JG)
           DO 21 IG=1,NG2
           JG=J2G(IG)
           RHO1(JG)=P(IG,IB)
    21     CONTINUE
-!$omp enddo
-!$omp end parallel
           CALL FFT3BX( NRX, NRY, NRZ, NXYZ, RHO1, RHO3,
      &                 WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
      &                 LX1, LX2, LY1, LY2, LZ1, LZ2                )
-!$omp parallel default(shared)
-!$omp do private(JG)
           DO 30 JG=1,NXYZ
    30     RHO2(JG)=DBLE(DCONJG(RHO1(JG))*RHO1(JG))
-!$omp enddo
-!$omp end parallel
           DO 40 I=1,NEXPND
           FAC=2.D0*RCOSIN(IK,I)*YMFAC*VINT(KBND,I)*DBLE(NSY(I))/OMEGA
-!$omp parallel default(shared)
-!$omp do private(JG)
             DO 50 JG=1,NXYZ
    50       RHO(JG)=RHO(JG)+FAC*RHO2(JG)
-!$omp enddo
-!$omp end parallel
    40     CONTINUE
    12   CONTINUE
    10 CONTINUE
@@ -9507,8 +8480,6 @@ c          write(6,*)' G(2,NG)=',G(2,NG)
 c          write(6,*)' G(3,NG)=',G(3,NG)
 c          write(6,*)' G(4,NG)=',G(4,NG)
 c ****  check end
-!$omp parallel default(shared)
-!$omp do private(IG,JG,SUM)
           DO 220 IG=2,NG
             JG=I2G(IG)
             SUM=G(1,IG)*TAU(1,ITAU)+G(2,IG)*TAU(2,ITAU)
@@ -9518,41 +8489,23 @@ c ****  check end
      &     +DCMPLX(COS(SUM)*VGA(IG,ITY),-SIN(SUM)*VGA(IG,ITY))
 cc     &     +DCMPLX(COS(SUM)*VGA(IG),-SIN(SUM)*VGA(IG))
  220      CONTINUE
-!$omp enddo
-!$omp end parallel
  210    CONTINUE
  200  CONTINUE
-!$omp parallel default(shared)
-!$omp do private(IG)
       DO 300 IG=1,NXYZ
         RHOG(IG)=RHOG(IG)/OMEGA
  300  CONTINUE
-!$omp enddo
-!$omp end parallel
-!$omp parallel default(shared)
-!$omp do private(IG)
       DO 400 IG=1,NXYZ
         RHO1(IG)=RHOG(IG)
  400  CONTINUE
-!$omp enddo
-!$omp end parallel
       CALL FFT3BX(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,
      & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
-!$omp parallel default(shared)
-!$omp do private(IG)
       DO 500 IG=1,NXYZ
         RHO(IG)=DBLE(RHO1(IG))
  500  CONTINUE
-!$omp enddo
-!$omp end parallel
       SUMCD=0.D0
-!$omp parallel default(shared)
-!$omp do private(IG),reduction(+:SUMCD)
       DO 600 IG=1,NXYZ
         SUMCD=SUMCD+RHO(IG)
  600  CONTINUE
-!$omp enddo
-!$omp end parallel
       SUMCD=SUMCD*OMEGA/DBLE(NXYZ)
       WRITE(6,*) '           ***   CHARGE: TOTAL CHARGE : ',SUMCD
 C
@@ -9619,6 +8572,8 @@ C
 C
     2 CONTINUE
     1 CONTINUE
+C ***
+C    CHECK OF CLOSED ALGEBRA FOR  MATRICES IS COMPLETED
 C ***
       DO 10 IAT = 1, NTAUQ
       C1 = (  TAU(1,IAT)*B1(1) + TAU(2,IAT)*B1(2)

@@ -4,22 +4,37 @@ c     9/28/95   Yoshiyuki Miyamoto
 C ******************************************************************
       SUBROUTINE RARR3(SP,RG,NG,INV,QF,EPS,IPRINT,AKK,KG,KZ,NNK,NKG)
       IMPLICIT REAL*8(A-H,O-Z)
-      PARAMETER(LATQ=144)
+      include 'mpif.h'
+      PARAMETER(LATQ=120)
       DIMENSION KG(3,LATQ),AKK(LATQ),SP(3,3),NN(3)
      &         ,KZ(3,LATQ,48),NNK(LATQ)
       dimension kz0(3,latq,48),nnk0(latq),akk0(latq)
       INTEGER*4 RG(3,3,48)
       REAL*8  AKK,SP
       EQUIVALENCE (N1,NN(1)),(N2,NN(2)),(N3,NN(3))
+c
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+c
+c **** for 2D cell where A3 is normal to the cell
+c      do i=1,2
+c      sp(i,3)=sp(i,3)*100
+c      sp(3,i)=sp(3,i)*100
+c      enddo
+c      sp(3,3)=sp(3,3)*10000
 c **** temp check
-c      write(6,*)' in sub RARR3:  sp '
-c      write(6,1020)((sp(i,j),j=1,3),i=1,3)
+c      if ( my_rank.ne.0 ) then
+c      write(6,*)' in sub RARR3 my_rank=',my_rank,':  QF = ',qf
+cc      write(6,1020)((sp(i,j),j=1,3),i=1,3)
 c 1020 format(3d20.12)
-c      write(6,*)'  check KZ '
-c      do 401 kk=1,latq
-c      write(6,*)' kk = ',kk
-c      do 401 ks=1,48
-c  401 write(6,*)(kz(i,kk,ks),i=1,3)
+cc      write(6,*)'  check KZ '
+cc      do 401 kk=1,latq
+cc      write(6,*)' kk = ',kk
+cc      do 401 ks=1,48
+cc  401 write(6,*)(kz(i,kk,ks),i=1,3)
+c      endif
+c      call MPI_Barrier(MPI_COMM_WORLD,ierr)
+c      miya=13
+c      if ( miya.eq.13 ) stop
 c **** check end
       IND=0
       QFF=QF*QF
@@ -101,7 +116,7 @@ c **** check end
    65 CONTINUE
       IF(N.GT.NKG) IND=-1
 C
-      WRITE(6,6000) NKG, IND
+      if ( my_rank.eq.0 ) WRITE(6,6000) NKG, IND
  6000 FORMAT(/8X,
      &'  **** RARR3: NEXPND = ',I4,' IND = ',I2,' SHOULD BE 0')
 C
@@ -213,11 +228,12 @@ c******   Finally, renumber the R-vectors
   112 continue
       nkg=kseq
 C
-      IF(IPRINT.NE.0) WRITE(6,100) N
-  100 FORMAT(8X
+      IF(IPRINT.NE.0 .and. my_rank.eq.0 ) WRITE(6,100) N
+  100 FORMAT(8X,
      &'              N = ',I3,'   NO  KR1 KR2 KR3    ADR ')
       IF(IPRINT) 80,88,80
-   80 write(6,*)' R-vectors'
+   80 if (my_rank.eq.0 ) write(6,*)' R-vectors'
+      if ( my_rank.eq.0 ) then
       DO 83 KK=1,NKG
       write(6,*)' seq. #   # of stars     length'
       WRITE(6,2000) KK,nnk(kk),AKK(KK)
@@ -225,6 +241,7 @@ C
       WRITE(6,2010)(Kz(I,KK,ks),I=1,3)
    82 CONTINUE
    83 CONTINUE
+      endif
  2000 FORMAT(3X,I3,9x,i3,7x,D13.5)
  2010 FORMAT(2X,3x,2X,3I3,'       R-vector')
 CC

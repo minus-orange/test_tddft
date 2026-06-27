@@ -4,7 +4,7 @@ c     9/28/95   Yoshiyuki Miyamoto
 C ******************************************************************
       SUBROUTINE RARR3(SP,RG,NG,INV,QF,EPS,IPRINT,AKK,KG,KZ,NNK,NKG)
       IMPLICIT REAL*8(A-H,O-Z)
-      PARAMETER(LATQ=144)
+      PARAMETER(LATQ=120)
       DIMENSION KG(3,LATQ),AKK(LATQ),SP(3,3),NN(3)
      &         ,KZ(3,LATQ,48),NNK(LATQ)
       dimension kz0(3,latq,48),nnk0(latq),akk0(latq)
@@ -214,7 +214,7 @@ c******   Finally, renumber the R-vectors
       nkg=kseq
 C
       IF(IPRINT.NE.0) WRITE(6,100) N
-  100 FORMAT(8X
+  100 FORMAT(8X,
      &'              N = ',I3,'   NO  KR1 KR2 KR3    ADR ')
       IF(IPRINT) 80,88,80
    80 write(6,*)' R-vectors'

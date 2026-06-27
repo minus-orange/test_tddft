@@ -11,6 +11,12 @@ C ******************************************************************
       INTEGER*4 RG(3,3,48)
       REAL*8  AKK,SP
       EQUIVALENCE (N1,NN(1)),(N2,NN(2)),(N3,NN(3))
+c ****  for 2D system where A3 is adjusted!
+      do 888 i=1,2
+      sp(i,3)=sp(i,3)*100
+      sp(3,i)=sp(3,i)*100
+  888 continue
+      sp(3,3)=sp(3,3)*100
 c **** temp check
 c      write(6,*)' in sub RARR3:  sp '
 c      write(6,1020)((sp(i,j),j=1,3),i=1,3)
@@ -214,7 +220,7 @@ c******   Finally, renumber the R-vectors
       nkg=kseq
 C
       IF(IPRINT.NE.0) WRITE(6,100) N
-  100 FORMAT(8X
+  100 FORMAT(8X,
      &'              N = ',I3,'   NO  KR1 KR2 KR3    ADR ')
       IF(IPRINT) 80,88,80
    80 write(6,*)' R-vectors'

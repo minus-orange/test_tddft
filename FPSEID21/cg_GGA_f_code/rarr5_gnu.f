@@ -1,26 +1,30 @@
 C ******************************************************************
-c     Modified to generate IRREDUCIBlE lattice vectors
-c     9/28/95   Yoshiyuki Miyamoto
-C ******************************************************************
+c  This subroutine generates irreducible latice vectors.
+c
+c         Original: Drs. K. Shiraishi, T. Nakayama and Prof. N. Shima
+c         Modified by Y. Miyamoto 9/28/1995
+c ******************************************************************
       SUBROUTINE RARR3(SP,RG,NG,INV,QF,EPS,IPRINT,AKK,KG,KZ,NNK,NKG)
       IMPLICIT REAL*8(A-H,O-Z)
-      PARAMETER(LATQ=144)
+      PARAMETER(LATQ=128)
       DIMENSION KG(3,LATQ),AKK(LATQ),SP(3,3),NN(3)
      &         ,KZ(3,LATQ,48),NNK(LATQ)
       dimension kz0(3,latq,48),nnk0(latq),akk0(latq)
       INTEGER*4 RG(3,3,48)
       REAL*8  AKK,SP
       EQUIVALENCE (N1,NN(1)),(N2,NN(2)),(N3,NN(3))
-c **** temp check
-c      write(6,*)' in sub RARR3:  sp '
-c      write(6,1020)((sp(i,j),j=1,3),i=1,3)
-c 1020 format(3d20.12)
-c      write(6,*)'  check KZ '
-c      do 401 kk=1,latq
-c      write(6,*)' kk = ',kk
-c      do 401 ks=1,48
-c  401 write(6,*)(kz(i,kk,ks),i=1,3)
-c **** check end
+c **** In case of tube calculation where A3 is parallel to tubele axis
+c       use following five lines.
+      do 888 i=1,2
+      do 888 j=1,2
+      sp(i,j)=sp(i,j)*100
+      sp(j,i)=sp(j,i)*100
+  888 continue
+      DO i=1,2
+      sp(3,i)=sp(3,i)*100
+      sp(i,3)=sp(i,3)*100
+      ENDDO
+c **** end
       IND=0
       QFF=QF*QF
       A=SP(3,3)
@@ -214,7 +218,7 @@ c******   Finally, renumber the R-vectors
       nkg=kseq
 C
       IF(IPRINT.NE.0) WRITE(6,100) N
-  100 FORMAT(8X
+  100 FORMAT(8X,
      &'              N = ',I3,'   NO  KR1 KR2 KR3    ADR ')
       IF(IPRINT) 80,88,80
    80 write(6,*)' R-vectors'
