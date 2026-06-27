@@ -94,6 +94,9 @@ Regenerate it with:
 tools/generate_tddft_call_tree.sh
 ```
 
+GNU runtime-check logs for the `Si111-H` sample are recorded in
+`docs/gnu_runtime_log.md`.
+
 Look for:
 
 ```text

@@ -1,0 +1,531 @@
+  ------- 
+  This is CG-code to prepare initial wavefunctions within the compact sphere in G-space needed for
+  the TDDFT calculation within static DFT.
+  Disclosure of this code was kindly agreed by Osamu Sugino, Yoshihide Yoshimoto, Atsushi Oshiyama,
+  Kenji Shiraishi,Takashi Nakayama, and Mineo Saito.
+  ------- 
+%%% Si(111)1x1 H-term cell %%%%                                         
+  # OF COMMANDS =           20
+ NO.  1  COMMAND = STND         OPERATION =                     
+ NO.  2  COMMAND = KPOINT       OPERATION = MESH                
+ NO.  3  COMMAND = ALAT         OPERATION = 4.4427103214141699  
+ NO.  4  COMMAND = ZVAL         OPERATION = 50                  
+ NO.  5  COMMAND = RCUT         OPERATION = 845                 
+ NO.  6  COMMAND = GCUT         OPERATION = 12.0                
+ NO.  7  COMMAND = PP           OPERATION = (KB,SOFT)           
+ NO.  8  COMMAND = CD           OPERATION = ATOM                
+ NO.  9  COMMAND = WF           OPERATION = INIT                
+ NO. 10  COMMAND = CG           OPERATION = (5,8,3)             
+ NO. 11  COMMAND = SCF          OPERATION = 60                  
+ NO. 12  COMMAND = EXT          OPERATION = PANDEY              
+ NO. 13  COMMAND = OUTWF        OPERATION = 23                  
+ NO. 14  COMMAND = METAL        OPERATION = (25,0)              
+ NO. 15  COMMAND = KCONT        OPERATION = 0                   
+ NO. 16  COMMAND = FFTWF        OPERATION =                     
+ NO. 17  COMMAND = RMIX         OPERATION = 0.03                
+ NO. 18  COMMAND = CONV         OPERATION = 1.D-7               
+ NO. 19  COMMAND = MAXFN        OPERATION = 0                   
+ NO. 20  COMMAND = OKSTEP       OPERATION = 0.1D0               
+  ****  Standard inputs !!!! *****
+  MESH SAMPLING FOR K-VECTROS
+  LATTICE CONSTANT    4.4427103214141699     
+  #CHARGE IS    50.000000000000000     
+  RCUT**2 IS (AU)    845.00000000000000     
+  GCUT2 IS    12.000000000000000     
+  KLEINMAN BYLANDER PSEUDOPOTENTIAL IS USED 
+  SOFT PSEUDOPOTENTIAL IS USED 
+  MAKE CHARGE FROM OVERLAP OF ATOM CHARGE 
+  WAVEFUNCTION IS CREADTED INTERNALLY 
+  #CG  STEP IS            5           8           3
+  #SCF STEP IS           60
+  PANDEY EXTRAPOLATION SCHEME (R) IS USED 
+  WRITE WF TO FILE           23
+  METAL CASE: NFL NPFL =           25           0
+  CONTINUATION? KCONT =             0
+  WFs on FFT grids are saved
+  MIXING RATIO IS    2.9999999999999999E-002
+  SCF CONVERGENCE CRITERION IS    9.9999999999999995E-008
+  #G-OPT LOOP IS            0
+  AT G-OPT INITIAL DISPLACEMENT IS   0.10000000000000001     
+ ------------------------------------------------------------------------
+
+
+                                **  MBLK =            1
+                       ****  CPU TIME BFR CRYST:       0.0002530 SEC
+
+ INITIAL POSITION OF ATOM IN CARTESIAN COORDINATE IN ATOMIC UNIT:
+      1        0.0000000      0.0000000      2.2165260
+      2        4.1886275     -0.0000000      3.6609519
+      3        4.1886275     -0.0000000      8.0828717
+      4       -4.1886275      0.0000000      9.5397751
+      5       -4.1886275      0.0000000     13.9620769
+      6        0.0000000      0.0000000     15.3850979
+      7       -0.0000000      0.0000000     -2.2165260
+      8       -4.1886275      0.0000000     -3.6609519
+      9       -4.1886275      0.0000000     -8.0828717
+     10        4.1886275     -0.0000000     -9.5397751
+     11        4.1886275     -0.0000000    -13.9620769
+     12        0.0000000      0.0000000    -15.3850979
+     13        0.0000000      0.0000000     18.2333531
+     14        0.0000000      0.0000000    -18.2333531
+       ****  NTYPE =   2  NUMTY =   12  -2
+
+ IBRAV =   0 PGIND =   0 NFL =  25 NBND =  25 NPFL =   0 NK =   0
+ RCUT =     845.0000000 GCUT =      23.9981351 GCUT2 =      12.0000000
+ A-VECTORS
+       6.2829412      6.2829412      0.0000000
+      -3.6274578      3.6274578      0.0000000
+       0.0000000      0.0000000     58.2184051
+ OMEGA=   2653.7234450
+  Read S-matrices fron file !!
+  # OF SYMMETRY OPERATIONS: NTOT =            1
+  S MATRICES: OP  1ST RAW   2ND RAW   3RD RAW
+         1       1  0  0    0  1  0    0  0  1
+  
+              SHELL NO.   1  LENGTH SQUARED     0.000  NO. OF VECTS.   1
+              SHELL NO.   2  LENGTH SQUARED    52.634  NO. OF VECTS.   6
+              SHELL NO.   3  LENGTH SQUARED   157.901  NO. OF VECTS.   6
+              SHELL NO.   4  LENGTH SQUARED   210.535  NO. OF VECTS.   6
+              SHELL NO.   5  LENGTH SQUARED   368.437  NO. OF VECTS.  12
+              SHELL NO.   6  LENGTH SQUARED   473.704  NO. OF VECTS.   6
+              SHELL NO.   7  LENGTH SQUARED   631.606  NO. OF VECTS.   6
+              SHELL NO.   8  LENGTH SQUARED   684.239  NO. OF VECTS.  12
+              SHELL NO.   9  LENGTH SQUARED   842.141  NO. OF VECTS.   6
+    # OF LATTICE VECTORS: NLV =           61
+ A-VECTORS
+       6.2829412      6.2829412      0.0000000
+      -3.6274578      3.6274578      0.0000000
+       0.0000000      0.0000000     58.2184051
+
+ B-VECTORS
+       0.3535534      0.3535534     -0.0000000
+      -0.6123724      0.6123724      0.0000000
+       0.0000000     -0.0000000      0.0763111
+
+ GCUT=     23.9981351 NG=   14691 NG EFFICIENT=  15197.4560547
+  IMAX=           7  JMAX=           7  KMAX=          64
+
+          **** RARR3: NEXPND =   31 IND =  0 SHOULD BE 0
+                      N =  31   NO  KR1 KR2 KR3    ADR 
+  R-vectors
+  seq. #   # of stars     length
+     1           1         0.00000D+00
+         0  0  0       R-vector
+  seq. #   # of stars     length
+     2           2         0.52634D+02
+        -1  0  0       R-vector
+         1  0  0       R-vector
+  seq. #   # of stars     length
+     3           2         0.52634D+02
+        -1  1  0       R-vector
+         1 -1  0       R-vector
+  seq. #   # of stars     length
+     4           2         0.52634D+02
+         0 -1  0       R-vector
+         0  1  0       R-vector
+  seq. #   # of stars     length
+     5           2         0.15790D+03
+        -2  1  0       R-vector
+         2 -1  0       R-vector
+  seq. #   # of stars     length
+     6           2         0.15790D+03
+        -1 -1  0       R-vector
+         1  1  0       R-vector
+  seq. #   # of stars     length
+     7           2         0.15790D+03
+        -1  2  0       R-vector
+         1 -2  0       R-vector
+  seq. #   # of stars     length
+     8           2         0.21054D+03
+        -2  0  0       R-vector
+         2  0  0       R-vector
+  seq. #   # of stars     length
+     9           2         0.21054D+03
+        -2  2  0       R-vector
+         2 -2  0       R-vector
+  seq. #   # of stars     length
+    10           2         0.21054D+03
+         0 -2  0       R-vector
+         0  2  0       R-vector
+  seq. #   # of stars     length
+    11           2         0.36844D+03
+        -3  1  0       R-vector
+         3 -1  0       R-vector
+  seq. #   # of stars     length
+    12           2         0.36844D+03
+        -3  2  0       R-vector
+         3 -2  0       R-vector
+  seq. #   # of stars     length
+    13           2         0.36844D+03
+        -2 -1  0       R-vector
+         2  1  0       R-vector
+  seq. #   # of stars     length
+    14           2         0.36844D+03
+        -2  3  0       R-vector
+         2 -3  0       R-vector
+  seq. #   # of stars     length
+    15           2         0.36844D+03
+        -1 -2  0       R-vector
+         1  2  0       R-vector
+  seq. #   # of stars     length
+    16           2         0.36844D+03
+        -1  3  0       R-vector
+         1 -3  0       R-vector
+  seq. #   # of stars     length
+    17           2         0.47370D+03
+        -3  0  0       R-vector
+         3  0  0       R-vector
+  seq. #   # of stars     length
+    18           2         0.47370D+03
+        -3  3  0       R-vector
+         3 -3  0       R-vector
+  seq. #   # of stars     length
+    19           2         0.47370D+03
+         0 -3  0       R-vector
+         0  3  0       R-vector
+  seq. #   # of stars     length
+    20           2         0.63161D+03
+        -4  2  0       R-vector
+         4 -2  0       R-vector
+  seq. #   # of stars     length
+    21           2         0.63161D+03
+        -2 -2  0       R-vector
+         2  2  0       R-vector
+  seq. #   # of stars     length
+    22           2         0.63161D+03
+        -2  4  0       R-vector
+         2 -4  0       R-vector
+  seq. #   # of stars     length
+    23           2         0.68424D+03
+        -4  1  0       R-vector
+         4 -1  0       R-vector
+  seq. #   # of stars     length
+    24           2         0.68424D+03
+        -4  3  0       R-vector
+         4 -3  0       R-vector
+  seq. #   # of stars     length
+    25           2         0.68424D+03
+        -3 -1  0       R-vector
+         3  1  0       R-vector
+  seq. #   # of stars     length
+    26           2         0.68424D+03
+        -3  4  0       R-vector
+         3 -4  0       R-vector
+  seq. #   # of stars     length
+    27           2         0.68424D+03
+        -1 -3  0       R-vector
+         1  3  0       R-vector
+  seq. #   # of stars     length
+    28           2         0.68424D+03
+        -1  4  0       R-vector
+         1 -4  0       R-vector
+  seq. #   # of stars     length
+    29           2         0.84214D+03
+        -4  0  0       R-vector
+         4  0  0       R-vector
+  seq. #   # of stars     length
+    30           2         0.84214D+03
+        -4  4  0       R-vector
+         4 -4  0       R-vector
+  seq. #   # of stars     length
+    31           2         0.84214D+03
+         0 -4  0       R-vector
+         0  4  0       R-vector
+
+          **** MESHK: N =    4
+                  TOTAL NO. OF K IN WHOLE BZ =    4
+                  TOTAL NO. OF K IN WEDGE    =    2
+                  NO.            COORDINATES      WK  
+                    1 -0.2500 -0.2500  0.0000    1.0000
+                    2 -0.2500  0.2500  0.0000    1.0000
+                  NO.   1 NJD =    1  JDR(1..NJD) = :
+                        1
+                  NO.   2 NJD =    1  JDR(1..NJD) = :
+                        1
+                  FOR DOS: NDX NDY NDZ =   10  10  10
+
+                      ****  CRYST: NEXPND CHANGED TO BE   2
+ ***   CRYST: VECK( 1) =  -0.17678      0.00000      0.00000
+ ***   CRYST: VECK( 2) =   0.00000      0.30619      0.00000
+ OCC: K2 =   1
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+ OCC: K2 =   2
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+                       ****  CPU TIME AFTR CRYST:       0.0029370 SEC
+ PLANE WAVE BASIS SET FOR K =   1: GCUT2=    12.000 RY  NG2=  1849
+ PLANE WAVE BASIS SET FOR K =   2: GCUT2=    12.000 RY  NG2=  1876
+                       ****  CPU TIME AFT INITPW:       0.0110610 SEC
+  ATOM TYPE: NTYPE =            2
+
+ PSEUDOPOTENTIAL FOR    1  -TH ATOM: ZV =      -4.00
+                         COR AND RC0 =   0.27060D+01  0.93033D+00
+                                        -0.17060D+01  0.57489D+00
+                         NVST NVST2 MESH =     2    3 1000
+  ++++ PSPOT +++++ 
+  J =            1
+   -0.130841   -0.130841   -0.130841   -0.130841
+   -0.130841   -0.130836   -0.130622   -0.124862
+   -2.166094   -0.558096
+  J =            2
+   -2.869600   -2.869600   -2.869600   -2.869600
+   -2.869599   -2.869594   -2.869378   -2.860717
+   -2.636337   -0.558096
+  ++++ PSPOT2 +++++ 
+  J =            1
+   -0.130841   -0.130841   -0.130841   -0.130841
+   -0.130841   -0.130836   -0.130622   -0.124862
+   -2.166094   -0.558096
+  J =            2
+   -2.869600   -2.869600   -2.869600   -2.869600
+   -2.869599   -2.869594   -2.869378   -2.860717
+   -2.636337   -0.558096
+  J =            3
+   -7.558750   -7.558750   -7.558750   -7.558750
+   -7.558749   -7.558744   -7.558525   -7.544462
+   -4.088713   -0.558096
+
+          *****  PRENON: ITY ZO(1) ZO(2) =   1  0.2000D+01  0.2000D+01
+
+ PSEUDOPOTENTIAL FOR    2  -TH ATOM: ZV =      -1.00
+                         COR AND RC0 =   0.50000D+00  0.66667D-01
+                                         0.50000D+00  0.66667D-01
+                         NVST  MESH =     1 1000
+  ++++ PSPOT +++++ 
+  J =            1
+   -2.495044   -2.495044   -2.495044   -2.495044
+   -2.495044   -2.495043   -2.494999   -2.491442
+   -1.469831   -0.216366
+
+          *****  PRENON: ITY ZO(1) ZO(2) =   2  0.1000D+01  0.0000D+00
+            ***   CHARGE: TOTAL CHARGE :    49.999999999999005     
+  ++++ PSPOT +++++ 
+  J =            1
+   -0.130841   -0.130841   -0.130841   -0.130841
+   -0.130841   -0.130836   -0.130622   -0.124862
+   -2.166094   -0.558096
+  J =            2
+   -2.869600   -2.869600   -2.869600   -2.869600
+   -2.869599   -2.869594   -2.869378   -2.860717
+   -2.636337   -0.558096
+  ++++ PSPOT2 +++++ 
+  J =            1
+   -0.130841   -0.130841   -0.130841   -0.130841
+   -0.130841   -0.130836   -0.130622   -0.124862
+   -2.166094   -0.558096
+  J =            2
+   -2.869600   -2.869600   -2.869600   -2.869600
+   -2.869599   -2.869594   -2.869378   -2.860717
+   -2.636337   -0.558096
+  J =            3
+   -7.558750   -7.558750   -7.558750   -7.558750
+   -7.558749   -7.558744   -7.558525   -7.544462
+   -4.088713   -0.558096
+  ++++ PSPOT in PRENON +++++ 
+  J =            1
+    0.000000    0.000000    0.000002    0.000014
+    0.000092    0.000590    0.003775    0.024121
+    0.039979    0.000000
+  J =            2
+    0.000000    0.000000    0.000001    0.000009
+    0.000058    0.000373    0.002383    0.015227
+    0.030201    0.000000
+   SUM OF VNL*PSIL**2: TOTAL AND PARTITIONED FOR ITY =    1 K =   1 LI =    1:
+             0.34840D+00   0.32548D+00   0.22916D-01
+   VPP / VV:    0.29656D+00   0.28968D+00   0.29276D+00
+   SUM OF VNL*PSIL**2: TOTAL AND PARTITIONED FOR ITY =    1 K =   1 LI =    2:
+             0.13624D+00   0.98235D-01   0.38003D-01
+   VPP / VV:    0.25162D+00   0.21505D+00   0.31991D+00
+   SUM OF VNL*PSIL**2: TOTAL AND PARTITIONED FOR ITY =    1 K =   2 LI =    1:
+             0.34840D+00   0.32548D+00   0.22916D-01
+   VPP / VV:    0.29656D+00   0.28968D+00   0.29276D+00
+   SUM OF VNL*PSIL**2: TOTAL AND PARTITIONED FOR ITY =    1 K =   2 LI =    2:
+             0.13624D+00   0.98235D-01   0.38003D-01
+   VPP / VV:    0.25162D+00   0.21505D+00   0.31991D+00
+
+ PSEUDOPOTENTIAL FOR    2  -TH ATOM: ZV =      -1.00
+                         COR AND RC0 =   0.50000D+00  0.66667D-01
+                                         0.50000D+00  0.66667D-01
+                         NVST  MESH =     1 1000
+  ++++ PSPOT +++++ 
+  J =            1
+   -2.495044   -2.495044   -2.495044   -2.495044
+   -2.495044   -2.495043   -2.494999   -2.491442
+   -1.469831   -0.216366
+                       ****  CPU TIME AFT PRENON:       0.2939900 SEC
+
+
+
+  ***  CONJUGATE GRADIENT:
+
+
+ ******** FRPRMN: ITMAX(SCF) =  60 ITC7 ITC1 ITCMAX (CG) =   5  8  3
+                      TAU:
+                     1  0.00000D+00  0.00000D+00  0.22165D+01
+                     2  0.41886D+01 -0.68934D-17  0.36610D+01
+                     3  0.41886D+01 -0.68934D-17  0.80829D+01
+                     4 -0.41886D+01  0.68934D-17  0.95398D+01
+                     5 -0.41886D+01  0.68934D-17  0.13962D+02
+                     6  0.00000D+00  0.00000D+00  0.15385D+02
+                     7 -0.00000D+00  0.00000D+00 -0.22165D+01
+                     8 -0.41886D+01  0.68934D-17 -0.36610D+01
+                     9 -0.41886D+01  0.68934D-17 -0.80829D+01
+                    10  0.41886D+01 -0.68934D-17 -0.95398D+01
+                    11  0.41886D+01 -0.68934D-17 -0.13962D+02
+                    12  0.00000D+00  0.00000D+00 -0.15385D+02
+                    13  0.00000D+00  0.00000D+00  0.18233D+02
+                    14  0.00000D+00  0.00000D+00 -0.18233D+02
+  
+     *** ITR #  1  CONVERGENCE OF THE POTENTIAL IS  **  0.1368544D+00
+     *** ITR #  2  CONVERGENCE OF THE POTENTIAL IS  **  0.7435601D-01
+     *** ITR #  3  CONVERGENCE OF THE POTENTIAL IS  **  0.3334351D-01
+     *** ITR #  4  CONVERGENCE OF THE POTENTIAL IS  **  0.2426590D-02
+     *** ITR #  5  CONVERGENCE OF THE POTENTIAL IS  **  0.1649025D-02
+     *** ITR #  6  CONVERGENCE OF THE POTENTIAL IS  **  0.2029970D-02
+     *** ITR #  7  CONVERGENCE OF THE POTENTIAL IS  **  0.1764332D-02
+     *** ITR #  8  CONVERGENCE OF THE POTENTIAL IS  **  0.5976634D-03
+     *** ITR #  9  CONVERGENCE OF THE POTENTIAL IS  **  0.7622299D-04
+     *** ITR # 10  CONVERGENCE OF THE POTENTIAL IS  **  0.6623154D-04
+                       ****  FRPRMN:        5.0853410 SEC
+     *** ITR # 11  CONVERGENCE OF THE POTENTIAL IS  **  0.9240372D-05
+     *** ITR # 12  CONVERGENCE OF THE POTENTIAL IS  **  0.7243608D-05
+     *** ITR # 13  CONVERGENCE OF THE POTENTIAL IS  **  0.5575886D-05
+     *** ITR # 14  CONVERGENCE OF THE POTENTIAL IS  **  0.3246943D-05
+     *** ITR # 15  CONVERGENCE OF THE POTENTIAL IS  **  0.2761101D-05
+     *** ITR # 16  CONVERGENCE OF THE POTENTIAL IS  **  0.1046398D-05
+     *** ITR # 17  CONVERGENCE OF THE POTENTIAL IS  **  0.4626007D-06
+     *** ITR # 18  CONVERGENCE OF THE POTENTIAL IS  **  0.3255614D-06
+     *** ITR # 19  CONVERGENCE OF THE POTENTIAL IS  **  0.2368201D-06
+     *** ITR # 20  CONVERGENCE OF THE POTENTIAL IS  **  0.1773314D-06
+                       ****  FRPRMN:        8.6589880 SEC
+     *** ITR # 21  CONVERGENCE OF THE POTENTIAL IS  **  0.1625267D-06
+     *** ITR # 22  CONVERGENCE OF THE POTENTIAL IS  **  0.1368466D-06
+     *** ITR # 23  CONVERGENCE OF THE POTENTIAL IS  **  0.1209317D-06
+     *** ITR # 24  CONVERGENCE OF THE POTENTIAL IS  **  0.6871249D-07
+  Store SCF local potential 
+  Fourier components of eigen values
+  Fourier components of occupation #s
+
+                    IB     EIG              CONV          SIN(ROT)    OCC
+
+ K VECTOR    1     -0.1767767      0.0000000      0.0000000  CARTESIAN
+   BAND (EV)    1 -0.1196710E+02  0.2158072E-07  0.1490464E-03   1.000
+   BAND (EV)    2 -0.1175421E+02  0.1572799E-07  0.1408142E-03   1.000
+   BAND (EV)    3 -0.1140835E+02  0.1286687E-07  0.1377788E-03   1.000
+   BAND (EV)    4 -0.1094984E+02  0.6253182E-08  0.1197060E-03   1.000
+   BAND (EV)    5 -0.1040295E+02  0.3842631E-08  0.1119573E-03   1.000
+   BAND (EV)    6 -0.9881631E+01  0.2206498E-08  0.1070173E-03   1.000
+   BAND (EV)    7 -0.7455434E+01  0.7614926E-09  0.1022714E-03   1.000
+   BAND (EV)    8 -0.6972015E+01  0.1012239E-08  0.1029721E-03   1.000
+   BAND (EV)    9 -0.6219167E+01  0.6756308E-09  0.1020401E-03   1.000
+   BAND (EV)   10 -0.5517169E+01  0.4651103E-09  0.1017466E-03   1.000
+   BAND (EV)   11 -0.4975097E+01  0.4039369E-09  0.1018722E-03   1.000
+   BAND (EV)   12 -0.4712604E+01  0.3406928E-09  0.1017602E-03   1.000
+   BAND (EV)   13 -0.4554937E+01  0.4482058E-09  0.1024867E-03   1.000
+   BAND (EV)   14 -0.4230879E+01  0.3510741E-09  0.1024296E-03   1.000
+   BAND (EV)   15 -0.3953446E+01  0.4208225E-09  0.1028128E-03   1.000
+   BAND (EV)   16 -0.3648117E+01  0.4208492E-09  0.1029664E-03   1.000
+   BAND (EV)   17 -0.3079793E+01  0.3935910E-09  0.1026040E-03   1.000
+   BAND (EV)   18 -0.3061444E+01  0.2290114E-09  0.1009190E-03   1.000
+   BAND (EV)   19 -0.2875267E+01  0.2056951E-09  0.1010598E-03   1.000
+   BAND (EV)   20 -0.2589629E+01  0.2686454E-09  0.1018661E-03   1.000
+   BAND (EV)   21 -0.2479134E+01  0.4182041E-09  0.1031800E-03   1.000
+   BAND (EV)   22 -0.2233462E+01  0.2631272E-09  0.1016548E-03   1.000
+   BAND (EV)   23 -0.1859746E+01  0.1873595E-09  0.1008493E-03   1.000
+   BAND (EV)   24 -0.1783905E+01  0.2701045E-09  0.1017310E-03   1.000
+   BAND (EV)   25 -0.1587815E+01  0.1672878E-09  0.1010606E-03   1.000
+   BAND (EV)   26  0.4358207E+00  0.3936906E-09  0.1170650E-03   0.000
+   BAND (EV)   27  0.6559560E+00  0.6674980E-09  0.1440857E-03   0.000
+   BAND (EV)   28  0.9266761E+00  0.1231082E-08  0.2007554E-03   0.000
+   BAND (EV)   29  0.1329415E+01  0.5150085E-08  0.7047256E-03   0.000
+   BAND (EV)   30  0.1453528E+01  0.2404638E-08  0.4467826E-03   0.000
+   BAND (EV)   31  0.1783267E+01  0.1211172E-07  0.1817402E-02   0.000
+   BAND (EV)   32  0.2259063E+01  0.4937858E-07  0.6678659E-02   0.000
+
+ K VECTOR    2      0.0000000      0.3061862      0.0000000  CARTESIAN
+   BAND (EV)    1 -0.1063120E+02  0.9274534E-10  0.1002598E-03   1.000
+   BAND (EV)    2 -0.1044318E+02  0.1023764E-09  0.1003088E-03   1.000
+   BAND (EV)    3 -0.1014034E+02  0.1520693E-09  0.1004091E-03   1.000
+   BAND (EV)    4 -0.9745160E+01  0.1778778E-09  0.1004528E-03   1.000
+   BAND (EV)    5 -0.9273623E+01  0.1363472E-09  0.1003504E-03   1.000
+   BAND (EV)    6 -0.8772233E+01  0.1898291E-09  0.1004029E-03   1.000
+   BAND (EV)    7 -0.8305354E+01  0.1772558E-09  0.1003894E-03   1.000
+   BAND (EV)    8 -0.7813132E+01  0.1550341E-09  0.1003651E-03   1.000
+   BAND (EV)    9 -0.7412710E+01  0.1516717E-09  0.1003423E-03   1.000
+   BAND (EV)   10 -0.7068118E+01  0.1132900E-09  0.1002470E-03   1.000
+   BAND (EV)   11 -0.6722847E+01  0.8426015E-10  0.1002155E-03   1.000
+   BAND (EV)   12 -0.6420667E+01  0.1199009E-09  0.1002688E-03   1.000
+   BAND (EV)   13 -0.4993739E+01  0.1746857E-09  0.1008524E-03   1.000
+   BAND (EV)   14 -0.4926579E+01  0.2189837E-09  0.1006991E-03   1.000
+   BAND (EV)   15 -0.4826848E+01  0.8003223E-10  0.1003748E-03   1.000
+   BAND (EV)   16 -0.4563448E+01  0.1122845E-09  0.1003653E-03   1.000
+   BAND (EV)   17 -0.4485781E+01  0.8979994E-10  0.1003118E-03   1.000
+   BAND (EV)   18 -0.4421864E+01  0.1083590E-09  0.1003789E-03   1.000
+   BAND (EV)   19 -0.4124489E+01  0.5872715E-10  0.1001948E-03   1.000
+   BAND (EV)   20 -0.3984768E+01  0.7802615E-10  0.1010863E-03   1.000
+   BAND (EV)   21 -0.3818711E+01  0.1182882E-09  0.1003689E-03   1.000
+   BAND (EV)   22 -0.3388944E+01  0.1251883E-09  0.1003667E-03   1.000
+   BAND (EV)   23 -0.3107784E+01  0.1558809E-09  0.1004320E-03   1.000
+   BAND (EV)   24 -0.2780217E+01  0.1135765E-09  0.1003379E-03   1.000
+   BAND (EV)   25 -0.2318176E+01  0.6729950E-10  0.1001873E-03   1.000
+   BAND (EV)   26  0.1061149E+01  0.1004033E-09  0.1014662E-03   0.000
+   BAND (EV)   27  0.1062606E+01  0.8887965E-10  0.1009129E-03   0.000
+   BAND (EV)   28  0.1905153E+01  0.1264450E-09  0.1008736E-03   0.000
+   BAND (EV)   29  0.1912189E+01  0.8781978E-10  0.1010730E-03   0.000
+   BAND (EV)   30  0.2053289E+01  0.1332181E-09  0.1024795E-03   0.000
+   BAND (EV)   31  0.2876947E+01  0.5882848E-07  0.8752408E-03   0.000
+   BAND (EV)   32  0.3021797E+01  0.1177759E-05  0.4919728E-02   0.000
+                       ****  CPU TIME AFT FRPRMN:      10.1459570 SEC
+
+
+
+
+            ** EWALDY: IMX JMX KMX =    12   12    2
+ GCUT=   5468.7500000 NG=     681 NG EFFICIENT=    150.7964630
+  IMAX=          11  JMAX=          11  KMAX=           1
+                                      *** NONLOCF: EBND =  -0.10828D+02
+                       ****  ELECTF: AFTER            10.1874430 SEC
+
+
+  ****** TOTAL ENERGY: ETOT   =    -0.4867975116D+02  HR
+                                   -0.9735950233D+02  RYD
+
+  ******                ESELF =     0.5052927104D+01  HR
+  ******                 EWA  =     0.1842936419D+03  HR
+  ******               ELOCAL =    -0.4850740954D+03  HR
+  ******                 EXC  =    -0.1499614503D+02  HR
+  ******                 EH   =     0.2317498400D+03  HR
+  ******                EKINE =     0.1899778413D+02  HR
+  ******                 ENL  =     0.1129629618D+02  HR
+
+
+
+  ******  TOTAL FORCE: NEGATIVE  (HARTREE/AU):
+                 1     -0.0001975     -0.0000010      0.0016363
+                 2      0.0003567      0.0000489     -0.0003822
+                 3     -0.0001630      0.0000250     -0.0001801
+                 4      0.0002651     -0.0000185     -0.0006096
+                 5      0.0000817      0.0000002     -0.0000615
+                 6     -0.0008001      0.0000020      0.0003340
+                 7      0.0001975      0.0000010     -0.0016363
+                 8     -0.0003567     -0.0000489      0.0003822
+                 9      0.0001630     -0.0000250      0.0001801
+                10     -0.0002651      0.0000185      0.0006096
+                11     -0.0000817     -0.0000002      0.0000615
+                12      0.0008001     -0.0000020     -0.0003340
+                13     -0.0004818      0.0000017     -0.0003775
+                14      0.0004818     -0.0000017      0.0003775
+  
+
+
+
+                       ****  CPU TIME END OF PSPW:     10.1874870 SEC
+
+
