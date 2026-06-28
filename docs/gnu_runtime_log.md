@@ -59,6 +59,10 @@ Important unit mapping for TDDFT:
 - SD stderr: `docs/runtime_logs/gnu_si111_h_sd.err`
 - TDDFT stdout: `docs/runtime_logs/gnu_si111_h_tddft_2steps.out`
 - TDDFT stderr: `docs/runtime_logs/gnu_si111_h_tddft_2steps.err`
+- TDDFT 50-step stdout: `docs/runtime_logs/gnu_si111_h_tddft_50steps.out`
+- TDDFT 50-step stderr: `docs/runtime_logs/gnu_si111_h_tddft_50steps.err`
+- TDDFT 100-step stdout: `docs/runtime_logs/gnu_si111_h_tddft_100steps.out`
+- TDDFT 100-step stderr: `docs/runtime_logs/gnu_si111_h_tddft_100steps.err`
 
 ## CG Result
 
@@ -130,6 +134,96 @@ FPSEID_PROFILE_BEGIN
 14 fft_wrapper                    8769           2.691144           2.691144
 FPSEID_PROFILE_END
 ```
+
+## TDDFT Longer-Step Checks
+
+The 2-step run was intended as a smoke test. Longer 50-step and 100-step runs
+were added to check whether the profile trend changes once startup effects are
+less dominant.
+
+### 50 Steps
+
+- Exit status: success
+- Reported runtime: `0.270753938000D+03 sec`
+- Final reported time: `0.4840000000000000 fsec`
+- Final total energy: `ETOT = -0.487251559675D+02 HR`
+- stderr: empty
+
+```text
+FPSEID_PROFILE_BEGIN
+ id label                    count      max_rank_sec       avg_rank_sec
+ 1 time_step_total                  51         271.042540         271.042540
+ 2 g_vector_update                  51           0.005653           0.005653
+ 3 ion_md                           51           0.000057           0.000057
+ 4 frprmn                           51         266.301909         266.301909
+ 5 electf_force                     51           4.733873           4.733873
+ 6 force_energy_update              51           0.000047           0.000047
+ 7 prenon                            1           0.168707           0.168707
+ 8 tmevl_total                     492         214.945228         214.945228
+ 9 tmevl_exkin                    4920          41.547327          41.547327
+10 tmevl_s2                       2460         135.700722         135.700722
+11 s2_nonlocal                    4920          58.562251          58.562251
+12 s2_fft_local                   2460          77.137261          77.137261
+13 tmevl_expectation                 8           0.530998           0.530998
+14 fft_wrapper                  176181          54.835651          54.835651
+FPSEID_PROFILE_END
+```
+
+### 100 Steps
+
+- Exit status: success
+- Reported runtime: `0.527506942000D+03 sec`
+- Final reported time: `0.9680000000000001 fsec`
+- Final total energy: `ETOT = -0.487124920508D+02 HR`
+- stderr: empty
+
+```text
+FPSEID_PROFILE_BEGIN
+ id label                    count      max_rank_sec       avg_rank_sec
+ 1 time_step_total                 101         527.884465         527.884465
+ 2 g_vector_update                 101           0.012296           0.012296
+ 3 ion_md                          101           0.000117           0.000117
+ 4 frprmn                          101         518.327174         518.327174
+ 5 electf_force                    101           9.543496           9.543496
+ 6 force_energy_update             101           0.000103           0.000103
+ 7 prenon                            1           0.169014           0.169014
+ 8 tmevl_total                     942         415.875456         415.875456
+ 9 tmevl_exkin                    9420          80.354704          80.354704
+10 tmevl_s2                       4710         262.497933         262.497933
+11 s2_nonlocal                    9420         113.499976         113.499976
+12 s2_fft_local                   4710         148.996303         148.996303
+13 tmevl_expectation                 8           0.536824           0.536824
+14 fft_wrapper                  335881         105.316609         105.316609
+FPSEID_PROFILE_END
+```
+
+### Trend Comparison
+
+Percentages below are each timer's `max_rank_sec` divided by
+`time_step_total`. Some timers are nested, so percentages should be used to
+identify hotspots rather than summed as exclusive time.
+
+| label | 2 steps | 50 steps | 100 steps |
+| --- | ---: | ---: | ---: |
+| frprmn | 97.76% | 98.25% | 98.19% |
+| electf_force | 2.22% | 1.75% | 1.81% |
+| prenon | 1.35% | 0.06% | 0.03% |
+| tmevl_total | 71.51% | 79.30% | 78.78% |
+| tmevl_exkin | 12.05% | 15.33% | 15.22% |
+| tmevl_s2 | 39.30% | 50.07% | 49.73% |
+| s2_nonlocal | 16.94% | 21.60% | 21.50% |
+| s2_fft_local | 22.36% | 28.46% | 28.22% |
+| fft_wrapper | 21.65% | 20.23% | 19.95% |
+
+The 50-step and 100-step profiles are consistent. Compared with the 2-step
+smoke test, startup-only work such as `prenon` becomes negligible, while
+`frprmn`, `tmevl_total`, and especially `tmevl_s2` become more dominant.
+
+GPU porting priority remains:
+
+1. `tmevl_s2`, especially `s2_fft_local` and the FFT wrapper.
+2. `s2_nonlocal`, including `exnlp_gemm` and projector work.
+3. `tmevl_exkin` pointwise complex phase multiplication.
 
 ## Notes
 

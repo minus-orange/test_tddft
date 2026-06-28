@@ -1,0 +1,2290 @@
+  ------- 
+  This is TDDFT-code to calculate the electron-ion dynamics within the Ehrenfest approximation and
+  Suzuki-Trotter split operator scheme.
+  Disclosure of this code was kindly agreed by Osamu Sugino, Yoshihide Yoshimoto, Atsushi Oshiyama,
+  Kenji Shiraishi,Takashi Nakayama, and Mineo Saito.
+  ------- 
+  PHASE shift of pulse =    0.0000000000000000     
+%%% Si(111)1x1 H-term cell %%%%                                         
+  # OF COMMANDS =           23
+ NO.  1  COMMAND = STND         OPERATION =                     
+ NO.  2  COMMAND = KPOINT       OPERATION = MESH                
+ NO.  3  COMMAND = ALAT         OPERATION = 4.4427103214141699  
+ NO.  4  COMMAND = ZVAL         OPERATION = 50                  
+ NO.  5  COMMAND = RCUT         OPERATION = 845                 
+ NO.  6  COMMAND = GCUT         OPERATION = 12.0                
+ NO.  7  COMMAND = PP           OPERATION = (KB,SOFT)           
+ NO.  8  COMMAND = CD           OPERATION = FILE                
+ NO.  9  COMMAND = WF           OPERATION = 32                  
+ NO. 10  COMMAND = CG           OPERATION = (5,8,3)             
+ NO. 11  COMMAND = SCF          OPERATION = 60                  
+ NO. 12  COMMAND = EXT          OPERATION = PANDEY              
+ NO. 13  COMMAND = OUTWF        OPERATION = 23                  
+ NO. 14  COMMAND = METAL        OPERATION = (25,0)              
+ NO. 15  COMMAND = KCONT        OPERATION = 0                   
+ NO. 16  COMMAND = dt           OPERATION = 0.40                
+ NO. 17  COMMAND = tstep        OPERATION = 100                 
+ NO. 18  COMMAND = TMOD         OPERATION = 100                 
+ NO. 19  COMMAND = SUZUKI       OPERATION = 4                   
+ NO. 20  COMMAND = RMIX         OPERATION = 0.03                
+ NO. 21  COMMAND = CONV         OPERATION = 1.D-5               
+ NO. 22  COMMAND = MAXFN        OPERATION = 0                   
+ NO. 23  COMMAND = OKSTEP       OPERATION = 0.1D0               
+  ****  Standard inputs !!!! *****
+  MESH SAMPLING FOR K-VECTROS
+  LATTICE CONSTANT    4.4427103214141699     
+  #CHARGE IS    50.000000000000000     
+  RCUT**2 IS (AU)    845.00000000000000     
+  GCUT2 IS    12.000000000000000     
+  KLEINMAN BYLANDER PSEUDOPOTENTIAL IS USED 
+  SOFT PSEUDOPOTENTIAL IS USED 
+  READ CHARGE DENSITY FROM FILE20 (REAL SPACE)
+  MAX # OF BAND           32
+  READ PREVIOUS WAVEFUNCTION FROM FILE22 
+  #CG  STEP IS            5           8           3
+  #SCF STEP IS           60
+  PANDEY EXTRAPOLATION SCHEME (R) IS USED 
+  WRITE WF TO FILE           23
+  METAL CASE: NFL NPFL =           25           0
+  CONTINUATION? KCONT =             0
+  Delta t =   0.40000000000000002       a.u.
+  FREQUENCY OF MONITOR          100
+  Fourth order Suzuki-Trotter decomposition          (Ver.2)!! 
+  MIXING RATIO IS    2.9999999999999999E-002
+  SCF CONVERGENCE CRITERION IS    1.0000000000000001E-005
+  #G-OPT LOOP IS            0
+  AT G-OPT INITIAL DISPLACEMENT IS   0.10000000000000001     
+ ------------------------------------------------------------------------
+
+
+  This is a load distribution for band indices.
+  nrest =            0
+  nbegin(           0 )=           1    nend(           0 )=          32
+  The next is a load distribution for atomic sites.
+  nrest =            0
+  nbegin(           0 )=           1    nend(           0 )=          14
+  The next is a load distribution for mesh of PP.
+  nrest =            0
+  nbegin(           0 )=           1    nend(           0 )=        1000
+  The next is a load distribution      for double loops of atomic sites.
+  nrest =            0
+  nbegin(           0 )=           1    nend(           0 )=         105
+                                **  MBLK =            1
+                       ****  CPU TIME BFR CRYST: 2929830.6597130 SEC
+
+ INITIAL POSITION OF ATOM IN CARTESIAN COORDINATE IN ATOMIC UNIT:
+      1        0.0000000      0.0000000      2.2165260
+      2        4.1886275     -0.0000000      3.6609519
+      3        4.1886275     -0.0000000      8.0828717
+      4       -4.1886275      0.0000000      9.5397751
+      5       -4.1886275      0.0000000     13.9620769
+      6        0.0000000      0.0000000     15.3850979
+      7       -0.0000000      0.0000000     -2.2165260
+      8       -4.1886275      0.0000000     -3.6609519
+      9       -4.1886275      0.0000000     -8.0828717
+     10        4.1886275     -0.0000000     -9.5397751
+     11        4.1886275     -0.0000000    -13.9620769
+     12        0.0000000      0.0000000    -15.3850979
+     13        0.0000000      0.0000000     18.2333531
+     14        0.0000000      0.0000000    -18.2333531
+       ****  NTYPE =   2  NUMTY =   12  -2
+
+ IBRAV =   0 PGIND =   0 NFL =  25 NBND =  25 NPFL =   0 NK =   0
+ RCUT =     845.0000000 GCUT =      23.9981351 GCUT2 =      12.0000000
+ A-VECTORS
+       6.2829412      6.2829412      0.0000000
+      -3.6274578      3.6274578      0.0000000
+       0.0000000      0.0000000     58.2184051
+ OMEGA=   2653.7234450
+  Read S-matrices fron file !!
+  # OF SYMMETRY OPERATIONS: NTOT =            1
+  S MATRICES: OP  1ST RAW   2ND RAW   3RD RAW
+         1       1  0  0    0  1  0    0  0  1
+  
+              SHELL NO.   1  LENGTH SQUARED     0.000  NO. OF VECTS.   1
+              SHELL NO.   2  LENGTH SQUARED    52.634  NO. OF VECTS.   6
+              SHELL NO.   3  LENGTH SQUARED   157.901  NO. OF VECTS.   6
+              SHELL NO.   4  LENGTH SQUARED   210.535  NO. OF VECTS.   6
+              SHELL NO.   5  LENGTH SQUARED   368.437  NO. OF VECTS.  12
+              SHELL NO.   6  LENGTH SQUARED   473.704  NO. OF VECTS.   6
+              SHELL NO.   7  LENGTH SQUARED   631.606  NO. OF VECTS.   6
+              SHELL NO.   8  LENGTH SQUARED   684.239  NO. OF VECTS.  12
+              SHELL NO.   9  LENGTH SQUARED   842.141  NO. OF VECTS.   6
+    # OF LATTICE VECTORS: NLV =           61
+ A-VECTORS
+       6.2829412      6.2829412      0.0000000
+      -3.6274578      3.6274578      0.0000000
+       0.0000000      0.0000000     58.2184051
+
+ B-VECTORS
+       0.3535534      0.3535534     -0.0000000
+      -0.6123724      0.6123724      0.0000000
+       0.0000000     -0.0000000      0.0763111
+
+ GCUT=     23.9981351 NG=   29025 NG EFFICIENT=  15197.4560547
+  IMAX=           7  JMAX=           7  KMAX=          64
+  SMATCHK2 finished ! 
+  begin LVGENX! 
+  in sub. LVGENX !!
+  QFR has been BCASTed!
+
+          **** RARR3: NEXPND =   31 IND =  0 SHOULD BE 0
+                      N =  31   NO  KR1 KR2 KR3    ADR 
+  R-vectors
+  seq. #   # of stars     length
+     1           1         0.00000D+00
+         0  0  0       R-vector
+  seq. #   # of stars     length
+     2           2         0.52634D+02
+        -1  0  0       R-vector
+         1  0  0       R-vector
+  seq. #   # of stars     length
+     3           2         0.52634D+02
+        -1  1  0       R-vector
+         1 -1  0       R-vector
+  seq. #   # of stars     length
+     4           2         0.52634D+02
+         0 -1  0       R-vector
+         0  1  0       R-vector
+  seq. #   # of stars     length
+     5           2         0.15790D+03
+        -2  1  0       R-vector
+         2 -1  0       R-vector
+  seq. #   # of stars     length
+     6           2         0.15790D+03
+        -1 -1  0       R-vector
+         1  1  0       R-vector
+  seq. #   # of stars     length
+     7           2         0.15790D+03
+        -1  2  0       R-vector
+         1 -2  0       R-vector
+  seq. #   # of stars     length
+     8           2         0.21054D+03
+        -2  0  0       R-vector
+         2  0  0       R-vector
+  seq. #   # of stars     length
+     9           2         0.21054D+03
+        -2  2  0       R-vector
+         2 -2  0       R-vector
+  seq. #   # of stars     length
+    10           2         0.21054D+03
+         0 -2  0       R-vector
+         0  2  0       R-vector
+  seq. #   # of stars     length
+    11           2         0.36844D+03
+        -3  1  0       R-vector
+         3 -1  0       R-vector
+  seq. #   # of stars     length
+    12           2         0.36844D+03
+        -3  2  0       R-vector
+         3 -2  0       R-vector
+  seq. #   # of stars     length
+    13           2         0.36844D+03
+        -2 -1  0       R-vector
+         2  1  0       R-vector
+  seq. #   # of stars     length
+    14           2         0.36844D+03
+        -2  3  0       R-vector
+         2 -3  0       R-vector
+  seq. #   # of stars     length
+    15           2         0.36844D+03
+        -1 -2  0       R-vector
+         1  2  0       R-vector
+  seq. #   # of stars     length
+    16           2         0.36844D+03
+        -1  3  0       R-vector
+         1 -3  0       R-vector
+  seq. #   # of stars     length
+    17           2         0.47370D+03
+        -3  0  0       R-vector
+         3  0  0       R-vector
+  seq. #   # of stars     length
+    18           2         0.47370D+03
+        -3  3  0       R-vector
+         3 -3  0       R-vector
+  seq. #   # of stars     length
+    19           2         0.47370D+03
+         0 -3  0       R-vector
+         0  3  0       R-vector
+  seq. #   # of stars     length
+    20           2         0.63161D+03
+        -4  2  0       R-vector
+         4 -2  0       R-vector
+  seq. #   # of stars     length
+    21           2         0.63161D+03
+        -2 -2  0       R-vector
+         2  2  0       R-vector
+  seq. #   # of stars     length
+    22           2         0.63161D+03
+        -2  4  0       R-vector
+         2 -4  0       R-vector
+  seq. #   # of stars     length
+    23           2         0.68424D+03
+        -4  1  0       R-vector
+         4 -1  0       R-vector
+  seq. #   # of stars     length
+    24           2         0.68424D+03
+        -4  3  0       R-vector
+         4 -3  0       R-vector
+  seq. #   # of stars     length
+    25           2         0.68424D+03
+        -3 -1  0       R-vector
+         3  1  0       R-vector
+  seq. #   # of stars     length
+    26           2         0.68424D+03
+        -3  4  0       R-vector
+         3 -4  0       R-vector
+  seq. #   # of stars     length
+    27           2         0.68424D+03
+        -1 -3  0       R-vector
+         1  3  0       R-vector
+  seq. #   # of stars     length
+    28           2         0.68424D+03
+        -1  4  0       R-vector
+         1 -4  0       R-vector
+  seq. #   # of stars     length
+    29           2         0.84214D+03
+        -4  0  0       R-vector
+         4  0  0       R-vector
+  seq. #   # of stars     length
+    30           2         0.84214D+03
+        -4  4  0       R-vector
+         4 -4  0       R-vector
+  seq. #   # of stars     length
+    31           2         0.84214D+03
+         0 -4  0       R-vector
+         0  4  0       R-vector
+
+          **** MESHK: N =    4
+                  TOTAL NO. OF K IN WHOLE BZ =    4
+                  TOTAL NO. OF K IN WEDGE    =    2
+                  NO.            COORDINATES      WK  
+                    1 -0.2500 -0.2500  0.0000    1.0000
+                    2 -0.2500  0.2500  0.0000    1.0000
+                  NO.   1 NJD =    1  JDR(1..NJD) = :
+                        1
+                  NO.   2 NJD =    1  JDR(1..NJD) = :
+                        1
+                  FOR DOS: NDX NDY NDZ =   10  10  10
+  MESHK finished ! 
+
+                      ****  CRYST: NEXPND CHANGED TO BE   2
+ ***   CRYST: VECK( 1) =  -0.17678      0.00000      0.00000
+ ***   CRYST: VECK( 2) =   0.00000      0.30619      0.00000
+ OCC: K2 =   1
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+ OCC: K2 =   2
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+             1.0000      1.0000      1.0000      1.0000      1.0000
+                       ****  CPU TIME AFTR CRYST: 2929830.6637130 SEC
+ PLANE WAVE BASIS SET FOR K =   1  NG2=    29025
+ PLANE WAVE BASIS SET FOR K =   2  NG2=    29025
+   check in sub. WFREAD 
+  MXBND =           32   NUMK =            2
+  After reading wavefunctions 
+  ik =            1
+  Number of necessary bands =           32
+  OCC = 
+    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+    1.000000    1.000000    1.000000    1.000000    0.000000    0.000000    0.000000
+    0.000000    0.000000    0.000000    0.000000
+  ik =            2
+  Number of necessary bands =           32
+  OCC = 
+    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+    1.000000    1.000000    1.000000    1.000000    0.000000    0.000000    0.000000
+    0.000000    0.000000    0.000000    0.000000
+  in sub. INITPW : mxbnd0 =           32
+  after calling INITPW 
+  IK NG2(IK) =            1       29025
+  IK NG2(IK) =            2       29025
+  preparing external potential !
+  omega=   2653.7234449511984     
+  vzlength =    58.218405104605623     
+  Sum of Pogitive extra charge =    0.0000000000000000     
+  Sum of Negative extra charge =    0.0000000000000000     
+  total extra charge =    0.0000000000000000     
+   Now make rho in G-space 
+  Total excessive charge again =                (0.0000000000000000,0.0000000000000000)
+                       ****  CPU TIME AFT INITPW: 2929830.8035840 SEC
+  ATOM TYPE: NTYPE =            2
+  call prenon for local potential
+
+ PSEUDOPOTENTIAL FOR    1  -TH ATOM: ZV =      -4.00
+                         COR AND RC0 =   0.27060D+01  0.93033D+00
+                                        -0.17060D+01  0.57489D+00
+                         NVST NVST2 MESH =     2    3 1000
+  ++++ PSPOT +++++ 
+  J =            1
+   -0.130841   -0.130841   -0.130841   -0.130841
+   -0.130841   -0.130836   -0.130622   -0.124862
+   -2.166094   -0.558096
+  J =            2
+   -2.869600   -2.869600   -2.869600   -2.869600
+   -2.869599   -2.869594   -2.869378   -2.860717
+   -2.636337   -0.558096
+  ++++ PSPOT2 +++++ 
+  J =            1
+   -0.130841   -0.130841   -0.130841   -0.130841
+   -0.130841   -0.130836   -0.130622   -0.124862
+   -2.166094   -0.558096
+  J =            2
+   -2.869600   -2.869600   -2.869600   -2.869600
+   -2.869599   -2.869594   -2.869378   -2.860717
+   -2.636337   -0.558096
+  J =            3
+   -7.558750   -7.558750   -7.558750   -7.558750
+   -7.558749   -7.558744   -7.558525   -7.544462
+   -4.088713   -0.558096
+
+          *****  PRENON: ITY ZO(1) ZO(2) =   1  0.2000D+01  0.2000D+01
+
+ PSEUDOPOTENTIAL FOR    2  -TH ATOM: ZV =      -1.00
+                         COR AND RC0 =   0.50000D+00  0.66667D-01
+                                         0.50000D+00  0.66667D-01
+                         NVST  MESH =     1 1000
+
+          *****  PRENON: ITY ZO(1) ZO(2) =   2  0.1000D+01  0.0000D+00
+  call prenon for nonlocal potential
+  ++++ PSPOT +++++ 
+  J =            1
+   -0.130841   -0.130841   -0.130841   -0.130841
+   -0.130841   -0.130836   -0.130622   -0.124862
+   -2.166094   -0.558096
+  J =            2
+   -2.869600   -2.869600   -2.869600   -2.869600
+   -2.869599   -2.869594   -2.869378   -2.860717
+   -2.636337   -0.558096
+  ++++ PSPOT2 +++++ 
+  J =            1
+   -0.130841   -0.130841   -0.130841   -0.130841
+   -0.130841   -0.130836   -0.130622   -0.124862
+   -2.166094   -0.558096
+  J =            2
+   -2.869600   -2.869600   -2.869600   -2.869600
+   -2.869599   -2.869594   -2.869378   -2.860717
+   -2.636337   -0.558096
+  J =            3
+   -7.558750   -7.558750   -7.558750   -7.558750
+   -7.558749   -7.558744   -7.558525   -7.544462
+   -4.088713   -0.558096
+  ++++ PSPOT in PRENON +++++ 
+  J =            1
+    0.000000    0.000000    0.000002    0.000014
+    0.000092    0.000590    0.003775    0.024121
+    0.039979    0.000000
+  J =            2
+    0.000000    0.000000    0.000001    0.000009
+    0.000058    0.000373    0.002383    0.015227
+    0.030201    0.000000
+  At IK =            1 ,  Vnl needs         4981  G-vectors.
+  Ratio to full FFT grids =   0.17161068044788974     
+   SUM OF VNL*PSIL**2: TOTAL AND PARTITIONED FOR ITY =    1 K =   1 LI =    1:
+             0.34840D+00   0.32548D+00   0.22916D-01
+   VPP / VV:    0.29656D+00   0.28968D+00   0.29276D+00
+   SUM OF VNL*PSIL**2: TOTAL AND PARTITIONED FOR ITY =    1 K =   1 LI =    2:
+             0.13624D+00   0.98235D-01   0.38003D-01
+   VPP / VV:    0.25162D+00   0.21505D+00   0.31991D+00
+  Now NGNL has been redefined 
+ NGNL( 1,  1)=      4981 Ratio to the full grids =     0.1716106804478897
+  At IK =            2 ,  Vnl needs         4959  G-vectors.
+  Ratio to full FFT grids =   0.17085271317829456     
+   SUM OF VNL*PSIL**2: TOTAL AND PARTITIONED FOR ITY =    1 K =   2 LI =    1:
+             0.34840D+00   0.32548D+00   0.22916D-01
+   VPP / VV:    0.29656D+00   0.28968D+00   0.29276D+00
+   SUM OF VNL*PSIL**2: TOTAL AND PARTITIONED FOR ITY =    1 K =   2 LI =    2:
+             0.13624D+00   0.98235D-01   0.38003D-01
+   VPP / VV:    0.25162D+00   0.21505D+00   0.31991D+00
+  Now NGNL has been redefined 
+ NGNL( 1,  2)=      4959 Ratio to the full grids =     0.1708527131782946
+
+ PSEUDOPOTENTIAL FOR    2  -TH ATOM: ZV =      -1.00
+                         COR AND RC0 =   0.50000D+00  0.66667D-01
+                                         0.50000D+00  0.66667D-01
+                         NVST  MESH =     1 1000
+                       ****  CPU TIME AFT PRENON: 2929831.3652230 SEC
+  just after PRENON!
+  ik ity NGNL=           1           1        4981
+  ik ity NGNL=           1           2           0
+  ik ity NGNL=           2           1        4959
+  ik ity NGNL=           2           2           0
+  Initial Velocities 
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   1)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   2)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   3)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   4)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   5)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   6)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   7)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   8)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   9)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(  10)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(  11)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(  12)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(  13)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(  14)
+  simulation time from the past run 
+              0.0000000000000000       fsec 
+     ETOT_old =    0.0000000000000000       HR
+  Start time evolution 
+  dt =   0.40000000000000002     
+  ntstep =          100
+  +++ GFAC =    5.9995337800433362     
+  in sub. LOCPOT:                                             VG calculation took    4.6089999377727509E-003  sec 
+  in sub. LOCPOT:                                            Reduce-Bcast took    2.6999972760677338E-005  sec
+  in sub. LOCPOT:                                             VG calculation took    4.5870002359151840E-003  sec 
+  in sub. LOCPOT:                                            Reduce-Bcast took    2.7999747544527054E-005  sec
+  in sub. LOCPOT:                                             VG calculation took    4.5979996211826801E-003  sec 
+  in sub. LOCPOT:                                            Reduce-Bcast took    2.6999972760677338E-005  sec
+  in sub. LOCPOT:                                             VG calculation took    4.5889997854828835E-003  sec 
+  in sub. LOCPOT:                                            Reduce-Bcast took    2.6999972760677338E-005  sec
+  in sub. LOCPOT:                                             VG calculation took    4.5920000411570072E-003  sec 
+  in sub. LOCPOT:                                            Reduce-Bcast took    2.6999972760677338E-005  sec
+  in sub. LOCPOT:                                             VG calculation took    8.6659998632967472E-003  sec 
+  in sub. LOCPOT:                                            Reduce-Bcast took    2.6999972760677338E-005  sec
+  Exepctation values: end
+  Exepctation values: end
+                       ****  CPU TIME AFT FRPRMN: 2929831.6144180 SEC
+
+
+
+ Time (fsec) =     0.0000000000000000
+
+  ****  expectation values (eV) *** 
+  ***  for            1 -th k-point
+     -0.12026503D+02     -0.11793140D+02     -0.11452115D+02     -0.10998425D+02
+     -0.10453367D+02     -0.99552728D+01     -0.75195884D+01     -0.70037619D+01
+     -0.62661528D+01     -0.55793534D+01     -0.50315920D+01     -0.47959591D+01
+     -0.46034900D+01     -0.43169328D+01     -0.40258358D+01     -0.36881902D+01
+     -0.31695840D+01     -0.31338339D+01     -0.29657489D+01     -0.26881265D+01
+     -0.25501449D+01     -0.23399996D+01     -0.19687513D+01     -0.18929730D+01
+     -0.17203843D+01      0.36443806D+00      0.59388419D+00      0.86619293D+00
+      0.12548785D+01      0.13361861D+01      0.16785234D+01      0.21798020D+01
+  ***  for            2 -th k-point
+     -0.10701532D+02     -0.10494263D+02     -0.10196757D+02     -0.98062377D+01
+     -0.93368131D+01     -0.88406619D+01     -0.83794989D+01     -0.78902336D+01
+     -0.74967281D+01     -0.71499903D+01     -0.68020788D+01     -0.65200906D+01
+     -0.50213894D+01     -0.49193272D+01     -0.48941993D+01     -0.45935488D+01
+     -0.45465374D+01     -0.45021760D+01     -0.41966191D+01     -0.40397744D+01
+     -0.38429761D+01     -0.34472561D+01     -0.31944923D+01     -0.28643642D+01
+     -0.24281571D+01      0.98621203D+00      0.99858252D+00      0.18450115D+01
+      0.18754390D+01      0.19729744D+01      0.28163245D+01      0.29662648D+01
+
+            ** EWALDY: IMX JMX KMX =    12   12    2
+ GCUT=   5468.7500000 NG=     681 NG EFFICIENT=    150.7964630
+  IMAX=          11  JMAX=          11  KMAX=           1
+  ELOCAL=    0.0000000000000000     
+  ELOCALd=    0.0000000000000000     
+  Before ELOCAL : EH=   0.0000000000000000     
+ just before do 6351 
+ plot REXT!
+    0.0000000000000000    0.0000000000000000
+  after DO 652  EH =    231.83138494999503     
+                                      *** NONLOCF: EBND =  -0.10953D+02
+                       ****  ELECTF: AFTER       2929831.7434130 SEC
+
+
+  ****** TOTAL ENERGY: ETOT   =    -0.4877484889D+02  HR
+                                   -0.9754969778D+02  RYD
+
+  ******                ESELF =     0.5052927104D+01  HR
+  ******                 EWA  =     0.1842936419D+03  HR
+  ******               ELOCAL =    -0.4853390010D+03  HR
+  ******                 EXC  =    -0.1499259066D+02  HR
+  ******                 EH   =     0.2318313849D+03  HR
+  ******                EKINE =     0.1900479913D+02  HR
+  ******                 ENL  =     0.1137398969D+02  HR
+
+
+ current J(a.u.) =      0.0000000000000000      0.0000000000000000      0.0000000000000000
+
+  ******  TOTAL FORCE: NEGATIVE  (HARTREE/AU):
+                 1     -0.0005652      0.0000648      0.0011855
+                 2      0.0006534     -0.0000270     -0.0004766
+                 3     -0.0005012     -0.0000588     -0.0002740
+                 4      0.0007919      0.0000572     -0.0001354
+                 5     -0.0004116     -0.0000072      0.0008220
+                 6     -0.0005141      0.0001172      0.0081455
+                 7      0.0005652     -0.0000648     -0.0011855
+                 8     -0.0006534      0.0000270      0.0004766
+                 9      0.0005012      0.0000588      0.0002740
+                10     -0.0007919     -0.0000572      0.0001354
+                11      0.0004116      0.0000072     -0.0008220
+                12      0.0005141     -0.0001172     -0.0081455
+                13     -0.0005104      0.0001856     -0.0080978
+                14      0.0005104     -0.0001856      0.0080978
+  
+  it =           1  ZZ=  -4.0000000000000000     
+  it =           2  ZZ=  -4.0000000000000000     
+  it =           3  ZZ=  -4.0000000000000000     
+  it =           4  ZZ=  -4.0000000000000000     
+  it =           5  ZZ=  -4.0000000000000000     
+  it =           6  ZZ=  -4.0000000000000000     
+  it =           7  ZZ=  -4.0000000000000000     
+  it =           8  ZZ=  -4.0000000000000000     
+  it =           9  ZZ=  -4.0000000000000000     
+  it =          10  ZZ=  -4.0000000000000000     
+  it =          11  ZZ=  -4.0000000000000000     
+  it =          12  ZZ=  -4.0000000000000000     
+  it =          13  ZZ=  -1.0000000000000000     
+  it =          14  ZZ=  -1.0000000000000000     
+  force by Ext-field
+  tau =            1
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =            2
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =            3
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =            4
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =            5
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =            6
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =            7
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =            8
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =            9
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =           10
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =           11
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =           12
+   -0.0020651266617709   -0.0000000000000000   -0.0000000000000000
+  tau =           13
+   -0.0005162816654427   -0.0000000000000000   -0.0000000000000000
+  tau =           14
+   -0.0005162816654427   -0.0000000000000000   -0.0000000000000000
+  E-field
+   -0.0265371724395471   -0.0000000000000000   -0.0000000000000000
+  A-vector
+    0.0000000000000000    0.0000000000000000    0.0000000000000000
+  Total energy for electron and nuclei (HR)
+ Eelec       =  -0.487748488903D+02
+ Enucl       =   0.000000000000D+00
+ Eext        =   0.000000000000D+00
+ Eelec+Enucl-Eext-Ework=  -0.487748488903D+02
+ Time (fsec) =     0.0000000000000000
+  Positions 
+    0.0000000000000000    0.0000000000000000    0.0380725996019826   TAU(   1)
+    0.3333333333333333    0.3333333333333333    0.0628830683197726   TAU(   2)
+    0.3333333333333333    0.3333333333333333    0.1388370510257218   TAU(   3)
+   -0.3333333333333333   -0.3333333333333333    0.1638618412213989   TAU(   4)
+   -0.3333333333333333   -0.3333333333333333    0.2398223878715089   TAU(   5)
+    0.0000000000000000    0.0000000000000000    0.2642651909875856   TAU(   6)
+   -0.0000000000000000    0.0000000000000000   -0.0380725996019826   TAU(   7)
+   -0.3333333333333333   -0.3333333333333333   -0.0628830683197726   TAU(   8)
+   -0.3333333333333333   -0.3333333333333333   -0.1388370510257218   TAU(   9)
+    0.3333333333333333    0.3333333333333333   -0.1638618412213989   TAU(  10)
+    0.3333333333333333    0.3333333333333333   -0.2398223878715089   TAU(  11)
+    0.0000000000000000    0.0000000000000000   -0.2642651909875856   TAU(  12)
+    0.0000000000000000    0.0000000000000000    0.3131888120278811   TAU(  13)
+    0.0000000000000000    0.0000000000000000   -0.3131888120278811   TAU(  14)
+  Velocities
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   1)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   2)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   3)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   4)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   5)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   6)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   7)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   8)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(   9)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(  10)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(  11)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(  12)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(  13)
+    0.0000000000000000    0.0000000000000000    0.0000000000000000   TAU(  14)
+  itstep=           1  iscf=           3  Convergence=   6.0864071852535720E-005
+  itstep=           1  iscf=           4  Convergence=   1.8321731012723044E-005
+  itstep=           1  iscf=           5  Convergence=   2.1981291367114666E-006
+  itstep=           2  iscf=           3  Convergence=   6.5130214359316258E-003
+  itstep=           2  iscf=           4  Convergence=   7.4159171607964284E-004
+  itstep=           2  iscf=           5  Convergence=   8.5573566289207328E-005
+  itstep=           2  iscf=           6  Convergence=   9.8875511906294465E-006
+  itstep=           3  iscf=           3  Convergence=   6.6342621884031708E-003
+  itstep=           3  iscf=           4  Convergence=   7.6655559036218853E-004
+  itstep=           3  iscf=           5  Convergence=   9.0858537054320398E-005
+  itstep=           3  iscf=           6  Convergence=   1.0573552582203822E-005
+  itstep=           3  iscf=           7  Convergence=   1.2376762501196642E-006
+  itstep=           4  iscf=           3  Convergence=   1.5467533700974668E-002
+  itstep=           4  iscf=           4  Convergence=   1.8457444467532076E-003
+  itstep=           4  iscf=           5  Convergence=   2.2206761610508045E-004
+  itstep=           4  iscf=           6  Convergence=   2.6655265099541604E-005
+  itstep=           4  iscf=           7  Convergence=   3.2177182908180464E-006
+  itstep=           5  iscf=           3  Convergence=   4.3941476925338360E-003
+  itstep=           5  iscf=           4  Convergence=   4.9777742467396887E-004
+  itstep=           5  iscf=           5  Convergence=   5.6362070861762408E-005
+  itstep=           5  iscf=           6  Convergence=   6.3998756849153155E-006
+  itstep=           6  iscf=           3  Convergence=   3.2401099431172229E-003
+  itstep=           6  iscf=           4  Convergence=   4.0576421907952034E-004
+  itstep=           6  iscf=           5  Convergence=   5.1614324272384109E-005
+  itstep=           6  iscf=           6  Convergence=   7.9660297789466812E-006
+  itstep=           7  iscf=           3  Convergence=   2.2657691126644853E-003
+  itstep=           7  iscf=           4  Convergence=   2.6865033066281657E-004
+  itstep=           7  iscf=           5  Convergence=   3.2124050635188377E-005
+  itstep=           7  iscf=           6  Convergence=   3.8355497473395392E-006
+  itstep=           8  iscf=           3  Convergence=   2.0461613497383554E-003
+  itstep=           8  iscf=           4  Convergence=   2.2308132777098771E-004
+  itstep=           8  iscf=           5  Convergence=   2.4659665485364266E-005
+  itstep=           8  iscf=           6  Convergence=   2.7623713896348401E-006
+  itstep=           9  iscf=           3  Convergence=   1.8962539010659140E-003
+  itstep=           9  iscf=           4  Convergence=   2.1076539231458980E-004
+  itstep=           9  iscf=           5  Convergence=   2.3684323270608916E-005
+  itstep=           9  iscf=           6  Convergence=   2.6612409944249516E-006
+  itstep=          10  iscf=           3  Convergence=   1.6606531198271760E-003
+  itstep=          10  iscf=           4  Convergence=   1.8120027006811239E-004
+  itstep=          10  iscf=           5  Convergence=   1.9861083047906800E-005
+  itstep=          10  iscf=           6  Convergence=   2.1789286509684144E-006
+  itstep=          11  iscf=           3  Convergence=   3.1489075173705486E-003
+  itstep=          11  iscf=           4  Convergence=   3.7247031687968386E-004
+  itstep=          11  iscf=           5  Convergence=   4.2722842479103619E-005
+  itstep=          11  iscf=           6  Convergence=   4.9218443929567349E-006
+  itstep=          12  iscf=           3  Convergence=   1.7604841719841523E-003
+  itstep=          12  iscf=           4  Convergence=   2.0201961142557681E-004
+  itstep=          12  iscf=           5  Convergence=   2.3057174000418958E-005
+  itstep=          12  iscf=           6  Convergence=   2.6375499939216393E-006
+  itstep=          13  iscf=           3  Convergence=   1.4948981652139291E-003
+  itstep=          13  iscf=           4  Convergence=   1.7242897170503238E-004
+  itstep=          13  iscf=           5  Convergence=   2.0103520059964372E-005
+  itstep=          13  iscf=           6  Convergence=   2.3308714277806626E-006
+  itstep=          14  iscf=           3  Convergence=   2.4562480551229074E-003
+  itstep=          14  iscf=           4  Convergence=   2.8364169058786256E-004
+  itstep=          14  iscf=           5  Convergence=   3.2711466254985920E-005
+  itstep=          14  iscf=           6  Convergence=   3.8503374293352416E-006
+  itstep=          15  iscf=           3  Convergence=   1.7968392792213853E-003
+  itstep=          15  iscf=           4  Convergence=   1.9868397114485635E-004
+  itstep=          15  iscf=           5  Convergence=   2.2033227051284486E-005
+  itstep=          15  iscf=           6  Convergence=   2.4620599216708923E-006
+  itstep=          16  iscf=           3  Convergence=   1.4558039981090207E-003
+  itstep=          16  iscf=           4  Convergence=   1.6354440412552022E-004
+  itstep=          16  iscf=           5  Convergence=   1.8402695246166506E-005
+  itstep=          16  iscf=           6  Convergence=   2.0728181963755209E-006
+  itstep=          17  iscf=           3  Convergence=   1.1060805244199415E-003
+  itstep=          17  iscf=           4  Convergence=   1.2092983373508952E-004
+  itstep=          17  iscf=           5  Convergence=   1.3235908236360405E-005
+  itstep=          17  iscf=           6  Convergence=   1.4525019083692068E-006
+  itstep=          18  iscf=           3  Convergence=   1.6353790179844262E-003
+  itstep=          18  iscf=           4  Convergence=   1.8226084203602319E-004
+  itstep=          18  iscf=           5  Convergence=   2.0371701253500576E-005
+  itstep=          18  iscf=           6  Convergence=   2.8396654465806596E-006
+  itstep=          19  iscf=           3  Convergence=   2.4203720712060906E-003
+  itstep=          19  iscf=           4  Convergence=   2.7068172977634129E-004
+  itstep=          19  iscf=           5  Convergence=   3.0508241211020748E-005
+  itstep=          19  iscf=           6  Convergence=   3.4441318313649316E-006
+  itstep=          20  iscf=           3  Convergence=   2.4386023417579364E-003
+  itstep=          20  iscf=           4  Convergence=   2.8523259896667439E-004
+  itstep=          20  iscf=           5  Convergence=   3.3188442815224147E-005
+  itstep=          20  iscf=           6  Convergence=   3.9080652493882430E-006
+  itstep=          21  iscf=           3  Convergence=   1.7834742718756630E-003
+  itstep=          21  iscf=           4  Convergence=   2.0089314164004632E-004
+  itstep=          21  iscf=           5  Convergence=   2.2354738153042111E-005
+  itstep=          21  iscf=           6  Convergence=   2.5187012699732777E-006
+  itstep=          22  iscf=           3  Convergence=   3.2421802098862355E-003
+  itstep=          22  iscf=           4  Convergence=   3.6516557045801408E-004
+  itstep=          22  iscf=           5  Convergence=   4.1683194429333562E-005
+  itstep=          22  iscf=           6  Convergence=   4.7083695627489516E-006
+  itstep=          23  iscf=           3  Convergence=   2.7075713958018910E-003
+  itstep=          23  iscf=           4  Convergence=   3.0174496321064021E-004
+  itstep=          23  iscf=           5  Convergence=   3.3802577159540320E-005
+  itstep=          23  iscf=           6  Convergence=   3.8027486471794439E-006
+  itstep=          24  iscf=           3  Convergence=   1.9140244448650119E-003
+  itstep=          24  iscf=           4  Convergence=   2.2283429522244273E-004
+  itstep=          24  iscf=           5  Convergence=   2.9807674391192790E-005
+  itstep=          24  iscf=           6  Convergence=   3.4789722429187279E-006
+  itstep=          25  iscf=           3  Convergence=   1.5914893362615980E-003
+  itstep=          25  iscf=           4  Convergence=   1.7710283479417752E-004
+  itstep=          25  iscf=           5  Convergence=   1.9758729093181858E-005
+  itstep=          25  iscf=           6  Convergence=   2.2112575581659811E-006
+  itstep=          26  iscf=           3  Convergence=   2.2791047211459894E-003
+  itstep=          26  iscf=           4  Convergence=   2.5737158447955216E-004
+  itstep=          26  iscf=           5  Convergence=   2.9078872925239205E-005
+  itstep=          26  iscf=           6  Convergence=   3.3174481088016741E-006
+  itstep=          27  iscf=           3  Convergence=   1.4636763685488992E-003
+  itstep=          27  iscf=           4  Convergence=   1.6493635265833946E-004
+  itstep=          27  iscf=           5  Convergence=   1.8626511027688167E-005
+  itstep=          27  iscf=           6  Convergence=   2.1126621259632796E-006
+  itstep=          28  iscf=           3  Convergence=   1.2168787581505632E-003
+  itstep=          28  iscf=           4  Convergence=   1.3596519790602516E-004
+  itstep=          28  iscf=           5  Convergence=   1.5227336454871235E-005
+  itstep=          28  iscf=           6  Convergence=   1.7106055292781767E-006
+  itstep=          29  iscf=           3  Convergence=   1.0955905648997910E-003
+  itstep=          29  iscf=           4  Convergence=   1.2660515529181636E-004
+  itstep=          29  iscf=           5  Convergence=   1.4652791243885631E-005
+  itstep=          29  iscf=           6  Convergence=   2.4500327198261587E-006
+  itstep=          30  iscf=           3  Convergence=   1.0126116213503141E-003
+  itstep=          30  iscf=           4  Convergence=   1.1697650321362214E-004
+  itstep=          30  iscf=           5  Convergence=   1.3598874216540622E-005
+  itstep=          30  iscf=           6  Convergence=   2.0822537926313826E-006
+  itstep=          31  iscf=           3  Convergence=   8.8105154227014848E-004
+  itstep=          31  iscf=           4  Convergence=   9.7781154808510660E-005
+  itstep=          31  iscf=           5  Convergence=   1.0866648440470245E-005
+  itstep=          31  iscf=           6  Convergence=   1.2108201032150050E-006
+  itstep=          32  iscf=           3  Convergence=   8.8292457326379341E-004
+  itstep=          32  iscf=           4  Convergence=   1.0344842802917512E-004
+  itstep=          32  iscf=           5  Convergence=   1.2277206751930158E-005
+  itstep=          32  iscf=           6  Convergence=   1.5393008768550165E-006
+  itstep=          33  iscf=           3  Convergence=   8.6085162474799329E-004
+  itstep=          33  iscf=           4  Convergence=   9.6897391172725197E-005
+  itstep=          33  iscf=           5  Convergence=   1.0828270537042699E-005
+  itstep=          33  iscf=           6  Convergence=   1.2134596764820117E-006
+  itstep=          34  iscf=           3  Convergence=   8.0161371188080188E-004
+  itstep=          34  iscf=           4  Convergence=   8.9511251542444484E-005
+  itstep=          34  iscf=           5  Convergence=   1.0011906265293966E-005
+  itstep=          34  iscf=           6  Convergence=   1.1225766426441212E-006
+  itstep=          35  iscf=           3  Convergence=   8.3021029894480159E-004
+  itstep=          35  iscf=           4  Convergence=   9.2058508891985834E-005
+  itstep=          35  iscf=           5  Convergence=   1.0216901147531125E-005
+  itstep=          35  iscf=           6  Convergence=   1.1355659536660608E-006
+  itstep=          36  iscf=           3  Convergence=   7.9860882480164129E-004
+  itstep=          36  iscf=           4  Convergence=   9.0373771197343965E-005
+  itstep=          36  iscf=           5  Convergence=   1.0059279145451356E-005
+  itstep=          36  iscf=           6  Convergence=   1.1223538502974436E-006
+  itstep=          37  iscf=           3  Convergence=   7.1220916112670735E-004
+  itstep=          37  iscf=           4  Convergence=   7.9517459541367420E-005
+  itstep=          37  iscf=           5  Convergence=   8.9301867110702794E-006
+  itstep=          38  iscf=           3  Convergence=   1.0599124539976985E-003
+  itstep=          38  iscf=           4  Convergence=   1.2111636280872952E-004
+  itstep=          38  iscf=           5  Convergence=   1.4014014016086780E-005
+  itstep=          38  iscf=           6  Convergence=   1.6528223549816617E-006
+  itstep=          39  iscf=           3  Convergence=   9.7725353065418138E-004
+  itstep=          39  iscf=           4  Convergence=   1.1207200318997436E-004
+  itstep=          39  iscf=           5  Convergence=   1.2993352781672109E-005
+  itstep=          39  iscf=           6  Convergence=   1.5298076274553577E-006
+  itstep=          40  iscf=           3  Convergence=   1.5495280764407295E-003
+  itstep=          40  iscf=           4  Convergence=   1.8848340658848687E-004
+  itstep=          40  iscf=           5  Convergence=   2.1886250924426870E-005
+  itstep=          40  iscf=           6  Convergence=   2.5931962957404578E-006
+  itstep=          41  iscf=           3  Convergence=   1.9657677171194031E-003
+  itstep=          41  iscf=           4  Convergence=   2.2233166610190026E-004
+  itstep=          41  iscf=           5  Convergence=   2.5570091125106099E-005
+  itstep=          41  iscf=           6  Convergence=   3.0897744633454643E-006
+  itstep=          42  iscf=           3  Convergence=   1.8815765205215402E-003
+  itstep=          42  iscf=           4  Convergence=   2.1498649810309947E-004
+  itstep=          42  iscf=           5  Convergence=   2.5840207677148658E-005
+  itstep=          42  iscf=           6  Convergence=   7.7019663788802603E-006
+  itstep=          43  iscf=           3  Convergence=   1.2827606060732471E-003
+  itstep=          43  iscf=           4  Convergence=   1.4484512011807494E-004
+  itstep=          43  iscf=           5  Convergence=   1.6444426410118007E-005
+  itstep=          43  iscf=           6  Convergence=   1.8959267495797821E-006
+  itstep=          44  iscf=           3  Convergence=   1.0035411056325632E-003
+  itstep=          44  iscf=           4  Convergence=   1.1657588634687366E-004
+  itstep=          44  iscf=           5  Convergence=   1.4164683393957924E-005
+  itstep=          44  iscf=           6  Convergence=   1.8642608856422024E-006
+  itstep=          45  iscf=           3  Convergence=   1.1129931358731591E-003
+  itstep=          45  iscf=           4  Convergence=   1.3322384483435137E-004
+  itstep=          45  iscf=           5  Convergence=   1.5076981175381099E-005
+  itstep=          45  iscf=           6  Convergence=   1.7136328236562311E-006
+  itstep=          46  iscf=           3  Convergence=   1.0427592848839431E-003
+  itstep=          46  iscf=           4  Convergence=   1.2615614108193727E-004
+  itstep=          46  iscf=           5  Convergence=   1.5361013518732402E-005
+  itstep=          46  iscf=           6  Convergence=   1.9132152666947757E-006
+  itstep=          47  iscf=           3  Convergence=   6.5672098409388121E-004
+  itstep=          47  iscf=           4  Convergence=   7.4703769977840404E-005
+  itstep=          47  iscf=           5  Convergence=   8.5619196298809948E-006
+  itstep=          48  iscf=           3  Convergence=   5.3817957913223670E-004
+  itstep=          48  iscf=           4  Convergence=   6.1314697388810074E-005
+  itstep=          48  iscf=           5  Convergence=   7.0030589080438758E-006
+  itstep=          49  iscf=           3  Convergence=   6.0527754089353416E-004
+  itstep=          49  iscf=           4  Convergence=   7.4151210252596300E-005
+  itstep=          49  iscf=           5  Convergence=   9.6185100565094932E-006
+  itstep=          50  iscf=           3  Convergence=   5.8896930197845565E-004
+  itstep=          50  iscf=           4  Convergence=   6.7001673050253759E-005
+  itstep=          50  iscf=           5  Convergence=   7.7297650427716954E-006
+  itstep=          51  iscf=           3  Convergence=   6.3799101829230005E-004
+  itstep=          51  iscf=           4  Convergence=   7.6537284436021573E-005
+  itstep=          51  iscf=           5  Convergence=   1.1080030765990128E-005
+  itstep=          51  iscf=           6  Convergence=   2.3373005361879400E-006
+  itstep=          52  iscf=           3  Convergence=   6.9980654112563527E-004
+  itstep=          52  iscf=           4  Convergence=   7.8985083075701093E-005
+  itstep=          52  iscf=           5  Convergence=   8.9676161045907888E-006
+  itstep=          53  iscf=           3  Convergence=   7.0485289737495945E-004
+  itstep=          53  iscf=           4  Convergence=   7.9075808715269811E-005
+  itstep=          53  iscf=           5  Convergence=   8.9073296123587469E-006
+  itstep=          54  iscf=           3  Convergence=   6.1126863421401745E-004
+  itstep=          54  iscf=           4  Convergence=   6.9750557874411083E-005
+  itstep=          54  iscf=           5  Convergence=   9.5567509019524185E-006
+  itstep=          55  iscf=           3  Convergence=   6.1556156434682430E-004
+  itstep=          55  iscf=           4  Convergence=   7.5445133781605999E-005
+  itstep=          55  iscf=           5  Convergence=   9.5957022330902220E-006
+  itstep=          56  iscf=           3  Convergence=   6.5152247274612510E-004
+  itstep=          56  iscf=           4  Convergence=   8.5662816134095886E-005
+  itstep=          56  iscf=           5  Convergence=   1.3561391101385460E-005
+  itstep=          56  iscf=           6  Convergence=   1.6657911436772631E-006
+  itstep=          57  iscf=           3  Convergence=   6.4766566147541173E-004
+  itstep=          57  iscf=           4  Convergence=   7.9549253178980554E-005
+  itstep=          57  iscf=           5  Convergence=   9.1127840410440163E-006
+  itstep=          58  iscf=           3  Convergence=   6.5437134379010039E-004
+  itstep=          58  iscf=           4  Convergence=   7.6519256500700390E-005
+  itstep=          58  iscf=           5  Convergence=   1.0498814601596552E-005
+  itstep=          58  iscf=           6  Convergence=   3.4137909244220468E-006
+  itstep=          59  iscf=           3  Convergence=   7.2566580786872505E-004
+  itstep=          59  iscf=           4  Convergence=   8.2797700179353516E-005
+  itstep=          59  iscf=           5  Convergence=   9.5180184602695384E-006
+  itstep=          60  iscf=           3  Convergence=   5.6542098913665894E-004
+  itstep=          60  iscf=           4  Convergence=   6.4271978175569009E-005
+  itstep=          60  iscf=           5  Convergence=   7.3773579136893611E-006
+  itstep=          61  iscf=           3  Convergence=   6.6166438310526102E-004
+  itstep=          61  iscf=           4  Convergence=   8.0292501558324559E-005
+  itstep=          61  iscf=           5  Convergence=   9.2230811993751754E-006
+  itstep=          62  iscf=           3  Convergence=   5.5081063881040734E-004
+  itstep=          62  iscf=           4  Convergence=   6.6151548115542616E-005
+  itstep=          62  iscf=           5  Convergence=   7.7592950294449541E-006
+  itstep=          63  iscf=           3  Convergence=   5.7076716398451370E-004
+  itstep=          63  iscf=           4  Convergence=   6.6788251363851010E-005
+  itstep=          63  iscf=           5  Convergence=   7.9726867611675766E-006
+  itstep=          64  iscf=           3  Convergence=   5.4900772562203632E-004
+  itstep=          64  iscf=           4  Convergence=   6.2818009344702022E-005
+  itstep=          64  iscf=           5  Convergence=   7.5476319342056871E-006
+  itstep=          65  iscf=           3  Convergence=   5.0528558451725606E-004
+  itstep=          65  iscf=           4  Convergence=   6.0800166323266589E-005
+  itstep=          65  iscf=           5  Convergence=   9.5851809338226887E-006
+  itstep=          66  iscf=           3  Convergence=   5.0921469305240455E-004
+  itstep=          66  iscf=           4  Convergence=   6.2653577438889942E-005
+  itstep=          66  iscf=           5  Convergence=   1.3526528334077933E-005
+  itstep=          66  iscf=           6  Convergence=   3.0025169618056275E-006
+  itstep=          67  iscf=           3  Convergence=   5.9956231418528802E-004
+  itstep=          67  iscf=           4  Convergence=   7.4547791969234662E-005
+  itstep=          67  iscf=           5  Convergence=   8.8169053871099732E-006
+  itstep=          68  iscf=           3  Convergence=   7.7777635697357135E-004
+  itstep=          68  iscf=           4  Convergence=   9.0000440543270069E-005
+  itstep=          68  iscf=           5  Convergence=   1.0722731125426799E-005
+  itstep=          68  iscf=           6  Convergence=   2.4197173329007696E-006
+  itstep=          69  iscf=           3  Convergence=   7.2950876998603080E-004
+  itstep=          69  iscf=           4  Convergence=   8.3280807701788565E-005
+  itstep=          69  iscf=           5  Convergence=   9.6145462458436981E-006
+  itstep=          70  iscf=           3  Convergence=   5.7845328601491600E-004
+  itstep=          70  iscf=           4  Convergence=   6.5510106059067793E-005
+  itstep=          70  iscf=           5  Convergence=   7.4869508663108890E-006
+  itstep=          71  iscf=           3  Convergence=   6.0330335764745941E-004
+  itstep=          71  iscf=           4  Convergence=   6.8058980350255854E-005
+  itstep=          71  iscf=           5  Convergence=   7.7232276856666365E-006
+  itstep=          72  iscf=           3  Convergence=   7.0046885939097667E-004
+  itstep=          72  iscf=           4  Convergence=   8.9452003768805739E-005
+  itstep=          72  iscf=           5  Convergence=   1.0299483187188883E-005
+  itstep=          72  iscf=           6  Convergence=   1.1899759040020298E-006
+  itstep=          73  iscf=           3  Convergence=   7.9207909432285715E-004
+  itstep=          73  iscf=           4  Convergence=   9.1029762929416039E-005
+  itstep=          73  iscf=           5  Convergence=   1.0976741511822352E-005
+  itstep=          73  iscf=           6  Convergence=   1.5616560586896969E-006
+  itstep=          74  iscf=           3  Convergence=   8.4067398533764319E-004
+  itstep=          74  iscf=           4  Convergence=   9.6067646103279128E-005
+  itstep=          74  iscf=           5  Convergence=   1.1055905879427372E-005
+  itstep=          74  iscf=           6  Convergence=   1.2950494809676443E-006
+  itstep=          75  iscf=           3  Convergence=   7.9438806285007327E-004
+  itstep=          75  iscf=           4  Convergence=   9.6455422726405987E-005
+  itstep=          75  iscf=           5  Convergence=   1.5951378074628994E-005
+  itstep=          75  iscf=           6  Convergence=   1.9935824987817912E-006
+  itstep=          76  iscf=           3  Convergence=   9.0592892879857382E-004
+  itstep=          76  iscf=           4  Convergence=   1.0609303912632183E-004
+  itstep=          76  iscf=           5  Convergence=   1.2464654450229804E-005
+  itstep=          76  iscf=           6  Convergence=   1.6488539344848107E-006
+  itstep=          77  iscf=           3  Convergence=   7.8235305420733692E-004
+  itstep=          77  iscf=           4  Convergence=   8.8486951366165852E-005
+  itstep=          77  iscf=           5  Convergence=   1.0290066030649684E-005
+  itstep=          77  iscf=           6  Convergence=   1.3538125176618381E-006
+  itstep=          78  iscf=           3  Convergence=   7.9772643085014268E-004
+  itstep=          78  iscf=           4  Convergence=   1.0588237941490363E-004
+  itstep=          78  iscf=           5  Convergence=   1.2392829344225430E-005
+  itstep=          78  iscf=           6  Convergence=   1.4932599452540150E-006
+  itstep=          79  iscf=           3  Convergence=   6.4810971228533945E-004
+  itstep=          79  iscf=           4  Convergence=   7.3235561142084038E-005
+  itstep=          79  iscf=           5  Convergence=   8.3681609101641961E-006
+  itstep=          80  iscf=           3  Convergence=   8.5239976129735653E-004
+  itstep=          80  iscf=           4  Convergence=   1.0404830020630100E-004
+  itstep=          80  iscf=           5  Convergence=   1.2396912814737776E-005
+  itstep=          80  iscf=           6  Convergence=   1.5245980565220210E-006
+  itstep=          81  iscf=           3  Convergence=   6.7678715194179333E-004
+  itstep=          81  iscf=           4  Convergence=   7.8009534677513261E-005
+  itstep=          81  iscf=           5  Convergence=   9.2992866786848907E-006
+  itstep=          82  iscf=           3  Convergence=   7.7872434268593590E-004
+  itstep=          82  iscf=           4  Convergence=   9.2722600651932771E-005
+  itstep=          82  iscf=           5  Convergence=   1.5152715796404772E-005
+  itstep=          82  iscf=           6  Convergence=   3.0539063697106799E-006
+  itstep=          83  iscf=           3  Convergence=   7.2624757318419907E-004
+  itstep=          83  iscf=           4  Convergence=   8.4753121410070209E-005
+  itstep=          83  iscf=           5  Convergence=   9.8863038780443773E-006
+  itstep=          84  iscf=           3  Convergence=   7.6535898256562581E-004
+  itstep=          84  iscf=           4  Convergence=   8.8572201076504519E-005
+  itstep=          84  iscf=           5  Convergence=   1.0937945766376111E-005
+  itstep=          84  iscf=           6  Convergence=   1.5305541389745627E-006
+  itstep=          85  iscf=           3  Convergence=   9.0918624596372875E-004
+  itstep=          85  iscf=           4  Convergence=   1.0444426305856547E-004
+  itstep=          85  iscf=           5  Convergence=   1.3309909527273806E-005
+  itstep=          85  iscf=           6  Convergence=   1.5355948432578622E-006
+  itstep=          86  iscf=           3  Convergence=   7.6268490729354511E-004
+  itstep=          86  iscf=           4  Convergence=   8.9123159795899271E-005
+  itstep=          86  iscf=           5  Convergence=   1.2435887220497157E-005
+  itstep=          86  iscf=           6  Convergence=   1.5497401442313074E-006
+  itstep=          87  iscf=           3  Convergence=   7.9649019380643050E-004
+  itstep=          87  iscf=           4  Convergence=   8.9417684396816375E-005
+  itstep=          87  iscf=           5  Convergence=   1.0148453851479949E-005
+  itstep=          87  iscf=           6  Convergence=   1.1766690761260454E-006
+  itstep=          88  iscf=           3  Convergence=   7.0188709484661396E-004
+  itstep=          88  iscf=           4  Convergence=   1.1034205981549757E-004
+  itstep=          88  iscf=           5  Convergence=   1.6367512154113642E-005
+  itstep=          88  iscf=           6  Convergence=   2.0878753173092937E-006
+  itstep=          89  iscf=           3  Convergence=   7.9988216455977393E-004
+  itstep=          89  iscf=           4  Convergence=   9.3866746734348440E-005
+  itstep=          89  iscf=           5  Convergence=   1.0853224527118246E-005
+  itstep=          89  iscf=           6  Convergence=   1.2671596043260822E-006
+  itstep=          90  iscf=           3  Convergence=   8.5375002143351622E-004
+  itstep=          90  iscf=           4  Convergence=   1.0059046914575759E-004
+  itstep=          90  iscf=           5  Convergence=   1.2979693361118732E-005
+  itstep=          90  iscf=           6  Convergence=   1.7147164352735962E-006
+  itstep=          91  iscf=           3  Convergence=   7.6353329301768254E-004
+  itstep=          91  iscf=           4  Convergence=   8.8574799031461285E-005
+  itstep=          91  iscf=           5  Convergence=   1.0499952939411217E-005
+  itstep=          91  iscf=           6  Convergence=   1.2899330799133613E-006
+  itstep=          92  iscf=           3  Convergence=   6.4369639679204944E-004
+  itstep=          92  iscf=           4  Convergence=   8.6278216657602466E-005
+  itstep=          92  iscf=           5  Convergence=   1.5382104820058750E-005
+  itstep=          92  iscf=           6  Convergence=   1.9640134355546680E-006
+  itstep=          93  iscf=           3  Convergence=   6.3643621640332103E-004
+  itstep=          93  iscf=           4  Convergence=   8.0205325669092993E-005
+  itstep=          93  iscf=           5  Convergence=   1.1158343546971518E-005
+  itstep=          93  iscf=           6  Convergence=   1.7618683003069190E-006
+  itstep=          94  iscf=           3  Convergence=   4.7722695411120218E-004
+  itstep=          94  iscf=           4  Convergence=   5.9038544965236078E-005
+  itstep=          94  iscf=           5  Convergence=   6.9558577672237823E-006
+  itstep=          95  iscf=           3  Convergence=   6.2432154432142143E-004
+  itstep=          95  iscf=           4  Convergence=   7.3011676842101906E-005
+  itstep=          95  iscf=           5  Convergence=   8.6270407708636501E-006
+  itstep=          96  iscf=           3  Convergence=   5.5988954516440423E-004
+  itstep=          96  iscf=           4  Convergence=   6.4424742554319877E-005
+  itstep=          96  iscf=           5  Convergence=   7.4888226058012829E-006
+  itstep=          97  iscf=           3  Convergence=   5.7787621331186249E-004
+  itstep=          97  iscf=           4  Convergence=   6.9987084379684493E-005
+  itstep=          97  iscf=           5  Convergence=   9.0349773330128899E-006
+  itstep=          98  iscf=           3  Convergence=   6.5450778515316094E-004
+  itstep=          98  iscf=           4  Convergence=   7.4466574803547629E-005
+  itstep=          98  iscf=           5  Convergence=   9.3353267636196783E-006
+  itstep=          99  iscf=           3  Convergence=   6.6756940063985573E-004
+  itstep=          99  iscf=           4  Convergence=   8.2243843099131638E-005
+  itstep=          99  iscf=           5  Convergence=   1.4295868109256180E-005
+  itstep=          99  iscf=           6  Convergence=   2.0131061559147175E-006
+  Exepctation values: end
+  Exepctation values: end
+  AllGatherv took    0.0000000000000000       sec
+  AllGatherv took    0.0000000000000000       sec
+  MPI_ALLReduce for total charge took    9.9996104836463928E-006  sec
+  MPI_ALLReduce for total charge took    8.0000609159469604E-006  sec
+  Exepctation values: end
+  Exepctation values: end
+  AllGatherv took    0.0000000000000000       sec
+  AllGatherv took    0.0000000000000000       sec
+  MPI_ALLReduce for total charge took    1.2000091373920441E-005  sec
+  MPI_ALLReduce for total charge took    8.0000609159469604E-006  sec
+  itstep=         100  iscf=           3  Convergence=   6.0374942388085099E-004
+  Exepctation values: end
+  Exepctation values: end
+  AllGatherv took    0.0000000000000000       sec
+  AllGatherv took    0.0000000000000000       sec
+  MPI_ALLReduce for total charge took    1.1000316590070724E-005  sec
+  MPI_ALLReduce for total charge took    9.0003013610839844E-006  sec
+  itstep=         100  iscf=           4  Convergence=   7.0243481944292293E-005
+  Exepctation values: end
+  Exepctation values: end
+  AllGatherv took    0.0000000000000000       sec
+  AllGatherv took    0.0000000000000000       sec
+  MPI_ALLReduce for total charge took    1.2000091373920441E-005  sec
+  MPI_ALLReduce for total charge took    8.9998356997966766E-006  sec
+  itstep=         100  iscf=           5  Convergence=   8.9083483605800338E-006
+ Off-diagonal elements at the   1-th k-point
+  Now calling HLOCAL and NONLOC
+  Exepctation values: end
+  call HLOCAL and NONLOC for Off-diagonal
+  Off-diagonal elements: computed!
+  Now before do 2200 - for Off-diagonal
+  Now after do 2200-2201 
+  Watch this element !!!!! 
+<   2| H |   1>=      0.0052858139910507     -0.0115484313912679 HR 
+  Watch this element !!!!! 
+<   3| H |   1>=     -0.0093970368115689     -0.0106888263357561 HR 
+<   4| H |   1>=      0.0006989632363235     -0.0005681633292913 HR 
+<   5| H |   1>=      0.0003731313264415     -0.0040911219253026 HR 
+<   6| H |   1>=      0.0004228343118904     -0.0000119318542839 HR 
+<   7| H |   1>=      0.0057099330334165     -0.0021862488282462 HR 
+<   8| H |   1>=      0.0004808801652699     -0.0007960953640561 HR 
+<   9| H |   1>=      0.0060354517105413      0.0030468966083484 HR 
+<  10| H |   1>=      0.0016238305986374      0.0010436046155662 HR 
+<  11| H |   1>=      0.0025114812967097     -0.0006331490348287 HR 
+<  12| H |   1>=      0.0020265050647957     -0.0005110950865290 HR 
+<  13| H |   1>=     -0.0024901946441362      0.0044101662798328 HR 
+<  14| H |   1>=      0.0051745602221438      0.0008238591938758 HR 
+<  15| H |   1>=      0.0004665240205081      0.0024990704024849 HR 
+<  16| H |   1>=      0.0006794777013641      0.0031265205844326 HR 
+<  17| H |   1>=     -0.0000899894022421      0.0001208862997640 HR 
+<  18| H |   1>=     -0.0008539204810081      0.0032181041408579 HR 
+<  19| H |   1>=      0.0000209217134286     -0.0000678614436492 HR 
+<  20| H |   1>=      0.0005086526401589     -0.0004483134341713 HR 
+<  21| H |   1>=      0.0005808148489618      0.0003984223045824 HR 
+<  22| H |   1>=     -0.0008033214659294     -0.0002193313686862 HR 
+<  23| H |   1>=      0.0003977909458832      0.0002175723281335 HR 
+<  24| H |   1>=     -0.0023804715865719     -0.0003679387667315 HR 
+<  25| H |   1>=     -0.0000272413183930      0.0003008409268599 HR 
+<  26| H |   1>=      0.0005778049275222     -0.0004811162919873 HR 
+<  27| H |   1>=      0.0002478453269223      0.0003234335535698 HR 
+<  28| H |   1>=     -0.0004249319236914     -0.0014788620326077 HR 
+<  29| H |   1>=     -0.0008315315909265     -0.0021143626476269 HR 
+<  30| H |   1>=     -0.0003049301254645     -0.0021327290937305 HR 
+<  31| H |   1>=     -0.0006710505108941     -0.0003599405737087 HR 
+<  32| H |   1>=      0.0002854462520710      0.0002107529612595 HR 
+  Watch this element !!!!! 
+<   3| H |   2>=     -0.0070296541185266      0.0116211716533639 HR 
+  Watch this element !!!!! 
+<   4| H |   2>=     -0.0085609148004210     -0.0162427879195695 HR 
+<   5| H |   2>=     -0.0011772254385834      0.0005491946696139 HR 
+<   6| H |   2>=     -0.0004566103918723     -0.0035400920008240 HR 
+<   7| H |   2>=      0.0001438451829465      0.0009713097903880 HR 
+  Watch this element !!!!! 
+<   8| H |   2>=      0.0137837417143766     -0.0025620320871108 HR 
+<   9| H |   2>=      0.0001583080129673      0.0005605903263741 HR 
+<  10| H |   2>=     -0.0056383362214778     -0.0023143015944107 HR 
+<  11| H |   2>=     -0.0002954642325332      0.0077460546075801 HR 
+<  12| H |   2>=     -0.0024525766017166     -0.0000632043819366 HR 
+<  13| H |   2>=      0.0017193087093750     -0.0006883283491077 HR 
+<  14| H |   2>=      0.0000995170781803     -0.0030078125188015 HR 
+<  15| H |   2>=      0.0017532275399717      0.0068676329943118 HR 
+<  16| H |   2>=      0.0022449391544821     -0.0050351433664772 HR 
+<  17| H |   2>=      0.0000306239730691     -0.0000107464249329 HR 
+<  18| H |   2>=      0.0006555835861359      0.0024773752014134 HR 
+<  19| H |   2>=      0.0003723657315704     -0.0007721164434151 HR 
+<  20| H |   2>=      0.0010134653789892     -0.0003116489619172 HR 
+<  21| H |   2>=     -0.0004823195731040     -0.0000151148740099 HR 
+<  22| H |   2>=     -0.0001786312527856     -0.0002940528252893 HR 
+<  23| H |   2>=     -0.0003107919973172      0.0000109671990516 HR 
+<  24| H |   2>=     -0.0012318107235727      0.0005424112150196 HR 
+<  25| H |   2>=     -0.0001967353494963     -0.0001575887259630 HR 
+<  26| H |   2>=      0.0010976752101705      0.0024878787588837 HR 
+<  27| H |   2>=      0.0004996988249820      0.0025428694907663 HR 
+<  28| H |   2>=     -0.0000489908534229     -0.0019981899611458 HR 
+<  29| H |   2>=      0.0002117279108402     -0.0003405292655329 HR 
+<  30| H |   2>=      0.0001535763722801      0.0016580476956575 HR 
+<  31| H |   2>=      0.0007477760479689     -0.0013906169829999 HR 
+<  32| H |   2>=     -0.0005145876835472      0.0007073615599707 HR 
+  Watch this element !!!!! 
+<   4| H |   3>=      0.0080783014047872     -0.0109343261577345 HR 
+  Watch this element !!!!! 
+<   5| H |   3>=     -0.0054867911946414     -0.0147059348840127 HR 
+<   6| H |   3>=      0.0009642214214427     -0.0001780135750348 HR 
+  Watch this element !!!!! 
+<   7| H |   3>=      0.0073519317359717     -0.0088536341693848 HR 
+<   8| H |   3>=     -0.0001118613621809     -0.0011750148124837 HR 
+  Watch this element !!!!! 
+<   9| H |   3>=      0.0122815541744729      0.0009153652283032 HR 
+<  10| H |   3>=      0.0010081895763579      0.0059776686268684 HR 
+<  11| H |   3>=      0.0015678297210516      0.0045140625085181 HR 
+<  12| H |   3>=      0.0002426680023065      0.0022237034756397 HR 
+  Watch this element !!!!! 
+<  13| H |   3>=      0.0072458097137883      0.0083686788429275 HR 
+<  14| H |   3>=      0.0003822266001867     -0.0009441866170968 HR 
+<  15| H |   3>=     -0.0026507020519820      0.0036728985546391 HR 
+<  16| H |   3>=      0.0022519301017370      0.0062787092936502 HR 
+<  17| H |   3>=      0.0000479933632954      0.0007871408741958 HR 
+<  18| H |   3>=      0.0002530403673189      0.0011066095035152 HR 
+<  19| H |   3>=     -0.0007691767943037      0.0010775316060765 HR 
+<  20| H |   3>=     -0.0003916268074990     -0.0001030503153217 HR 
+<  21| H |   3>=      0.0000246865625312     -0.0022469486797161 HR 
+<  22| H |   3>=     -0.0003025756975564      0.0002207684185727 HR 
+<  23| H |   3>=     -0.0000896954795787      0.0003071536784838 HR 
+<  24| H |   3>=      0.0005404335505725     -0.0016965223225504 HR 
+<  25| H |   3>=     -0.0004224358497167     -0.0002485175120222 HR 
+<  26| H |   3>=     -0.0020458880064795     -0.0038322364889105 HR 
+<  27| H |   3>=      0.0004100121284140     -0.0005303720886022 HR 
+<  28| H |   3>=     -0.0008695552503404     -0.0004560213510292 HR 
+<  29| H |   3>=     -0.0001235675954322     -0.0003852777743933 HR 
+<  30| H |   3>=     -0.0000786325321578      0.0009543698601660 HR 
+<  31| H |   3>=     -0.0005199991948325     -0.0009949996074604 HR 
+<  32| H |   3>=      0.0002384712977303     -0.0006939307558625 HR 
+  Watch this element !!!!! 
+<   5| H |   4>=     -0.0083185767310560      0.0101965981291796 HR 
+  Watch this element !!!!! 
+<   6| H |   4>=     -0.0032410980817858     -0.0111542140935130 HR 
+<   7| H |   4>=     -0.0000674369134993      0.0000240840506797 HR 
+  Watch this element !!!!! 
+<   8| H |   4>=      0.0098438392854881     -0.0089340488647352 HR 
+<   9| H |   4>=      0.0006151838478912      0.0037165030224052 HR 
+<  10| H |   4>=     -0.0080474582980296     -0.0033086842207629 HR 
+<  11| H |   4>=      0.0081107111111618      0.0005343546925704 HR 
+<  12| H |   4>=     -0.0009520644934217     -0.0016483683608748 HR 
+<  13| H |   4>=      0.0009411408437382     -0.0033825524201885 HR 
+<  14| H |   4>=     -0.0041072533699034     -0.0035233736640075 HR 
+<  15| H |   4>=      0.0068723859421592      0.0037292808277895 HR 
+<  16| H |   4>=     -0.0006970676615346     -0.0004104805785055 HR 
+<  17| H |   4>=     -0.0000060101262306      0.0015119737545308 HR 
+<  18| H |   4>=     -0.0009080809685607      0.0013438029384317 HR 
+<  19| H |   4>=     -0.0004137725459402      0.0005010057514763 HR 
+<  20| H |   4>=      0.0000140088537627     -0.0004717311359733 HR 
+<  21| H |   4>=     -0.0009994619384037     -0.0039852584686258 HR 
+<  22| H |   4>=     -0.0001462518950614     -0.0002879350831871 HR 
+<  23| H |   4>=     -0.0005513128989971      0.0002660481025502 HR 
+<  24| H |   4>=     -0.0008726092690548      0.0014815714508467 HR 
+<  25| H |   4>=      0.0002286169765744     -0.0003719293233139 HR 
+<  26| H |   4>=     -0.0019316229857619     -0.0029541552731604 HR 
+<  27| H |   4>=      0.0013136203606405      0.0010273672429747 HR 
+<  28| H |   4>=     -0.0000249072712795     -0.0012384726621972 HR 
+<  29| H |   4>=      0.0005927950892024      0.0001992501661946 HR 
+<  30| H |   4>=      0.0001222795365795     -0.0002453782637998 HR 
+<  31| H |   4>=     -0.0000001338335086      0.0006036287428167 HR 
+<  32| H |   4>=      0.0004272769678337     -0.0009927008850512 HR 
+  Watch this element !!!!! 
+<   6| H |   5>=      0.0071930063182490     -0.0100593016584499 HR 
+<   7| H |   5>=      0.0053576374146635     -0.0048860055254457 HR 
+<   8| H |   5>=     -0.0004658633428497     -0.0004463501439287 HR 
+  Watch this element !!!!! 
+<   9| H |   5>=      0.0080400403144601     -0.0077072705201487 HR 
+<  10| H |   5>=      0.0025497631348624     -0.0032270585776174 HR 
+<  11| H |   5>=      0.0010293663763874      0.0018029018791111 HR 
+<  12| H |   5>=      0.0005696203992544     -0.0029802925405229 HR 
+<  13| H |   5>=      0.0072256886192268     -0.0046038939162596 HR 
+<  14| H |   5>=      0.0015345269068794     -0.0006906885570941 HR 
+<  15| H |   5>=      0.0015443535762995     -0.0007457733439113 HR 
+<  16| H |   5>=      0.0042953009021925      0.0026601383833749 HR 
+<  17| H |   5>=     -0.0006759970754184     -0.0010427488920559 HR 
+<  18| H |   5>=     -0.0001222075928876      0.0037861453246007 HR 
+<  19| H |   5>=      0.0002947350770140      0.0002893231565484 HR 
+<  20| H |   5>=     -0.0001841654727372      0.0001607353899024 HR 
+<  21| H |   5>=     -0.0002166661124614     -0.0006117796255305 HR 
+<  22| H |   5>=      0.0000490308881323      0.0007317458769624 HR 
+<  23| H |   5>=      0.0001674409989184      0.0004996957561973 HR 
+<  24| H |   5>=     -0.0003938406012464     -0.0014362484015552 HR 
+<  25| H |   5>=     -0.0001455746617039      0.0002354897744294 HR 
+<  26| H |   5>=      0.0021195005988882      0.0001139551884647 HR 
+<  27| H |   5>=     -0.0022708640773838     -0.0025032443040696 HR 
+<  28| H |   5>=     -0.0001718054743029      0.0011261540876242 HR 
+<  29| H |   5>=     -0.0005301646179346      0.0000489754749727 HR 
+<  30| H |   5>=      0.0002417248781735      0.0007594879519555 HR 
+<  31| H |   5>=      0.0007488838529663     -0.0003627804420907 HR 
+<  32| H |   5>=     -0.0005814294790844      0.0009031794578879 HR 
+<   7| H |   6>=     -0.0032968531568876     -0.0003706370906085 HR 
+<   8| H |   6>=      0.0034400618467851     -0.0081284086928072 HR 
+<   9| H |   6>=      0.0002012117338003     -0.0015325484471761 HR 
+<  10| H |   6>=     -0.0028765991863978      0.0026985791361981 HR 
+<  11| H |   6>=      0.0018503719943333     -0.0041137943142480 HR 
+<  12| H |   6>=      0.0015454168750594      0.0052448822391071 HR 
+<  13| H |   6>=      0.0027217846351298      0.0007376880589064 HR 
+<  14| H |   6>=     -0.0010114466053876      0.0025518899930983 HR 
+<  15| H |   6>=      0.0039685316093025     -0.0009801410090366 HR 
+<  16| H |   6>=     -0.0031836073560088     -0.0042639704526350 HR 
+<  17| H |   6>=     -0.0009010089238062     -0.0005573831890282 HR 
+<  18| H |   6>=      0.0012097554433915      0.0019763925066928 HR 
+<  19| H |   6>=      0.0007380288597601      0.0003796439678430 HR 
+<  20| H |   6>=     -0.0006370412918141     -0.0004698992841407 HR 
+<  21| H |   6>=      0.0000778431973485      0.0001121198610496 HR 
+<  22| H |   6>=     -0.0004357624583475     -0.0000937860339277 HR 
+<  23| H |   6>=      0.0001074276452564      0.0003032493506640 HR 
+<  24| H |   6>=     -0.0006086821834416      0.0008121650269016 HR 
+<  25| H |   6>=     -0.0000562419061369     -0.0001586838550342 HR 
+<  26| H |   6>=      0.0000953385065040     -0.0001068283902252 HR 
+<  27| H |   6>=     -0.0025099211295759     -0.0002767860599862 HR 
+<  28| H |   6>=     -0.0017840530385249     -0.0008702802838805 HR 
+<  29| H |   6>=      0.0003081441059167     -0.0013829235698093 HR 
+<  30| H |   6>=     -0.0001183461355146      0.0001769693743983 HR 
+<  31| H |   6>=      0.0003169341317674      0.0009341750386459 HR 
+<  32| H |   6>=     -0.0002223910098712      0.0006501126987498 HR 
+  Watch this element !!!!! 
+<   8| H |   7>=      0.0068851178820837     -0.0128269687230143 HR 
+  Watch this element !!!!! 
+<   9| H |   7>=     -0.0174328095281601     -0.0249840065479140 HR 
+<  10| H |   7>=     -0.0039248898064472     -0.0081277362223251 HR 
+  Watch this element !!!!! 
+<  11| H |   7>=     -0.0020725561271841     -0.0106923447093471 HR 
+<  12| H |   7>=      0.0025445931998869      0.0088946701172859 HR 
+  Watch this element !!!!! 
+<  13| H |   7>=     -0.0010373964987242     -0.0182588144592609 HR 
+<  14| H |   7>=     -0.0017869860457761     -0.0020041486431785 HR 
+<  15| H |   7>=     -0.0014863308919281      0.0009012599340734 HR 
+<  16| H |   7>=      0.0025166841382562     -0.0058959721429650 HR 
+<  17| H |   7>=      0.0002774281560739     -0.0009281417733858 HR 
+<  18| H |   7>=      0.0068600437940771     -0.0065661586446717 HR 
+<  19| H |   7>=     -0.0004722679104951      0.0012353723431147 HR 
+<  20| H |   7>=      0.0003610702817387     -0.0005023858174767 HR 
+<  21| H |   7>=     -0.0029516320205089      0.0014284662235107 HR 
+<  22| H |   7>=      0.0000086975284107     -0.0000736424954402 HR 
+<  23| H |   7>=      0.0000899300389639     -0.0000904029741743 HR 
+<  24| H |   7>=     -0.0004890071909141     -0.0014691414417001 HR 
+<  25| H |   7>=     -0.0000712842586655      0.0000283117089683 HR 
+<  26| H |   7>=     -0.0008465596951385      0.0013934526199722 HR 
+<  27| H |   7>=     -0.0016628163636074      0.0020504433704063 HR 
+<  28| H |   7>=     -0.0022784329534220      0.0018408908846684 HR 
+<  29| H |   7>=     -0.0017243236345663      0.0003536140544982 HR 
+<  30| H |   7>=     -0.0011411276481817      0.0004957029989975 HR 
+<  31| H |   7>=     -0.0013883806104871     -0.0007454919263239 HR 
+<  32| H |   7>=     -0.0004995286332144      0.0003481116788770 HR 
+  Watch this element !!!!! 
+<   9| H |   8>=     -0.0108461573506043      0.0076147520637263 HR 
+  Watch this element !!!!! 
+<  10| H |   8>=      0.0180049509025726      0.0270750780046299 HR 
+  Watch this element !!!!! 
+<  11| H |   8>=     -0.0111798501680654     -0.0227944529797743 HR 
+<  12| H |   8>=      0.0010889351888468     -0.0013805672286747 HR 
+<  13| H |   8>=      0.0027233363927755      0.0016390112737224 HR 
+  Watch this element !!!!! 
+<  14| H |   8>=      0.0032562480674990      0.0097709394354905 HR 
+  Watch this element !!!!! 
+<  15| H |   8>=     -0.0016402575928838     -0.0173180618286906 HR 
+<  16| H |   8>=     -0.0000359402534719      0.0090651403269633 HR 
+<  17| H |   8>=     -0.0000294100721012      0.0006136776021837 HR 
+<  18| H |   8>=      0.0005445714572777     -0.0002787958225533 HR 
+<  19| H |   8>=      0.0001302219336290      0.0002825270967052 HR 
+<  20| H |   8>=      0.0000266841109381     -0.0009584760300254 HR 
+<  21| H |   8>=     -0.0058976779238804      0.0050934650172120 HR 
+<  22| H |   8>=      0.0001090063290373     -0.0003023405756821 HR 
+<  23| H |   8>=      0.0000536571720126      0.0001690466103225 HR 
+<  24| H |   8>=      0.0027664532220129     -0.0023417118166466 HR 
+<  25| H |   8>=     -0.0000856758547390     -0.0000101920177902 HR 
+<  26| H |   8>=     -0.0002822248385074      0.0001032260940958 HR 
+<  27| H |   8>=      0.0008592698775337     -0.0035194308038397 HR 
+<  28| H |   8>=     -0.0019034761660843      0.0024757065514418 HR 
+<  29| H |   8>=      0.0007925562422729     -0.0015561509098571 HR 
+<  30| H |   8>=      0.0016966213432247      0.0012732261990748 HR 
+<  31| H |   8>=     -0.0003253574712029      0.0005467382834652 HR 
+<  32| H |   8>=     -0.0003204390245459     -0.0013679893790573 HR 
+  Watch this element !!!!! 
+<  10| H |   9>=     -0.0174656866602328      0.0025778716440494 HR 
+  Watch this element !!!!! 
+<  11| H |   9>=     -0.0111554126222273     -0.0114453376068882 HR 
+  Watch this element !!!!! 
+<  12| H |   9>=     -0.0052974857571875     -0.0148836435849224 HR 
+  Watch this element !!!!! 
+<  13| H |   9>=     -0.0133812577567870     -0.0150026078318118 HR 
+  Watch this element !!!!! 
+<  14| H |   9>=      0.0048137190201210      0.0101621712498155 HR 
+<  15| H |   9>=     -0.0040497748952064     -0.0027035873619226 HR 
+  Watch this element !!!!! 
+<  16| H |   9>=     -0.0048009545902270     -0.0149774535359646 HR 
+<  17| H |   9>=      0.0001228370901488      0.0001910264052757 HR 
+  Watch this element !!!!! 
+<  18| H |   9>=     -0.0003165968671433     -0.0104206299329855 HR 
+<  19| H |   9>=      0.0000101131610638     -0.0000604658502712 HR 
+<  20| H |   9>=      0.0001878543121444      0.0003199633796336 HR 
+<  21| H |   9>=      0.0013003818118053      0.0052913360965249 HR 
+<  22| H |   9>=      0.0004573837452717      0.0006492945398967 HR 
+<  23| H |   9>=      0.0001587660655523      0.0003270710410332 HR 
+<  24| H |   9>=     -0.0004022642181956      0.0030065790618726 HR 
+<  25| H |   9>=      0.0002000266917879      0.0000022376852518 HR 
+<  26| H |   9>=      0.0001932040383140      0.0008091664178876 HR 
+<  27| H |   9>=     -0.0004551694633557     -0.0017622541203569 HR 
+<  28| H |   9>=      0.0009529751792317      0.0003935128711073 HR 
+<  29| H |   9>=     -0.0013761607272814      0.0027023631621502 HR 
+<  30| H |   9>=      0.0015090117451093     -0.0015353829088976 HR 
+<  31| H |   9>=      0.0003579485069762     -0.0038632789840813 HR 
+<  32| H |   9>=     -0.0000427212680674     -0.0014562430199247 HR 
+  Watch this element !!!!! 
+<  11| H |  10>=      0.0144800368314917     -0.0055002959417060 HR 
+<  12| H |  10>=      0.0029189643244389      0.0012570128973935 HR 
+  Watch this element !!!!! 
+<  13| H |  10>=     -0.0101186326772494     -0.0060282978919588 HR 
+<  14| H |  10>=      0.0019856887596834      0.0080863354306056 HR 
+<  15| H |  10>=      0.0049886962733690      0.0038528638250895 HR 
+  Watch this element !!!!! 
+<  16| H |  10>=     -0.0103714901361757     -0.0179106321700602 HR 
+<  17| H |  10>=      0.0002034108300776      0.0001200379836559 HR 
+<  18| H |  10>=      0.0015403252696901      0.0003237450890993 HR 
+<  19| H |  10>=     -0.0000000862423351      0.0000990614552620 HR 
+<  20| H |  10>=      0.0002153457181898     -0.0000487678832780 HR 
+<  21| H |  10>=     -0.0000029540506961     -0.0054239995264906 HR 
+<  22| H |  10>=      0.0000380894370505     -0.0001548957460100 HR 
+<  23| H |  10>=     -0.0002985746675642     -0.0003015894472693 HR 
+<  24| H |  10>=      0.0016880379708957      0.0043307947648826 HR 
+<  25| H |  10>=      0.0003233466377849      0.0002630788515352 HR 
+<  26| H |  10>=      0.0011162399168552      0.0005993359808647 HR 
+<  27| H |  10>=     -0.0006757737354413     -0.0007081149896202 HR 
+<  28| H |  10>=      0.0017546822176712      0.0002827475318137 HR 
+<  29| H |  10>=     -0.0001995952611487      0.0009431312349422 HR 
+<  30| H |  10>=     -0.0006763113025311     -0.0026352478844789 HR 
+<  31| H |  10>=     -0.0020162456948357      0.0060329806643800 HR 
+<  32| H |  10>=     -0.0001304161638922     -0.0018896996129061 HR 
+<  12| H |  11>=      0.0088824482103477     -0.0024098997243044 HR 
+  Watch this element !!!!! 
+<  13| H |  11>=     -0.0065625173052896      0.0105881879444656 HR 
+  Watch this element !!!!! 
+<  14| H |  11>=      0.0124260864833401      0.0060901780528419 HR 
+  Watch this element !!!!! 
+<  15| H |  11>=     -0.0147492938120641     -0.0122621846819226 HR 
+  Watch this element !!!!! 
+<  16| H |  11>=      0.0086973269335899      0.0149955298597250 HR 
+<  17| H |  11>=     -0.0000505128324856     -0.0000090069082506 HR 
+  Watch this element !!!!! 
+<  18| H |  11>=     -0.0066454370380979     -0.0076526919462992 HR 
+<  19| H |  11>=      0.0004002878851585     -0.0000896312188995 HR 
+<  20| H |  11>=     -0.0002158813798058     -0.0002228143619183 HR 
+<  21| H |  11>=      0.0014067349203421      0.0084763336922877 HR 
+<  22| H |  11>=      0.0003660200245006      0.0001846665309733 HR 
+<  23| H |  11>=      0.0001629538718691     -0.0001912203707985 HR 
+<  24| H |  11>=     -0.0009447329627045     -0.0009885497628294 HR 
+<  25| H |  11>=      0.0000708061552059      0.0003304868337109 HR 
+<  26| H |  11>=     -0.0009230275221271      0.0008356634086208 HR 
+<  27| H |  11>=     -0.0019056850514139     -0.0000583152247698 HR 
+<  28| H |  11>=      0.0007975930957297      0.0026614487446456 HR 
+<  29| H |  11>=     -0.0011529180184806      0.0011424381152691 HR 
+<  30| H |  11>=     -0.0001059691066958     -0.0096613725370782 HR 
+<  31| H |  11>=     -0.0006318844001631      0.0008502691902375 HR 
+<  32| H |  11>=      0.0004112779628887      0.0025790994034896 HR 
+<  13| H |  12>=     -0.0008480449565739     -0.0074085436243480 HR 
+  Watch this element !!!!! 
+<  14| H |  12>=      0.0008398295448227     -0.0114833105780157 HR 
+<  15| H |  12>=      0.0022368538174782      0.0046066187134814 HR 
+<  16| H |  12>=      0.0046940060151195      0.0057849529254032 HR 
+<  17| H |  12>=      0.0000708938369461     -0.0002507113463629 HR 
+<  18| H |  12>=     -0.0051731910702967     -0.0049046110562236 HR 
+<  19| H |  12>=     -0.0008139524808064      0.0000405771108875 HR 
+<  20| H |  12>=      0.0004301001616215      0.0001855875435679 HR 
+<  21| H |  12>=      0.0004666806012135      0.0042795401119718 HR 
+<  22| H |  12>=     -0.0003115305668659     -0.0003087579822902 HR 
+<  23| H |  12>=      0.0000983103140897     -0.0001660891629151 HR 
+<  24| H |  12>=     -0.0000119168560662      0.0001664967315653 HR 
+<  25| H |  12>=      0.0001342043503169     -0.0002615367043056 HR 
+<  26| H |  12>=     -0.0014362841394201      0.0006872803832092 HR 
+<  27| H |  12>=     -0.0000876288305067      0.0002174057425183 HR 
+<  28| H |  12>=     -0.0008343079843489     -0.0011127365820279 HR 
+<  29| H |  12>=     -0.0030492317062854     -0.0041685281019253 HR 
+<  30| H |  12>=      0.0011722484954770     -0.0005227598025019 HR 
+<  31| H |  12>=     -0.0008825040553834     -0.0008556975179235 HR 
+<  32| H |  12>=     -0.0008083577605354     -0.0007687224021074 HR 
+  Watch this element !!!!! 
+<  14| H |  13>=     -0.0163635319096348      0.0055683669018801 HR 
+  Watch this element !!!!! 
+<  15| H |  13>=     -0.0117327531786137     -0.0178195565793630 HR 
+  Watch this element !!!!! 
+<  16| H |  13>=     -0.0085497074152115     -0.0079957257795732 HR 
+<  17| H |  13>=     -0.0006953349919604      0.0001021094611024 HR 
+  Watch this element !!!!! 
+<  18| H |  13>=     -0.0103892983029649     -0.0108178927674455 HR 
+<  19| H |  13>=      0.0005274812556515      0.0002016594245485 HR 
+<  20| H |  13>=      0.0010500338756552     -0.0001374529793977 HR 
+<  21| H |  13>=     -0.0017371806091465      0.0068939609296967 HR 
+<  22| H |  13>=      0.0001657035968249      0.0001795841079077 HR 
+<  23| H |  13>=     -0.0005076452139904     -0.0006244713351397 HR 
+<  24| H |  13>=      0.0006488715450820      0.0039924012549685 HR 
+<  25| H |  13>=      0.0000840240067397     -0.0000397268985766 HR 
+<  26| H |  13>=      0.0031500565161982      0.0002673902001717 HR 
+<  27| H |  13>=      0.0029735847987583      0.0008552692757609 HR 
+<  28| H |  13>=     -0.0017706841643540     -0.0029080982502306 HR 
+<  29| H |  13>=      0.0029153474768702      0.0062239933833417 HR 
+<  30| H |  13>=      0.0011784890402674      0.0043006378039038 HR 
+<  31| H |  13>=      0.0000365439234230      0.0051131170640637 HR 
+<  32| H |  13>=      0.0007497706535661      0.0018344862132031 HR 
+  Watch this element !!!!! 
+<  15| H |  14>=      0.0190602863406120     -0.0041228446149140 HR 
+  Watch this element !!!!! 
+<  16| H |  14>=      0.0070576089130420     -0.0102211729307767 HR 
+<  17| H |  14>=     -0.0004809345465233      0.0004578350080528 HR 
+  Watch this element !!!!! 
+<  18| H |  14>=      0.0088242967235747      0.0111884571343421 HR 
+<  19| H |  14>=     -0.0000805730757829      0.0003226591533651 HR 
+<  20| H |  14>=      0.0005644137631823     -0.0000117030799096 HR 
+<  21| H |  14>=     -0.0005940977666981     -0.0013796149176682 HR 
+<  22| H |  14>=     -0.0002393210793619      0.0000787660353306 HR 
+<  23| H |  14>=     -0.0004825068629832     -0.0004348883870020 HR 
+<  24| H |  14>=     -0.0025033824768958     -0.0038870766623079 HR 
+<  25| H |  14>=     -0.0003616957069718      0.0000154596494505 HR 
+<  26| H |  14>=     -0.0004147206574397      0.0005318495500689 HR 
+<  27| H |  14>=      0.0024105528170550     -0.0009325990950229 HR 
+<  28| H |  14>=     -0.0065586228573503     -0.0005427653352325 HR 
+<  29| H |  14>=     -0.0014952987651209     -0.0023539788105844 HR 
+<  30| H |  14>=      0.0019679648887417      0.0014120286700685 HR 
+<  31| H |  14>=      0.0005202559307936      0.0002146565428503 HR 
+<  32| H |  14>=     -0.0012928799132699     -0.0021005646462594 HR 
+  Watch this element !!!!! 
+<  16| H |  15>=      0.0015439371182376      0.0134898681002345 HR 
+<  17| H |  15>=      0.0003197405661490     -0.0000439041555515 HR 
+<  18| H |  15>=      0.0063528084928876     -0.0009483242706435 HR 
+<  19| H |  15>=      0.0005270330482194     -0.0003370270133652 HR 
+<  20| H |  15>=     -0.0001358665831926     -0.0001857197703974 HR 
+<  21| H |  15>=      0.0044345235494212     -0.0006699691711535 HR 
+<  22| H |  15>=      0.0013037135499162     -0.0002345720533732 HR 
+<  23| H |  15>=     -0.0002786109927350      0.0000512465898201 HR 
+<  24| H |  15>=      0.0010884198244092     -0.0097331277945130 HR 
+<  25| H |  15>=      0.0006013617871577      0.0002967160249584 HR 
+<  26| H |  15>=      0.0025185154224525     -0.0009108248008035 HR 
+<  27| H |  15>=      0.0004738792854166      0.0003261420678263 HR 
+<  28| H |  15>=      0.0023411035761825     -0.0014449853172826 HR 
+<  29| H |  15>=      0.0041585497900840      0.0031888879702859 HR 
+<  30| H |  15>=     -0.0038101502539987     -0.0017604120023484 HR 
+<  31| H |  15>=      0.0008614890279595      0.0007600030428183 HR 
+<  32| H |  15>=      0.0008428918502943      0.0005072780950178 HR 
+<  17| H |  16>=      0.0001014218111841     -0.0004318660908989 HR 
+  Watch this element !!!!! 
+<  18| H |  16>=      0.0024134058730471     -0.0134041232684473 HR 
+<  19| H |  16>=      0.0000327575920480     -0.0000723792724160 HR 
+<  20| H |  16>=      0.0004464688712680     -0.0003709768162574 HR 
+<  21| H |  16>=     -0.0043187137352324     -0.0039569573514520 HR 
+<  22| H |  16>=      0.0001903101793530      0.0001846452145067 HR 
+<  23| H |  16>=     -0.0006287791293945      0.0003403998302591 HR 
+<  24| H |  16>=      0.0014403830102281      0.0060923243144172 HR 
+<  25| H |  16>=     -0.0001600569546992      0.0000920208977197 HR 
+<  26| H |  16>=      0.0021213934336037      0.0006436983147004 HR 
+<  27| H |  16>=      0.0019770581132733     -0.0026541939678169 HR 
+<  28| H |  16>=     -0.0019547082793235     -0.0014842660700036 HR 
+<  29| H |  16>=      0.0010414434493500     -0.0023516580095018 HR 
+<  30| H |  16>=      0.0007315582719040      0.0017487232341495 HR 
+<  31| H |  16>=      0.0033686523897325      0.0025214866578565 HR 
+<  32| H |  16>=     -0.0003756056961774      0.0029144267782724 HR 
+<  18| H |  17>=     -0.0002522068601545     -0.0004684034119649 HR 
+  Watch this element !!!!! 
+<  19| H |  17>=     -0.0023178961664263      0.0112016666348944 HR 
+  Watch this element !!!!! 
+<  20| H |  17>=      0.0106845007548679      0.0071672459804416 HR 
+<  21| H |  17>=     -0.0000007543978685      0.0000709567352280 HR 
+<  22| H |  17>=     -0.0006789589104083      0.0005711026159344 HR 
+<  23| H |  17>=     -0.0008132078844960     -0.0050521532804986 HR 
+<  24| H |  17>=      0.0000070895435819      0.0000171617297453 HR 
+<  25| H |  17>=     -0.0001958360454264      0.0000664594984484 HR 
+<  26| H |  17>=      0.0003145531347467     -0.0001237915698043 HR 
+<  27| H |  17>=     -0.0005625120438158      0.0000817729059957 HR 
+<  28| H |  17>=      0.0000023363021323     -0.0000843079964017 HR 
+<  29| H |  17>=     -0.0000830093094195      0.0000386834540541 HR 
+<  30| H |  17>=      0.0000087935188896      0.0000224834080346 HR 
+<  31| H |  17>=     -0.0000174251212825     -0.0000819717106292 HR 
+<  32| H |  17>=      0.0002720554042212     -0.0004299681515714 HR 
+<  19| H |  18>=      0.0000498671968493      0.0002211674608685 HR 
+<  20| H |  18>=     -0.0001912123269828      0.0002404186076990 HR 
+<  21| H |  18>=      0.0006035754594340      0.0091260721073717 HR 
+<  22| H |  18>=      0.0001255717562461     -0.0002586811882153 HR 
+<  23| H |  18>=      0.0001300290693942      0.0001578516646446 HR 
+<  24| H |  18>=      0.0043933000382714      0.0054697924323507 HR 
+<  25| H |  18>=     -0.0001372347391975     -0.0000644404179571 HR 
+<  26| H |  18>=      0.0015146686737826     -0.0051754863528947 HR 
+<  27| H |  18>=      0.0009532936721051     -0.0006923679428091 HR 
+<  28| H |  18>=     -0.0003266897505041     -0.0005874580021799 HR 
+<  29| H |  18>=     -0.0006268279627307      0.0013406030189257 HR 
+<  30| H |  18>=     -0.0005540983305235      0.0003966067285049 HR 
+<  31| H |  18>=      0.0006021201448664      0.0022139631991500 HR 
+<  32| H |  18>=     -0.0010661701803832      0.0006448377328488 HR 
+  Watch this element !!!!! 
+<  20| H |  19>=     -0.0038308816632113      0.0119994088397976 HR 
+<  21| H |  19>=     -0.0000510164567382     -0.0001469395854895 HR 
+  Watch this element !!!!! 
+<  22| H |  19>=     -0.0128024960171284     -0.0129618438134668 HR 
+<  23| H |  19>=      0.0010309623044353     -0.0005232146273600 HR 
+<  24| H |  19>=     -0.0001118137886851      0.0000687874449173 HR 
+<  25| H |  19>=     -0.0006238706723405     -0.0049958517662104 HR 
+<  26| H |  19>=      0.0001907893601356     -0.0002668397592979 HR 
+<  27| H |  19>=      0.0002110957445142      0.0000623232823912 HR 
+<  28| H |  19>=      0.0004155982295732     -0.0001254452582161 HR 
+<  29| H |  19>=      0.0000477988652212     -0.0001145123375282 HR 
+<  30| H |  19>=     -0.0000464225964405     -0.0000587320444972 HR 
+<  31| H |  19>=     -0.0001705465468554     -0.0000095692400144 HR 
+<  32| H |  19>=      0.0000857777688429     -0.0006346980236980 HR 
+<  21| H |  20>=     -0.0000153292886563     -0.0003791035118992 HR 
+  Watch this element !!!!! 
+<  22| H |  20>=      0.0049155002229510     -0.0116303289441190 HR 
+  Watch this element !!!!! 
+<  23| H |  20>=      0.0116021675475802      0.0139599929895717 HR 
+<  24| H |  20>=     -0.0001008908110510     -0.0000902927144534 HR 
+<  25| H |  20>=      0.0010961690205539     -0.0005026533638308 HR 
+<  26| H |  20>=     -0.0000601028463748     -0.0003388288980233 HR 
+<  27| H |  20>=      0.0000267450573478     -0.0002365732027842 HR 
+<  28| H |  20>=     -0.0004149533295618      0.0000844535109112 HR 
+<  29| H |  20>=      0.0002999488301904     -0.0000911786002658 HR 
+<  30| H |  20>=     -0.0001055137593333      0.0000583196358822 HR 
+<  31| H |  20>=      0.0000549335731560     -0.0000579702151540 HR 
+<  32| H |  20>=      0.0000132309061351     -0.0004527153501393 HR 
+<  22| H |  21>=     -0.0000367403879802     -0.0001488922988333 HR 
+<  23| H |  21>=      0.0001805483617916     -0.0000988777543062 HR 
+<  24| H |  21>=      0.0030045547531721      0.0093208948813170 HR 
+<  25| H |  21>=      0.0001200100305615     -0.0001187161711252 HR 
+<  26| H |  21>=      0.0026804944577447     -0.0035365441090495 HR 
+<  27| H |  21>=      0.0007780197693381     -0.0037357511585563 HR 
+<  28| H |  21>=      0.0001409214099239      0.0030351727190652 HR 
+<  29| H |  21>=      0.0004984682357826      0.0015858022615414 HR 
+<  30| H |  21>=      0.0010186531201811      0.0002724600462531 HR 
+<  31| H |  21>=     -0.0031324666045181      0.0005443604844048 HR 
+<  32| H |  21>=      0.0008709334592560      0.0019498924991212 HR 
+  Watch this element !!!!! 
+<  23| H |  22>=      0.0052563592105034     -0.0115857852464350 HR 
+<  24| H |  22>=      0.0000521885998032      0.0001548834646751 HR 
+  Watch this element !!!!! 
+<  25| H |  22>=     -0.0097964482360805     -0.0098640397964189 HR 
+<  26| H |  22>=      0.0000659003947739      0.0000033382548365 HR 
+<  27| H |  22>=      0.0001225184883873      0.0001881581846551 HR 
+<  28| H |  22>=     -0.0000348147379242     -0.0003653973724193 HR 
+<  29| H |  22>=      0.0005387537975299     -0.0002428315440441 HR 
+<  30| H |  22>=     -0.0002332328188435     -0.0000149298597946 HR 
+<  31| H |  22>=     -0.0001440092698903      0.0000995899540205 HR 
+<  32| H |  22>=     -0.0000011633480342      0.0000214409393831 HR 
+<  24| H |  23>=      0.0001257172399160      0.0001095219209995 HR 
+  Watch this element !!!!! 
+<  25| H |  23>=     -0.0037443505110601      0.0120825164625302 HR 
+<  26| H |  23>=      0.0003036436016754      0.0000819603316380 HR 
+<  27| H |  23>=      0.0000571476555575      0.0001319983690235 HR 
+<  28| H |  23>=      0.0000381252035542     -0.0000093533421527 HR 
+<  29| H |  23>=      0.0001135025100555      0.0002536303715041 HR 
+<  30| H |  23>=     -0.0000803013932915      0.0001716662271990 HR 
+<  31| H |  23>=     -0.0005495345040659      0.0001861312707259 HR 
+<  32| H |  23>=      0.0000911536205475      0.0001851715633138 HR 
+<  25| H |  24>=      0.0002174916892099      0.0001081462560743 HR 
+<  26| H |  24>=      0.0015159637677300      0.0003827973189956 HR 
+<  27| H |  24>=      0.0018832378174708     -0.0003608334997044 HR 
+<  28| H |  24>=     -0.0006277749769814      0.0008378311083285 HR 
+<  29| H |  24>=      0.0003858131385457      0.0012122758962547 HR 
+<  30| H |  24>=     -0.0011190044457622      0.0012140097493389 HR 
+<  31| H |  24>=      0.0019113545569847      0.0013343130893745 HR 
+<  32| H |  24>=     -0.0005364908909234     -0.0004514243691170 HR 
+<  26| H |  25>=     -0.0000409375369026     -0.0000835333358666 HR 
+<  27| H |  25>=      0.0001542358204945      0.0000336234103409 HR 
+<  28| H |  25>=     -0.0001243354089889     -0.0001036670880411 HR 
+<  29| H |  25>=     -0.0000327304208939     -0.0000494980525072 HR 
+<  30| H |  25>=      0.0000919014742478      0.0002213114178550 HR 
+<  31| H |  25>=      0.0001957097619256     -0.0001871890961705 HR 
+<  32| H |  25>=     -0.0000079075189375     -0.0000658762976491 HR 
+  Watch this element !!!!! 
+<  27| H |  26>=     -0.0079611984744324      0.0091901527133792 HR 
+<  28| H |  26>=     -0.0041859795744636     -0.0086530580022145 HR 
+  Watch this element !!!!! 
+<  29| H |  26>=     -0.0041883792968947     -0.0093901854356154 HR 
+<  30| H |  26>=     -0.0004956315397267      0.0012574275724956 HR 
+<  31| H |  26>=      0.0003469602848479     -0.0017943430650112 HR 
+<  32| H |  26>=      0.0007181381569971      0.0007539736860706 HR 
+  Watch this element !!!!! 
+<  28| H |  27>=      0.0107943761006599     -0.0085595158226221 HR 
+  Watch this element !!!!! 
+<  29| H |  27>=     -0.0054924608045243     -0.0103227057481812 HR 
+<  30| H |  27>=      0.0024359529256438     -0.0002953588429665 HR 
+<  31| H |  27>=     -0.0003952105195132     -0.0044569396860938 HR 
+<  32| H |  27>=     -0.0052385124266471      0.0050862035723357 HR 
+  Watch this element !!!!! 
+<  29| H |  28>=     -0.0090436552136041      0.0098576024503527 HR 
+<  30| H |  28>=      0.0033774597000398      0.0054231010143877 HR 
+  Watch this element !!!!! 
+<  31| H |  28>=      0.0060761861528824      0.0092380510413686 HR 
+<  32| H |  28>=      0.0014789026616762     -0.0007624939749113 HR 
+  Watch this element !!!!! 
+<  30| H |  29>=      0.0083769644977976      0.0085073614676240 HR 
+<  31| H |  29>=     -0.0078655036362573      0.0003826863265043 HR 
+<  32| H |  29>=     -0.0005077539012382      0.0021066885884608 HR 
+  Watch this element !!!!! 
+<  31| H |  30>=     -0.0077572431574122     -0.0098533802268051 HR 
+<  32| H |  30>=     -0.0022472682529340      0.0000755147738983 HR 
+<  32| H |  31>=     -0.0041855525374215     -0.0008070154293528 HR 
+ Off-diagonal elements at the   2-th k-point
+  Now calling HLOCAL and NONLOC
+  Exepctation values: end
+  call HLOCAL and NONLOC for Off-diagonal
+  Off-diagonal elements: computed!
+  Now before do 2200 - for Off-diagonal
+  Now after do 2200-2201 
+  Watch this element !!!!! 
+<   2| H |   1>=      0.0045669560285365     -0.0109249335021355 HR 
+  Watch this element !!!!! 
+<   3| H |   1>=     -0.0101716308305484     -0.0088581079430151 HR 
+<   4| H |   1>=     -0.0009112292053164      0.0001703811458065 HR 
+<   5| H |   1>=     -0.0008614899596098     -0.0037510586497379 HR 
+<   6| H |   1>=      0.0004245769992613      0.0005511577491277 HR 
+<   7| H |   1>=     -0.0028448946662834     -0.0019387353590453 HR 
+<   8| H |   1>=      0.0003023104143820     -0.0000792887357600 HR 
+<   9| H |   1>=     -0.0006933914277609     -0.0044325424927997 HR 
+<  10| H |   1>=     -0.0000437826754943     -0.0004647627764888 HR 
+<  11| H |   1>=      0.0006280001878131     -0.0036429900915986 HR 
+<  12| H |   1>=      0.0003074566270808      0.0013585169126973 HR 
+<  13| H |   1>=     -0.0003017576289722      0.0004913953654740 HR 
+<  14| H |   1>=     -0.0067985745571213     -0.0038312423118707 HR 
+<  15| H |   1>=     -0.0001873235563636     -0.0005919944094791 HR 
+<  16| H |   1>=      0.0006579698706265      0.0007538532217762 HR 
+<  17| H |   1>=     -0.0013470109942450     -0.0007188992325996 HR 
+<  18| H |   1>=     -0.0013477543489891     -0.0076287554558673 HR 
+<  19| H |   1>=      0.0000063455289983      0.0021348999289661 HR 
+<  20| H |   1>=     -0.0003793203204078     -0.0005533439366648 HR 
+<  21| H |   1>=      0.0034380198510565     -0.0010409384323094 HR 
+<  22| H |   1>=     -0.0001234552060060     -0.0003580185217015 HR 
+<  23| H |   1>=     -0.0018367627923820      0.0009496138468372 HR 
+<  24| H |   1>=     -0.0009640915397100     -0.0004302904205251 HR 
+<  25| H |   1>=     -0.0026314174094074     -0.0000940433879272 HR 
+<  26| H |   1>=     -0.0003058723229264     -0.0001261454241621 HR 
+<  27| H |   1>=     -0.0004669815809997     -0.0006296463208702 HR 
+<  28| H |   1>=     -0.0002002643528076      0.0012507471946615 HR 
+<  29| H |   1>=     -0.0001834606673233      0.0000852071878410 HR 
+<  30| H |   1>=      0.0010566681859536      0.0002286486610693 HR 
+<  31| H |   1>=     -0.0004133825933300     -0.0013841968587687 HR 
+<  32| H |   1>=     -0.0004507232867669     -0.0006414529662221 HR 
+  Watch this element !!!!! 
+<   3| H |   2>=     -0.0062234390851648      0.0108847206098379 HR 
+  Watch this element !!!!! 
+<   4| H |   2>=      0.0108205625508034      0.0137425265503682 HR 
+<   5| H |   2>=     -0.0018201626728014     -0.0000512865209156 HR 
+<   6| H |   2>=     -0.0028713184926019     -0.0030387484517101 HR 
+<   7| H |   2>=     -0.0000776746828006     -0.0008643218111200 HR 
+<   8| H |   2>=      0.0042680205255563      0.0051336057032605 HR 
+<   9| H |   2>=      0.0001313999997028     -0.0002488097791261 HR 
+<  10| H |   2>=      0.0005747315107438      0.0081142947606999 HR 
+<  11| H |   2>=      0.0007727082003878      0.0005714046901538 HR 
+<  12| H |   2>=     -0.0035752218675070      0.0033431209320042 HR 
+<  13| H |   2>=      0.0070836517401647     -0.0003616308036510 HR 
+<  14| H |   2>=     -0.0000054489762052      0.0007099367610357 HR 
+<  15| H |   2>=      0.0018974599382620     -0.0001533672574760 HR 
+<  16| H |   2>=      0.0053896804845204      0.0022517288383328 HR 
+<  17| H |   2>=      0.0035980542742484      0.0020568713284187 HR 
+<  18| H |   2>=      0.0018547487155329     -0.0002151314883133 HR 
+<  19| H |   2>=      0.0008261279755697      0.0019966316942650 HR 
+<  20| H |   2>=      0.0028431083864158     -0.0028898670504114 HR 
+<  21| H |   2>=      0.0009677100401975      0.0005737129690843 HR 
+<  22| H |   2>=      0.0042351375002485     -0.0001933834553682 HR 
+<  23| H |   2>=      0.0004615957426455     -0.0003586913657687 HR 
+<  24| H |   2>=      0.0006813907098208     -0.0022206145899600 HR 
+<  25| H |   2>=     -0.0003973089256032      0.0004936466687805 HR 
+<  26| H |   2>=     -0.0010905943448665     -0.0012201369904115 HR 
+<  27| H |   2>=     -0.0000341630683530     -0.0005272994869167 HR 
+<  28| H |   2>=     -0.0001798462382632     -0.0007179686089805 HR 
+<  29| H |   2>=     -0.0002655780170968     -0.0031058109009496 HR 
+<  30| H |   2>=      0.0001392700325466      0.0007586567932529 HR 
+<  31| H |   2>=     -0.0012779032833887      0.0004039385606143 HR 
+<  32| H |   2>=      0.0006691231496213      0.0006521368738077 HR 
+  Watch this element !!!!! 
+<   4| H |   3>=     -0.0077401272334663      0.0109111040249833 HR 
+  Watch this element !!!!! 
+<   5| H |   3>=     -0.0084345046284996     -0.0126999666818955 HR 
+<   6| H |   3>=      0.0020755393552220      0.0004580184796227 HR 
+<   7| H |   3>=     -0.0049484368052733     -0.0031410166214255 HR 
+<   8| H |   3>=      0.0001372033344930     -0.0005396019676725 HR 
+<   9| H |   3>=     -0.0046176790237894     -0.0077220698975678 HR 
+<  10| H |   3>=      0.0009219753075603     -0.0002470445814637 HR 
+<  11| H |   3>=      0.0012184150141942     -0.0072395621335616 HR 
+<  12| H |   3>=      0.0001518006296080      0.0004899639320200 HR 
+<  13| H |   3>=      0.0000985339845033      0.0008291168548662 HR 
+<  14| H |   3>=     -0.0083011495265974      0.0033940877193604 HR 
+<  15| H |   3>=      0.0001624940037125      0.0014954755081441 HR 
+<  16| H |   3>=      0.0021028363307824      0.0003734413857299 HR 
+<  17| H |   3>=     -0.0018194970532059     -0.0001634767278858 HR 
+<  18| H |   3>=      0.0024610504595365     -0.0003515228147035 HR 
+<  19| H |   3>=      0.0011132651227829     -0.0008618516782918 HR 
+<  20| H |   3>=     -0.0027752908498376     -0.0005051691040752 HR 
+<  21| H |   3>=      0.0068400018788442      0.0008928255281156 HR 
+<  22| H |   3>=     -0.0011281716470837     -0.0001181634412464 HR 
+<  23| H |   3>=     -0.0024165916419034     -0.0012624266579969 HR 
+<  24| H |   3>=     -0.0002819064931251      0.0016847445371903 HR 
+<  25| H |   3>=      0.0027118845511611      0.0008993261407603 HR 
+<  26| H |   3>=     -0.0005922169191920     -0.0006807289831958 HR 
+<  27| H |   3>=     -0.0021881028015318     -0.0037097268565601 HR 
+<  28| H |   3>=      0.0004224893216807     -0.0004956142306122 HR 
+<  29| H |   3>=     -0.0007530240122912     -0.0001658702856037 HR 
+<  30| H |   3>=     -0.0002154600442017     -0.0004536949133116 HR 
+<  31| H |   3>=     -0.0005877459460658      0.0005234454812365 HR 
+<  32| H |   3>=     -0.0008138088144845     -0.0002181060549536 HR 
+  Watch this element !!!!! 
+<   5| H |   4>=      0.0085895175838036     -0.0103589811958835 HR 
+  Watch this element !!!!! 
+<   6| H |   4>=      0.0076488288160305      0.0113626488377906 HR 
+<   7| H |   4>=      0.0014417509687836      0.0004225351679929 HR 
+<   8| H |   4>=     -0.0051310786485234     -0.0044690339509452 HR 
+<   9| H |   4>=      0.0001653434661603      0.0011725567618852 HR 
+<  10| H |   4>=     -0.0036296405801263     -0.0046381583912132 HR 
+<  11| H |   4>=     -0.0003762591668485     -0.0004696155147467 HR 
+<  12| H |   4>=      0.0005917012107517     -0.0033174652040523 HR 
+<  13| H |   4>=     -0.0041042103960627      0.0046576734320723 HR 
+<  14| H |   4>=     -0.0009742944743883     -0.0003724761183576 HR 
+<  15| H |   4>=     -0.0007539528403301      0.0005670407355023 HR 
+<  16| H |   4>=     -0.0039052654199789      0.0027884650713837 HR 
+<  17| H |   4>=     -0.0061049241827789      0.0028113571865590 HR 
+<  18| H |   4>=     -0.0011988340992828      0.0006247413374693 HR 
+<  19| H |   4>=     -0.0034410131493181      0.0004934898872376 HR 
+<  20| H |   4>=     -0.0056744535894594      0.0004640180131871 HR 
+<  21| H |   4>=     -0.0017700333670477      0.0006091102257611 HR 
+<  22| H |   4>=     -0.0052272807966583      0.0003142477790654 HR 
+<  23| H |   4>=      0.0009295089460578      0.0005012607677611 HR 
+<  24| H |   4>=      0.0030697527735386     -0.0009145544329663 HR 
+<  25| H |   4>=      0.0006794582406666     -0.0011009685482351 HR 
+<  26| H |   4>=     -0.0019505493589794     -0.0032505876674595 HR 
+<  27| H |   4>=     -0.0002296357909127      0.0003047851606202 HR 
+<  28| H |   4>=     -0.0001064176341078      0.0000567854993789 HR 
+<  29| H |   4>=      0.0009231259649382      0.0021479922462584 HR 
+<  30| H |   4>=      0.0001181188743735      0.0016082864012466 HR 
+<  31| H |   4>=      0.0002287528406941     -0.0005187126285207 HR 
+<  32| H |   4>=     -0.0004102026512252     -0.0000153981736061 HR 
+  Watch this element !!!!! 
+<   6| H |   5>=      0.0083492345450714     -0.0094836583424073 HR 
+  Watch this element !!!!! 
+<   7| H |   5>=     -0.0088972920449594     -0.0121681862870339 HR 
+<   8| H |   5>=     -0.0024260000239521     -0.0003458408342180 HR 
+<   9| H |   5>=     -0.0032268409104917     -0.0019774415587247 HR 
+<  10| H |   5>=      0.0000064282107871      0.0003495505350585 HR 
+<  11| H |   5>=     -0.0006808455967446     -0.0030678716337733 HR 
+<  12| H |   5>=      0.0000473849671155      0.0003599222902013 HR 
+<  13| H |   5>=      0.0009295540268636     -0.0002599373196316 HR 
+<  14| H |   5>=     -0.0051035017550695      0.0084776262489049 HR 
+<  15| H |   5>=      0.0027286153747758     -0.0040385635950899 HR 
+<  16| H |   5>=      0.0009901239156381     -0.0009258638682396 HR 
+<  17| H |   5>=     -0.0012794524794708      0.0016640657240753 HR 
+<  18| H |   5>=      0.0008317343821204     -0.0012832735981185 HR 
+<  19| H |   5>=      0.0001988652137063     -0.0005237420860936 HR 
+<  20| H |   5>=     -0.0012730291907981      0.0005515900106779 HR 
+<  21| H |   5>=      0.0083251394966894     -0.0047510515949943 HR 
+<  22| H |   5>=     -0.0004858220502310      0.0005953830608334 HR 
+<  23| H |   5>=     -0.0006373476259345     -0.0013021703196273 HR 
+<  24| H |   5>=      0.0007980317178467      0.0010985179408382 HR 
+<  25| H |   5>=      0.0013576209199009      0.0009775420311385 HR 
+<  26| H |   5>=      0.0005547709048966     -0.0001287521520380 HR 
+<  27| H |   5>=      0.0000192432920975     -0.0000224424867077 HR 
+<  28| H |   5>=     -0.0013976122209441     -0.0034043536957059 HR 
+<  29| H |   5>=     -0.0006664591286120      0.0003228564012521 HR 
+<  30| H |   5>=     -0.0005009509925139     -0.0001651552083349 HR 
+<  31| H |   5>=     -0.0010816775647773     -0.0000816805597350 HR 
+<  32| H |   5>=     -0.0011582326881978     -0.0009442021007880 HR 
+  Watch this element !!!!! 
+<   7| H |   6>=     -0.0089725684597743      0.0115873346138622 HR 
+  Watch this element !!!!! 
+<   8| H |   6>=      0.0088170004271618      0.0111675170857017 HR 
+<   9| H |   6>=     -0.0006361674066329      0.0004175450299978 HR 
+<  10| H |   6>=      0.0004089387131354      0.0059496218927315 HR 
+<  11| H |   6>=     -0.0004848221506305      0.0006367615567585 HR 
+<  12| H |   6>=     -0.0002722697771658      0.0033050511091764 HR 
+  Watch this element !!!!! 
+<  13| H |   6>=      0.0031100135520551     -0.0100675267245283 HR 
+<  14| H |   6>=     -0.0007463137536459     -0.0004678629765326 HR 
+<  15| H |   6>=      0.0010653690793989     -0.0014407556965667 HR 
+<  16| H |   6>=      0.0028906992396917     -0.0053496445187600 HR 
+<  17| H |   6>=      0.0018762435937221     -0.0057297308300307 HR 
+<  18| H |   6>=      0.0001382566924400     -0.0001074536246411 HR 
+<  19| H |   6>=      0.0011824212857362     -0.0003400914782425 HR 
+<  20| H |   6>=      0.0017624462087843     -0.0063972259508348 HR 
+<  21| H |   6>=     -0.0001369697328455      0.0001789884037000 HR 
+<  22| H |   6>=      0.0068864631299467      0.0000321528819935 HR 
+<  23| H |   6>=      0.0004009773272905      0.0001787067097971 HR 
+<  24| H |   6>=     -0.0016974468491260     -0.0025671604574894 HR 
+<  25| H |   6>=      0.0004078094591852      0.0003431281150606 HR 
+<  26| H |   6>=      0.0006517890516652      0.0007820748194568 HR 
+<  27| H |   6>=     -0.0004033499170055      0.0000297502485414 HR 
+<  28| H |   6>=      0.0009585758572983     -0.0003569980230638 HR 
+<  29| H |   6>=     -0.0009514620108601      0.0005623706212640 HR 
+<  30| H |   6>=     -0.0008125469168353     -0.0001913509458784 HR 
+<  31| H |   6>=      0.0004091658226979      0.0001581326282081 HR 
+<  32| H |   6>=      0.0001027528104933      0.0015706065883292 HR 
+  Watch this element !!!!! 
+<   8| H |   7>=     -0.0067215050369621      0.0088809151103338 HR 
+  Watch this element !!!!! 
+<   9| H |   7>=     -0.0101743686874424     -0.0141202867487008 HR 
+<  10| H |   7>=     -0.0007009348398299      0.0008267657905367 HR 
+<  11| H |   7>=     -0.0015602163491375     -0.0077672855155829 HR 
+<  12| H |   7>=     -0.0003288366675552      0.0002824813489217 HR 
+<  13| H |   7>=     -0.0030699348730281      0.0022929572961846 HR 
+  Watch this element !!!!! 
+<  14| H |   7>=     -0.0009563800240804      0.0125109186118514 HR 
+<  15| H |   7>=     -0.0009223556791476      0.0006777137683727 HR 
+<  16| H |   7>=      0.0016939707548497     -0.0027664028998429 HR 
+<  17| H |   7>=     -0.0017648271731000      0.0001432297662399 HR 
+<  18| H |   7>=     -0.0010032288754975     -0.0019541938642143 HR 
+<  19| H |   7>=      0.0003444109226482     -0.0019921069710550 HR 
+<  20| H |   7>=     -0.0001987279303210     -0.0014305033928715 HR 
+<  21| H |   7>=      0.0046532593285187     -0.0075261571698295 HR 
+<  22| H |   7>=      0.0003308704354752     -0.0004302179428538 HR 
+<  23| H |   7>=     -0.0046879922497136     -0.0010155313742329 HR 
+<  24| H |   7>=     -0.0003937664638737      0.0004269150707584 HR 
+<  25| H |   7>=      0.0009509727073457      0.0022886565237796 HR 
+<  26| H |   7>=     -0.0003730197503657     -0.0006267423344094 HR 
+<  27| H |   7>=     -0.0014156656857654      0.0006714626400713 HR 
+<  28| H |   7>=     -0.0013240397598998     -0.0021745994176613 HR 
+<  29| H |   7>=      0.0003871858211656     -0.0006366703914367 HR 
+<  30| H |   7>=     -0.0002491657900964      0.0002564313667637 HR 
+<  31| H |   7>=     -0.0012491340607172     -0.0000922248187660 HR 
+<  32| H |   7>=      0.0005429504757780     -0.0002066002970080 HR 
+  Watch this element !!!!! 
+<   9| H |   8>=      0.0049070060540772     -0.0105211969568688 HR 
+  Watch this element !!!!! 
+<  10| H |   8>=     -0.0136078287990696     -0.0133190971537219 HR 
+<  11| H |   8>=      0.0001967759710943     -0.0006207158716792 HR 
+<  12| H |   8>=     -0.0023747850518112     -0.0050261772709995 HR 
+<  13| H |   8>=      0.0015992235704696      0.0044933253603139 HR 
+<  14| H |   8>=      0.0023398349469437     -0.0019016403359049 HR 
+<  15| H |   8>=     -0.0012936928274412      0.0043351550169480 HR 
+<  16| H |   8>=      0.0016583742204929      0.0070976965008149 HR 
+<  17| H |   8>=     -0.0010385166845595      0.0067859956291352 HR 
+<  18| H |   8>=     -0.0018988246553727      0.0002622012426281 HR 
+<  19| H |   8>=     -0.0020374016471669      0.0002516511204730 HR 
+<  20| H |   8>=     -0.0001930497005020      0.0055786149882438 HR 
+<  21| H |   8>=     -0.0003453175205689     -0.0024359086312795 HR 
+<  22| H |   8>=     -0.0015866946349698      0.0044515036926132 HR 
+<  23| H |   8>=      0.0002241637193980      0.0006950944061482 HR 
+<  24| H |   8>=      0.0035052202286785      0.0000393833066424 HR 
+<  25| H |   8>=      0.0004597111086757     -0.0002740978452764 HR 
+<  26| H |   8>=     -0.0000761484445384      0.0001595742475878 HR 
+<  27| H |   8>=     -0.0008877360214152     -0.0004156252937341 HR 
+<  28| H |   8>=      0.0001128337964483      0.0009141174141578 HR 
+<  29| H |   8>=      0.0012478654316384      0.0014413808359897 HR 
+<  30| H |   8>=      0.0008399158531835     -0.0003717560795815 HR 
+<  31| H |   8>=     -0.0000244269570564      0.0001063573203675 HR 
+<  32| H |   8>=     -0.0000779389162512     -0.0003730875195572 HR 
+  Watch this element !!!!! 
+<  10| H |   9>=     -0.0026560404946916      0.0111316019256381 HR 
+  Watch this element !!!!! 
+<  11| H |   9>=     -0.0134959680343699     -0.0114073875911501 HR 
+<  12| H |   9>=      0.0001369908656566      0.0006591470321827 HR 
+<  13| H |   9>=     -0.0013440530855589     -0.0015293213202182 HR 
+<  14| H |   9>=      0.0038010169058929      0.0044577923111074 HR 
+<  15| H |   9>=      0.0050957090748892      0.0055232518436821 HR 
+<  16| H |   9>=      0.0000097496681554      0.0004583238957479 HR 
+<  17| H |   9>=     -0.0026497228623022      0.0045401221406498 HR 
+<  18| H |   9>=     -0.0008748354957073     -0.0026821845584571 HR 
+<  19| H |   9>=      0.0002444346252512     -0.0042476853369039 HR 
+<  20| H |   9>=     -0.0024220033824324      0.0000660680100655 HR 
+<  21| H |   9>=     -0.0005952159100725     -0.0087944718593279 HR 
+<  22| H |   9>=     -0.0000285075564130     -0.0019725992659217 HR 
+<  23| H |   9>=      0.0001901999536096      0.0012223256279391 HR 
+<  24| H |   9>=      0.0000002997410214      0.0009084603274758 HR 
+<  25| H |   9>=      0.0008157155579472     -0.0011382078189480 HR 
+<  26| H |   9>=     -0.0011301637262205     -0.0001115085096700 HR 
+<  27| H |   9>=      0.0015432016785146     -0.0011214087066325 HR 
+<  28| H |   9>=     -0.0007905422407572      0.0013777217493332 HR 
+<  29| H |   9>=     -0.0003138029856269     -0.0010551204101386 HR 
+<  30| H |   9>=     -0.0000435787588619     -0.0001872081197214 HR 
+<  31| H |   9>=     -0.0011717246253263      0.0010008640438445 HR 
+<  32| H |   9>=     -0.0009050616950313     -0.0001856554778559 HR 
+  Watch this element !!!!! 
+<  11| H |  10>=      0.0016100960946957     -0.0121012610616481 HR 
+  Watch this element !!!!! 
+<  12| H |  10>=     -0.0108116504988178     -0.0088802432345267 HR 
+<  13| H |  10>=      0.0062314287366586      0.0069833967586433 HR 
+<  14| H |  10>=      0.0007616623062380      0.0014812949417424 HR 
+<  15| H |  10>=     -0.0004474484005338     -0.0011190368226921 HR 
+<  16| H |  10>=      0.0012389104970206      0.0038788350840375 HR 
+<  17| H |  10>=     -0.0029852953305615     -0.0051432795707237 HR 
+<  18| H |  10>=     -0.0004755671781209     -0.0000894825814476 HR 
+<  19| H |  10>=     -0.0023202573030808      0.0028342748842992 HR 
+<  20| H |  10>=      0.0032023113334226      0.0086591958726337 HR 
+<  21| H |  10>=     -0.0024745085947976      0.0011941999359217 HR 
+<  22| H |  10>=      0.0016136335128222      0.0057085380895325 HR 
+<  23| H |  10>=     -0.0002584393194133      0.0004408344695170 HR 
+<  24| H |  10>=     -0.0025212044363276     -0.0020115043998739 HR 
+<  25| H |  10>=      0.0003086025875824     -0.0010755865962158 HR 
+<  26| H |  10>=     -0.0004208186101589      0.0026485721363132 HR 
+<  27| H |  10>=     -0.0003380407350363     -0.0001110162960368 HR 
+<  28| H |  10>=      0.0007853756328481      0.0006914323143658 HR 
+<  29| H |  10>=      0.0004558885547924     -0.0002817212361640 HR 
+<  30| H |  10>=     -0.0007239609519925     -0.0005841604525302 HR 
+<  31| H |  10>=      0.0001373684767771     -0.0001791677342493 HR 
+<  32| H |  10>=     -0.0002924272827315     -0.0007012052359873 HR 
+  Watch this element !!!!! 
+<  12| H |  11>=     -0.0011920691416229      0.0122669122373831 HR 
+<  13| H |  11>=     -0.0003643972056578     -0.0015745855153562 HR 
+  Watch this element !!!!! 
+<  14| H |  11>=      0.0069609167780814      0.0129011366324966 HR 
+<  15| H |  11>=      0.0008552827731844      0.0008400957333840 HR 
+<  16| H |  11>=      0.0012115478851367     -0.0019457361241103 HR 
+<  17| H |  11>=     -0.0000008862831378     -0.0015737616322650 HR 
+<  18| H |  11>=     -0.0077758972290724     -0.0027290240759239 HR 
+<  19| H |  11>=      0.0014012908679787      0.0094896859526604 HR 
+<  20| H |  11>=     -0.0030545153460417      0.0030085617649585 HR 
+<  21| H |  11>=     -0.0019927472213725     -0.0043892307595032 HR 
+<  22| H |  11>=     -0.0011398886366242      0.0005743221184620 HR 
+<  23| H |  11>=      0.0018770562281106      0.0012914922050479 HR 
+<  24| H |  11>=      0.0002094423026520      0.0005647043144928 HR 
+<  25| H |  11>=     -0.0033007109890102     -0.0023464956745488 HR 
+<  26| H |  11>=      0.0001506038276632      0.0003045000723911 HR 
+<  27| H |  11>=     -0.0006803360625871      0.0010622850577226 HR 
+<  28| H |  11>=     -0.0003361453589703      0.0014607234221360 HR 
+<  29| H |  11>=     -0.0003780244366332     -0.0004931822588965 HR 
+<  30| H |  11>=     -0.0000474339443948      0.0001472694034773 HR 
+<  31| H |  11>=     -0.0007248857923311     -0.0007127441261594 HR 
+<  32| H |  11>=     -0.0008120403806028      0.0001951643200876 HR 
+  Watch this element !!!!! 
+<  13| H |  12>=      0.0084952997552152      0.0091198785730813 HR 
+<  14| H |  12>=     -0.0009327288483960      0.0042192535529509 HR 
+<  15| H |  12>=     -0.0011858433248698      0.0005986735919032 HR 
+  Watch this element !!!!! 
+<  16| H |  12>=      0.0044496942674697      0.0134147208163958 HR 
+<  17| H |  12>=      0.0016771430174716      0.0048294755350146 HR 
+<  18| H |  12>=     -0.0037801533730285      0.0058420382811695 HR 
+<  19| H |  12>=      0.0006954259199932     -0.0008248743604669 HR 
+<  20| H |  12>=      0.0025420183857969     -0.0057507771302788 HR 
+<  21| H |  12>=     -0.0012937789703045      0.0010925027098780 HR 
+<  22| H |  12>=      0.0003358112632812      0.0012257610480353 HR 
+<  23| H |  12>=      0.0001925961447409     -0.0003781855439747 HR 
+<  24| H |  12>=     -0.0022820374927154      0.0012962095822084 HR 
+<  25| H |  12>=      0.0001005246378904     -0.0008333084794494 HR 
+<  26| H |  12>=     -0.0002640331509938     -0.0005202307383643 HR 
+<  27| H |  12>=     -0.0002114633095616     -0.0001142529615521 HR 
+<  28| H |  12>=      0.0000680882613444     -0.0001964811639753 HR 
+<  29| H |  12>=      0.0017414776526970     -0.0010825002327904 HR 
+<  30| H |  12>=     -0.0020583464900772      0.0036790512050997 HR 
+<  31| H |  12>=     -0.0005836972319247     -0.0006426594926174 HR 
+<  32| H |  12>=     -0.0002509787352647     -0.0004689105419494 HR 
+  Watch this element !!!!! 
+<  14| H |  13>=      0.0044097528755759     -0.0158631499516897 HR 
+<  15| H |  13>=      0.0018434035022265      0.0011650473910451 HR 
+  Watch this element !!!!! 
+<  16| H |  13>=     -0.0169731027687739     -0.0080276577136639 HR 
+  Watch this element !!!!! 
+<  17| H |  13>=     -0.0149178761744395     -0.0066159964577279 HR 
+<  18| H |  13>=     -0.0020390894629690      0.0040979492853487 HR 
+<  19| H |  13>=     -0.0008231557725171     -0.0018529395745162 HR 
+  Watch this element !!!!! 
+<  20| H |  13>=     -0.0095121661802051     -0.0114855325891499 HR 
+<  21| H |  13>=     -0.0014847823099843      0.0024694624300696 HR 
+  Watch this element !!!!! 
+<  22| H |  13>=     -0.0088176148394029     -0.0120749607573321 HR 
+<  23| H |  13>=      0.0000718208679330      0.0001784385281059 HR 
+<  24| H |  13>=      0.0050902199158746      0.0043466786061800 HR 
+<  25| H |  13>=      0.0003559246232480     -0.0000215208287868 HR 
+<  26| H |  13>=     -0.0008702191913021     -0.0029443040890856 HR 
+<  27| H |  13>=      0.0000933759793200     -0.0002594859970868 HR 
+<  28| H |  13>=     -0.0003979750809183     -0.0006229723654971 HR 
+<  29| H |  13>=     -0.0025162873537038      0.0045684014516911 HR 
+<  30| H |  13>=     -0.0016659359007079      0.0038056375917197 HR 
+<  31| H |  13>=     -0.0001571309086249      0.0007305666241263 HR 
+<  32| H |  13>=      0.0019350209812982     -0.0003227883902297 HR 
+<  15| H |  14>=     -0.0040700988906117     -0.0013125058276365 HR 
+  Watch this element !!!!! 
+<  16| H |  14>=     -0.0046885564522985      0.0089409029836413 HR 
+<  17| H |  14>=     -0.0034299995341325      0.0046863995076461 HR 
+<  18| H |  14>=      0.0060294752231154      0.0039122063942218 HR 
+<  19| H |  14>=      0.0015003336225951      0.0000851227890338 HR 
+<  20| H |  14>=     -0.0025313250570555      0.0011493427615586 HR 
+  Watch this element !!!!! 
+<  21| H |  14>=      0.0201264838932183      0.0215233196836458 HR 
+<  22| H |  14>=     -0.0015696355862609      0.0020313906005535 HR 
+  Watch this element !!!!! 
+<  23| H |  14>=     -0.0058804412866606     -0.0083573224926284 HR 
+<  24| H |  14>=     -0.0003774794904331      0.0006931357184262 HR 
+<  25| H |  14>=      0.0047610767751423      0.0044566144464072 HR 
+<  26| H |  14>=      0.0005530028198787      0.0001157690059807 HR 
+<  27| H |  14>=     -0.0017327942789512     -0.0040616077662495 HR 
+<  28| H |  14>=      0.0010376020457012     -0.0049460254673720 HR 
+<  29| H |  14>=      0.0006150576101889     -0.0003342108048505 HR 
+<  30| H |  14>=      0.0004426901866645     -0.0002666352356639 HR 
+<  31| H |  14>=      0.0032344548457410     -0.0022944690682735 HR 
+<  32| H |  14>=      0.0047059968261881     -0.0032123551177394 HR 
+<  16| H |  15>=     -0.0035815534107907      0.0077394536529100 HR 
+  Watch this element !!!!! 
+<  17| H |  15>=      0.0052393747726946     -0.0087338514991006 HR 
+<  18| H |  15>=     -0.0040078928323228     -0.0033662242740770 HR 
+  Watch this element !!!!! 
+<  19| H |  15>=     -0.0114398851547579     -0.0136901106868633 HR 
+<  20| H |  15>=      0.0014949234761899      0.0016475662949092 HR 
+<  21| H |  15>=     -0.0006067087561442      0.0010985464956487 HR 
+<  22| H |  15>=      0.0014689733229874     -0.0003384248447054 HR 
+<  23| H |  15>=     -0.0027050221853204      0.0039510691505500 HR 
+<  24| H |  15>=     -0.0002226125230671     -0.0005577039637335 HR 
+<  25| H |  15>=      0.0022740397019882     -0.0008426340386756 HR 
+<  26| H |  15>=     -0.0006099939421797     -0.0000516308388168 HR 
+<  27| H |  15>=     -0.0029783859726268     -0.0023035121668241 HR 
+<  28| H |  15>=     -0.0003608927105214      0.0012217584758187 HR 
+<  29| H |  15>=      0.0002831039534521      0.0001856602205317 HR 
+<  30| H |  15>=      0.0010264998706198      0.0010218988949110 HR 
+<  31| H |  15>=     -0.0023372816481471      0.0008564930083057 HR 
+<  32| H |  15>=      0.0033702674677939     -0.0029223941629519 HR 
+<  17| H |  16>=      0.0055518917214220      0.0004643531114610 HR 
+<  18| H |  16>=      0.0050799923113829     -0.0036273228844769 HR 
+<  19| H |  16>=      0.0035604527062242     -0.0078774162106717 HR 
+<  20| H |  16>=     -0.0046310533781557      0.0006357802101712 HR 
+<  21| H |  16>=     -0.0034411349908150      0.0048283209614702 HR 
+  Watch this element !!!!! 
+<  22| H |  16>=     -0.0100733135824172     -0.0137928574334584 HR 
+<  23| H |  16>=      0.0005773178863183     -0.0005418365453989 HR 
+<  24| H |  16>=      0.0058961508435291      0.0003628851568171 HR 
+<  25| H |  16>=      0.0006593944719274      0.0002381214571819 HR 
+<  26| H |  16>=      0.0001637555079121      0.0004291782337673 HR 
+<  27| H |  16>=      0.0002359371192248     -0.0004835885850702 HR 
+<  28| H |  16>=     -0.0001225647584190      0.0001443194782424 HR 
+<  29| H |  16>=      0.0020289428282437      0.0077553082439623 HR 
+<  30| H |  16>=      0.0010194411404438      0.0003557242589778 HR 
+<  31| H |  16>=      0.0006051512329848      0.0005862126871353 HR 
+<  32| H |  16>=      0.0007764649719198      0.0008659999934896 HR 
+<  18| H |  17>=      0.0003085381528583      0.0013157456451323 HR 
+  Watch this element !!!!! 
+<  19| H |  17>=     -0.0070919581688955      0.0080844797657134 HR 
+  Watch this element !!!!! 
+<  20| H |  17>=     -0.0158235568941898     -0.0099272190687049 HR 
+<  21| H |  17>=     -0.0064605041575590      0.0028878169227597 HR 
+<  22| H |  17>=     -0.0075147626691782     -0.0055084674776752 HR 
+<  23| H |  17>=      0.0034367218701382     -0.0019514937083742 HR 
+  Watch this element !!!!! 
+<  24| H |  17>=     -0.0004965327432170      0.0112668765676586 HR 
+<  25| H |  17>=      0.0004850046808650     -0.0013253561185654 HR 
+<  26| H |  17>=     -0.0032670855237785     -0.0032687671004005 HR 
+<  27| H |  17>=     -0.0007350480114619      0.0004626615866899 HR 
+<  28| H |  17>=     -0.0011555305536451     -0.0008593777312604 HR 
+<  29| H |  17>=     -0.0023839801821621     -0.0027503470904857 HR 
+<  30| H |  17>=     -0.0003411789493767      0.0040298950582302 HR 
+<  31| H |  17>=     -0.0004337757763022     -0.0008082314760737 HR 
+<  32| H |  17>=      0.0004949106653004     -0.0015769045110459 HR 
+  Watch this element !!!!! 
+<  19| H |  18>=     -0.0144621296462076     -0.0046749901589235 HR 
+  Watch this element !!!!! 
+<  20| H |  18>=      0.0038380236463121     -0.0104797929265230 HR 
+<  21| H |  18>=     -0.0038870717952207     -0.0037097742637870 HR 
+<  22| H |  18>=     -0.0008922037118714      0.0002715175862056 HR 
+<  23| H |  18>=      0.0012451879198855     -0.0083301330681238 HR 
+<  24| H |  18>=      0.0029373360501037     -0.0010395444546045 HR 
+<  25| H |  18>=      0.0021743521795725     -0.0009223754682705 HR 
+<  26| H |  18>=     -0.0007218584517994     -0.0002309299331899 HR 
+<  27| H |  18>=     -0.0009439050840497     -0.0002718335187624 HR 
+<  28| H |  18>=      0.0024540729316698      0.0049609048639466 HR 
+<  29| H |  18>=     -0.0006046652545589     -0.0002040047145212 HR 
+<  30| H |  18>=      0.0005770075019972     -0.0006292647105571 HR 
+<  31| H |  18>=     -0.0010630759907809      0.0045391341058642 HR 
+<  32| H |  18>=     -0.0001075034986569     -0.0006150302562959 HR 
+  Watch this element !!!!! 
+<  20| H |  19>=      0.0064447007222912     -0.0084094889137728 HR 
+<  21| H |  19>=     -0.0018040058822467     -0.0021306727832786 HR 
+<  22| H |  19>=     -0.0004013330785435      0.0036449530958678 HR 
+<  23| H |  19>=      0.0007180778756728     -0.0008359646073479 HR 
+<  24| H |  19>=     -0.0059244537578043      0.0009818267588209 HR 
+<  25| H |  19>=      0.0011021438403146     -0.0066372411876862 HR 
+<  26| H |  19>=     -0.0001840584925586      0.0002926643132389 HR 
+<  27| H |  19>=     -0.0018363375469393     -0.0010223013956248 HR 
+<  28| H |  19>=      0.0033600172619038      0.0042855346468811 HR 
+<  29| H |  19>=      0.0005283839039856     -0.0000566382059372 HR 
+<  30| H |  19>=      0.0008602338758621      0.0001151286115590 HR 
+<  31| H |  19>=     -0.0011708754668712      0.0022258140640212 HR 
+<  32| H |  19>=     -0.0007534727481321     -0.0024249785006285 HR 
+  Watch this element !!!!! 
+<  21| H |  20>=     -0.0048929743240105      0.0104229137439080 HR 
+<  22| H |  20>=     -0.0024072148406301     -0.0010982396016030 HR 
+<  23| H |  20>=     -0.0027831007527185      0.0043244187546466 HR 
+<  24| H |  20>=      0.0015479142983063      0.0020340756139076 HR 
+<  25| H |  20>=     -0.0019965514578378     -0.0004968818170242 HR 
+<  26| H |  20>=     -0.0012885611127037     -0.0030000591168394 HR 
+<  27| H |  20>=      0.0005853830047591     -0.0001715354610220 HR 
+<  28| H |  20>=     -0.0013131731277605     -0.0003698710296593 HR 
+<  29| H |  20>=      0.0002641880088357      0.0014077812131134 HR 
+<  30| H |  20>=      0.0011832242444091      0.0021287339178820 HR 
+<  31| H |  20>=     -0.0004654113650156      0.0006515342271487 HR 
+<  32| H |  20>=      0.0002182322039466     -0.0022698612808715 HR 
+  Watch this element !!!!! 
+<  22| H |  21>=      0.0068609650718663     -0.0097089544890224 HR 
+  Watch this element !!!!! 
+<  23| H |  21>=      0.0089124347072350      0.0055294619738335 HR 
+<  24| H |  21>=     -0.0036624029610981     -0.0001411809002201 HR 
+<  25| H |  21>=     -0.0018006953332841     -0.0083598898301465 HR 
+<  26| H |  21>=      0.0002602067809921      0.0006741794115420 HR 
+<  27| H |  21>=      0.0012762410339074      0.0013424120954751 HR 
+<  28| H |  21>=      0.0005109216343916      0.0010375696681511 HR 
+<  29| H |  21>=      0.0001193577104009     -0.0000310240150221 HR 
+<  30| H |  21>=      0.0003490817592547     -0.0001738794365538 HR 
+<  31| H |  21>=     -0.0001310685215326      0.0039476547505635 HR 
+<  32| H |  21>=     -0.0004369817075365     -0.0017293853395563 HR 
+<  23| H |  22>=      0.0044532238864384     -0.0056382942020439 HR 
+  Watch this element !!!!! 
+<  24| H |  22>=      0.0109040943216587      0.0074650832305293 HR 
+<  25| H |  22>=     -0.0028145077528295      0.0006863510183665 HR 
+<  26| H |  22>=     -0.0009954635811715      0.0010146904495354 HR 
+<  27| H |  22>=      0.0001839799619594     -0.0002818593479312 HR 
+<  28| H |  22>=      0.0003915598313024      0.0007445789558565 HR 
+<  29| H |  22>=     -0.0018449396597521      0.0008165125841896 HR 
+<  30| H |  22>=     -0.0004392604245223      0.0011375819282073 HR 
+<  31| H |  22>=     -0.0004889810355064      0.0001340802581245 HR 
+<  32| H |  22>=     -0.0002591318338710      0.0000743322294497 HR 
+<  24| H |  23>=      0.0058704132202142     -0.0063331204903720 HR 
+  Watch this element !!!!! 
+<  25| H |  23>=      0.0069555472351209      0.0082171087671085 HR 
+<  26| H |  23>=     -0.0014767411777289      0.0002322806821738 HR 
+<  27| H |  23>=     -0.0004327337707848     -0.0013159924054564 HR 
+<  28| H |  23>=     -0.0035418158968720      0.0024165113790250 HR 
+<  29| H |  23>=     -0.0004829236683304      0.0001096726172923 HR 
+<  30| H |  23>=     -0.0001931519155540      0.0009246554465095 HR 
+<  31| H |  23>=     -0.0010651836645084     -0.0007620253984854 HR 
+<  32| H |  23>=     -0.0001021701112932      0.0006741127116669 HR 
+  Watch this element !!!!! 
+<  25| H |  24>=      0.0088450169952410     -0.0102569582042867 HR 
+<  26| H |  24>=      0.0003902035405432     -0.0045399517166479 HR 
+<  27| H |  24>=     -0.0006060100947132      0.0007491687950340 HR 
+<  28| H |  24>=     -0.0027953045107236     -0.0009011883855823 HR 
+<  29| H |  24>=     -0.0006281200119792      0.0014730558427173 HR 
+<  30| H |  24>=      0.0005016018683139     -0.0026307613390693 HR 
+<  31| H |  24>=      0.0004091681872589     -0.0000644582679367 HR 
+<  32| H |  24>=      0.0021066989786186     -0.0003988314579597 HR 
+<  26| H |  25>=      0.0009447534074032     -0.0010948125954163 HR 
+<  27| H |  25>=      0.0000632478147547     -0.0024853822328788 HR 
+<  28| H |  25>=      0.0022566726763463     -0.0012144266047904 HR 
+<  29| H |  25>=     -0.0003901888565892      0.0002444780751831 HR 
+<  30| H |  25>=     -0.0060168487580260      0.0021845459104813 HR 
+<  31| H |  25>=     -0.0043163784923452      0.0013004434947618 HR 
+<  32| H |  25>=      0.0009083978734592     -0.0015133498241983 HR 
+<  27| H |  26>=      0.0064149777041216      0.0000977048302342 HR 
+  Watch this element !!!!! 
+<  28| H |  26>=      0.0071468508433424     -0.0112731830940177 HR 
+<  29| H |  26>=     -0.0015793601859393     -0.0019327998531235 HR 
+<  30| H |  26>=      0.0026422460119059      0.0028336532419359 HR 
+<  31| H |  26>=      0.0007841866523359     -0.0002957757540550 HR 
+<  32| H |  26>=     -0.0001928725543358     -0.0081482064033468 HR 
+<  28| H |  27>=      0.0024812999597734      0.0009625778111588 HR 
+  Watch this element !!!!! 
+<  29| H |  27>=      0.0063446438802018     -0.0110812910223880 HR 
+<  30| H |  27>=      0.0009625167623486     -0.0021646958813080 HR 
+<  31| H |  27>=     -0.0043818087313806     -0.0042625115792402 HR 
+  Watch this element !!!!! 
+<  32| H |  27>=     -0.0004265491088929     -0.0149906143567182 HR 
+<  29| H |  28>=      0.0057683620407960      0.0000839377898793 HR 
+<  30| H |  28>=      0.0002176066604878     -0.0025417341634537 HR 
+  Watch this element !!!!! 
+<  31| H |  28>=     -0.0105830573755580     -0.0052674304720891 HR 
+<  32| H |  28>=     -0.0011786009306069      0.0077362471119688 HR 
+<  30| H |  29>=     -0.0062997064085313      0.0022522832066441 HR 
+<  31| H |  29>=      0.0018758029837746      0.0005951762724900 HR 
+  Watch this element !!!!! 
+<  32| H |  29>=     -0.0100512461938806      0.0046987182984471 HR 
+  Watch this element !!!!! 
+<  31| H |  30>=     -0.0105478068241204      0.0065925102557573 HR 
+<  32| H |  30>=      0.0047235052026287      0.0023287351979982 HR 
+<  32| H |  31>=     -0.0015793693935691     -0.0001559642501373 HR 
+                       ****  CPU TIME AFT FRPRMN: 2930359.1565010 SEC
+
+
+
+ Time (fsec) =     0.9680000000000001
+
+  ****  expectation values (eV) *** 
+  ***  for            1 -th k-point
+     -0.84869366D+01     -0.86640010D+01     -0.84224619D+01     -0.78781425D+01
+     -0.71846305D+01     -0.63487396D+01     -0.45401369D+01     -0.45344189D+01
+     -0.34366580D+01     -0.22305528D+01     -0.17767812D+01     -0.17555833D+01
+     -0.19966174D+01     -0.11688941D+01     -0.10528689D+01     -0.11698263D+01
+     -0.34116889D-01     -0.62006006D+00     -0.19681517D+00     -0.39821500D-01
+      0.14303384D+00      0.35780565D+00      0.88091457D+00      0.14323640D+01
+      0.15695243D+01      0.31926294D+01      0.31726008D+01      0.32580558D+01
+      0.38453829D+01      0.46892720D+01      0.48705322D+01      0.47113365D+01
+  ***  for            2 -th k-point
+     -0.69040203D+01     -0.70852210D+01     -0.68902972D+01     -0.64166236D+01
+     -0.58657658D+01     -0.53869314D+01     -0.48656644D+01     -0.43991324D+01
+     -0.41089880D+01     -0.38040001D+01     -0.33956699D+01     -0.26809132D+01
+     -0.32249058D+01     -0.35511977D+01     -0.25891635D+01     -0.27320194D+01
+     -0.23071736D+01     -0.19146331D+01     -0.18293629D+01     -0.17762603D+01
+     -0.17568183D+01     -0.91702617D+00     -0.48869807D+00     -0.23184679D+00
+      0.57126501D+00      0.32925123D+01      0.32472258D+01      0.37841393D+01
+      0.36900903D+01      0.44954147D+01      0.50194232D+01      0.50771914D+01
+
+            ** EWALDY: IMX JMX KMX =    12   12    2
+ GCUT=   5468.7500000 NG=     681 NG EFFICIENT=    150.7964630
+  IMAX=          11  JMAX=          11  KMAX=           1
+                                      *** NONLOCF: EBND =  -0.55749D+01
+                       ****  ELECTF: AFTER       2930359.2502390 SEC
+
+
+  ****** TOTAL ENERGY: ETOT   =    -0.4871249205D+02  HR
+                                   -0.9742498410D+02  RYD
+
+  ******                ESELF =     0.5052927104D+01  HR
+  ******                 EWA  =     0.1842821813D+03  HR
+  ******               ELOCAL =    -0.5381065877D+03  HR
+  ******                 EXC  =    -0.1932556331D+02  HR
+  ******                 EH   =     0.2383976777D+03  HR
+  ******                EKINE =     0.7496362659D+02  HR
+  ******                 ENL  =     0.6023246334D+01  HR
+
+
+ current J(a.u.) =      0.0000000000000000      0.0000000000000000      0.0000000000000000
+
+  ******  TOTAL FORCE: NEGATIVE  (HARTREE/AU):
+                 1      0.0356116     -0.0126671     -0.2891960
+                 2     -0.0440362     -0.0116283      0.3575391
+                 3      0.0308296     -0.0067827     -0.2889191
+                 4     -0.0468501     -0.0147958      0.4349189
+                 5     -0.0010450     -0.0212820     -0.1755868
+                 6     -0.0614061     -0.0016898      0.3028872
+                 7     -0.0349464     -0.0131799      0.2968532
+                 8      0.0334265     -0.0141510     -0.3487367
+                 9     -0.0168036     -0.0094297      0.2979369
+                10      0.0089923     -0.0180165     -0.4263738
+                11     -0.0626848     -0.0186456      0.1845345
+                12      0.0717244      0.0062127     -0.2558687
+                13      0.0015163     -0.0037415     -0.0327237
+                14      0.0024406     -0.0059483      0.0186371
+  
+  force by Ext-field
+  tau =            1
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =            2
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =            3
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =            4
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =            5
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =            6
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =            7
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =            8
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =            9
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =           10
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =           11
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =           12
+    0.0053302358824501    0.0000000000000000    0.0000000000000000
+  tau =           13
+    0.0013325589706125    0.0000000000000000    0.0000000000000000
+  tau =           14
+    0.0013325589706125    0.0000000000000000    0.0000000000000000
+  E-field
+    0.0684942920812141    0.0000000000000000    0.0000000000000000
+  A-vector
+   -0.0188947987476934    0.0000000000000000    0.0000000000000000
+  Total energy for electron and nuclei (HR)
+ Eelec       =  -0.487124920508D+02
+ Enucl       =   0.802310461353D-02
+ Eext        =   0.000000000000D+00
+ Eelec+Enucl-Eext-Ework=  -0.487809842618D+02
+ Time (fsec) =     0.9680000000000001
+  Positions 
+    0.0000300664841974   -0.0000104429623716    0.0381073254559754   TAU(   1)
+    0.3333768755852526    0.3333352868747706    0.0628397645528811   TAU(   2)
+    0.3333628451470939    0.3333222003217438    0.1388726862712484   TAU(   3)
+   -0.3332907718850234   -0.3333297817667678    0.1638094309261892   TAU(   4)
+   -0.3333134133960978   -0.3333435999419211    0.2398465411799101   TAU(   5)
+    0.0000544006395159    0.0000031082032027    0.2642317837066507   TAU(   6)
+    0.0000418999847576    0.0000030847787529   -0.0381076101145429   TAU(   7)
+   -0.3332994657329773   -0.3333426926358796   -0.0628401209562584   TAU(   8)
+   -0.3332927428943860   -0.3333313437373915   -0.1388730678364802   TAU(   9)
+    0.3333671394451341    0.3333264890713704   -0.1638096394815646   TAU(  10)
+    0.3333661642029025    0.3333353048111150   -0.2398470086807527   TAU(  11)
+    0.0000410755752059   -0.0000134854612391   -0.2642324160147779   TAU(  12)
+   -0.0001658151933512    0.0000037530298466    0.3133195652601766   TAU(  13)
+   -0.0001458555048207    0.0000391337768713   -0.3133213138249954   TAU(  14)
+  Velocities
+    0.0000026196908563   -0.0000061682358687    0.0001412369460788   TAU(   1)
+    0.0000185123241267   -0.0000066697005625   -0.0001750877136153   TAU(   2)
+    0.0000023066642054   -0.0000068401266284    0.0001441343859689   TAU(   3)
+    0.0000195532350804   -0.0000052114703647   -0.0002125647435240   TAU(   4)
+   -0.0000003901046123   -0.0000020260710829    0.0000995044401932   TAU(   5)
+    0.0000288022510304   -0.0000110482988099   -0.0001343864826297   TAU(   6)
+    0.0000183205923328   -0.0000060421095056   -0.0001431113944479   TAU(   7)
+    0.0000050604724443   -0.0000066422149216    0.0001724424975304   TAU(   8)
+    0.0000160900534185   -0.0000064783169148   -0.0001465735855911   TAU(   9)
+    0.0000080054114409   -0.0000051403088283    0.0002111051339410   TAU(  10)
+    0.0000134883079078   -0.0000028264116383   -0.0001023577069908   TAU(  11)
+    0.0000070197950979   -0.0000125606598891    0.0001274658729405   TAU(  12)
+   -0.0000855436756245    0.0000646655331302    0.0005404792396602   TAU(  13)
+   -0.0000514728987570    0.0000743390469655   -0.0005155357805393   TAU(  14)
+   100 steps took   0.527506942000D+03 sec 
+
+
+
+                       ****  CPU TIME END OF PSPW:2930359.2605900 SEC
+
+
+
+ FPSEID_PROFILE_BEGIN
+  id label                    count      max_rank_sec       avg_rank_sec
+  1 time_step_total                 101         527.884465         527.884465
+  2 g_vector_update                 101           0.012296           0.012296
+  3 ion_md                          101           0.000117           0.000117
+  4 frprmn                          101         518.327174         518.327174
+  5 electf_force                    101           9.543496           9.543496
+  6 force_energy_update             101           0.000103           0.000103
+  7 prenon                            1           0.169014           0.169014
+  8 tmevl_total                     942         415.875456         415.875456
+  9 tmevl_exkin                    9420          80.354704          80.354704
+ 10 tmevl_s2                       4710         262.497933         262.497933
+ 11 s2_nonlocal                    9420         113.499976         113.499976
+ 12 s2_fft_local                   4710         148.996303         148.996303
+ 13 tmevl_expectation                 8           0.536824           0.536824
+ 14 fft_wrapper                  335881         105.316609         105.316609
+ FPSEID_PROFILE_END
+
