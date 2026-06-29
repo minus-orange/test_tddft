@@ -138,14 +138,13 @@ export OMP_STACKSIZE=512M
 ```
 
 The helper below runs the prepared sample in order and promotes the generated
-density/wavefunction files before the next stage. Depending on compiler/runtime
-behavior, CG/SD may leave these as raw `fort.24` and `fort.88` files rather
-than named `*_new` files. The helper handles both cases and avoids SD failing
-because `fort.20 -> rh.Si111-H` has no target. It also initializes the TDDFT
-control files behind `fort.18`, `fort.28`, `fort.60`, and `fort.62`. Each
-stage removes stale output files before running so the next stage uses the
-current density output. `fort.88` is kept because SD reads it as wavefunction
-input:
+density/wavefunction files before the next stage. CG/SD leave the density in
+`fort.24`, the TDDFT reciprocal-space wavefunction in `fort.23`, and a
+real-space intermediate in `fort.88`. The helper copies `fort.24` to
+`rh.Si111-H` and `fort.23` to `wf_fft.Si111-H`, avoiding stale or mismatched
+state. It also initializes the TDDFT control files behind `fort.18`,
+`fort.28`, `fort.60`, and `fort.62`. `fort.88` is kept because SD reads it as
+wavefunction input:
 
 ```sh
 ./tools/run_si111_h_sample.sh

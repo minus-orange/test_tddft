@@ -4,7 +4,8 @@ set -eu
 # Run the prepared Si111-H sample in the required CG -> SD -> TDDFT order.
 # CG/SD write new density and wavefunction files either with a *_new suffix or
 # as raw fort.* unit files. This script promotes them before the next stage so
-# fort.20 and fort.22 resolve.
+# fort.20 and fort.22 resolve. Unit 23 is the reciprocal-space wavefunction for
+# TDDFT, while unit 88 is a real-space intermediate read by SD.
 #
 # Defaults:
 #   RUN_DIR=<repo>/run/Si111-H
@@ -43,11 +44,11 @@ promote_state() {
   if [ -f fort.24 ]; then
     cp fort.24 rh.Si111-H_new
   fi
-  if [ -f fort.88 ]; then
-    cp fort.88 wf_fft.Si111-H_new
-  fi
   if [ -f fort.23 ]; then
-    cp fort.23 wf.Si111-H_new
+    cp fort.23 wf_fft.Si111-H_new
+  fi
+  if [ -f fort.88 ]; then
+    cp fort.88 wf_real.Si111-H
   fi
 
   require_file rh.Si111-H_new
