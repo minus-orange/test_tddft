@@ -16,7 +16,7 @@ case "$FC" in
     RARR4_SRC=${RARR4_SRC:-rarr4_gnu.f}
     ;;
   *)
-    FFLAGS=${FFLAGS:-"-O3 -mcmodel=medium -qopenmp -traceback"}
+    FFLAGS=${FFLAGS:-"-O3 -mcmodel=medium -qopenmp -traceback -heap-arrays"}
     MAIN_SRC=${MAIN_SRC:-cg_main_gga_df_omp_YY_allct.f}
     RARR4_SRC=${RARR4_SRC:-rarr4.f}
     ;;

@@ -76,6 +76,17 @@ Both scripts default to `FC=ifort`. Override the compiler or flags when needed:
 FC=ifx FFLAGS="-O3 -qopenmp -traceback" ./mk_ifort.sh
 ```
 
+The Intel defaults include `-heap-arrays` because the CG/SD code has large
+automatic work arrays, for example in `FRPRMN`. Without this option Linux
+Intel builds can fail at runtime with `forrtl: severe (174): SIGSEGV` near the
+first executable line of the routine. For runs with OpenMP enabled, also set a
+large thread stack before launching:
+
+```sh
+ulimit -s unlimited
+export OMP_STACKSIZE=512M
+```
+
 GNU builds were checked with:
 
 ```sh
