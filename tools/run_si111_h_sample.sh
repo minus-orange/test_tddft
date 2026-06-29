@@ -63,6 +63,13 @@ promote_state() {
   fi
 }
 
+prepare_tddft_control_files() {
+  printf "0.0 0.0\n" > Eext
+  printf "0.0\n" > Etot
+  printf "0.0 0.0 0.0\n" > Avec
+  printf "0.0\n" > Ework
+}
+
 require_file "$RUN_DIR"
 require_file "$CG_EXE"
 require_file "$SD_EXE"
@@ -81,6 +88,8 @@ echo "Running SD in $RUN_DIR"
 "$SD_EXE" < Si111-H_sd.in > Si111-H_sd.out 2> Si111-H_sd.err
 promote_state SD
 cp rh.Si111-H_new rh.Si111-H_new.sd
+
+prepare_tddft_control_files
 
 echo "Running TDDFT in $RUN_DIR with $TDDFT_INPUT"
 "$MPIRUN" -np "$NPROCS" "$TDDFT_EXE" < "$TDDFT_INPUT" > Si111-H_tm.out 2> Si111-H_tm.err

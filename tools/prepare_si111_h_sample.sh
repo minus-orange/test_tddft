@@ -57,6 +57,15 @@ link_file() {
   ln -s "$target_name" "$RUN_DIR/$link_name"
 }
 
+write_if_missing() {
+  dest=$1
+  value=$2
+
+  if [ ! -f "$dest" ]; then
+    printf "%s\n" "$value" > "$dest"
+  fi
+}
+
 make_tddft_input() {
   steps=$1
   src=$RUN_DIR/Si111-H_tm.in_1000steps
@@ -100,6 +109,11 @@ for steps in $TDDFT_STEPS; do
   make_tddft_input "$steps"
 done
 
+write_if_missing "$RUN_DIR/Eext" "0.0 0.0"
+write_if_missing "$RUN_DIR/Etot" "0.0"
+write_if_missing "$RUN_DIR/Avec" "0.0 0.0 0.0"
+write_if_missing "$RUN_DIR/Ework" "0.0"
+
 link_file fort.18 Eext
 link_file fort.20 rh.Si111-H
 link_file fort.22 wf_fft.Si111-H
@@ -129,6 +143,8 @@ echo "  OMP_NUM_THREADS=1 $ROOT_DIR/FPSEID21/sd_GGA_f_compact_code/sd_exe < Si11
 echo "  [ -f rh.Si111-H_new ] || cp fort.24 rh.Si111-H_new"
 echo "  [ -f wf_fft.Si111-H_new ] || cp fort.88 wf_fft.Si111-H_new"
 echo "  cp rh.Si111-H_new rh.Si111-H && cp wf_fft.Si111-H_new wf_fft.Si111-H"
+echo "  printf '%s\n' '0.0 0.0' > Eext && printf '%s\n' '0.0' > Etot"
+echo "  printf '%s\n' '0.0 0.0 0.0' > Avec && printf '%s\n' '0.0' > Ework"
 echo "  OMP_NUM_THREADS=1 mpirun -np 1 $ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe < Si111-H_tm.in_2steps > Si111-H_tm.out_2steps 2> Si111-H_tm.err"
 echo
 echo "Or run the prepared sample automatically:"
