@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-# Intel Fortran build for the FPSEID21 SD executable.
+# Intel/GNU/NVIDIA Fortran build for the FPSEID21 SD executable.
 #
 # Optional environment:
 #   FC      Fortran compiler. Default: ifort
@@ -9,18 +9,23 @@ set -eu
 #   LDFLAGS Additional linker flags.
 
 FC=${FC:-ifort}
-case "$FC" in
-  *gfortran*)
+
+FC_PROBE="$FC
+$("$FC" --version 2>/dev/null || true)"
+
+if printf '%s\n' "$FC_PROBE" | grep -Eiq 'nvfortran|pgfortran'; then
+    FFLAGS=${FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
+    MAIN_SRC=${MAIN_SRC:-sd_main_df_SXACE_allct_gnu.f}
+    RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
+elif printf '%s\n' "$FC_PROBE" | grep -Eiq 'gfortran|GNU Fortran'; then
     FFLAGS=${FFLAGS:-"-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz"}
     MAIN_SRC=${MAIN_SRC:-sd_main_df_SXACE_allct_gnu.f}
     RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
-    ;;
-  *)
+else
     FFLAGS=${FFLAGS:-"-O3 -mcmodel=medium -qopenmp -traceback"}
     MAIN_SRC=${MAIN_SRC:-sd_main_df_SXACE_allct.f}
     RARR3_SRC=${RARR3_SRC:-rarr3.f}
-    ;;
-esac
+fi
 LDFLAGS=${LDFLAGS:-}
 OUT=${OUT:-sd_exe}
 

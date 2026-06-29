@@ -49,8 +49,78 @@ FC=mpifort CC=mpicc FFLAGS="-O2 -fopenmp -fno-automatic -fallow-argument-mismatc
   FFTW_ROOT=/opt/homebrew/opt/fftw ./mk_ifort.sh
 ```
 
-The Intel/default build keeps using the original source files. GNU builds use
-the `_gnu.f` source variants only where GNU Fortran needs compatibility fixes.
+The Intel/default build keeps using the original source files. GNU and NVIDIA
+HPC SDK builds use the `_gnu.f` source variants only where those compilers need
+format-statement compatibility fixes.
+
+## NVIDIA HPC SDK build
+
+This path uses NVIDIA HPC SDK compilers for a CPU/OpenMP + MPI build. It does
+not offload TDDFT kernels to NVIDIA GPUs yet; GPU execution will require
+separate OpenACC/CUDA-oriented source changes after this compiler/runtime check
+is stable.
+
+Load the NVIDIA HPC SDK and MPI environment first. The exact module names are
+site-specific, for example:
+
+```sh
+module load nvhpc
+module load openmpi
+```
+
+Then build FFTW, CG, SD, and TDDFT with the helper script:
+
+```sh
+./tools/build_nvhpc.sh
+```
+
+The script defaults to:
+
+- `NVFORTRAN=nvfortran`
+- `NVC=nvc`
+- `MPI_FC=mpifort`
+- `MPI_CC=mpicc`
+- `FFTW_ROOT=tools/fftw-3.3.11-nvhpc/install`
+- `FFLAGS="-O2 -mp -Msave -Mlarge_arrays"`
+
+Override them when the site uses a different MPI wrapper:
+
+```sh
+MPI_FC=mpifort MPI_CC=mpicc ./tools/build_nvhpc.sh
+```
+
+If FFTW is already installed, skip the local FFTW build:
+
+```sh
+SKIP_FFTW=1 FFTW_ROOT=/path/to/fftw ./tools/build_nvhpc.sh
+```
+
+Manual TDDFT-only build:
+
+```sh
+cd FPSEID21/tddft_2022October
+FC=mpifort CC=mpicc FFLAGS="-O2 -mp -Msave -Mlarge_arrays" \
+  FFTW_ROOT=$PWD/../../tools/fftw-3.3.11-nvhpc/install ./mk_ifort.sh
+```
+
+For a smoke test after building:
+
+```sh
+./tools/prepare_si111_h_sample.sh
+ulimit -s unlimited
+export OMP_STACKSIZE=512M
+export OMP_NUM_THREADS=1
+NPROCS=1 TDDFT_INPUT=Si111-H_tm.in_2steps ./tools/run_si111_h_sample.sh
+python3 tools/check_tddft_result.py check run/Si111-H/Si111-H_tm.out \
+  --err run/Si111-H/Si111-H_tm.err
+```
+
+Then compare MPI process counts:
+
+```sh
+REF_NPROCS=1 TEST_NPROCS=32 TDDFT_INPUT=Si111-H_tm.in_100steps \
+  ./tools/run_tddft_consistency_check.sh
+```
 
 This build uses `fft_fftw.f` instead of the NEC ASL FFT wrapper. FFTW itself is
 distributed under the GNU GPL; see the official FFTW download page for source
@@ -92,8 +162,9 @@ GNU builds were checked with:
 FC=gfortran FFLAGS="-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz" ./mk_ifort.sh
 ```
 
-The Intel/default build keeps using the original source files. GNU builds use
-the `_gnu.f` source variants only where GNU Fortran needs compatibility fixes.
+The Intel/default build keeps using the original source files. GNU and NVIDIA
+HPC SDK builds use the `_gnu.f` source variants only where those compilers need
+format-statement compatibility fixes.
 
 ## Static call tree
 

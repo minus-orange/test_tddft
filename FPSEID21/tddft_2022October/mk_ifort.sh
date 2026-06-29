@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-# Intel/MPI + FFTW3 build for the profiled FPSEID21 TDDFT executable.
+# Intel/GNU/NVIDIA MPI + FFTW3 build for the profiled FPSEID21 TDDFT executable.
 #
 # Required environment:
 #   FC         MPI Fortran compiler wrapper. Default: mpiifort
@@ -17,18 +17,25 @@ set -eu
 FC=${FC:-mpiifort}
 CC=${CC:-mpicc}
 FFTW_ROOT=${FFTW_ROOT:-}
-case "$FC" in
-  *gfortran*|*mpifort*)
+
+FC_PROBE="$FC
+$("$FC" --version 2>/dev/null || true)
+$("$FC" -show 2>/dev/null || true)
+$("$FC" --showme:command 2>/dev/null || true)"
+
+if printf '%s\n' "$FC_PROBE" | grep -Eiq 'nvfortran|pgfortran'; then
+    FFLAGS=${FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
+    LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE_gnu.f}
+    RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
+elif printf '%s\n' "$FC_PROBE" | grep -Eiq 'gfortran|GNU Fortran'; then
     FFLAGS=${FFLAGS:-"-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz"}
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE_gnu.f}
     RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
-    ;;
-  *)
+else
     FFLAGS=${FFLAGS:-"-O3 -traceback -qopenmp"}
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE.f}
     RARR3_SRC=${RARR3_SRC:-rarr3.f}
-    ;;
-esac
+fi
 CFLAGS=${CFLAGS:-"-O2"}
 LDFLAGS=${LDFLAGS:-}
 FFTW_LIBS=${FFTW_LIBS:-"-lfftw3_omp -lfftw3"}
