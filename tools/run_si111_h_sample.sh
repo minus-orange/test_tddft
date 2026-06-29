@@ -70,6 +70,10 @@ prepare_tddft_control_files() {
   printf "0.0\n" > Ework
 }
 
+clear_stage_outputs() {
+  rm -f fort.23 fort.24 fort.90
+}
+
 require_file "$RUN_DIR"
 require_file "$CG_EXE"
 require_file "$SD_EXE"
@@ -81,10 +85,12 @@ ulimit -s unlimited 2>/dev/null || true
 export OMP_STACKSIZE=${OMP_STACKSIZE:-512M}
 
 echo "Running CG in $RUN_DIR"
+clear_stage_outputs
 "$CG_EXE" < Si111-H.in > Si111-H.out 2> Si111-H.err
 promote_state CG
 
 echo "Running SD in $RUN_DIR"
+clear_stage_outputs
 "$SD_EXE" < Si111-H_sd.in > Si111-H_sd.out 2> Si111-H_sd.err
 promote_state SD
 cp rh.Si111-H_new rh.Si111-H_new.sd
@@ -92,6 +98,7 @@ cp rh.Si111-H_new rh.Si111-H_new.sd
 prepare_tddft_control_files
 
 echo "Running TDDFT in $RUN_DIR with $TDDFT_INPUT"
+clear_stage_outputs
 "$MPIRUN" -np "$NPROCS" "$TDDFT_EXE" < "$TDDFT_INPUT" > Si111-H_tm.out 2> Si111-H_tm.err
 
 echo "Done. Logs:"
