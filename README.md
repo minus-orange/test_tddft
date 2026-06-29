@@ -161,6 +161,60 @@ FPSEID_PROFILE_BEGIN
 FPSEID_PROFILE_END
 ```
 
+## TDDFT result consistency checks
+
+Use `tools/check_tddft_result.py` to sanity-check one TDDFT log or compare two
+logs from different MPI process counts, compilers, or machines. The comparison
+uses tolerances because MPI reduction order and compiler math can change the
+last digits without changing the result materially.
+
+Check one output/error pair:
+
+```sh
+python3 tools/check_tddft_result.py check \
+  run/Si111-H/Si111-H_tm.out \
+  --err run/Si111-H/Si111-H_tm.err
+```
+
+Compare a 1-rank reference with a 32-rank run:
+
+```sh
+python3 tools/check_tddft_result.py compare \
+  run/Si111-H_np1/Si111-H_tm.out \
+  run/Si111-H_np32/Si111-H_tm.out \
+  --ref-err run/Si111-H_np1/Si111-H_tm.err \
+  --test-err run/Si111-H_np32/Si111-H_tm.err
+```
+
+The default tolerances are:
+
+- energy: `1e-5` Hartree
+- force: `1e-5` Hartree/au
+- position: `1e-6`
+- velocity: `1e-6`
+
+Relax or tighten them when comparing different compiler/MPI environments:
+
+```sh
+python3 tools/check_tddft_result.py compare ref.out test.out \
+  --energy-atol 1e-4 \
+  --force-atol 1e-4 \
+  --position-atol 1e-5
+```
+
+To run the sample twice and compare automatically, use:
+
+```sh
+REF_NPROCS=1 TEST_NPROCS=32 TDDFT_INPUT=Si111-H_tm.in_100steps \
+  ./tools/run_tddft_consistency_check.sh
+```
+
+The wrapper reuses `tools/prepare_si111_h_sample.sh` and
+`tools/run_si111_h_sample.sh`, so the usual environment overrides still apply,
+including `MPIRUN`, `CG_EXE`, `SD_EXE`, `TDDFT_EXE`, `OMP_NUM_THREADS`,
+`RUN_BASE`, and the tolerance variables `ENERGY_ATOL`, `FORCE_ATOL`,
+`POSITION_ATOL`, and `VELOCITY_ATOL`.
+
 Instrumented files:
 
 - `FPSEID21/tddft_2022October/prof_timer.f`
