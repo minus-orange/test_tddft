@@ -119,6 +119,8 @@ echo "  $RUN_DIR"
 echo
 echo "Run order after building executables:"
 echo "  cd $RUN_DIR"
+echo "  ulimit -s unlimited"
+echo "  export OMP_STACKSIZE=512M"
 echo "  OMP_NUM_THREADS=1 $ROOT_DIR/FPSEID21/cg_GGA_f_code/cg_exe < Si111-H.in > Si111-H.out 2> Si111-H.err"
 echo "  OMP_NUM_THREADS=1 $ROOT_DIR/FPSEID21/sd_GGA_f_compact_code/sd_exe < Si111-H_sd.in > Si111-H_sd.out 2> Si111-H_sd.err"
 echo "  OMP_NUM_THREADS=1 mpirun -np 1 $ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe < Si111-H_tm.in_2steps > Si111-H_tm.out_2steps 2> Si111-H_tm.err"

@@ -16,7 +16,7 @@ case "$FC" in
     RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
     ;;
   *)
-    FFLAGS=${FFLAGS:-"-O3 -mcmodel=medium -qopenmp -traceback -heap-arrays"}
+    FFLAGS=${FFLAGS:-"-O3 -mcmodel=medium -qopenmp -traceback"}
     MAIN_SRC=${MAIN_SRC:-sd_main_df_SXACE_allct.f}
     RARR3_SRC=${RARR3_SRC:-rarr3.f}
     ;;

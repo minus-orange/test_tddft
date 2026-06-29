@@ -76,11 +76,10 @@ Both scripts default to `FC=ifort`. Override the compiler or flags when needed:
 FC=ifx FFLAGS="-O3 -qopenmp -traceback" ./mk_ifort.sh
 ```
 
-The Intel defaults include `-heap-arrays` because the CG/SD code has large
-automatic work arrays, for example in `FRPRMN`. Without this option Linux
-Intel builds can fail at runtime with `forrtl: severe (174): SIGSEGV` near the
-first executable line of the routine. For runs with OpenMP enabled, also set a
-large thread stack before launching:
+The CG/SD code has large work arrays, for example in `FRPRMN`. On Linux Intel
+runtime builds, set a large process/thread stack before launching if CG fails
+with `forrtl: severe (174): SIGSEGV` near the first executable line of the
+routine:
 
 ```sh
 ulimit -s unlimited
@@ -129,6 +128,14 @@ CACHE_DIR=/tmp/fpseid21-samples RUN_DIR=/tmp/fpseid21-run TDDFT_STEPS="2 50 100"
 After building the executables, run CG first, SD second, and TDDFT last from
 the prepared run directory. CG and SD generate the `rh.Si111-H` and
 `wf_fft.Si111-H` files consumed by TDDFT.
+
+For Intel runtime checks, apply the stack settings in the same shell before
+running CG/SD/TDDFT:
+
+```sh
+ulimit -s unlimited
+export OMP_STACKSIZE=512M
+```
 
 Look for:
 
