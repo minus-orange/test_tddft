@@ -11,3 +11,5 @@ sd_exe*
 %
 tools/build/
 tools/fftw-*/install/
+.cache/
+run/

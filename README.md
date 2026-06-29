@@ -97,6 +97,28 @@ tools/generate_tddft_call_tree.sh
 GNU runtime-check logs for the `Si111-H` sample are recorded in
 `docs/gnu_runtime_log.md`.
 
+## Si111-H sample setup
+
+The sample data used for the GNU runtime check is not committed. Download the
+AIST `Si111-H` inputs and pseudopotentials, then prepare a local run directory:
+
+```sh
+./tools/prepare_si111_h_sample.sh
+```
+
+By default this writes downloaded files to `.cache/fpseid21-samples` and the
+run directory to `run/Si111-H`. Both paths are ignored by git. Override them
+when needed:
+
+```sh
+CACHE_DIR=/tmp/fpseid21-samples RUN_DIR=/tmp/fpseid21-run TDDFT_STEPS="2 50 100" \
+  ./tools/prepare_si111_h_sample.sh
+```
+
+After building the executables, run CG first, SD second, and TDDFT last from
+the prepared run directory. CG and SD generate the `rh.Si111-H` and
+`wf_fft.Si111-H` files consumed by TDDFT.
+
 Look for:
 
 ```text
