@@ -137,6 +137,16 @@ ulimit -s unlimited
 export OMP_STACKSIZE=512M
 ```
 
+The helper below runs the prepared sample in order and promotes the generated
+density/wavefunction files before the next stage. Depending on compiler/runtime
+behavior, CG/SD may leave these as raw `fort.24` and `fort.88` files rather
+than named `*_new` files. The helper handles both cases and avoids SD failing
+because `fort.20 -> rh.Si111-H` has no target:
+
+```sh
+./tools/run_si111_h_sample.sh
+```
+
 Look for:
 
 ```text
