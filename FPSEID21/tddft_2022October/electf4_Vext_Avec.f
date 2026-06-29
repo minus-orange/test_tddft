@@ -486,19 +486,29 @@ c *** temp check ; end
 c
            if ( my_rank.ne.0 ) then
             nbleng=nend(my_rank)-nbegin(my_rank)+1
-            call MPI_Send(EE(nbegin(my_rank),IK),
-     &                    PX(nbegin(my_rank),IK),
-     &                    PY(nbegin(my_rank),IK),
-     &                    PZ(nbegin(my_rank),IK), 4*nbleng,
+            if ( nbleng.gt.0 ) then
+            call MPI_Send(EE(nbegin(my_rank),IK),nbleng,
      &        MPI_DOUBLE_PRECISION,0,tag,MPI_COMM_WORLD,ierr)
+            call MPI_Send(PX(nbegin(my_rank),IK),nbleng,
+     &        MPI_DOUBLE_PRECISION,0,tag+1,MPI_COMM_WORLD,ierr)
+            call MPI_Send(PY(nbegin(my_rank),IK),nbleng,
+     &        MPI_DOUBLE_PRECISION,0,tag+2,MPI_COMM_WORLD,ierr)
+            call MPI_Send(PZ(nbegin(my_rank),IK),nbleng,
+     &        MPI_DOUBLE_PRECISION,0,tag+3,MPI_COMM_WORLD,ierr)
+            endif
            else
             do icpu=1,ncpu
             nbleng=nend(icpu)-nbegin(icpu)+1
-            call MPI_Recv(EE(nbegin(icpu),IK),
-     &                    PX(nbegin(icpu),IK),
-     &                    PY(nbegin(icou),IK),
-     &                    PZ(nbegin(icou),IK),   4*nbleng,
+            if ( nbleng.gt.0 ) then
+            call MPI_Recv(EE(nbegin(icpu),IK),nbleng,
      &    MPI_DOUBLE_PRECISION,icpu,tag,MPI_COMM_WORLD,status,ierr)
+            call MPI_Recv(PX(nbegin(icpu),IK),nbleng,
+     &    MPI_DOUBLE_PRECISION,icpu,tag+1,MPI_COMM_WORLD,status,ierr)
+            call MPI_Recv(PY(nbegin(icpu),IK),nbleng,
+     &    MPI_DOUBLE_PRECISION,icpu,tag+2,MPI_COMM_WORLD,status,ierr)
+            call MPI_Recv(PZ(nbegin(icpu),IK),nbleng,
+     &    MPI_DOUBLE_PRECISION,icpu,tag+3,MPI_COMM_WORLD,status,ierr)
+            endif
             enddo
            endif ! end of if my_rank.ne.0 loop
 c ++++ for A-vector  Y. Miyamoto 2020 this is still within ik loop
