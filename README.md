@@ -107,6 +107,9 @@ tools/generate_tddft_call_tree.sh
 GNU runtime-check logs for the `Si111-H` sample are recorded in
 `docs/gnu_runtime_log.md`.
 
+Intel Xeon Platinum 8592+ TDDFT 2/50/100-step profiling results are recorded
+in `docs/intel_8592_runtime_log.md`.
+
 ## Si111-H sample setup
 
 The sample data used for the GNU runtime check is not committed. Download the
