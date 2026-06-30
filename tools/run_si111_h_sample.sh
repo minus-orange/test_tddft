@@ -51,6 +51,49 @@ require_stage_files() {
   done
 }
 
+require_numeric_records() {
+  path=$1
+  label=$2
+
+  awk -v file="$path" -v label="$label" '
+    function fail(message) {
+      printf("ERROR: %s is not a valid numeric text file for %s: %s\n",
+             file, label, message) > "/dev/stderr"
+      bad = 1
+      exit
+    }
+    /^[[:space:]]*$/ { next }
+    {
+      record++
+      gsub(/,/, " ")
+      for (i = 1; i <= NF; i++) {
+        if ($i !~ /^[+-]?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))([dDeE][+-]?[0-9]+)?$/) {
+          fail("record " record " has non-numeric token " $i)
+        }
+      }
+      if (record >= 3) {
+        checked = 1
+        exit
+      }
+    }
+    END {
+      if (bad) {
+        exit 1
+      }
+      if (!checked) {
+        printf("ERROR: %s is too short for %s\n", file, label) > "/dev/stderr"
+        exit 1
+      }
+    }
+  ' "$path"
+}
+
+require_pseudopotentials() {
+  require_numeric_records fort.41 "Si pseudopotential ground state"
+  require_numeric_records fort.42 "H pseudopotential"
+  require_numeric_records fort.46 "Si pseudopotential excited state"
+}
+
 link_if_present() {
   link=$1
   target=$2
@@ -84,6 +127,7 @@ require_cg_inputs() {
     Si111-H.in \
     fort.41 fort.42 fort.46 \
     fort.54 fort.55
+  require_pseudopotentials
 }
 
 require_sd_inputs() {
@@ -92,6 +136,7 @@ require_sd_inputs() {
     fort.20 fort.22 fort.88 \
     fort.41 fort.42 fort.46 \
     fort.54 fort.55
+  require_pseudopotentials
 }
 
 require_tddft_inputs() {
@@ -100,6 +145,7 @@ require_tddft_inputs() {
     fort.18 fort.20 fort.22 fort.28 fort.32 \
     fort.41 fort.42 fort.46 \
     fort.53 fort.54 fort.55 fort.60 fort.62
+  require_pseudopotentials
 }
 
 promote_state() {

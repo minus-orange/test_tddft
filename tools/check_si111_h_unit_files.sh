@@ -34,12 +34,63 @@ check_file() {
   fi
 }
 
+check_numeric_records() {
+  path=$1
+  label=$2
+
+  if [ ! -e "$RUN_DIR/$path" ]; then
+    return
+  fi
+
+  if awk -v file="$path" -v label="$label" '
+    function fail(message) {
+      printf("BADFMT  %-10s %s (%s)\n", file, label, message)
+      bad = 1
+      exit
+    }
+    /^[[:space:]]*$/ { next }
+    {
+      record++
+      gsub(/,/, " ")
+      for (i = 1; i <= NF; i++) {
+        if ($i !~ /^[+-]?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))([dDeE][+-]?[0-9]+)?$/) {
+          fail("record " record " has non-numeric token " $i)
+        }
+      }
+      if (record >= 3) {
+        checked = 1
+        exit
+      }
+    }
+    END {
+      if (bad) {
+        exit 1
+      }
+      if (!checked) {
+        printf("BADFMT  %-10s %s (file is too short)\n", file, label)
+        exit 1
+      }
+    }
+  ' "$RUN_DIR/$path"; then
+    printf "OKFMT   %-10s %s\n" "$path" "$label"
+  else
+    missing=1
+  fi
+}
+
+check_pseudopotentials() {
+  check_numeric_records fort.41 "Si pseudopotential ground state"
+  check_numeric_records fort.42 "H pseudopotential"
+  check_numeric_records fort.46 "Si pseudopotential excited state"
+}
+
 check_common_units() {
   check_file fort.41 "Si pseudopotential: TR.Si93g_asci"
   check_file fort.42 "H pseudopotential: TR.H99g_asc"
   check_file fort.46 "Si pseudopotential: TR.Si93e_asci"
   check_file fort.54 "mesh and size metadata: size.dat"
   check_file fort.55 "symmetry metadata: sym.C1"
+  check_pseudopotentials
 }
 
 check_cg() {
@@ -97,7 +148,7 @@ esac
 
 if [ "$missing" -ne 0 ]; then
   echo
-  echo "Some required files are missing in $RUN_DIR" >&2
+  echo "Some required files are missing or invalid in $RUN_DIR" >&2
   exit 1
 fi
 
