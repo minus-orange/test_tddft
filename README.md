@@ -94,6 +94,17 @@ GCC-compatible compiler, select one explicitly:
 FFTW_CC=gcc FFTW_FC=gfortran FFTW_F77=gfortran ./tools/build_nvhpc.sh
 ```
 
+If TDDFT fails at runtime with `libatomic.so.1: cannot open shared object
+file`, add the GCC runtime directory to `LD_LIBRARY_PATH` before running:
+
+```sh
+GCC_RT=$(dirname "$(gfortran -print-file-name=libatomic.so.1)")
+export LD_LIBRARY_PATH="$GCC_RT:${LD_LIBRARY_PATH:-}"
+```
+
+`tools/build_nvhpc.sh` prints this export line when it can detect the runtime
+directory.
+
 Override them when the site uses a different MPI wrapper:
 
 ```sh

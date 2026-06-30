@@ -24,6 +24,25 @@ SD_FFLAGS=${SD_FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
 TDDFT_FFLAGS=${TDDFT_FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
 TDDFT_FFTW_LIBS=${TDDFT_FFTW_LIBS:-"-lfftw3_omp -lfftw3 -lgomp"}
 
+find_gcc_runtime_dir() {
+  compiler=$1
+  runtime_lib=$2
+
+  if ! command -v "$compiler" >/dev/null 2>&1; then
+    return 1
+  fi
+
+  path=$("$compiler" -print-file-name="$runtime_lib" 2>/dev/null || true)
+  case "$path" in
+    */"$runtime_lib")
+      dirname -- "$path"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 if ! command -v "$NVFORTRAN" >/dev/null 2>&1; then
   echo "ERROR: $NVFORTRAN was not found. Load NVIDIA HPC SDK first." >&2
   exit 1
@@ -67,3 +86,13 @@ echo "Building TDDFT with $MPI_FC"
 
 echo "NVIDIA HPC SDK build complete."
 echo "FFTW_ROOT=$FFTW_ROOT"
+
+GCC_RUNTIME_DIR=${GCC_RUNTIME_DIR:-}
+if [ -z "$GCC_RUNTIME_DIR" ]; then
+  GCC_RUNTIME_DIR=$(find_gcc_runtime_dir "$FFTW_FC" libatomic.so.1 || true)
+fi
+if [ -n "$GCC_RUNTIME_DIR" ]; then
+  echo
+  echo "Runtime environment for GNU OpenMP/libatomic dependencies:"
+  echo "  export LD_LIBRARY_PATH=$GCC_RUNTIME_DIR:\${LD_LIBRARY_PATH:-}"
+fi
