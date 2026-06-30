@@ -38,6 +38,31 @@ require_file() {
   fi
 }
 
+link_if_present() {
+  link=$1
+  target=$2
+  if [ ! -e "$link" ] && [ -e "$target" ]; then
+    ln -sf "$target" "$link"
+  fi
+}
+
+ensure_sample_links() {
+  link_if_present fort.18 Eext
+  link_if_present fort.20 rh.Si111-H
+  link_if_present fort.22 wf_fft.Si111-H
+  link_if_present fort.28 Etot
+  link_if_present fort.32 wf_fft.Si111-H
+  link_if_present fort.41 TR.Si93g_asci
+  link_if_present fort.42 TR.H99g_asc
+  link_if_present fort.46 TR.Si93e_asci
+  link_if_present fort.53 laser.dat
+  link_if_present fort.54 size.dat
+  link_if_present fort.55 sym.C1
+  link_if_present fort.60 Avec
+  link_if_present fort.62 Ework
+  require_file fort.54
+}
+
 promote_state() {
   stage=$1
 
@@ -85,18 +110,22 @@ cd "$RUN_DIR"
 ulimit -s unlimited 2>/dev/null || true
 export OMP_STACKSIZE=${OMP_STACKSIZE:-512M}
 
+ensure_sample_links
+
 echo "Running CG in $RUN_DIR"
 clear_stage_outputs
 "$CG_EXE" < Si111-H.in > Si111-H.out 2> Si111-H.err
 promote_state CG
 
 echo "Running SD in $RUN_DIR"
+ensure_sample_links
 clear_stage_outputs
 "$SD_EXE" < Si111-H_sd.in > Si111-H_sd.out 2> Si111-H_sd.err
 promote_state SD
 cp rh.Si111-H_new rh.Si111-H_new.sd
 
 prepare_tddft_control_files
+ensure_sample_links
 
 echo "Running TDDFT in $RUN_DIR with $TDDFT_INPUT"
 clear_stage_outputs
