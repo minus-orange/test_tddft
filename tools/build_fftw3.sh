@@ -8,10 +8,11 @@ set -eu
 #   PREFIX=<repo>/tools/fftw-3.3.11/install
 #   CC=icx if available, otherwise icc, otherwise cc
 #   FC=ifort if available, otherwise empty. Set FC=none to disable Fortran.
+#   F77 defaults to FC when FC is set.
 #
 # Override examples:
-#   CC=icx FC=ifx ./tools/build_fftw3.sh
-#   PREFIX=/opt/fftw-3.3.11 CC=gcc FC=gfortran ./tools/build_fftw3.sh
+#   CC=icx FC=ifx F77=ifx ./tools/build_fftw3.sh
+#   PREFIX=/opt/fftw-3.3.11 CC=gcc FC=gfortran F77=gfortran ./tools/build_fftw3.sh
 
 VERSION=${VERSION:-3.3.11}
 URL=${URL:-https://www.fftw.org/fftw-${VERSION}.tar.gz}
@@ -43,6 +44,12 @@ case "$FC" in
     FC=
     ;;
 esac
+F77=${F77:-$FC}
+case "$F77" in
+  none|NONE|no|NO)
+    F77=
+    ;;
+esac
 
 if command -v getconf >/dev/null 2>&1; then
   JOBS=${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}
@@ -63,13 +70,13 @@ cd "$SRC_DIR"
 
 set -x
 if [ -n "$FC" ]; then
-  CC="$CC" FC="$FC" ./configure \
+  CC="$CC" FC="$FC" F77="$F77" ./configure \
     --prefix="$PREFIX" \
     --enable-threads \
     --enable-openmp \
     --with-pic
 else
-  CC="$CC" ./configure \
+  CC="$CC" FC= F77= ./configure \
     --prefix="$PREFIX" \
     --enable-threads \
     --enable-openmp \

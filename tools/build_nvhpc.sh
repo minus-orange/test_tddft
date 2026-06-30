@@ -16,7 +16,8 @@ NVFORTRAN=${NVFORTRAN:-nvfortran}
 MPI_FC=${MPI_FC:-mpifort}
 MPI_CC=${MPI_CC:-mpicc}
 FFTW_CC=${FFTW_CC:-cc}
-FFTW_FC=${FFTW_FC:-none}
+FFTW_FC=${FFTW_FC:-gfortran}
+FFTW_F77=${FFTW_F77:-$FFTW_FC}
 
 CG_FFLAGS=${CG_FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
 SD_FFLAGS=${SD_FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
@@ -35,10 +36,14 @@ if ! command -v "$FFTW_CC" >/dev/null 2>&1; then
   echo "ERROR: $FFTW_CC was not found. Set FFTW_CC to a working C compiler." >&2
   exit 1
 fi
+if [ "$FFTW_FC" != none ] && ! command -v "$FFTW_FC" >/dev/null 2>&1; then
+  echo "ERROR: $FFTW_FC was not found. Set FFTW_FC/F77 to gfortran or use an existing FFTW_ROOT." >&2
+  exit 1
+fi
 
 if [ "$SKIP_FFTW" != 1 ] && [ ! -f "$FFTW_ROOT/include/fftw3.f" ]; then
-  echo "Building FFTW3 under $FFTW_ROOT with CC=$FFTW_CC"
-  PREFIX="$FFTW_ROOT" CC="$FFTW_CC" FC="$FFTW_FC" "$SCRIPT_DIR/build_fftw3.sh"
+  echo "Building FFTW3 under $FFTW_ROOT with CC=$FFTW_CC FC=$FFTW_FC F77=$FFTW_F77"
+  PREFIX="$FFTW_ROOT" CC="$FFTW_CC" FC="$FFTW_FC" F77="$FFTW_F77" "$SCRIPT_DIR/build_fftw3.sh"
 fi
 
 echo "Building CG with $NVFORTRAN"

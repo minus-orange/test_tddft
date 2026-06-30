@@ -80,15 +80,18 @@ The script defaults to:
 - `MPI_FC=mpifort`
 - `MPI_CC=mpicc`
 - `FFTW_CC=cc`
-- `FFTW_FC=none`
+- `FFTW_FC=gfortran`
+- `FFTW_F77=gfortran`
 - `FFTW_ROOT=tools/fftw-3.3.11-nvhpc/install`
 - `FFLAGS="-O2 -mp -Msave -Mlarge_arrays"`
 
-FFTW is built with `cc` by default, not `nvc`. If the system `cc` is not a
-working GCC-compatible compiler, select one explicitly:
+FFTW is built with GCC-compatible compilers by default, not `nvc`/`nvfortran`.
+This avoids NVIDIA compiler installations that cannot find the host GCC
+toolchain during FFTW `configure`. If the system `cc` is not a working
+GCC-compatible compiler, select one explicitly:
 
 ```sh
-FFTW_CC=gcc ./tools/build_nvhpc.sh
+FFTW_CC=gcc FFTW_FC=gfortran FFTW_F77=gfortran ./tools/build_nvhpc.sh
 ```
 
 Override them when the site uses a different MPI wrapper:
