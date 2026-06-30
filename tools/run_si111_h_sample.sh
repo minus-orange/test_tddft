@@ -67,7 +67,9 @@ require_numeric_records() {
       record++
       gsub(/,/, " ")
       for (i = 1; i <= NF; i++) {
-        if ($i !~ /[0-9]/ || $i ~ /[^0-9+.dDeE-]/) {
+        token = $i
+        gsub(/[0-9+.dDeE-]/, "", token)
+        if ($i !~ /[0-9]/ || token != "") {
           fail("record " record " has non-numeric token " $i)
         }
       }
