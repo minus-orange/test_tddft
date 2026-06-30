@@ -65,6 +65,7 @@ require_numeric_records() {
     /^[[:space:]]*$/ { next }
     {
       record++
+      sub(/\r$/, "")
       gsub(/,/, " ")
       for (i = 1; i <= NF; i++) {
         token = $i

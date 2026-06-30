@@ -49,6 +49,14 @@ copy_file() {
   cp "$src" "$dest"
 }
 
+normalize_text_file() {
+  path=$1
+  tmp=$path.tmp.$$
+
+  tr -d '\r' < "$path" > "$tmp"
+  mv "$tmp" "$path"
+}
+
 link_file() {
   link_name=$1
   target_name=$2
@@ -104,6 +112,16 @@ copy_file "$CACHE_DIR/Si111-H/Xpol-FWHM=2fs-800nm-2.0VpA/laser.dat" "$RUN_DIR/la
 copy_file "$CACHE_DIR/TR/TR.Si93g_asci" "$RUN_DIR/TR.Si93g_asci"
 copy_file "$CACHE_DIR/TR/TR.Si93e_asci" "$RUN_DIR/TR.Si93e_asci"
 copy_file "$CACHE_DIR/TR/TR.H99g_asc" "$RUN_DIR/TR.H99g_asc"
+
+normalize_text_file "$RUN_DIR/Si111-H.in"
+normalize_text_file "$RUN_DIR/Si111-H_sd.in"
+normalize_text_file "$RUN_DIR/Si111-H_tm.in_1000steps"
+normalize_text_file "$RUN_DIR/size.dat"
+normalize_text_file "$RUN_DIR/sym.C1"
+normalize_text_file "$RUN_DIR/laser.dat"
+normalize_text_file "$RUN_DIR/TR.Si93g_asci"
+normalize_text_file "$RUN_DIR/TR.Si93e_asci"
+normalize_text_file "$RUN_DIR/TR.H99g_asc"
 
 for steps in $TDDFT_STEPS; do
   make_tddft_input "$steps"
