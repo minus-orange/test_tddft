@@ -32,10 +32,23 @@ MPIRUN=${MPIRUN:-mpirun}
 
 require_file() {
   path=$1
+  label=${2:-}
   if [ ! -e "$path" ]; then
-    echo "ERROR: required file is missing: $path" >&2
+    if [ -n "$label" ]; then
+      echo "ERROR: required file is missing for $label: $path" >&2
+    else
+      echo "ERROR: required file is missing: $path" >&2
+    fi
     exit 1
   fi
+}
+
+require_stage_files() {
+  stage=$1
+  shift
+  for path in "$@"; do
+    require_file "$path" "$stage"
+  done
 }
 
 link_if_present() {
@@ -60,7 +73,33 @@ ensure_sample_links() {
   link_if_present fort.55 sym.C1
   link_if_present fort.60 Avec
   link_if_present fort.62 Ework
-  require_file fort.54
+}
+
+ensure_sd_links() {
+  link_if_present fort.88 wf_real.Si111-H
+}
+
+require_cg_inputs() {
+  require_stage_files CG \
+    Si111-H.in \
+    fort.41 fort.42 fort.46 \
+    fort.54 fort.55
+}
+
+require_sd_inputs() {
+  require_stage_files SD \
+    Si111-H_sd.in \
+    fort.20 fort.22 fort.88 \
+    fort.41 fort.42 fort.46 \
+    fort.54 fort.55
+}
+
+require_tddft_inputs() {
+  require_stage_files TDDFT \
+    "$TDDFT_INPUT" \
+    fort.18 fort.20 fort.22 fort.28 fort.32 \
+    fort.41 fort.42 fort.46 \
+    fort.53 fort.54 fort.55 fort.60 fort.62
 }
 
 promote_state() {
@@ -111,6 +150,7 @@ ulimit -s unlimited 2>/dev/null || true
 export OMP_STACKSIZE=${OMP_STACKSIZE:-512M}
 
 ensure_sample_links
+require_cg_inputs
 
 echo "Running CG in $RUN_DIR"
 clear_stage_outputs
@@ -119,6 +159,8 @@ promote_state CG
 
 echo "Running SD in $RUN_DIR"
 ensure_sample_links
+ensure_sd_links
+require_sd_inputs
 clear_stage_outputs
 "$SD_EXE" < Si111-H_sd.in > Si111-H_sd.out 2> Si111-H_sd.err
 promote_state SD
@@ -126,6 +168,7 @@ cp rh.Si111-H_new rh.Si111-H_new.sd
 
 prepare_tddft_control_files
 ensure_sample_links
+require_tddft_inputs
 
 echo "Running TDDFT in $RUN_DIR with $TDDFT_INPUT"
 clear_stage_outputs

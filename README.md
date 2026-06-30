@@ -235,6 +235,14 @@ wavefunction input:
 ./tools/run_si111_h_sample.sh
 ```
 
+To check the implicit Fortran unit files before running a stage manually:
+
+```sh
+./tools/check_si111_h_unit_files.sh cg
+./tools/check_si111_h_unit_files.sh sd
+./tools/check_si111_h_unit_files.sh tddft Si111-H_tm.in_100steps
+```
+
 Look for:
 
 ```text

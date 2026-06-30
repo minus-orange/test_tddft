@@ -45,11 +45,24 @@ Sample: AIST `Si111-H`
 
 Important unit mapping for TDDFT:
 
+- `fort.18 -> Eext`
 - `fort.20 -> rh.Si111-H`
 - `fort.22 -> wf_fft.Si111-H`
+- `fort.28 -> Etot`
+- `fort.32 -> wf_fft.Si111-H`
+- `fort.41 -> TR.Si93g_asci`
+- `fort.42 -> TR.H99g_asc`
+- `fort.46 -> TR.Si93e_asci`
 - `fort.53 -> laser.dat`
 - `fort.54 -> size.dat`
 - `fort.55 -> sym.C1`
+- `fort.60 -> Avec`
+- `fort.62 -> Ework`
+
+For CG and SD, `fort.54` and `fort.55` are read at startup. SD also reads
+`fort.20`, `fort.22`, and `fort.88` after the CG stage has generated and
+promoted the state files. Use `tools/check_si111_h_unit_files.sh` to validate
+the stage-specific files before running manually.
 
 ## Raw Logs
 
