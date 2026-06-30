@@ -7,7 +7,7 @@ set -eu
 #   VERSION=3.3.11
 #   PREFIX=<repo>/tools/fftw-3.3.11/install
 #   CC=icx if available, otherwise icc, otherwise cc
-#   FC=ifort if available, otherwise empty
+#   FC=ifort if available, otherwise empty. Set FC=none to disable Fortran.
 #
 # Override examples:
 #   CC=icx FC=ifx ./tools/build_fftw3.sh
@@ -38,6 +38,11 @@ else
   DEFAULT_FC=
 fi
 FC=${FC:-$DEFAULT_FC}
+case "$FC" in
+  none|NONE|no|NO)
+    FC=
+    ;;
+esac
 
 if command -v getconf >/dev/null 2>&1; then
   JOBS=${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}

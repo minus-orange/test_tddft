@@ -77,11 +77,19 @@ Then build FFTW, CG, SD, and TDDFT with the helper script:
 The script defaults to:
 
 - `NVFORTRAN=nvfortran`
-- `NVC=nvc`
 - `MPI_FC=mpifort`
 - `MPI_CC=mpicc`
+- `FFTW_CC=cc`
+- `FFTW_FC=none`
 - `FFTW_ROOT=tools/fftw-3.3.11-nvhpc/install`
 - `FFLAGS="-O2 -mp -Msave -Mlarge_arrays"`
+
+FFTW is built with `cc` by default, not `nvc`. If the system `cc` is not a
+working GCC-compatible compiler, select one explicitly:
+
+```sh
+FFTW_CC=gcc ./tools/build_nvhpc.sh
+```
 
 Override them when the site uses a different MPI wrapper:
 
