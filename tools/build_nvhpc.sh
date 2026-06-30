@@ -50,7 +50,9 @@ find_gcc_runtime_dir() {
 find_cuda_root() {
   for var in CUDA_HOME NVHPC_CUDA_HOME CUDA_PATH; do
     eval value=\${$var:-}
-    if [ -n "$value" ] && [ -f "$value/include/cuda_runtime.h" ]; then
+    if [ -n "$value" ] &&
+       [ -f "$value/include/cuda_runtime.h" ] &&
+       [ -f "$value/include/cufft.h" ]; then
       printf '%s\n' "$value"
       return 0
     fi
@@ -61,13 +63,53 @@ find_cuda_root() {
     nvhpc_root=$(CDPATH= cd -- "$(dirname -- "$cc_path")/../.." 2>/dev/null && pwd || true)
     if [ -n "$nvhpc_root" ]; then
       for dir in "$nvhpc_root"/cuda "$nvhpc_root"/cuda/*; do
-        if [ -f "$dir/include/cuda_runtime.h" ]; then
+        if [ -f "$dir/include/cuda_runtime.h" ] &&
+           [ -f "$dir/include/cufft.h" ]; then
           printf '%s\n' "$dir"
           return 0
         fi
       done
     fi
   fi
+
+  return 1
+}
+
+find_cuda_include_dir() {
+  header=$1
+
+  if [ -n "${CUDA_ROOT:-}" ] && [ -f "$CUDA_ROOT/include/$header" ]; then
+    dirname -- "$CUDA_ROOT/include/$header"
+    return 0
+  fi
+
+  for var in CUDA_HOME NVHPC_CUDA_HOME CUDA_PATH; do
+    eval value=\${$var:-}
+    if [ -n "$value" ] && [ -f "$value/include/$header" ]; then
+      dirname -- "$value/include/$header"
+      return 0
+    fi
+  done
+
+  if command -v "$GPU_CC" >/dev/null 2>&1; then
+    cc_path=$(command -v "$GPU_CC")
+    nvhpc_root=$(CDPATH= cd -- "$(dirname -- "$cc_path")/../.." 2>/dev/null && pwd || true)
+    if [ -n "$nvhpc_root" ]; then
+      for dir in "$nvhpc_root"/cuda "$nvhpc_root"/cuda/*; do
+        if [ -f "$dir/include/$header" ]; then
+          dirname -- "$dir/include/$header"
+          return 0
+        fi
+      done
+    fi
+  fi
+
+  for dir in /usr/local/cuda /usr/local/cuda-* /opt/cuda /opt/cuda-*; do
+    if [ -f "$dir/include/$header" ]; then
+      dirname -- "$dir/include/$header"
+      return 0
+    fi
+  done
 
   return 1
 }
@@ -86,13 +128,23 @@ if [ "$ENABLE_GPU_FFT" = 1 ] && ! command -v "$GPU_CC" >/dev/null 2>&1; then
 fi
 if [ "$ENABLE_GPU_FFT" = 1 ]; then
   CUDA_ROOT=${CUDA_ROOT:-$(find_cuda_root || true)}
-  if [ -z "$CUDA_ROOT" ] && [ -z "$GPU_CFLAGS" ]; then
-    echo "ERROR: CUDA headers were not found." >&2
-    echo "Set CUDA_ROOT, CUDA_HOME, NVHPC_CUDA_HOME, or GPU_CFLAGS=-I/path/to/cuda/include." >&2
+  CUDA_RUNTIME_INCLUDE=${CUDA_RUNTIME_INCLUDE:-$(find_cuda_include_dir cuda_runtime.h || true)}
+  CUFFT_INCLUDE=${CUFFT_INCLUDE:-$(find_cuda_include_dir cufft.h || true)}
+  if [ -z "$CUDA_RUNTIME_INCLUDE" ] && [ -z "$GPU_CFLAGS" ]; then
+    echo "ERROR: cuda_runtime.h was not found." >&2
+    echo "Set CUDA_ROOT, CUDA_HOME, NVHPC_CUDA_HOME, CUDA_RUNTIME_INCLUDE, or GPU_CFLAGS." >&2
     exit 1
   fi
-  if [ -n "$CUDA_ROOT" ]; then
-    GPU_CFLAGS="$GPU_CFLAGS -I$CUDA_ROOT/include"
+  if [ -z "$CUFFT_INCLUDE" ] && [ -z "$GPU_CFLAGS" ]; then
+    echo "ERROR: cufft.h was not found." >&2
+    echo "Set CUDA_ROOT, CUDA_HOME, NVHPC_CUDA_HOME, CUFFT_INCLUDE, or GPU_CFLAGS." >&2
+    exit 1
+  fi
+  if [ -n "$CUDA_RUNTIME_INCLUDE" ]; then
+    GPU_CFLAGS="$GPU_CFLAGS -I$CUDA_RUNTIME_INCLUDE"
+  fi
+  if [ -n "$CUFFT_INCLUDE" ] && [ "$CUFFT_INCLUDE" != "$CUDA_RUNTIME_INCLUDE" ]; then
+    GPU_CFLAGS="$GPU_CFLAGS -I$CUFFT_INCLUDE"
   fi
   if [ -n "$CUDA_ROOT" ] && [ -d "$CUDA_ROOT/lib64" ]; then
     TDDFT_CUFFT_LIBS="$TDDFT_CUFFT_LIBS -L$CUDA_ROOT/lib64"
@@ -133,6 +185,8 @@ echo "Building TDDFT with $MPI_FC"
   cd "$ROOT_DIR/FPSEID21/tddft_2022October"
   if [ "$ENABLE_GPU_FFT" = 1 ]; then
     echo "Using CUDA_ROOT=$CUDA_ROOT"
+    echo "Using CUDA_RUNTIME_INCLUDE=$CUDA_RUNTIME_INCLUDE"
+    echo "Using CUFFT_INCLUDE=$CUFFT_INCLUDE"
     echo "Using GPU_CFLAGS=$GPU_CFLAGS"
     FC="$MPI_FC" CC="$GPU_CC" CFLAGS="$GPU_CFLAGS" FFLAGS="$TDDFT_FFLAGS" \
       FFT_BACKEND=cufft CUFFT_LIBS="$TDDFT_CUFFT_LIBS" ./mk_ifort.sh

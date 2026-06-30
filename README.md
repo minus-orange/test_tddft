@@ -176,6 +176,15 @@ or pass only the include path:
 GPU_CFLAGS="-I/path/to/cuda/include" ENABLE_GPU_FFT=1 ./tools/build_nvhpc.sh
 ```
 
+If `cuda_runtime.h` and `cufft.h` are in different include directories, set
+them separately:
+
+```sh
+CUDA_RUNTIME_INCLUDE=/path/to/cuda/include \
+CUFFT_INCLUDE=/path/to/cufft/include \
+ENABLE_GPU_FFT=1 ./tools/build_nvhpc.sh
+```
+
 For a smoke test after building:
 
 ```sh
