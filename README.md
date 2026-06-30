@@ -163,6 +163,19 @@ The top-level NVHPC helper does this automatically for GPU FFT builds by using
 GPU_CC=nvc ENABLE_GPU_FFT=1 ./tools/build_nvhpc.sh
 ```
 
+If CUDA is installed outside the compiler module's default search path, point
+the helper at it explicitly:
+
+```sh
+CUDA_ROOT=/path/to/cuda ENABLE_GPU_FFT=1 ./tools/build_nvhpc.sh
+```
+
+or pass only the include path:
+
+```sh
+GPU_CFLAGS="-I/path/to/cuda/include" ENABLE_GPU_FFT=1 ./tools/build_nvhpc.sh
+```
+
 For a smoke test after building:
 
 ```sh
