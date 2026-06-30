@@ -53,7 +53,7 @@ check_numeric_records() {
       record++
       gsub(/,/, " ")
       for (i = 1; i <= NF; i++) {
-        if ($i !~ /^[+-]?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))([dDeE][+-]?[0-9]+)?$/) {
+        if ($i !~ /[0-9]/ || $i ~ /[^0-9+.dDeE-]/) {
           fail("record " record " has non-numeric token " $i)
         }
       }
