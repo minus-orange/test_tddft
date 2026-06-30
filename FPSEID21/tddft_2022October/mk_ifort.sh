@@ -13,10 +13,13 @@ set -eu
 #   CFLAGS     Additional C flags.
 #   LDFLAGS    Additional linker flags.
 #   FFTW_LIBS  FFTW libraries. Default: -lfftw3_omp -lfftw3
+#   FFT_BACKEND FFT implementation. Default: fftw. Set to cufft for GPU FFT.
+#   CUFFT_LIBS  cuFFT libraries when FFT_BACKEND=cufft.
 
 FC=${FC:-mpiifort}
 CC=${CC:-mpicc}
 FFTW_ROOT=${FFTW_ROOT:-}
+FFT_BACKEND=${FFT_BACKEND:-fftw}
 
 FC_PROBE="$FC
 $("$FC" --version 2>/dev/null || true)
@@ -39,25 +42,53 @@ fi
 CFLAGS=${CFLAGS:-"-O2"}
 LDFLAGS=${LDFLAGS:-}
 FFTW_LIBS=${FFTW_LIBS:-"-lfftw3_omp -lfftw3"}
+CUFFT_LIBS=${CUFFT_LIBS:-"-lcufft -lcudart"}
 
-if [ -z "$FFTW_ROOT" ]; then
-  echo "ERROR: FFTW_ROOT is not set." >&2
-  echo "Example:" >&2
-  echo "  FFTW_ROOT=\$PWD/../../tools/fftw-3.3.11/install ./mk_ifort.sh" >&2
-  exit 1
-fi
+case "$FFT_BACKEND" in
+  fftw)
+    if [ -z "$FFTW_ROOT" ]; then
+      echo "ERROR: FFTW_ROOT is not set." >&2
+      echo "Example:" >&2
+      echo "  FFTW_ROOT=\$PWD/../../tools/fftw-3.3.11/install ./mk_ifort.sh" >&2
+      exit 1
+    fi
 
-if [ ! -f "$FFTW_ROOT/include/fftw3.f" ]; then
-  echo "ERROR: fftw3.f was not found under $FFTW_ROOT/include." >&2
-  echo "Run ../../tools/build_fftw3.sh first, or set FFTW_ROOT correctly." >&2
-  exit 1
-fi
+    if [ ! -f "$FFTW_ROOT/include/fftw3.f" ]; then
+      echo "ERROR: fftw3.f was not found under $FFTW_ROOT/include." >&2
+      echo "Run ../../tools/build_fftw3.sh first, or set FFTW_ROOT correctly." >&2
+      exit 1
+    fi
+
+    FFT_INCLUDE="-I$FFTW_ROOT/include"
+    FFT_SRC=fft_fftw.f
+    FFT_OBJS=fftw_threads_fwrap.o
+    FFT_LINK="-L$FFTW_ROOT/lib $FFTW_LIBS"
+    ;;
+  cufft)
+    FFT_INCLUDE=
+    FFT_SRC=fft_cufft.f
+    FFT_OBJS=fpseid_cufft_wrap.o
+    FFT_LINK="$CUFFT_LIBS"
+    ;;
+  *)
+    echo "ERROR: unknown FFT_BACKEND: $FFT_BACKEND" >&2
+    echo "Use FFT_BACKEND=fftw or FFT_BACKEND=cufft." >&2
+    exit 1
+    ;;
+esac
 
 set -x
-"$CC" $CFLAGS -I"$FFTW_ROOT/include" -c fftw_threads_fwrap.c \
-  -o fftw_threads_fwrap.o
+case "$FFT_BACKEND" in
+  fftw)
+    "$CC" $CFLAGS $FFT_INCLUDE -c fftw_threads_fwrap.c \
+      -o fftw_threads_fwrap.o
+    ;;
+  cufft)
+    "$CC" $CFLAGS -c fpseid_cufft_wrap.c -o fpseid_cufft_wrap.o
+    ;;
+esac
 "$FC" $FFLAGS \
-  -I"$FFTW_ROOT/include" \
+  $FFT_INCLUDE \
   -o tddft_exe \
   cpu_block.f prof_timer.f "$LIB4_SRC" \
   "$RARR3_SRC" tm_inputs.f \
@@ -65,5 +96,5 @@ set -x
   frprmn_tm12_check_Vext_Avec_v4.f pack.f tdep.f vpj_gen.f \
   electf4_Vext_Avec.f gga_lib_3_PBE.f \
   pspw_tm11_Vext_Avec_v4_alloc.f tmevl10_Avec_v4.f bannerTDDFT.f \
-  fft_fftw.f omp_clock.f fftw_threads_fwrap.o \
-  -L"$FFTW_ROOT/lib" $LDFLAGS $FFTW_LIBS
+  "$FFT_SRC" omp_clock.f $FFT_OBJS \
+  $LDFLAGS $FFT_LINK

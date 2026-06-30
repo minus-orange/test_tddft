@@ -117,12 +117,43 @@ If FFTW is already installed, skip the local FFTW build:
 SKIP_FFTW=1 FFTW_ROOT=/path/to/fftw ./tools/build_nvhpc.sh
 ```
 
+To build the first GPU-enabled TDDFT variant, switch only the FFT wrapper from
+FFTW to cuFFT:
+
+```sh
+ENABLE_GPU_FFT=1 ./tools/build_nvhpc.sh
+```
+
+This keeps CG and SD on the CPU and changes TDDFT's
+`FFT3BX_fftwASL`/`FFT3FX_fftwASL` backend to cuFFT. The current cuFFT path is
+an initial validation step: each FFT copies one complex array from host to GPU,
+executes cuFFT, and copies it back. Use the existing profile output to verify
+correctness and whether `fft_wrapper`/`s2_fft_local` improve before moving more
+of `tmevl_s2` onto the GPU.
+
 Manual TDDFT-only build:
 
 ```sh
 cd FPSEID21/tddft_2022October
 FC=mpifort CC=mpicc FFLAGS="-O2 -mp -Msave -Mlarge_arrays" \
   FFTW_ROOT=$PWD/../../tools/fftw-3.3.11-nvhpc/install ./mk_ifort.sh
+```
+
+Manual TDDFT-only cuFFT build:
+
+```sh
+cd FPSEID21/tddft_2022October
+FC=mpifort CC=mpicc FFT_BACKEND=cufft \
+  FFLAGS="-O2 -mp -Msave -Mlarge_arrays" \
+  CUFFT_LIBS="-cudalib=cufft" ./mk_ifort.sh
+```
+
+If the MPI C wrapper cannot find CUDA headers, use the NVIDIA C compiler or
+add the CUDA include/library paths supplied by the site module, for example:
+
+```sh
+FC=mpifort CC=nvc FFT_BACKEND=cufft \
+  CUFFT_LIBS="-cudalib=cufft" ./mk_ifort.sh
 ```
 
 For a smoke test after building:

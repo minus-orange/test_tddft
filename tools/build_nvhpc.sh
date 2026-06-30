@@ -11,6 +11,7 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 VERSION=${VERSION:-3.3.11}
 FFTW_ROOT=${FFTW_ROOT:-"$ROOT_DIR/tools/fftw-${VERSION}-nvhpc/install"}
 SKIP_FFTW=${SKIP_FFTW:-0}
+ENABLE_GPU_FFT=${ENABLE_GPU_FFT:-0}
 
 NVFORTRAN=${NVFORTRAN:-nvfortran}
 MPI_FC=${MPI_FC:-mpifort}
@@ -23,6 +24,7 @@ CG_FFLAGS=${CG_FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
 SD_FFLAGS=${SD_FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
 TDDFT_FFLAGS=${TDDFT_FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
 TDDFT_FFTW_LIBS=${TDDFT_FFTW_LIBS:-"-lfftw3_omp -lfftw3 -lgomp"}
+TDDFT_CUFFT_LIBS=${TDDFT_CUFFT_LIBS:-"-cudalib=cufft"}
 
 find_gcc_runtime_dir() {
   compiler=$1
@@ -51,16 +53,20 @@ if ! command -v "$MPI_FC" >/dev/null 2>&1; then
   echo "ERROR: $MPI_FC was not found. Load the MPI environment first." >&2
   exit 1
 fi
-if ! command -v "$FFTW_CC" >/dev/null 2>&1; then
-  echo "ERROR: $FFTW_CC was not found. Set FFTW_CC to a working C compiler." >&2
-  exit 1
-fi
-if [ "$FFTW_FC" != none ] && ! command -v "$FFTW_FC" >/dev/null 2>&1; then
-  echo "ERROR: $FFTW_FC was not found. Set FFTW_FC/F77 to gfortran or use an existing FFTW_ROOT." >&2
-  exit 1
+if [ "$ENABLE_GPU_FFT" != 1 ]; then
+  if ! command -v "$FFTW_CC" >/dev/null 2>&1; then
+    echo "ERROR: $FFTW_CC was not found. Set FFTW_CC to a working C compiler." >&2
+    exit 1
+  fi
+  if [ "$FFTW_FC" != none ] && ! command -v "$FFTW_FC" >/dev/null 2>&1; then
+    echo "ERROR: $FFTW_FC was not found. Set FFTW_FC/F77 to gfortran or use an existing FFTW_ROOT." >&2
+    exit 1
+  fi
 fi
 
-if [ "$SKIP_FFTW" != 1 ] && [ ! -f "$FFTW_ROOT/include/fftw3.f" ]; then
+if [ "$ENABLE_GPU_FFT" != 1 ] &&
+   [ "$SKIP_FFTW" != 1 ] &&
+   [ ! -f "$FFTW_ROOT/include/fftw3.f" ]; then
   echo "Building FFTW3 under $FFTW_ROOT with CC=$FFTW_CC FC=$FFTW_FC F77=$FFTW_F77"
   PREFIX="$FFTW_ROOT" CC="$FFTW_CC" FC="$FFTW_FC" F77="$FFTW_F77" "$SCRIPT_DIR/build_fftw3.sh"
 fi
@@ -80,12 +86,21 @@ echo "Building SD with $NVFORTRAN"
 echo "Building TDDFT with $MPI_FC"
 (
   cd "$ROOT_DIR/FPSEID21/tddft_2022October"
-  FC="$MPI_FC" CC="$MPI_CC" FFLAGS="$TDDFT_FFLAGS" FFTW_ROOT="$FFTW_ROOT" \
-    FFTW_LIBS="$TDDFT_FFTW_LIBS" ./mk_ifort.sh
+  if [ "$ENABLE_GPU_FFT" = 1 ]; then
+    FC="$MPI_FC" CC="$MPI_CC" FFLAGS="$TDDFT_FFLAGS" \
+      FFT_BACKEND=cufft CUFFT_LIBS="$TDDFT_CUFFT_LIBS" ./mk_ifort.sh
+  else
+    FC="$MPI_FC" CC="$MPI_CC" FFLAGS="$TDDFT_FFLAGS" FFTW_ROOT="$FFTW_ROOT" \
+      FFTW_LIBS="$TDDFT_FFTW_LIBS" ./mk_ifort.sh
+  fi
 )
 
 echo "NVIDIA HPC SDK build complete."
-echo "FFTW_ROOT=$FFTW_ROOT"
+if [ "$ENABLE_GPU_FFT" = 1 ]; then
+  echo "FFT_BACKEND=cufft"
+else
+  echo "FFTW_ROOT=$FFTW_ROOT"
+fi
 
 GCC_RUNTIME_DIR=${GCC_RUNTIME_DIR:-}
 if [ -z "$GCC_RUNTIME_DIR" ]; then
