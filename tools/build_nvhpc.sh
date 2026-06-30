@@ -16,6 +16,7 @@ ENABLE_GPU_FFT=${ENABLE_GPU_FFT:-0}
 NVFORTRAN=${NVFORTRAN:-nvfortran}
 MPI_FC=${MPI_FC:-mpifort}
 MPI_CC=${MPI_CC:-mpicc}
+GPU_CC=${GPU_CC:-nvc}
 FFTW_CC=${FFTW_CC:-cc}
 FFTW_FC=${FFTW_FC:-gfortran}
 FFTW_F77=${FFTW_F77:-$FFTW_FC}
@@ -53,6 +54,10 @@ if ! command -v "$MPI_FC" >/dev/null 2>&1; then
   echo "ERROR: $MPI_FC was not found. Load the MPI environment first." >&2
   exit 1
 fi
+if [ "$ENABLE_GPU_FFT" = 1 ] && ! command -v "$GPU_CC" >/dev/null 2>&1; then
+  echo "ERROR: $GPU_CC was not found. Set GPU_CC to a C compiler that can find CUDA headers." >&2
+  exit 1
+fi
 if [ "$ENABLE_GPU_FFT" != 1 ]; then
   if ! command -v "$FFTW_CC" >/dev/null 2>&1; then
     echo "ERROR: $FFTW_CC was not found. Set FFTW_CC to a working C compiler." >&2
@@ -87,7 +92,7 @@ echo "Building TDDFT with $MPI_FC"
 (
   cd "$ROOT_DIR/FPSEID21/tddft_2022October"
   if [ "$ENABLE_GPU_FFT" = 1 ]; then
-    FC="$MPI_FC" CC="$MPI_CC" FFLAGS="$TDDFT_FFLAGS" \
+    FC="$MPI_FC" CC="$GPU_CC" FFLAGS="$TDDFT_FFLAGS" \
       FFT_BACKEND=cufft CUFFT_LIBS="$TDDFT_CUFFT_LIBS" ./mk_ifort.sh
   else
     FC="$MPI_FC" CC="$MPI_CC" FFLAGS="$TDDFT_FFLAGS" FFTW_ROOT="$FFTW_ROOT" \

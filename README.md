@@ -156,6 +156,13 @@ FC=mpifort CC=nvc FFT_BACKEND=cufft \
   CUFFT_LIBS="-cudalib=cufft" ./mk_ifort.sh
 ```
 
+The top-level NVHPC helper does this automatically for GPU FFT builds by using
+`GPU_CC=nvc` unless overridden:
+
+```sh
+GPU_CC=nvc ENABLE_GPU_FFT=1 ./tools/build_nvhpc.sh
+```
+
 For a smoke test after building:
 
 ```sh
