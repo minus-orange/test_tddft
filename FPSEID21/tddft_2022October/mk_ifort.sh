@@ -83,6 +83,13 @@ case "$FFT_BACKEND" in
     ;;
 esac
 
+echo "TDDFT source selection:"
+echo "  LIB4_SRC=$LIB4_SRC"
+echo "  RARR3_SRC=$RARR3_SRC"
+echo "  TM_INPUTS_SRC=$TM_INPUTS_SRC"
+echo "  PSPW_SRC=$PSPW_SRC"
+echo "  FFT_BACKEND=$FFT_BACKEND"
+
 set -x
 case "$FFT_BACKEND" in
   fftw)
