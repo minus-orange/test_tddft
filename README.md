@@ -363,6 +363,19 @@ python3 tools/check_tddft_result.py compare ref.out test.out \
   --position-atol 1e-5
 ```
 
+Before comparing logs from different compiler environments, verify that both
+TDDFT runs started from identical input state:
+
+```sh
+TDDFT_INPUT=Si111-H_tm.in_100steps \
+  ./tools/compare_tddft_run_inputs.sh run/Si111-H run/Si111-H_nvhpc
+```
+
+This checks the TDDFT input file, control files, density/wavefunction state
+files, pseudopotentials, and the relevant `fort.*` unit links/files. If this
+fails, the output logs should not be interpreted as a compiler or GPU
+correctness comparison.
+
 To run the sample twice and compare automatically, use:
 
 ```sh
