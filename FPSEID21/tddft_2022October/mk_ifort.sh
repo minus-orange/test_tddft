@@ -31,16 +31,19 @@ if printf '%s\n' "$FC_PROBE" | grep -Eiq 'nvfortran|pgfortran'; then
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE_gnu.f}
     RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs_gnu.f}
+    PSPW_SRC=${PSPW_SRC:-pspw_tm11_Vext_Avec_v4_alloc_gnu.f}
 elif printf '%s\n' "$FC_PROBE" | grep -Eiq 'gfortran|GNU Fortran'; then
     FFLAGS=${FFLAGS:-"-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz"}
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE_gnu.f}
     RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs_gnu.f}
+    PSPW_SRC=${PSPW_SRC:-pspw_tm11_Vext_Avec_v4_alloc_gnu.f}
 else
     FFLAGS=${FFLAGS:-"-O3 -traceback -qopenmp"}
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE.f}
     RARR3_SRC=${RARR3_SRC:-rarr3.f}
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs.f}
+    PSPW_SRC=${PSPW_SRC:-pspw_tm11_Vext_Avec_v4_alloc.f}
 fi
 CFLAGS=${CFLAGS:-"-O2"}
 LDFLAGS=${LDFLAGS:-}
@@ -98,6 +101,6 @@ esac
   rexgenDummy.f dipole.f orbanly_part_f.f smatchk2.f \
   frprmn_tm12_check_Vext_Avec_v4.f pack.f tdep.f vpj_gen.f \
   electf4_Vext_Avec.f gga_lib_3_PBE.f \
-  pspw_tm11_Vext_Avec_v4_alloc.f tmevl10_Avec_v4.f bannerTDDFT.f \
+  "$PSPW_SRC" tmevl10_Avec_v4.f bannerTDDFT.f \
   "$FFT_SRC" omp_clock.f $FFT_OBJS \
   $LDFLAGS $FFT_LINK
