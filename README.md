@@ -85,6 +85,11 @@ The script defaults to:
 - `FFTW_ROOT=tools/fftw-3.3.11-nvhpc/install`
 - `FFLAGS="-O2 -mp -Msave -Mlarge_arrays"`
 
+For TDDFT, the NVIDIA/GNU compiler paths use `tm_inputs_gnu.f` instead of the
+original `tm_inputs.f`. This keeps the Intel/default path unchanged while using
+list-directed internal reads for numeric input values that NVHPC/GNU parse more
+strictly.
+
 FFTW is built with GCC-compatible compilers by default, not `nvc`/`nvfortran`.
 This avoids NVIDIA compiler installations that cannot find the host GCC
 toolchain during FFTW `configure`. If the system `cc` is not a working
