@@ -23,6 +23,10 @@ BAD_PATTERN = re.compile(
     r"\b(error|incorrect|nan|inf|abort|sigsegv|severe|invalid)\b",
     re.IGNORECASE,
 )
+SCRIPT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = SCRIPT_DIR.parent
+DEFAULT_REFERENCE = ROOT_DIR / "docs/runtime_logs/gnu_si111_h_tddft_100steps.out"
+DEFAULT_REFERENCE_ERR = ROOT_DIR / "docs/runtime_logs/gnu_si111_h_tddft_100steps.err"
 
 
 def to_float(text: str) -> float:
@@ -227,8 +231,21 @@ def print_summary(result: TddftResult) -> None:
 
 
 def compare(args: argparse.Namespace) -> int:
-    ref = parse_result(args.reference, args.ref_err)
-    test = parse_result(args.test, args.test_err)
+    if len(args.paths) == 1:
+        reference = args.reference
+        test_path = args.paths[0]
+    elif len(args.paths) == 2:
+        reference = args.paths[0]
+        test_path = args.paths[1]
+    else:
+        raise SystemExit("compare expects TEST, or REFERENCE TEST")
+
+    ref_err = list(args.ref_err)
+    if reference == DEFAULT_REFERENCE and DEFAULT_REFERENCE_ERR.is_file():
+        ref_err.append(DEFAULT_REFERENCE_ERR)
+
+    ref = parse_result(reference, ref_err)
+    test = parse_result(test_path, args.test_err)
 
     failures = []
     failures.extend(f"reference: {msg}" for msg in check_result(ref, args.require_profile))
@@ -302,9 +319,14 @@ def build_parser() -> argparse.ArgumentParser:
     check_parser.add_argument("--require-profile", action=argparse.BooleanOptionalAction, default=True)
     check_parser.set_defaults(func=check)
 
-    compare_parser = sub.add_parser("compare", help="compare two TDDFT output logs")
-    compare_parser.add_argument("reference", type=Path)
-    compare_parser.add_argument("test", type=Path)
+    compare_parser = sub.add_parser("compare", help="compare TDDFT output logs")
+    compare_parser.add_argument(
+        "paths",
+        type=Path,
+        nargs="+",
+        help="TEST, or REFERENCE TEST for the legacy calling form",
+    )
+    compare_parser.add_argument("--reference", type=Path, default=DEFAULT_REFERENCE)
     compare_parser.add_argument("--ref-err", type=Path, action="append", default=[])
     compare_parser.add_argument("--test-err", type=Path, action="append", default=[])
     compare_parser.add_argument("--energy-atol", type=float, default=1.0e-5)

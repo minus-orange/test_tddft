@@ -24,6 +24,10 @@ BAD_RE = re.compile(
     r"NaN|Infinity|SIGSEGV|segmentation|fatal|traceback|cannot|failed|invalid|BADFMT",
     re.IGNORECASE,
 )
+SCRIPT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = SCRIPT_DIR.parent
+DEFAULT_REFERENCE = ROOT_DIR / "docs/runtime_logs/gnu_si111_h_cg.out"
+DEFAULT_REFERENCE_ERR = ROOT_DIR / "docs/runtime_logs/gnu_si111_h_cg.err"
 
 
 @dataclass
@@ -310,8 +314,21 @@ def command_check(args: argparse.Namespace) -> int:
 
 
 def command_compare(args: argparse.Namespace) -> int:
-    ref = parse_cg_output(args.reference, args.ref_err)
-    test = parse_cg_output(args.test, args.test_err)
+    if len(args.paths) == 1:
+        reference = args.reference
+        test_path = args.paths[0]
+    elif len(args.paths) == 2:
+        reference = args.paths[0]
+        test_path = args.paths[1]
+    else:
+        raise SystemExit("compare expects TEST, or REFERENCE TEST")
+
+    ref_err = list(args.ref_err)
+    if reference == DEFAULT_REFERENCE and DEFAULT_REFERENCE_ERR.is_file():
+        ref_err.append(DEFAULT_REFERENCE_ERR)
+
+    ref = parse_cg_output(reference, ref_err)
+    test = parse_cg_output(test_path, args.test_err)
 
     failures: list[str] = []
     failures.extend(f"reference: {msg}" for msg in print_check(ref))
@@ -319,8 +336,8 @@ def command_compare(args: argparse.Namespace) -> int:
 
     print()
     print("CG comparison")
-    print(f"  reference: {args.reference}")
-    print(f"  test:      {args.test}")
+    print(f"  reference: {reference}")
+    print(f"  test:      {test_path}")
     failures.extend(compare_scalar("ETOT", ref.etot, test.etot, args.etot_tol))
     failures.extend(compare_scalar("total_charge", ref.total_charge, test.total_charge, args.charge_tol))
     failures.extend(compare_convergence(ref, test, args.convergence_tol))
@@ -359,9 +376,14 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("--err", type=Path, action="append", default=[])
     check.set_defaults(func=command_check)
 
-    compare = sub.add_parser("compare", help="compare two CG output logs")
-    compare.add_argument("reference", type=Path)
-    compare.add_argument("test", type=Path)
+    compare = sub.add_parser("compare", help="compare CG output logs")
+    compare.add_argument(
+        "paths",
+        type=Path,
+        nargs="+",
+        help="TEST, or REFERENCE TEST for the legacy calling form",
+    )
+    compare.add_argument("--reference", type=Path, default=DEFAULT_REFERENCE)
     compare.add_argument("--ref-err", type=Path, action="append", default=[])
     compare.add_argument("--test-err", type=Path, action="append", default=[])
     compare.add_argument("--etot-tol", type=float, default=1.0e-6)
