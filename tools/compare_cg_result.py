@@ -199,6 +199,31 @@ def compare_convergence(ref: CgResult, test: CgResult, tol: float) -> list[str]:
             "convergence: length mismatch "
             f"ref={len(ref_values)} test={len(test_values)} FAIL"
         )
+        common = min(len(ref.convergence), len(test.convergence))
+        if common:
+            common_diff = max(
+                abs(ref.convergence[i][1] - test.convergence[i][1])
+                for i in range(common)
+            )
+            print(f"  common_prefix_max_abs_diff={common_diff:.6e}")
+            for index in range(common):
+                ref_iter, ref_value = ref.convergence[index]
+                test_iter, test_value = test.convergence[index]
+                if ref_iter != test_iter or abs(ref_value - test_value) > tol:
+                    print(
+                        "  first convergence diff: "
+                        f"index={index + 1} ref_itr={ref_iter} test_itr={test_iter} "
+                        f"ref={ref_value:.6e} test={test_value:.6e} "
+                        f"diff={abs(ref_value - test_value):.6e}"
+                    )
+                    break
+            ref_last_iter, ref_last_value = ref.convergence[-1]
+            test_last_iter, test_last_value = test.convergence[-1]
+            print(
+                "  last convergence values: "
+                f"ref_itr={ref_last_iter} ref={ref_last_value:.6e} "
+                f"test_itr={test_last_iter} test={test_last_value:.6e}"
+            )
         return [
             f"convergence: length mismatch ref={len(ref_values)} test={len(test_values)}"
         ]
