@@ -207,6 +207,16 @@ python3 tools/check_tddft_result.py check run/Si111-H/Si111-H_tm.out \
   --err run/Si111-H/Si111-H_tm.err
 ```
 
+Archive a TDDFT run before changing compilers, FFT backends, or MPI settings:
+
+```sh
+LABEL=nvhpc_fftw_1rank ./tools/archive_tddft_result.sh run/Si111-H_nvhpc
+```
+
+The archive is written under `run/tddft_archives/` by default and includes
+`tddft.out`, optional `tddft.err`, the TDDFT input/state files, `fort.*` unit
+links, and a `README.txt` with check/compare commands.
+
 Then compare MPI process counts:
 
 ```sh
