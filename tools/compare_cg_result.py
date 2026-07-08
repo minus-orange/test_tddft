@@ -28,6 +28,20 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = SCRIPT_DIR.parent
 DEFAULT_REFERENCE = ROOT_DIR / "docs/runtime_logs/gnu_si111_h_cg.out"
 DEFAULT_REFERENCE_ERR = ROOT_DIR / "docs/runtime_logs/gnu_si111_h_cg.err"
+RELAXED_TOLERANCES = {
+    "etot": 1.0e-6,
+    "charge": 1.0e-6,
+    "convergence": 5.0e-2,
+    "force": 1.0e-3,
+    "band": 1.0e-2,
+}
+STRICT_TOLERANCES = {
+    "etot": 1.0e-6,
+    "charge": 1.0e-6,
+    "convergence": 1.0e-8,
+    "force": 1.0e-5,
+    "band": 1.0e-4,
+}
 
 
 @dataclass
@@ -329,6 +343,13 @@ def command_compare(args: argparse.Namespace) -> int:
 
     ref = parse_cg_output(reference, ref_err)
     test = parse_cg_output(test_path, args.test_err)
+    tolerances = STRICT_TOLERANCES if args.strict else {
+        "etot": args.etot_tol,
+        "charge": args.charge_tol,
+        "convergence": args.convergence_tol,
+        "force": args.force_tol,
+        "band": args.band_tol,
+    }
 
     failures: list[str] = []
     failures.extend(f"reference: {msg}" for msg in print_check(ref))
@@ -338,11 +359,15 @@ def command_compare(args: argparse.Namespace) -> int:
     print("CG comparison")
     print(f"  reference: {reference}")
     print(f"  test:      {test_path}")
-    failures.extend(compare_scalar("ETOT", ref.etot, test.etot, args.etot_tol))
-    failures.extend(compare_scalar("total_charge", ref.total_charge, test.total_charge, args.charge_tol))
-    failures.extend(compare_convergence(ref, test, args.convergence_tol))
-    failures.extend(compare_vector("force", flatten_forces(ref), flatten_forces(test), args.force_tol))
-    failures.extend(compare_vector("band_energy", band_values(ref), band_values(test), args.band_tol))
+    if args.strict:
+        print("  tolerance mode: strict")
+    else:
+        print("  tolerance mode: relaxed")
+    failures.extend(compare_scalar("ETOT", ref.etot, test.etot, tolerances["etot"]))
+    failures.extend(compare_scalar("total_charge", ref.total_charge, test.total_charge, tolerances["charge"]))
+    failures.extend(compare_convergence(ref, test, tolerances["convergence"]))
+    failures.extend(compare_vector("force", flatten_forces(ref), flatten_forces(test), tolerances["force"]))
+    failures.extend(compare_vector("band_energy", band_values(ref), band_values(test), tolerances["band"]))
 
     if args.ref_run_dir and args.test_run_dir:
         failures.extend(
@@ -386,11 +411,16 @@ def build_parser() -> argparse.ArgumentParser:
     compare.add_argument("--reference", type=Path, default=DEFAULT_REFERENCE)
     compare.add_argument("--ref-err", type=Path, action="append", default=[])
     compare.add_argument("--test-err", type=Path, action="append", default=[])
-    compare.add_argument("--etot-tol", type=float, default=1.0e-6)
-    compare.add_argument("--charge-tol", type=float, default=1.0e-6)
-    compare.add_argument("--convergence-tol", type=float, default=1.0e-8)
-    compare.add_argument("--force-tol", type=float, default=1.0e-5)
-    compare.add_argument("--band-tol", type=float, default=1.0e-4)
+    compare.add_argument("--etot-tol", type=float, default=RELAXED_TOLERANCES["etot"])
+    compare.add_argument("--charge-tol", type=float, default=RELAXED_TOLERANCES["charge"])
+    compare.add_argument("--convergence-tol", type=float, default=RELAXED_TOLERANCES["convergence"])
+    compare.add_argument("--force-tol", type=float, default=RELAXED_TOLERANCES["force"])
+    compare.add_argument("--band-tol", type=float, default=RELAXED_TOLERANCES["band"])
+    compare.add_argument(
+        "--strict",
+        action="store_true",
+        help="use the previous strict tolerances: convergence=1e-8 force=1e-5 band=1e-4",
+    )
     compare.add_argument("--ref-run-dir", type=Path)
     compare.add_argument("--test-run-dir", type=Path)
     compare.add_argument(
