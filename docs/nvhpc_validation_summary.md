@@ -214,12 +214,65 @@ NVHPC CPU実行は、SDおよびTDDFTの5 MPIプロセスまで確認済みで�
 
 ## Next Step / 次の作業
 
-Use the `-np 5` NVHPC CPU FFTW TDDFT run as the baseline, then validate the
-cuFFT backend with the same input and MPI rank count. Compare both correctness
-and profile regions:
+Use the `-np 5` NVHPC CPU FFTW TDDFT run as the CPU-side performance baseline.
+For the first GPU/cuFFT validation, use a simpler `1 GPU + 1 MPI rank` policy.
+This separates GPU FFT correctness and transfer overhead from the known
+rank-count issue seen at `-np 6` and above.
 
-`-np 5` のNVHPC CPU FFTW版TDDFTを基準にし、同じ入力・同じMPIプロセス数で
-cuFFT版を確認します。正当性比較と同時に、以下のプロファイル領域を比較します。
+`-np 5` のNVHPC CPU FFTW版TDDFTはCPU側の性能基準として使います。一方、
+最初のGPU/cuFFT検証は `1 GPU + 1 MPIプロセス` 方針で行います。これにより、
+`-np 6` 以上で見えているMPIプロセス数依存の問題と、GPU FFTの正当性・転送
+オーバーヘッドを切り分けます。
+
+GPU validation run:
+
+```sh
+cd run/Si111-H_nvhpc
+ulimit -s unlimited
+export OMP_NUM_THREADS=1
+export OMP_STACKSIZE=512M
+export CUDA_VISIBLE_DEVICES=0
+
+mpirun --quiet -np 1 ../../FPSEID21/tddft_2022October/tddft_exe \
+  < Si111-H_tm.in_100steps \
+  > Si111-H_tm.out_100steps_gpu_1rank \
+  2> Si111-H_tm_gpu_1rank.err
+```
+
+GPU検証実行:
+
+```sh
+cd run/Si111-H_nvhpc
+ulimit -s unlimited
+export OMP_NUM_THREADS=1
+export OMP_STACKSIZE=512M
+export CUDA_VISIBLE_DEVICES=0
+
+mpirun --quiet -np 1 ../../FPSEID21/tddft_2022October/tddft_exe \
+  < Si111-H_tm.in_100steps \
+  > Si111-H_tm.out_100steps_gpu_1rank \
+  2> Si111-H_tm_gpu_1rank.err
+```
+
+Check the GPU run against the committed GNU reference with the existing relaxed
+TDDFT comparison:
+
+GPU実行結果は、既存のrelaxed TDDFT比較でコミット済みGNU参照ログと比較します。
+
+```sh
+cd ../..
+python3 ./tools/check_tddft_result.py check \
+  ./run/Si111-H_nvhpc/Si111-H_tm.out_100steps_gpu_1rank \
+  --err ./run/Si111-H_nvhpc/Si111-H_tm_gpu_1rank.err
+
+python3 ./tools/check_tddft_result.py compare \
+  ./run/Si111-H_nvhpc/Si111-H_tm.out_100steps_gpu_1rank \
+  --test-err ./run/Si111-H_nvhpc/Si111-H_tm_gpu_1rank.err
+```
+
+Compare both correctness and profile regions:
+
+正当性比較と同時に、以下のプロファイル領域を比較します。
 
 - `time_step_total`
 - `frprmn`
