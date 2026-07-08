@@ -49,8 +49,8 @@ FC=mpifort CC=mpicc FFLAGS="-O2 -fopenmp -fno-automatic -fallow-argument-mismatc
   FFTW_ROOT=/opt/homebrew/opt/fftw ./mk_ifort.sh
 ```
 
-The Intel/default build keeps using the original source files. GNU and NVIDIA
-HPC SDK builds use the `_gnu.f` source variants only where those compilers need
+The Intel/default and NVIDIA HPC SDK build paths use the original source files.
+GNU Fortran builds use `_gnu.f` source variants only where that compiler needs
 format-statement compatibility fixes.
 
 ## NVIDIA HPC SDK build
@@ -85,11 +85,9 @@ The script defaults to:
 - `FFTW_ROOT=tools/fftw-3.3.11-nvhpc/install`
 - `FFLAGS="-O2 -mp -Msave -Mlarge_arrays"`
 
-For TDDFT, the NVIDIA/GNU compiler paths use `tm_inputs_gnu.f` and
-`pspw_tm11_Vext_Avec_v4_alloc_gnu.f` instead of the original Intel/default
-sources. This keeps the Intel/default path unchanged while using input parsing
-that NVHPC/GNU handle consistently for numeric control values and `D`-exponent
-pseudopotential tables.
+The NVIDIA HPC SDK path intentionally uses the original FPSEID21 sources. Use
+this path first to validate CG, then SD, then TDDFT behavior before reapplying
+compiler-specific source changes.
 
 FFTW is built with GCC-compatible compilers by default, not `nvc`/`nvfortran`.
 This avoids NVIDIA compiler installations that cannot find the host GCC
@@ -250,8 +248,8 @@ GNU builds were checked with:
 FC=gfortran FFLAGS="-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz" ./mk_ifort.sh
 ```
 
-The Intel/default build keeps using the original source files. GNU and NVIDIA
-HPC SDK builds use the `_gnu.f` source variants only where those compilers need
+The Intel/default and NVIDIA HPC SDK build paths use the original source files.
+GNU Fortran builds use `_gnu.f` source variants only where that compiler needs
 format-statement compatibility fixes.
 
 ## Static call tree

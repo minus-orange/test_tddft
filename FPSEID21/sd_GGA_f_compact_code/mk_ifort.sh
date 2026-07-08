@@ -15,8 +15,8 @@ $("$FC" --version 2>/dev/null || true)"
 
 if printf '%s\n' "$FC_PROBE" | grep -Eiq 'nvfortran|pgfortran'; then
     FFLAGS=${FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
-    MAIN_SRC=${MAIN_SRC:-sd_main_df_SXACE_allct_gnu.f}
-    RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
+    MAIN_SRC=${MAIN_SRC:-sd_main_df_SXACE_allct.f}
+    RARR3_SRC=${RARR3_SRC:-rarr3.f}
 elif printf '%s\n' "$FC_PROBE" | grep -Eiq 'gfortran|GNU Fortran'; then
     FFLAGS=${FFLAGS:-"-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz"}
     MAIN_SRC=${MAIN_SRC:-sd_main_df_SXACE_allct_gnu.f}

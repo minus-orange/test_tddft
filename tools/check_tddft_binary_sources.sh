@@ -37,6 +37,10 @@ else
 fi
 
 echo
-echo "Expected for NVHPC/GNU TDDFT builds:"
+echo "Expected for the current NVIDIA HPC SDK original-source baseline:"
+echo "  FOUND     tm_inputs.f"
+echo "  FOUND     pspw_tm11_Vext_Avec_v4_alloc.f"
+echo
+echo "GNU Fortran compatibility builds may instead contain:"
 echo "  FOUND     tm_inputs_gnu.f"
 echo "  FOUND     pspw_tm11_Vext_Avec_v4_alloc_gnu.f"
