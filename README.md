@@ -336,6 +336,24 @@ prints the final `ETOT`, checks the force block, scans stdout/stderr for
 obvious runtime errors, and confirms that the density/wavefunction outputs
 needed by SD are present.
 
+To compare CG logs from two platforms, use `tools/compare_cg_result.py`.
+For example, compare an Intel reference run and an NVHPC test run:
+
+```sh
+python3 tools/compare_cg_result.py compare \
+  intel-run/Si111-H.out nvhpc-run/Si111-H.out \
+  --ref-err intel-run/Si111-H.err \
+  --test-err nvhpc-run/Si111-H.err \
+  --ref-run-dir intel-run \
+  --test-run-dir nvhpc-run
+```
+
+The comparison checks `ETOT`, total charge, all force components, and band
+energies with tolerances. It also reports density/wavefunction file size and
+SHA-256 when run directories are provided. Exact file hash equality is reported
+but not required by default; add `--require-file-match` only when bitwise
+matching is expected.
+
 Look for:
 
 ```text
