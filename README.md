@@ -60,6 +60,10 @@ not offload TDDFT kernels to NVIDIA GPUs yet; GPU execution will require
 separate OpenACC/CUDA-oriented source changes after this compiler/runtime check
 is stable.
 
+For the current NVHPC validation status, recommended optimization levels, MPI
+rank limits, and comparison policy, see
+[`docs/nvhpc_validation_summary.md`](docs/nvhpc_validation_summary.md).
+
 Load the NVIDIA HPC SDK and MPI environment first. The exact module names are
 site-specific, for example:
 
