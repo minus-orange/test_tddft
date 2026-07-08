@@ -31,6 +31,7 @@ class CgResult:
     path: Path
     etot: float | None
     total_charge: float | None
+    convergence: list[tuple[int, float]]
     forces: list[tuple[int, float, float, float]]
     bands: list[tuple[int, int, float]]
     completed: bool
@@ -44,6 +45,7 @@ def parse_float(text: str) -> float:
 def parse_cg_output(path: Path, err_paths: Iterable[Path] = ()) -> CgResult:
     etot: float | None = None
     total_charge: float | None = None
+    convergence: list[tuple[int, float]] = []
     forces: list[tuple[int, float, float, float]] = []
     bands: list[tuple[int, int, float]] = []
     bad_lines: list[str] = []
@@ -69,6 +71,10 @@ def parse_cg_output(path: Path, err_paths: Iterable[Path] = ()) -> CgResult:
                 nums = re.findall(FLOAT_RE, line)
                 if nums:
                     total_charge = parse_float(nums[-1])
+            if "CONVERGENCE OF THE POTENTIAL" in line:
+                match = re.search(r"ITR\s*#\s*(\d+).*?\*\*\s*(%s)" % FLOAT_RE, line)
+                if match:
+                    convergence.append((int(match.group(1)), parse_float(match.group(2))))
             if line.lstrip().startswith("K VECTOR"):
                 nums = re.findall(r"[-+]?\d+", line)
                 if nums:
@@ -107,7 +113,7 @@ def parse_cg_output(path: Path, err_paths: Iterable[Path] = ()) -> CgResult:
                 if BAD_RE.search(line):
                     bad_lines.append(f"{err_path}: {line}")
 
-    return CgResult(path, etot, total_charge, forces, bands, completed, bad_lines)
+    return CgResult(path, etot, total_charge, convergence, forces, bands, completed, bad_lines)
 
 
 def finite(value: float | None) -> bool:
@@ -133,12 +139,17 @@ def band_values(result: CgResult) -> list[float]:
     return [energy for _k, _band, energy in result.bands]
 
 
+def convergence_values(result: CgResult) -> list[float]:
+    return [value for _iteration, value in result.convergence]
+
+
 def print_check(result: CgResult) -> list[str]:
     failures: list[str] = []
     print(f"file: {result.path}")
     print(f"  completed: {result.completed}")
     print(f"  ETOT(HR): {result.etot}")
     print(f"  total_charge: {result.total_charge}")
+    print(f"  convergence iterations: {len(result.convergence)}")
     print(f"  forces: {len(result.forces)} atoms")
     print(f"  band energies: {len(result.bands)}")
     print(f"  suspicious lines: {len(result.bad_lines)}")
@@ -179,6 +190,36 @@ def compare_vector(label: str, ref: list[float], test: list[float], tol: float) 
     return []
 
 
+def compare_convergence(ref: CgResult, test: CgResult, tol: float) -> list[str]:
+    ref_values = convergence_values(ref)
+    test_values = convergence_values(test)
+    diff = max_abs_diff(ref_values, test_values)
+    if diff is None:
+        print(
+            "convergence: length mismatch "
+            f"ref={len(ref_values)} test={len(test_values)} FAIL"
+        )
+        return [
+            f"convergence: length mismatch ref={len(ref_values)} test={len(test_values)}"
+        ]
+    status = "OK" if diff <= tol else "FAIL"
+    print(f"convergence: max_abs_diff={diff:.6e} tolerance={tol:.6e} {status}")
+    if status == "FAIL":
+        for index, (ref_item, test_item) in enumerate(zip(ref.convergence, test.convergence), start=1):
+            ref_iter, ref_value = ref_item
+            test_iter, test_value = test_item
+            if ref_iter != test_iter or abs(ref_value - test_value) > tol:
+                print(
+                    "  first convergence diff: "
+                    f"index={index} ref_itr={ref_iter} test_itr={test_iter} "
+                    f"ref={ref_value:.6e} test={test_value:.6e} "
+                    f"diff={abs(ref_value - test_value):.6e}"
+                )
+                break
+        return [f"convergence: diff {diff:.6e} exceeds tolerance {tol:.6e}"]
+    return []
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as fh:
@@ -198,9 +239,12 @@ def first_existing(run_dir: Path, names: Iterable[str]) -> Path | None:
 def compare_state_files(ref_dir: Path, test_dir: Path, require_match: bool) -> list[str]:
     failures: list[str] = []
     groups = [
-        ("density", ["rh.Si111-H_new", "rh.Si111-H", "fort.24"]),
-        ("wavefunction", ["wf_fft.Si111-H_new", "wf_fft.Si111-H", "fort.23"]),
-        ("real-space wavefunction", ["wf_real.Si111-H", "fort.88"]),
+        ("density unit", ["fort.24"]),
+        ("density promoted", ["rh.Si111-H_new", "rh.Si111-H"]),
+        ("reciprocal wavefunction unit", ["fort.23"]),
+        ("reciprocal wavefunction promoted", ["wf_fft.Si111-H_new", "wf_fft.Si111-H"]),
+        ("real-space wavefunction unit", ["fort.88"]),
+        ("real-space wavefunction promoted", ["wf_real.Si111-H"]),
     ]
     print()
     print("CG state files")
@@ -254,6 +298,7 @@ def command_compare(args: argparse.Namespace) -> int:
     print(f"  test:      {args.test}")
     failures.extend(compare_scalar("ETOT", ref.etot, test.etot, args.etot_tol))
     failures.extend(compare_scalar("total_charge", ref.total_charge, test.total_charge, args.charge_tol))
+    failures.extend(compare_convergence(ref, test, args.convergence_tol))
     failures.extend(compare_vector("force", flatten_forces(ref), flatten_forces(test), args.force_tol))
     failures.extend(compare_vector("band_energy", band_values(ref), band_values(test), args.band_tol))
 
@@ -296,6 +341,7 @@ def build_parser() -> argparse.ArgumentParser:
     compare.add_argument("--test-err", type=Path, action="append", default=[])
     compare.add_argument("--etot-tol", type=float, default=1.0e-6)
     compare.add_argument("--charge-tol", type=float, default=1.0e-6)
+    compare.add_argument("--convergence-tol", type=float, default=1.0e-8)
     compare.add_argument("--force-tol", type=float, default=1.0e-5)
     compare.add_argument("--band-tol", type=float, default=1.0e-4)
     compare.add_argument("--ref-run-dir", type=Path)
