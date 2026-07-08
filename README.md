@@ -318,6 +318,24 @@ To check the implicit Fortran unit files before running a stage manually:
 ./tools/check_si111_h_unit_files.sh tddft Si111-H_tm.in_100steps
 ```
 
+To run and check only the CG stage, for example when validating the NVIDIA HPC
+SDK baseline from the original sources:
+
+```sh
+cd run/Si111-H
+ulimit -s unlimited
+export OMP_STACKSIZE=512M
+export OMP_NUM_THREADS=1
+../../FPSEID21/cg_GGA_f_code/cg_exe < Si111-H.in > Si111-H.out 2> Si111-H.err
+cd ../..
+./tools/check_cg_result.sh
+```
+
+The CG result checker validates that the log reached `CPU TIME END OF PSPW`,
+prints the final `ETOT`, checks the force block, scans stdout/stderr for
+obvious runtime errors, and confirms that the density/wavefunction outputs
+needed by SD are present.
+
 Look for:
 
 ```text
