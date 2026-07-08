@@ -339,7 +339,13 @@ obvious runtime errors, and confirms that the density/wavefunction outputs
 needed by SD are present.
 
 To compare CG logs from two platforms, use `tools/compare_cg_result.py`.
-For example, compare an Intel reference run and an NVHPC test run:
+First confirm that the two CG input states match:
+
+```sh
+./tools/compare_cg_run_inputs.sh intel-run nvhpc-run
+```
+
+Then compare an Intel reference run and an NVHPC test run:
 
 ```sh
 python3 tools/compare_cg_result.py compare \

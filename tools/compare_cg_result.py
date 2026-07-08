@@ -276,7 +276,11 @@ def command_compare(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Check and compare FPSEID21 CG output logs across platforms."
+        description=(
+            "Check and compare FPSEID21 CG output logs across platforms. "
+            "Run compare_cg_run_inputs.sh first; large ETOT/force differences "
+            "usually mean the CG inputs are not identical."
+        )
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
