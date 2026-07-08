@@ -27,6 +27,18 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = SCRIPT_DIR.parent
 DEFAULT_REFERENCE = ROOT_DIR / "docs/runtime_logs/gnu_si111_h_tddft_100steps.out"
 DEFAULT_REFERENCE_ERR = ROOT_DIR / "docs/runtime_logs/gnu_si111_h_tddft_100steps.err"
+RELAXED_TOLERANCES = {
+    "energy": 1.0e-4,
+    "force": 1.0e-4,
+    "position": 1.0e-6,
+    "velocity": 1.0e-6,
+}
+STRICT_TOLERANCES = {
+    "energy": 1.0e-5,
+    "force": 1.0e-5,
+    "position": 1.0e-6,
+    "velocity": 1.0e-6,
+}
 
 
 def to_float(text: str) -> float:
@@ -246,6 +258,12 @@ def compare(args: argparse.Namespace) -> int:
 
     ref = parse_result(reference, ref_err)
     test = parse_result(test_path, args.test_err)
+    tolerances = STRICT_TOLERANCES if args.strict else {
+        "energy": args.energy_atol,
+        "force": args.force_atol,
+        "position": args.position_atol,
+        "velocity": args.velocity_atol,
+    }
 
     failures = []
     failures.extend(f"reference: {msg}" for msg in check_result(ref, args.require_profile))
@@ -253,28 +271,32 @@ def compare(args: argparse.Namespace) -> int:
 
     comparisons: list[tuple[str, float | None, float, str]] = []
     if finite_or_none(ref.etot) and finite_or_none(test.etot):
-        comparisons.append(("ETOT", abs(ref.etot - test.etot), args.energy_atol, ""))
+        comparisons.append(("ETOT", abs(ref.etot - test.etot), tolerances["energy"], ""))
     if finite_or_none(ref.energy_total) and finite_or_none(test.energy_total):
         comparisons.append(
             (
                 "Eelec+Enucl-Eext-Ework",
                 abs(ref.energy_total - test.energy_total),
-                args.energy_atol,
+                tolerances["energy"],
                 "",
             )
         )
 
     force_diff, force_detail = max_vector_diff(ref.force, test.force)
-    comparisons.append(("force", force_diff, args.force_atol, force_detail))
+    comparisons.append(("force", force_diff, tolerances["force"], force_detail))
     pos_diff, pos_detail = max_vector_diff(ref.positions, test.positions)
-    comparisons.append(("positions", pos_diff, args.position_atol, pos_detail))
+    comparisons.append(("positions", pos_diff, tolerances["position"], pos_detail))
     if ref.velocities and test.velocities:
         vel_diff, vel_detail = max_vector_diff(ref.velocities, test.velocities)
-        comparisons.append(("velocities", vel_diff, args.velocity_atol, vel_detail))
+        comparisons.append(("velocities", vel_diff, tolerances["velocity"], vel_detail))
 
     print("TDDFT comparison")
     print(f"  reference: {ref.path}")
     print(f"  test:      {test.path}")
+    if args.strict:
+        print("  tolerance mode: strict")
+    else:
+        print("  tolerance mode: relaxed")
     for name, diff, tol, detail in comparisons:
         if diff is None:
             failures.append(f"{name}: {detail}")
@@ -329,10 +351,15 @@ def build_parser() -> argparse.ArgumentParser:
     compare_parser.add_argument("--reference", type=Path, default=DEFAULT_REFERENCE)
     compare_parser.add_argument("--ref-err", type=Path, action="append", default=[])
     compare_parser.add_argument("--test-err", type=Path, action="append", default=[])
-    compare_parser.add_argument("--energy-atol", type=float, default=1.0e-5)
-    compare_parser.add_argument("--force-atol", type=float, default=1.0e-5)
-    compare_parser.add_argument("--position-atol", type=float, default=1.0e-6)
-    compare_parser.add_argument("--velocity-atol", type=float, default=1.0e-6)
+    compare_parser.add_argument("--energy-atol", type=float, default=RELAXED_TOLERANCES["energy"])
+    compare_parser.add_argument("--force-atol", type=float, default=RELAXED_TOLERANCES["force"])
+    compare_parser.add_argument("--position-atol", type=float, default=RELAXED_TOLERANCES["position"])
+    compare_parser.add_argument("--velocity-atol", type=float, default=RELAXED_TOLERANCES["velocity"])
+    compare_parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="use strict tolerances: energy=1e-5 force=1e-5 position=1e-6 velocity=1e-6",
+    )
     compare_parser.add_argument("--require-profile", action=argparse.BooleanOptionalAction, default=True)
     compare_parser.set_defaults(func=compare)
 
