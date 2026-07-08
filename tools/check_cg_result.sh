@@ -59,6 +59,14 @@ fi
 if [ -f "$ERR" ] && [ -s "$ERR" ]; then
   if grep -Eiq '(^|[^A-Z])(error|fatal|segmentation|sigsegv|traceback|cannot|failed|invalid|badfmt)' "$ERR"; then
     bad "CG stderr contains error-like text: $ERR"
+  elif awk '
+    /^[[:space:]]*$/ { next }
+    /Warning: ieee_inexact is signaling/ { next }
+    /^FORTRAN STOP$/ { next }
+    { unexpected = 1 }
+    END { exit unexpected ? 1 : 0 }
+  ' "$ERR"; then
+    ok "CG stderr contains only known benign NVHPC termination messages"
   else
     warn "CG stderr is not empty: $ERR"
   fi
