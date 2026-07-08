@@ -2483,9 +2483,9 @@ C ****
 C
       if ( my_rank.eq.0 ) then
       WRITE(6,6602) NI, NS, ( IS,( SK(I,IS),I=1,3),WK(IS), IS=1,NS )
- 6602 FORMAT(8X
-     &'          TOTAL NO. OF K IN WHOLE BZ = ',I4/8X
-     &'          TOTAL NO. OF K IN WEDGE    = ',I4/8X
+ 6602 FORMAT(8X,
+     &'          TOTAL NO. OF K IN WHOLE BZ = ',I4/8X,
+     &'          TOTAL NO. OF K IN WEDGE    = ',I4/8X,
      &'          NO.            COORDINATES      WK  '/
      & (18X, I3, 3F8.4, 2X, F8.4)  )
       DO 99 IS=1,NS

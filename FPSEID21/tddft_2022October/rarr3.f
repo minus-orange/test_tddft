@@ -229,7 +229,7 @@ c******   Finally, renumber the R-vectors
       nkg=kseq
 C
       IF(IPRINT.NE.0 .and. my_rank.eq.0 ) WRITE(6,100) N
-  100 FORMAT(8X
+  100 FORMAT(8X,
      &'              N = ',I3,'   NO  KR1 KR2 KR3    ADR ')
       IF(IPRINT) 80,88,80
    80 if (my_rank.eq.0 ) write(6,*)' R-vectors'
