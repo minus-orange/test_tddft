@@ -8161,7 +8161,7 @@ C
      &'  **** RARR2: NEXPND = ',I4,' IND = ',I2,' SHOULD BE 0')
 C
       IF(IPRINT.NE.0) WRITE(6,100) N
-  100 FORMAT(8X
+  100 FORMAT(8X,
      &'              N = ',I3,'   NO  KR1 KR2 KR3    ADR ')
       IF(IPRINT) 80,88,80
    80 DO 82 KK=1,NKG
@@ -8239,7 +8239,7 @@ C ****
       READ(5,*) NDX, NDY, NDZ
 C
       WRITE(6,6602) NI, NS, ( IS,( SK(I,IS),I=1,3),WK(IS), IS=1,NS )
- 6602 FORMAT(8X
+ 6602 FORMAT(8X,
      &'          TOTAL NO. OF K IN WHOLE BZ = ',I4/8X
      &'          TOTAL NO. OF K IN WEDGE    = ',I4/8X
      &'          NO.            COORDINATES      WK  '/

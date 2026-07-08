@@ -88,6 +88,8 @@ The script defaults to:
 The NVIDIA HPC SDK path intentionally uses the original FPSEID21 sources. Use
 this path first to validate CG, then SD, then TDDFT behavior before reapplying
 compiler-specific source changes.
+The CG original-source baseline includes only standard `FORMAT` separator fixes
+needed by NVHPC; no CG numerical algorithm changes are applied.
 
 FFTW is built with GCC-compatible compilers by default, not `nvc`/`nvfortran`.
 This avoids NVIDIA compiler installations that cannot find the host GCC
