@@ -59,6 +59,19 @@ print_file_info() {
   fi
 }
 
+text_equal_ignore_cr() {
+  ref=$1
+  test=$2
+  awk '{ sub(/\r$/, ""); print }' "$ref" > "${TMPDIR:-/tmp}/fpseid_ref_text_$$"
+  awk '{ sub(/\r$/, ""); print }' "$test" > "${TMPDIR:-/tmp}/fpseid_test_text_$$"
+  if cmp -s "${TMPDIR:-/tmp}/fpseid_ref_text_$$" "${TMPDIR:-/tmp}/fpseid_test_text_$$"; then
+    rm -f "${TMPDIR:-/tmp}/fpseid_ref_text_$$" "${TMPDIR:-/tmp}/fpseid_test_text_$$"
+    return 0
+  fi
+  rm -f "${TMPDIR:-/tmp}/fpseid_ref_text_$$" "${TMPDIR:-/tmp}/fpseid_test_text_$$"
+  return 1
+}
+
 compare_path() {
   rel=$1
   label=$2
@@ -102,6 +115,8 @@ compare_path() {
 
   if cmp -s "$ref" "$test"; then
     printf "OK           %-20s %s\n" "$rel" "$label"
+  elif text_equal_ignore_cr "$ref" "$test"; then
+    printf "OKTEXT       %-20s %s (differs only by CRLF/LF)\n" "$rel" "$label"
   else
     printf "DIFF         %-20s %s\n" "$rel" "$label"
     printf "  ref:  "
