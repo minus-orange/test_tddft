@@ -334,9 +334,26 @@ OpenACC経路は、NVHPCのOpenACC flagを明示してビルドします。GPU a
 Typical direction:
 
 ```sh
+BUILD_REPORT=1
 FFLAGS="-O2 -acc -gpu=cc80 -mp -Msave -Mlarge_arrays -Kieee"
 FFT_BACKEND=cufft
 ```
+
+`BUILD_REPORT=1` appends compiler-report flags and prints the final build
+settings. For NVHPC the default report flags are:
+
+`BUILD_REPORT=1` はcompiler report flagを追加し、最終的なビルド設定を表示します。
+NVHPCでのdefault report flagは以下です。
+
+```sh
+REPORT_FLAGS="-Minfo=accel -Minfo=mp"
+```
+
+Use the report to confirm whether OpenACC regions in `S2_` are recognized and
+whether CPU OpenMP regions are still being compiled as expected.
+
+このreportにより、`S2_` のOpenACC regionが認識されているか、既存CPU OpenMP
+regionが想定通りコンパイルされているかを確認します。
 
 For cuFFT linkage, keep using the existing cuFFT library settings. If the
 OpenACC device-pointer wrapper needs CUDA runtime types or cuFFT declarations,

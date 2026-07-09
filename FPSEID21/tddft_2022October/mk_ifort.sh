@@ -12,6 +12,8 @@ set -eu
 #   FFLAGS     Fortran flags. Default depends on FC.
 #   CFLAGS     Additional C flags.
 #   LDFLAGS    Additional linker flags.
+#   BUILD_REPORT  Set to 1 to print more build details and add compiler reports.
+#   REPORT_FLAGS   Extra compiler report flags when BUILD_REPORT=1.
 #   FFTW_LIBS  FFTW libraries. Default: -lfftw3_omp -lfftw3
 #   FFT_BACKEND FFT implementation. Default: fftw. Set to cufft for GPU FFT.
 #   CUFFT_LIBS  cuFFT libraries when FFT_BACKEND=cufft.
@@ -25,6 +27,7 @@ FC=${FC:-mpiifort}
 CC=${CC:-mpicc}
 FFTW_ROOT=${FFTW_ROOT:-}
 FFT_BACKEND=${FFT_BACKEND:-fftw}
+BUILD_REPORT=${BUILD_REPORT:-0}
 
 FC_PROBE="$FC
 $("$FC" --version 2>/dev/null || true)
@@ -33,22 +36,28 @@ $("$FC" --showme:command 2>/dev/null || true)"
 
 if printf '%s\n' "$FC_PROBE" | grep -Eiq 'nvfortran|pgfortran'; then
     FFLAGS=${FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
+    REPORT_FLAGS=${REPORT_FLAGS:-"-Minfo=accel -Minfo=mp"}
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE.f}
     RARR3_SRC=${RARR3_SRC:-rarr3.f}
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs.f}
     PSPW_SRC=${PSPW_SRC:-pspw_tm11_Vext_Avec_v4_alloc.f}
 elif printf '%s\n' "$FC_PROBE" | grep -Eiq 'gfortran|GNU Fortran'; then
     FFLAGS=${FFLAGS:-"-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz"}
+    REPORT_FLAGS=${REPORT_FLAGS:-"-fopt-info-optimized -fopt-info-vec"}
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE_gnu.f}
     RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs_gnu.f}
     PSPW_SRC=${PSPW_SRC:-pspw_tm11_Vext_Avec_v4_alloc_gnu.f}
 else
     FFLAGS=${FFLAGS:-"-O3 -traceback -qopenmp"}
+    REPORT_FLAGS=${REPORT_FLAGS:-"-qopt-report=2"}
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE.f}
     RARR3_SRC=${RARR3_SRC:-rarr3.f}
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs.f}
     PSPW_SRC=${PSPW_SRC:-pspw_tm11_Vext_Avec_v4_alloc.f}
+fi
+if [ "$BUILD_REPORT" = 1 ]; then
+    FFLAGS="$FFLAGS $REPORT_FLAGS"
 fi
 CFLAGS=${CFLAGS:-"-O2"}
 LDFLAGS=${LDFLAGS:-}
@@ -141,6 +150,17 @@ echo "  RARR3_SRC=$RARR3_SRC"
 echo "  TM_INPUTS_SRC=$TM_INPUTS_SRC"
 echo "  PSPW_SRC=$PSPW_SRC"
 echo "  FFT_BACKEND=$FFT_BACKEND"
+echo "  FC=$FC"
+echo "  CC=$CC"
+echo "  FFLAGS=$FFLAGS"
+echo "  CFLAGS=$CFLAGS"
+echo "  LDFLAGS=$LDFLAGS"
+echo "  FFT_INCLUDE=$FFT_INCLUDE"
+echo "  FFT_LINK=$FFT_LINK"
+if [ "$BUILD_REPORT" = 1 ]; then
+  echo "  BUILD_REPORT=1"
+  echo "  REPORT_FLAGS=$REPORT_FLAGS"
+fi
 
 set -x
 case "$FFT_BACKEND" in

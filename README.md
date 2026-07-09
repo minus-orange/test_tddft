@@ -158,6 +158,41 @@ FC=mpifort CC=mpicc FFT_BACKEND=cufft \
   CUFFT_LIBS="-cudalib=cufft" ./mk_ifort.sh
 ```
 
+Manual TDDFT-only OpenACC + cuFFT build with compiler reports:
+
+```sh
+cd FPSEID21/tddft_2022October
+FC=mpifort CC=nvc FFT_BACKEND=cufft BUILD_REPORT=1 \
+  FFLAGS="-O2 -acc -gpu=cc80 -mp -Msave -Mlarge_arrays -Kieee" \
+  CUFFT_LIBS="-cudalib=cufft" ./mk_ifort.sh
+```
+
+Useful flag meanings:
+
+- `-O2`: enable normal optimization without the more aggressive transformations
+  of `-O3`.
+- `-acc`: enable OpenACC directive compilation.
+- `-gpu=cc80`: generate GPU code for NVIDIA Ampere/A100 class GPUs. Adjust this
+  to the installed GPU when needed.
+- `-mp`: enable OpenMP support for the existing CPU-side OpenMP regions.
+- `-Msave`: give local variables static storage, matching assumptions in older
+  Fortran code.
+- `-Mlarge_arrays`: allow large static/local arrays used by the FPSEID21 TDDFT
+  sources.
+- `-Kieee`: preserve IEEE floating-point behavior more strictly. This is useful
+  while comparing compiler/runtime variants.
+- `BUILD_REPORT=1`: append compiler report flags and print the final compiler,
+  include, and link settings used by `mk_ifort.sh`.
+- default NVHPC `REPORT_FLAGS`: `-Minfo=accel -Minfo=mp`, which reports
+  OpenACC accelerator generation and OpenMP processing decisions.
+
+To make the compiler report even more verbose, override `REPORT_FLAGS`, for
+example:
+
+```sh
+BUILD_REPORT=1 REPORT_FLAGS="-Minfo=accel -Minfo=mp -Minfo=inline" ./mk_ifort.sh
+```
+
 cuFFT builds print an additional `FPSEID_CUFFT_PROFILE` block at shutdown. It
 splits the FFT wrapper time into host-to-device copy, cuFFT execution,
 device-to-host copy, and CUDA-event measured total time.
