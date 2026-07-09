@@ -195,6 +195,16 @@ CUFFT_INCLUDE=/path/to/cufft/include \
 ENABLE_GPU_FFT=1 ./tools/build_nvhpc.sh
 ```
 
+The same variables can be passed to the TDDFT-only build:
+
+```sh
+cd FPSEID21/tddft_2022October
+FC=mpifort CC=nvc FFT_BACKEND=cufft \
+  CUDA_RUNTIME_INCLUDE=/path/to/cuda/include \
+  CUFFT_INCLUDE=/path/to/cufft/include \
+  CUFFT_LIBS="-cudalib=cufft" ./mk_ifort.sh
+```
+
 For a smoke test after building:
 
 ```sh

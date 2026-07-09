@@ -15,6 +15,9 @@ set -eu
 #   FFTW_LIBS  FFTW libraries. Default: -lfftw3_omp -lfftw3
 #   FFT_BACKEND FFT implementation. Default: fftw. Set to cufft for GPU FFT.
 #   CUFFT_LIBS  cuFFT libraries when FFT_BACKEND=cufft.
+#   CUDA_ROOT   CUDA installation prefix when FFT_BACKEND=cufft.
+#   CUDA_RUNTIME_INCLUDE  directory containing cuda_runtime.h.
+#   CUFFT_INCLUDE         directory containing cufft.h.
 
 FC=${FC:-mpiifort}
 CC=${CC:-mpicc}
@@ -72,6 +75,22 @@ case "$FFT_BACKEND" in
     ;;
   cufft)
     FFT_INCLUDE=
+    if [ -n "${CUDA_ROOT:-}" ]; then
+      if [ -f "$CUDA_ROOT/include/cuda_runtime.h" ] ||
+         [ -f "$CUDA_ROOT/include/cufft.h" ]; then
+        FFT_INCLUDE="$FFT_INCLUDE -I$CUDA_ROOT/include"
+      fi
+      if [ -d "$CUDA_ROOT/lib64" ]; then
+        CUFFT_LIBS="$CUFFT_LIBS -L$CUDA_ROOT/lib64"
+      fi
+    fi
+    if [ -n "${CUDA_RUNTIME_INCLUDE:-}" ]; then
+      FFT_INCLUDE="$FFT_INCLUDE -I$CUDA_RUNTIME_INCLUDE"
+    fi
+    if [ -n "${CUFFT_INCLUDE:-}" ] &&
+       [ "${CUFFT_INCLUDE:-}" != "${CUDA_RUNTIME_INCLUDE:-}" ]; then
+      FFT_INCLUDE="$FFT_INCLUDE -I$CUFFT_INCLUDE"
+    fi
     FFT_SRC=fft_cufft.f
     FFT_OBJS=fpseid_cufft_wrap.o
     FFT_LINK="$CUFFT_LIBS"
@@ -97,7 +116,8 @@ case "$FFT_BACKEND" in
       -o fftw_threads_fwrap.o
     ;;
   cufft)
-    "$CC" $CFLAGS -c fpseid_cufft_wrap.c -o fpseid_cufft_wrap.o
+    "$CC" $CFLAGS $FFT_INCLUDE -c fpseid_cufft_wrap.c \
+      -o fpseid_cufft_wrap.o
     ;;
 esac
 "$FC" $FFLAGS \
