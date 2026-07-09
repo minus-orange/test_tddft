@@ -327,6 +327,25 @@ Interpretation:
 - 追加高速化には、転送時間とcuFFT実行時間の分離計測、および `tmevl_s2`
   作業配列のGPU常駐化が必要になる見込みです。
 
+The cuFFT wrapper now prints an additional block at shutdown:
+
+cuFFTラッパは、終了時に追加で以下のブロックを出力します。
+
+```text
+FPSEID_CUFFT_PROFILE_BEGIN
+  count h2d_sec fft_sec d2h_sec total_sec
+  ...
+FPSEID_CUFFT_PROFILE_END
+```
+
+This splits the `fft_wrapper` time into host-to-device copy, cuFFT execution,
+device-to-host copy, and their CUDA-event measured total. Use this to decide
+whether the next optimization should target transfers or FFT execution itself.
+
+このブロックにより、`fft_wrapper` の時間を host-to-device 転送、cuFFT実行、
+device-to-host 転送、CUDA eventで測った合計時間に分解できます。次の最適化で
+転送削減を優先すべきか、FFT実行そのものを優先すべきかを判断する材料にします。
+
 Compare both correctness and profile regions:
 
 正当性比較と同時に、以下のプロファイル領域を比較します。
