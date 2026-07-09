@@ -23,6 +23,7 @@
       common /profdata/ pt(64),pt0(64),pc(64),prank
       if (id.lt.1 .or. id.gt.64) return
       pt0(id)=MPI_Wtime()
+      call fpseid_mod_timer_start(id)
       return
       end
 
@@ -36,6 +37,7 @@
       if (id.lt.1 .or. id.gt.64) return
       pt(id)=pt(id)+MPI_Wtime()-pt0(id)
       pc(id)=pc(id)+1
+      call fpseid_mod_timer_stop(id)
       return
       end
 

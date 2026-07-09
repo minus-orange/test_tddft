@@ -124,3 +124,69 @@ contains
   end subroutine wallclock
 
 end module mod_timer
+
+subroutine fpseid_mod_timer_start(id)
+  use mod_timer, only: start_timer
+  implicit none
+  integer, intent(in) :: id
+  character(len=100) :: name
+
+  call fpseid_mod_timer_name(id, name)
+  if (len_trim(name) > 0) call start_timer(trim(name))
+end subroutine fpseid_mod_timer_start
+
+subroutine fpseid_mod_timer_stop(id)
+  use mod_timer, only: stop_timer
+  implicit none
+  integer, intent(in) :: id
+  character(len=100) :: name
+
+  call fpseid_mod_timer_name(id, name)
+  if (len_trim(name) > 0) call stop_timer(trim(name))
+end subroutine fpseid_mod_timer_stop
+
+subroutine fpseid_mod_timer_name(id, name)
+  implicit none
+  integer, intent(in) :: id
+  character(len=*), intent(out) :: name
+
+  name = ''
+  select case (id)
+  case (1)
+    name = 'time_step_total'
+  case (2)
+    name = 'g_vector_update'
+  case (3)
+    name = 'ion_md'
+  case (4)
+    name = 'frprmn'
+  case (5)
+    name = 'electf_force'
+  case (6)
+    name = 'force_energy_update'
+  case (7)
+    name = 'prenon'
+  case (8)
+    name = 'tmevl_total'
+  case (9)
+    name = 'tmevl_exkin'
+  case (10)
+    name = 'tmevl_s2'
+  case (11)
+    name = 's2_nonlocal'
+  case (12)
+    name = 's2_fft_local'
+  case (13)
+    name = 'tmevl_expectation'
+  case (14)
+    name = 'fft_wrapper'
+  case (15)
+    name = 'startup_before_steps'
+  case (16)
+    name = 'fft_plan_init'
+  case (17)
+    name = 's2_acc_update'
+  case (18)
+    name = 's2_acc_kernel'
+  end select
+end subroutine fpseid_mod_timer_name
