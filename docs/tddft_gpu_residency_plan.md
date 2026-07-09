@@ -190,6 +190,24 @@ CPU.
 
 非局所項をCPU側に残す段階では、この境界によりCPU/GPUの所有関係を明確にします。
 
+Initial implementation note:
+
+初期実装メモ:
+
+- Step 1 may still call the existing host-copy FFT wrapper.
+- In that transitional state, use explicit `!$acc update self(...)` before FFT
+  calls and `!$acc update device(...)` after FFT calls.
+- This does not remove FFT transfer overhead yet. It verifies the OpenACC data
+  lifetime and synchronization boundary before adding the device-pointer cuFFT
+  API in Step 2.
+
+- Step 1では、既存のhost-copy型FFT wrapperを呼ぶ移行状態を許容します。
+- その場合、FFT呼び出し前に `!$acc update self(...)`、FFT呼び出し後に
+  `!$acc update device(...)` を明示します。
+- この段階ではFFT転送オーバーヘッドはまだ削減されません。Step 2で
+  device-pointer cuFFT APIを追加する前に、OpenACC data lifetimeと同期境界を
+  検証することを目的とします。
+
 ### Step 2: Use cuFFT through OpenACC device pointers
 
 Process the active band block using cuFFT on OpenACC-managed device memory.
