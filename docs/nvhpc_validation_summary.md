@@ -239,6 +239,15 @@ mpirun --quiet -np 1 ../../FPSEID21/tddft_2022October/tddft_exe \
   2> Si111-H_tm_gpu_1rank.err
 ```
 
+The current cuFFT result shows that Host <-> Device transfer dominates the FFT
+wrapper time. The next implementation target is therefore GPU residency in the
+`S2_` local FFT section, not more one-call FFT replacement. Details are tracked
+in `docs/tddft_gpu_residency_plan.md`.
+
+現在のcuFFT結果では、FFT wrapper時間の大半がHost <-> Device転送です。そのため
+次の実装対象は、単発FFT置換の追加ではなく、`S2_` のlocal FFT部におけるGPU
+常駐化です。詳細は `docs/tddft_gpu_residency_plan.md` に記録しています。
+
 GPU検証実行:
 
 ```sh
