@@ -1907,7 +1907,7 @@ c ** third: operate local potential term
 !$acc data create(RHO1_(1:NXYZ,1:nbndloc))
 !$acc data create(RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ))
 ! ==============================================================================
-!$acc parallel loop present(RHO2_) private(iib,JG)
+!$acc parallel loop present(RHO2_(1:NXYZ,1:nbndloc)) private(iib,JG)
       do ib=nbegin,nend
        iib=ib-nbegin+1
 ! ==============================================================================
@@ -1918,7 +1918,8 @@ c  101    RHO1(JG)=(0.D0,0.D0)
       enddo
 ! ==============================================================================
 ! ==============================================================================
-!$acc parallel loop present(P,RHO1_,J2G) private(iib,IG,JG)
+!$acc parallel loop present(P(1:NXYZ,1:nbndloc),
+!$acc& RHO1_(1:NXYZ,1:nbndloc),J2G(1:NXYZ)) private(iib,IG,JG)
       do ib=nbegin,nend
        iib=ib-nbegin+1
 ! ==============================================================================
@@ -1977,7 +1978,7 @@ C        RHO1:WAVEFN IN REAL SPACE
 C        VG:POTENTIAL IN REAL SPACE
 C       VGG: HXC POTENTIAL IN R-  SPACE
 C       RHO4:LOCAL PSEUDOPOTENTIAL in R- SPACE
-!$acc parallel loop present(VG,VGG,Vloc)
+!$acc parallel loop present(VG(1:NXYZ),VGG(1:NXYZ),Vloc(1:NXYZ))
       do ig=1,nxyz
 c      jg=i2g(ig)
 c      VG(jg)=VGG(jg)+rho4(jg)*fdump(ig)
@@ -2000,7 +2001,8 @@ c       write(6,*)' in sub. S2: before exp(Vlocal) : norm = ',
 c     & sum/dfloat(NXYZ)
 c **** temp check : end
 ! ==============================================================================
-!$acc parallel loop present(RHO1_,RHO2_,VG) private(iib,I,fac)
+!$acc parallel loop present(RHO1_(1:NXYZ,1:nbndloc),
+!$acc& RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ)) private(iib,I,fac)
       do ib=nbegin,nend
        iib=ib-nbegin+1
 ! ==============================================================================
@@ -2042,7 +2044,8 @@ c      call FFT3FX_fftw(NXYZ,RHO2,plancfp,plancbp)
 C
 c         DO 110 IG=1,NG2
 ! ==============================================================================
-!$acc parallel loop present(P,RHO2_,J2G) private(iib,IG,JG)
+!$acc parallel loop present(P(1:NXYZ,1:nbndloc),
+!$acc& RHO2_(1:NXYZ,1:nbndloc),J2G(1:NXYZ)) private(iib,IG,JG)
       do ib=nbegin,nend
        iib=ib-nbegin+1
 ! ==============================================================================
