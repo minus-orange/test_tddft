@@ -88,5 +88,7 @@
       if (id.eq.12) name='s2_fft_local'
       if (id.eq.13) name='tmevl_expectation'
       if (id.eq.14) name='fft_wrapper'
+      if (id.eq.15) name='startup_before_steps'
+      if (id.eq.16) name='fft_plan_init'
       return
       end

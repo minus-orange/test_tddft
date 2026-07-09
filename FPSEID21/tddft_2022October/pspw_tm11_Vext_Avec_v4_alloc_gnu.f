@@ -256,6 +256,7 @@ c *******
       call MPI_COMM_SIZE(MPI_COMM_WORLD,ncpu,ierr)
       call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
       call prof_init(my_rank)
+      call prof_start(15)
 c ** read size.data here!
       if (my_rank.eq.0 ) then
 
@@ -1044,6 +1045,7 @@ c        write(6,'(4f22.16)')( RAD(K,ITY),K=1,MESHQ,100)
 c       enddo
 c      endif
 c *** temp check : end
+      call prof_stop(15)
       do 100 itstep=0,ntstep
       call prof_start(1)
       time=time0+dtfsec*itstep
@@ -3481,7 +3483,9 @@ c      CALL PREFFT_ASL(NRX,NRY,NRZ,WSAVE_XYZ,IFAC_XYZ)
 c *** for Kokubo FFTW
 c       call PREFFT_fftw(NRX,NRY,NRZ,rhog,plancfp,plancbp)
 c *** for Kokubo fftw ASL compatible
+      call prof_start(16)
       CALL PREFFT_fftwASL(NRX,NRY,NRZ,RHOG,plancfp,plancbp)
+      call prof_stop(16)
 c ** temp check
 c      if (my_rank.eq.0 ) then
 c       write(6,*)' in sub INITPW: point 2'
