@@ -56,6 +56,70 @@ C
       END
 
 C***********************************************************
+      SUBROUTINE FFT3BX_fftwASL_ACC(NRX,NRY,NRZ,NG,RHOG,WORK
+     &  ,plancfp,plancbp)
+      use mod_timer, only: start_timer, stop_timer
+C***********************************************************
+C     Device-resident R-space -> G-space cuFFT path.
+C     RHOG must already be present on the OpenACC device.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      complex*16 WORK(NG)
+      complex*16 RHOG(NG)
+      integer*8 plancfp,plancbp
+      integer ierr
+C
+      call prof_start(14)
+      call start_timer('cufft_acc_fft3bx')
+!$acc host_data use_device(RHOG)
+      call fpseid_cufft_exec_device(plancbp,RHOG,NG,1,ierr)
+!$acc end host_data
+      call stop_timer('cufft_acc_fft3bx')
+      call prof_stop(14)
+      if (ierr.ne.0) then
+        write(6,*) 'ERROR: fpseid_cufft_exec_device backward failed,',
+     &             ' ierr=',ierr
+        stop
+      endif
+C
+      END
+
+C***********************************************************
+      SUBROUTINE FFT3FX_fftwASL_ACC(NRX,NRY,NRZ,NG,RHOG,WORK
+     & ,plancfp,plancbp)
+      use mod_timer, only: start_timer, stop_timer
+C***********************************************************
+C     Device-resident G-space -> R-space cuFFT path.
+C     RHOG must already be present on the OpenACC device.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      complex*16 WORK(NG)
+      complex*16 RHOG(NG)
+      integer*8 plancfp,plancbp
+      integer ierr
+C
+      call prof_start(14)
+      call start_timer('cufft_acc_fft3fx')
+!$acc host_data use_device(RHOG)
+      call fpseid_cufft_exec_device(plancfp,RHOG,NG,-1,ierr)
+!$acc end host_data
+      call stop_timer('cufft_acc_fft3fx')
+      call prof_stop(14)
+      if (ierr.ne.0) then
+        write(6,*) 'ERROR: fpseid_cufft_exec_device forward failed,',
+     &             ' ierr=',ierr
+        stop
+      endif
+C
+      FAC=1.0D0/DBLE(NG)
+!$acc parallel loop present(RHOG(1:NG))
+      DO I=1,NG
+        RHOG(I)= RHOG(I)*FAC
+      ENDDO
+C
+      END
+
+C***********************************************************
       SUBROUTINE FFT3FX_fftwASL(NRX,NRY,NRZ,NG,RHOG,WORK
      & ,plancfp,plancbp)
       use mod_timer, only: start_timer, stop_timer

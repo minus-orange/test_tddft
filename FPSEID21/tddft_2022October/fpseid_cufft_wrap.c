@@ -253,6 +253,58 @@ void fpseid_cufft_exec_(int64_t *plan_value, cufftDoubleComplex *host_data,
   }
 }
 
+void fpseid_cufft_exec_device_(int64_t *plan_value,
+                               cufftDoubleComplex *device_data,
+                               int *ng, int *direction, int *ierr)
+{
+  cufftHandle plan;
+  int cufft_dir;
+  size_t bytes;
+
+  *ierr = 0;
+
+  plan = (cufftHandle)(*plan_value);
+  cufft_dir = (*direction < 0) ? CUFFT_FORWARD : CUFFT_INVERSE;
+  bytes = (size_t)(*ng) * sizeof(cufftDoubleComplex);
+  if (bytes > g_bytes) {
+    *ierr = 41;
+    return;
+  }
+
+  if (g_timing_enabled &&
+      check_cuda(cudaEventRecord(g_ev_start, 0), "cudaEventRecord start")) {
+    *ierr = 45;
+    return;
+  }
+  if (g_timing_enabled &&
+      check_cuda(cudaEventRecord(g_ev_after_h2d, 0),
+                 "cudaEventRecord after_h2d")) {
+    *ierr = 46;
+    return;
+  }
+  if (check_cufft(cufftExecZ2Z(plan, device_data, device_data, cufft_dir),
+                  "cufftExecZ2Z device")) {
+    *ierr = 43;
+    return;
+  }
+  if (g_timing_enabled &&
+      check_cuda(cudaEventRecord(g_ev_after_fft, 0),
+                 "cudaEventRecord after_fft")) {
+    *ierr = 47;
+    return;
+  }
+  if (g_timing_enabled &&
+      check_cuda(cudaEventRecord(g_ev_after_d2h, 0),
+                 "cudaEventRecord after_d2h")) {
+    *ierr = 48;
+    return;
+  }
+  if (accumulate_timing()) {
+    *ierr = 49;
+    return;
+  }
+}
+
 void fpseid_cufft_destroy_(int *ierr)
 {
   *ierr = 0;

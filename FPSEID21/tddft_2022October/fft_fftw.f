@@ -77,6 +77,40 @@ C
       END
 
 C***********************************************************
+      SUBROUTINE FFT3BX_fftwASL_ACC(NRX,NRY,NRZ,NG,RHOG,WORK
+     &  ,plancfp,plancbp)
+C***********************************************************
+C     Compatibility entry point for the OpenACC/cuFFT S2 path.
+C     The FFTW backend remains host-resident and delegates to the
+C     original wrapper.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      complex*16 WORK(NG)
+      complex*16 RHOG(NG)
+      integer*8 plancfp,plancbp
+C
+      CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NG,RHOG,WORK,plancfp,plancbp)
+C
+      END
+
+C***********************************************************
+      SUBROUTINE FFT3FX_fftwASL_ACC(NRX,NRY,NRZ,NG,RHOG,WORK
+     & ,plancfp,plancbp)
+C***********************************************************
+C     Compatibility entry point for the OpenACC/cuFFT S2 path.
+C     The FFTW backend remains host-resident and delegates to the
+C     original wrapper.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      complex*16 WORK(NG)
+      complex*16 RHOG(NG)
+      integer*8 plancfp,plancbp
+C
+      CALL FFT3FX_fftwASL(NRX,NRY,NRZ,NG,RHOG,WORK,plancfp,plancbp)
+C
+      END
+
+C***********************************************************
       SUBROUTINE FFT3FX_fftwASL(NRX,NRY,NRZ,NG,RHOG,WORK
      & ,plancfp,plancbp)
 C***********************************************************

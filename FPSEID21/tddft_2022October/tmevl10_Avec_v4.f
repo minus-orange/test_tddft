@@ -1933,9 +1933,6 @@ c         DO 100 IG=1,NG2
 ! ==============================================================================
       enddo
       call prof_stop(18)
-      call prof_start(17)
-!$acc update self(RHO1_(1:NXYZ,1:nbndloc))
-      call prof_stop(17)
 ! ==============================================================================
 c **** temp check
 c       sum=0
@@ -1960,14 +1957,12 @@ c *** for Kokubo ASL FFT
 c      CALL FFT3BX_ASL(NRX,NRY,NRZ,NXYZ,RHO1_(1,iib),RHO2_(1,iib),
 c     &                WSAVE_XYZ,IFAC_XYZ)
 c    for KOKUBO fftw ASL compativle
-      CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO1_(1,iib),RHO2_(1,iib),
+      CALL FFT3BX_fftwASL_ACC(NRX,NRY,NRZ,NXYZ,RHO1_(1,iib),
+     &                RHO2_(1,iib),
      &                plancfp,plancbp)
 c
 ! ==============================================================================
       enddo
-      call prof_start(17)
-!$acc update device(RHO1_(1:NXYZ,1:nbndloc))
-      call prof_stop(17)
 ! ==============================================================================
 c *** for Kokubo FFTW
 c      call FFT3BX_fftw(NXYZ,RHO1,plancfp,plancbp)
@@ -2019,9 +2014,6 @@ c **** temp check : end
 ! ==============================================================================
       enddo
       call prof_stop(18)
-      call prof_start(17)
-!$acc update self(RHO2_(1:NXYZ,1:nbndloc))
-      call prof_stop(17)
 ! ==============================================================================
 c **** temp check
 c       sum=0
@@ -2043,13 +2035,11 @@ c *** for Kokubo ASL FFT
 c      CALL FFT3FX_ASL(NRX,NRY,NRZ,NXYZ,RHO2_(1,iib),RHO1_(1,iib),
 c     &                WSAVE_XYZ,IFAC_XYZ)
 !==  for KOKUBO fftw ASL compativle
-      CALL FFT3FX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO2_(1,iib),RHO1_(1,iib),
+      CALL FFT3FX_fftwASL_ACC(NRX,NRY,NRZ,NXYZ,RHO2_(1,iib),
+     &                RHO1_(1,iib),
      &                plancfp,plancbp)
 ! ==============================================================================
       enddo
-      call prof_start(17)
-!$acc update device(RHO2_(1:NXYZ,1:nbndloc))
-      call prof_stop(17)
 ! ==============================================================================
 c *** for Kokubo FFTW
 c      call FFT3FX_fftw(NXYZ,RHO2,plancfp,plancbp)
