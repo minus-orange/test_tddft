@@ -270,6 +270,63 @@ python3 ./tools/check_tddft_result.py compare \
   --test-err ./run/Si111-H_nvhpc/Si111-H_tm_gpu_1rank.err
 ```
 
+### Initial cuFFT Result / 初期cuFFT結果
+
+The first `1 GPU + 1 MPI rank` cuFFT run completed 100 TDDFT steps and passed
+the relaxed comparison against the committed GNU TDDFT reference. The archived
+run labels are:
+
+最初の `1 GPU + 1 MPIプロセス` cuFFT実行は100 TDDFT stepを完走し、
+コミット済みGNU TDDFT参照ログとのrelaxed比較でPASSしました。退避ラベルは
+以下です。
+
+- FFTW baseline: `run/tddft_archives/nvhpc_fftw_1rank_o2`
+- cuFFT test: `run/tddft_archives/nvhpc_cufft_1rank_o2`
+
+Correctness status:
+
+正当性確認:
+
+- `check_tddft_result.py check`: PASS
+- `check_tddft_result.py compare`: PASS
+- `ETOT`, `Eelec+Enucl-Eext-Ework`, force, positions, and velocities were all
+  within relaxed tolerances.
+
+Performance summary for 100 steps:
+
+100 stepの性能比較:
+
+| profile region | FFTW sec | cuFFT sec | speedup |
+| --- | ---: | ---: | ---: |
+| `time_step_total` | 501.068871 | 443.502158 | 1.13x |
+| `frprmn` | 492.014268 | 434.422398 | 1.13x |
+| `tmevl_total` | 427.833639 | 373.854727 | 1.14x |
+| `tmevl_s2` | 357.088483 | 306.979328 | 1.16x |
+| `s2_nonlocal` | 122.986159 | 123.152011 | 1.00x |
+| `s2_fft_local` | 234.100450 | 183.825464 | 1.27x |
+| `fft_wrapper` | 163.592244 | 100.969549 | 1.62x |
+
+Interpretation:
+
+解釈:
+
+- The cuFFT backend is active and improves the targeted FFT regions.
+- `fft_wrapper` improved by about 1.62x even though this initial version still
+  copies data host -> GPU -> host for every FFT call.
+- End-to-end `time_step_total` improved by about 1.13x.
+- `s2_nonlocal` did not improve, so it remains a separate non-FFT GPU
+  acceleration candidate.
+- Further speedup likely requires splitting transfer time from cuFFT execution
+  time and keeping the relevant `tmevl_s2` working arrays resident on the GPU.
+
+- cuFFT backendは有効に動作しており、狙い通りFFT関連領域が改善しました。
+- 初期版は各FFTで host -> GPU -> host 転送を行いますが、それでも
+  `fft_wrapper` は約1.62倍改善しました。
+- 全体の `time_step_total` は約1.13倍改善しました。
+- `s2_nonlocal` は改善していないため、FFTとは別のGPU化候補として残ります。
+- 追加高速化には、転送時間とcuFFT実行時間の分離計測、および `tmevl_s2`
+  作業配列のGPU常駐化が必要になる見込みです。
+
 Compare both correctness and profile regions:
 
 正当性比較と同時に、以下のプロファイル領域を比較します。
