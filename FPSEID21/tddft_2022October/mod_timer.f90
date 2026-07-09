@@ -72,15 +72,29 @@ contains
   end subroutine stop_timer
 
   subroutine print_timer()
+    include 'mpif.h'
     integer :: i
+    integer :: ierr
+    integer :: my_rank
+    integer :: total_count
+    logical :: mpi_ready
     character(len=31) :: p_name
+    real(kind=8) :: total_value
+
+    my_rank = -1
+    call MPI_Initialized(mpi_ready, ierr)
+    if (mpi_ready) then
+      call MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+    end if
+    total_count = 0
+    total_value = 0.0d0
 
     write(6,'(a)') ''
     write(6,'(a)') '[Timer Output]'
-    write(6,'(a)') '+--------------------------------+----------+------------+'
-    write(6,'(a)') '|Timer region                    |Called    |Elapsed     |'
-    write(6,'(a)') '|                                |          |Time[s]     |'
-    write(6,'(a)') '+--------------------------------+----------+------------+'
+    write(6,'(a)') '+--------------------------------+------+----------+------------+'
+    write(6,'(a)') '|Timer region                    |Rank  |Called    |Elapsed     |'
+    write(6,'(a)') '|                                |      |          |Time[s]     |'
+    write(6,'(a)') '+--------------------------------+------+----------+------------+'
     do i = 1, num_of_routines
       if (timer_start(i)) then
         write(0,*) 'Timer for ', trim(t_name(i)), ' is NOT stopped!!!'
@@ -88,9 +102,16 @@ contains
       end if
       p_name = ''
       p_name = trim(t_name(i))
-      write(6,'(a,a,i10,a,f12.3,a)') '|', p_name // '|', call_count(i), '|', t_value(i), '|'
+      total_count = total_count + call_count(i)
+      total_value = total_value + t_value(i)
+      write(6,'(a,a31,a,i6,a,i10,a,f12.3,a)') '|', p_name, &
+        '|', my_rank, '|', call_count(i), '|', t_value(i), '|'
     end do
-    write(6,'(a)') '+--------------------------------+----------+------------+'
+    p_name = 'TOTAL'
+    write(6,'(a)') '+--------------------------------+------+----------+------------+'
+    write(6,'(a,a31,a,i6,a,i10,a,f12.3,a)') '|', p_name, &
+      '|', my_rank, '|', total_count, '|', total_value, '|'
+    write(6,'(a)') '+--------------------------------+------+----------+------------+'
   end subroutine print_timer
 
   subroutine wallclock(t)
