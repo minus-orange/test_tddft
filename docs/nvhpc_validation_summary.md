@@ -240,13 +240,17 @@ mpirun --quiet -np 1 ../../FPSEID21/tddft_2022October/tddft_exe \
 ```
 
 The current cuFFT result shows that Host <-> Device transfer dominates the FFT
-wrapper time. The next implementation target is therefore GPU residency in the
-`S2_` local FFT section, not more one-call FFT replacement. Details are tracked
-in `docs/tddft_gpu_residency_plan.md`.
+wrapper time. The next implementation target is therefore OpenACC-based GPU
+residency in the `S2_` local FFT section, not more one-call FFT replacement and
+not custom CUDA kernels. cuFFT remains available as a library backend through
+OpenACC device-pointer interoperability. Details are tracked in
+`docs/tddft_gpu_residency_plan.md`.
 
 現在のcuFFT結果では、FFT wrapper時間の大半がHost <-> Device転送です。そのため
-次の実装対象は、単発FFT置換の追加ではなく、`S2_` のlocal FFT部におけるGPU
-常駐化です。詳細は `docs/tddft_gpu_residency_plan.md` に記録しています。
+次の実装対象は、単発FFT置換の追加ではなく、`S2_` のlocal FFT部における
+OpenACCベースのGPU常駐化です。独自CUDAカーネルは最初の対象にせず、cuFFTは
+OpenACC device pointer連携によるライブラリbackendとして使用します。詳細は
+`docs/tddft_gpu_residency_plan.md` に記録しています。
 
 GPU検証実行:
 
@@ -326,15 +330,16 @@ Interpretation:
 - `s2_nonlocal` did not improve, so it remains a separate non-FFT GPU
   acceleration candidate.
 - Further speedup likely requires splitting transfer time from cuFFT execution
-  time and keeping the relevant `tmevl_s2` working arrays resident on the GPU.
+  time and keeping the relevant `tmevl_s2` working arrays resident on the GPU
+  with OpenACC data regions.
 
 - cuFFT backendは有効に動作しており、狙い通りFFT関連領域が改善しました。
 - 初期版は各FFTで host -> GPU -> host 転送を行いますが、それでも
   `fft_wrapper` は約1.62倍改善しました。
 - 全体の `time_step_total` は約1.13倍改善しました。
 - `s2_nonlocal` は改善していないため、FFTとは別のGPU化候補として残ります。
-- 追加高速化には、転送時間とcuFFT実行時間の分離計測、および `tmevl_s2`
-  作業配列のGPU常駐化が必要になる見込みです。
+- 追加高速化には、転送時間とcuFFT実行時間の分離計測、およびOpenACC data
+  regionによる `tmevl_s2` 作業配列のGPU常駐化が必要になる見込みです。
 
 The cuFFT wrapper now prints an additional block at shutdown:
 
@@ -380,7 +385,9 @@ Compare both correctness and profile regions:
 
 The initial cuFFT implementation mainly targets `fft_wrapper` and
 `s2_fft_local`. Larger speedups will likely require keeping the relevant
-`tmevl_s2` working arrays resident on the GPU.
+`tmevl_s2` working arrays resident on the GPU with OpenACC, then passing those
+device pointers to cuFFT where FFT operations are needed.
 
 初期cuFFT実装の主な対象は`fft_wrapper`と`s2_fft_local`です。さらに大きな
-高速化には、`tmevl_s2`の作業配列をGPU上に保持する実装が必要になる見込みです。
+高速化には、OpenACCで`tmevl_s2`の作業配列をGPU上に保持し、FFTが必要な箇所で
+そのdevice pointerをcuFFTに渡す実装が必要になる見込みです。

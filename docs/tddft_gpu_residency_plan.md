@@ -3,11 +3,14 @@
 Date: 2026-07-09
 
 This note records the next GPU optimization direction for the FPSEID21 TDDFT
-`Si111-H` validation case. The scope is the current one-GPU, one-MPI-rank cuFFT
-path.
+`Si111-H` validation case. The scope is the current one-GPU, one-MPI-rank path.
+The first implementation choice is OpenACC. CUDA libraries such as cuFFT may be
+used, but custom CUDA kernels are not the first target.
 
 このメモは、FPSEID21 TDDFT `Si111-H` 検証ケースに対する次のGPU最適化方針を
-記録します。対象は、現在確認している1 GPU / 1 MPI rankのcuFFT経路です。
+記録します。対象は、現在確認している1 GPU / 1 MPI rankの経路です。最初の
+実装手段はOpenACCとし、cuFFTなどのCUDAライブラリは使用可とします。ただし、
+独自CUDAカーネルを書く実装は最初の対象から外します。
 
 ## Current Finding / 現状
 
@@ -70,23 +73,62 @@ residency targets because each band slice is contiguous in Fortran memory.
 `RHO1_(NXYZ,mxbnd)` と `RHO2_(NXYZ,mxbnd)` は、各bandスライスがFortran配列上で
 連続しているため、最初にGPU常駐化する対象として扱いやすいです。
 
+## Implementation Policy / 実装方針
+
+Use OpenACC for GPU-resident arrays and element-wise work in the TDDFT Fortran
+code. Use cuFFT only as a library backend for FFT operations.
+
+TDDFTのFortran側では、GPU常駐配列と要素ごとの処理をOpenACCで表現します。
+FFT操作のみ、ライブラリbackendとしてcuFFTを使います。
+
+The practical meaning is:
+
+- Prefer `!$acc data`, `!$acc parallel loop`, `!$acc kernels`, and
+  `!$acc host_data use_device(...)` in new TDDFT GPU work.
+- Do not introduce new hand-written CUDA kernels as the primary implementation
+  path.
+- Keep the existing CPU/FFTW path and GNU/Intel-oriented source variants usable.
+- Treat cuFFT calls as library calls that can operate on OpenACC-managed device
+  buffers.
+
+実務上は以下の方針です。
+
+- 新しいTDDFT GPU化では `!$acc data`, `!$acc parallel loop`,
+  `!$acc kernels`, `!$acc host_data use_device(...)` を優先します。
+- 独自CUDAカーネルを主実装として追加しません。
+- 既存のCPU/FFTW経路、およびGNU/Intel向けsource variantは維持します。
+- cuFFTはOpenACC管理下のdevice bufferに対して動作するライブラリ呼び出しとして
+  扱います。
+
 ## Recommended Implementation Order / 実装順序
 
-### Step 1: Batched local FFT wrapper
+### Step 1: OpenACC data region for the local FFT work arrays
 
-Add a new cuFFT path for the `s2_fft_local` block that processes the active
-band block as a batch instead of calling cuFFT once per band.
+Add an OpenACC data region around the `S2_` local FFT section so `RHO1_`,
+`RHO2_`, and the local-potential vector can remain on the GPU while the local
+FFT pair is evaluated.
 
-`s2_fft_local` のactive band blockをまとめて処理するcuFFT経路を追加します。
-bandごとにcuFFTを呼ぶ現状から、batch処理へ変更します。
+`S2_` のlocal FFT部にOpenACC data regionを追加し、local FFTペアの処理中に
+`RHO1_`, `RHO2_`, local potential vectorをGPU上に保持します。
 
 Expected benefit:
 
-- Fewer C/Fortran wrapper calls.
-- Better cuFFT plan usage.
-- Easier transition to resident buffers.
+- Makes data movement explicit and measurable in Fortran.
+- Gives a stable base for cuFFT/OpenACC interoperability.
+- Avoids introducing custom CUDA kernels before the data lifetime is clear.
 
-### Step 2: Keep `RHO1_` and `RHO2_` on the GPU across the local FFT pair
+### Step 2: Use cuFFT through OpenACC device pointers
+
+Process the active band block using cuFFT on OpenACC-managed device memory.
+The Fortran side should enter `!$acc host_data use_device(...)` around the cuFFT
+library call instead of copying each band to a private CUDA buffer inside the C
+wrapper.
+
+OpenACC管理下のdevice memoryに対して、active band blockをcuFFTで処理します。
+Fortran側ではcuFFT呼び出しの周囲で `!$acc host_data use_device(...)` を使い、
+C wrapper内部でbandごとにprivate CUDA bufferへコピーする方式を減らします。
+
+### Step 3: Move the local-potential multiply with OpenACC
 
 Move the middle local-potential operation to the GPU:
 
@@ -97,18 +139,18 @@ RHO2_(I,iib)=dcmplx(dcos(fac),-dsin(fac))*RHO1_(I,iib)
 The GPU path should perform:
 
 ```text
-H2D RHO1_ batch
-cuFFT inverse/bx
-GPU local-potential multiply using VG
-cuFFT forward/fx
-GPU scaling
-D2H RHO2_ batch
+OpenACC data region for RHO1_/RHO2_/VG
+cuFFT inverse/bx using OpenACC device pointer
+OpenACC local-potential multiply using VG
+cuFFT forward/fx using OpenACC device pointer
+OpenACC scaling
+copy out only the data required by the following CPU-side section
 ```
 
 This changes the transfer granularity from one transfer pair per FFT call to
 one transfer pair per local FFT block.
 
-### Step 3: Leave nonlocal sections on CPU initially
+### Step 4: Leave nonlocal sections on CPU initially
 
 The two `s2_nonlocal` regions use `exnlp_only_make` and `exnlp_gemm`. These
 should remain CPU-side until the local FFT path is validated.
@@ -116,12 +158,12 @@ should remain CPU-side until the local FFT path is validated.
 2つの `s2_nonlocal` 領域は、まずCPU側に残します。ローカルFFT部の常駐化が
 正しく動くことを確認してから、次段階として検討します。
 
-### Step 4: Reconsider larger residency only after validation
+### Step 5: Reconsider larger residency only after validation
 
-If Step 2 passes and transfer is still the dominant cost, then consider moving
+If Step 3 passes and transfer is still the dominant cost, then consider moving
 the scatter/gather around `P`, `J2G`, and possibly the nonlocal GEMM path.
 
-Step 2後も転送が支配的な場合に、`P`/`J2G` のscatter/gatherや非局所GEMMの
+Step 3後も転送が支配的な場合に、`P`/`J2G` のscatter/gatherや非局所GEMMの
 GPU化を検討します。
 
 ## Validation Policy / 確認方法
@@ -156,10 +198,11 @@ specific strict test is being run.
 
 ## Current Decision / 現時点の判断
 
-The next coding target is not replacing more physics kernels immediately. The
-next target is reducing transfer frequency in `s2_fft_local` by batching and
-keeping the local FFT pair resident on the GPU.
+The next coding target is not replacing more physics kernels immediately and
+not writing custom CUDA kernels. The next target is reducing transfer frequency
+in `s2_fft_local` by using OpenACC data regions and cuFFT/OpenACC device-pointer
+interoperability.
 
 次のコーディング対象は、物理カーネルを一気に置き換えることではありません。
-まず `s2_fft_local` のbatch化とローカルFFTペアのGPU常駐化により、転送回数を
-減らします。
+また、独自CUDAカーネルを書くことでもありません。まずOpenACC data regionと
+cuFFT/OpenACC device pointer連携により、`s2_fft_local` の転送回数を減らします。
