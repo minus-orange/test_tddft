@@ -12,6 +12,12 @@ used, but custom CUDA kernels are not the first target.
 実装手段はOpenACCとし、cuFFTなどのCUDAライブラリは使用可とします。ただし、
 独自CUDAカーネルを書く実装は最初の対象から外します。
 
+Implementation progress and measured Step 1-3 results are summarized in
+`docs/tddft_gpu_progress_summary.md`.
+
+実装済みの内容と Step 1-3 の測定結果は
+`docs/tddft_gpu_progress_summary.md` にまとめています。
+
 ## Current Finding / 現状
 
 The cuFFT version is numerically acceptable in relaxed comparison against the
