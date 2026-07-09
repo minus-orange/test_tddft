@@ -205,6 +205,19 @@ FC=mpifort CC=nvc FFT_BACKEND=cufft \
   CUFFT_LIBS="-cudalib=cufft" ./mk_ifort.sh
 ```
 
+If the compiler finds headers but the linker cannot find `-lcufft` or
+`-lcudart`, also pass the library directories:
+
+```sh
+cd FPSEID21/tddft_2022October
+FC=mpifort CC=nvc FFT_BACKEND=cufft \
+  CUDA_RUNTIME_INCLUDE=/path/to/cuda/include \
+  CUFFT_INCLUDE=/path/to/math_libs/13.2/targets/x86_64-linux/include \
+  CUDA_RUNTIME_LIB=/path/to/cuda/lib64 \
+  CUFFT_LIB=/path/to/math_libs/13.2/targets/x86_64-linux/lib \
+  CUFFT_LIBS="-lcufft -lcudart" ./mk_ifort.sh
+```
+
 For a smoke test after building:
 
 ```sh

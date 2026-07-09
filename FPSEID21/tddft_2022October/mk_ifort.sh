@@ -18,6 +18,8 @@ set -eu
 #   CUDA_ROOT   CUDA installation prefix when FFT_BACKEND=cufft.
 #   CUDA_RUNTIME_INCLUDE  directory containing cuda_runtime.h.
 #   CUFFT_INCLUDE         directory containing cufft.h.
+#   CUDA_RUNTIME_LIB      directory containing libcudart.so.
+#   CUFFT_LIB             directory containing libcufft.so.
 
 FC=${FC:-mpiifort}
 CC=${CC:-mpicc}
@@ -53,6 +55,26 @@ LDFLAGS=${LDFLAGS:-}
 FFTW_LIBS=${FFTW_LIBS:-"-lfftw3_omp -lfftw3"}
 CUFFT_LIBS=${CUFFT_LIBS:-"-lcufft -lcudart"}
 
+add_link_dir() {
+  dir=$1
+  if [ -d "$dir" ]; then
+    case " $CUFFT_LINK_DIRS " in
+      *" -L$dir "*) ;;
+      *) CUFFT_LINK_DIRS="$CUFFT_LINK_DIRS -L$dir" ;;
+    esac
+  fi
+}
+
+add_lib_dirs_from_include() {
+  inc=$1
+  [ -n "$inc" ] || return 0
+  [ -d "$inc" ] || return 0
+
+  parent=$(CDPATH= cd -- "$inc/.." && pwd)
+  add_link_dir "$parent/lib64"
+  add_link_dir "$parent/lib"
+}
+
 case "$FFT_BACKEND" in
   fftw)
     if [ -z "$FFTW_ROOT" ]; then
@@ -75,25 +97,36 @@ case "$FFT_BACKEND" in
     ;;
   cufft)
     FFT_INCLUDE=
+    CUFFT_LINK_DIRS=
     if [ -n "${CUDA_ROOT:-}" ]; then
       if [ -f "$CUDA_ROOT/include/cuda_runtime.h" ] ||
          [ -f "$CUDA_ROOT/include/cufft.h" ]; then
         FFT_INCLUDE="$FFT_INCLUDE -I$CUDA_ROOT/include"
+        add_lib_dirs_from_include "$CUDA_ROOT/include"
       fi
       if [ -d "$CUDA_ROOT/lib64" ]; then
-        CUFFT_LIBS="$CUFFT_LIBS -L$CUDA_ROOT/lib64"
+        add_link_dir "$CUDA_ROOT/lib64"
       fi
+      add_link_dir "$CUDA_ROOT/lib"
     fi
     if [ -n "${CUDA_RUNTIME_INCLUDE:-}" ]; then
       FFT_INCLUDE="$FFT_INCLUDE -I$CUDA_RUNTIME_INCLUDE"
+      add_lib_dirs_from_include "$CUDA_RUNTIME_INCLUDE"
     fi
     if [ -n "${CUFFT_INCLUDE:-}" ] &&
        [ "${CUFFT_INCLUDE:-}" != "${CUDA_RUNTIME_INCLUDE:-}" ]; then
       FFT_INCLUDE="$FFT_INCLUDE -I$CUFFT_INCLUDE"
+      add_lib_dirs_from_include "$CUFFT_INCLUDE"
+    fi
+    if [ -n "${CUDA_RUNTIME_LIB:-}" ]; then
+      add_link_dir "$CUDA_RUNTIME_LIB"
+    fi
+    if [ -n "${CUFFT_LIB:-}" ]; then
+      add_link_dir "$CUFFT_LIB"
     fi
     FFT_SRC=fft_cufft.f
     FFT_OBJS=fpseid_cufft_wrap.o
-    FFT_LINK="$CUFFT_LIBS"
+    FFT_LINK="$CUFFT_LINK_DIRS $CUFFT_LIBS"
     ;;
   *)
     echo "ERROR: unknown FFT_BACKEND: $FFT_BACKEND" >&2
