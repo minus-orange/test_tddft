@@ -1902,11 +1902,12 @@ c *** temp check:end
 c ** third: operate local potential term
       call prof_start(12)
       nbndloc=nend-nbegin+1
-!$acc data copy(P(1:NXYZ,1:nbndloc))
-!$acc data copyin(VGG(1:NXYZ),Vloc(1:NXYZ),J2G(1:NXYZ))
-!$acc data create(RHO1_(1:NXYZ,1:nbndloc))
-!$acc data create(RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ))
+!$acc data copyin(P(1:NXYZ,1:nbndloc),VGG(1:NXYZ),
+!$acc& Vloc(1:NXYZ),J2G(1:NXYZ))
+!$acc& create(RHO1_(1:NXYZ,1:nbndloc),
+!$acc& RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ))
 ! ==============================================================================
+      call prof_start(18)
 !$acc parallel loop present(RHO2_(1:NXYZ,1:nbndloc)) private(iib,JG)
       do ib=nbegin,nend
        iib=ib-nbegin+1
@@ -1931,7 +1932,10 @@ c         DO 100 IG=1,NG2
   100    RHO1_(JG,iib)=P(IG,iib)
 ! ==============================================================================
       enddo
+      call prof_stop(18)
+      call prof_start(17)
 !$acc update self(RHO1_(1:NXYZ,1:nbndloc))
+      call prof_stop(17)
 ! ==============================================================================
 c **** temp check
 c       sum=0
@@ -1961,7 +1965,9 @@ c    for KOKUBO fftw ASL compativle
 c
 ! ==============================================================================
       enddo
+      call prof_start(17)
 !$acc update device(RHO1_(1:NXYZ,1:nbndloc))
+      call prof_stop(17)
 ! ==============================================================================
 c *** for Kokubo FFTW
 c      call FFT3BX_fftw(NXYZ,RHO1,plancfp,plancbp)
@@ -1978,6 +1984,7 @@ C        RHO1:WAVEFN IN REAL SPACE
 C        VG:POTENTIAL IN REAL SPACE
 C       VGG: HXC POTENTIAL IN R-  SPACE
 C       RHO4:LOCAL PSEUDOPOTENTIAL in R- SPACE
+      call prof_start(18)
 !$acc parallel loop present(VG(1:NXYZ),VGG(1:NXYZ),Vloc(1:NXYZ))
       do ig=1,nxyz
 c      jg=i2g(ig)
@@ -2011,7 +2018,10 @@ c **** temp check : end
   300    RHO2_(I,iib)=dcmplx( dcos(fac),-dsin(fac) )*RHO1_(I,iib)
 ! ==============================================================================
       enddo
+      call prof_stop(18)
+      call prof_start(17)
 !$acc update self(RHO2_(1:NXYZ,1:nbndloc))
+      call prof_stop(17)
 ! ==============================================================================
 c **** temp check
 c       sum=0
@@ -2037,13 +2047,16 @@ c     &                WSAVE_XYZ,IFAC_XYZ)
      &                plancfp,plancbp)
 ! ==============================================================================
       enddo
+      call prof_start(17)
 !$acc update device(RHO2_(1:NXYZ,1:nbndloc))
+      call prof_stop(17)
 ! ==============================================================================
 c *** for Kokubo FFTW
 c      call FFT3FX_fftw(NXYZ,RHO2,plancfp,plancbp)
 C
 c         DO 110 IG=1,NG2
 ! ==============================================================================
+      call prof_start(18)
 !$acc parallel loop present(P(1:NXYZ,1:nbndloc),
 !$acc& RHO2_(1:NXYZ,1:nbndloc),J2G(1:NXYZ)) private(iib,IG,JG)
       do ib=nbegin,nend
@@ -2056,11 +2069,11 @@ c         DO 110 IG=1,NG2
   110    P(IG,iib)=RHO2_(JG,iib)
 ! ==============================================================================
       enddo
+      call prof_stop(18)
+      call prof_start(17)
 !$acc update self(P(1:NXYZ,1:nbndloc))
+      call prof_stop(17)
 ! ==============================================================================
-!$acc end data
-!$acc end data
-!$acc end data
 !$acc end data
       call prof_stop(12)
 c ****

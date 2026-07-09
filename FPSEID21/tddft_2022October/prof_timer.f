@@ -90,5 +90,7 @@
       if (id.eq.14) name='fft_wrapper'
       if (id.eq.15) name='startup_before_steps'
       if (id.eq.16) name='fft_plan_init'
+      if (id.eq.17) name='s2_acc_update'
+      if (id.eq.18) name='s2_acc_kernel'
       return
       end
