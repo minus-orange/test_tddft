@@ -1935,35 +1935,6 @@ c ****  temp check
 C
 C
 c ****  temp check : end
-C From G-space to R-space
-c *** for Sugino FFT
-c         CALL FFT3BX(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,
-c     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
-c *** for Kokubo ASL FFT
-! ==============================================================================
-      do ib=nbegin,nend
-       iib=ib-nbegin+1
-! ==============================================================================   for KOKUBO ASL
-c      CALL FFT3BX_ASL(NRX,NRY,NRZ,NXYZ,RHO1_(1,iib),RHO2_(1,iib),
-c     &                WSAVE_XYZ,IFAC_XYZ)
-c    for KOKUBO fftw ASL compativle
-      CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO1_(1,iib),RHO2_(1,iib),
-     &                plancfp,plancbp)
-c
-! ==============================================================================
-      enddo
-! ==============================================================================
-c *** for Kokubo FFTW
-c      call FFT3BX_fftw(NXYZ,RHO1,plancfp,plancbp)
-c **** temp check
-c       sum=0
-c       do ig=1,nxyz
-c       sum=sum+dreal( dconjg( RHO1(ig) )*RHO1(ig) )
-c       enddo
-c       write(6,*)' in sub. S2: after FFT : norm = ',
-c     & sum/dfloat(NXYZ)
-c **** temp check : end
-C
 C        RHO1:WAVEFN IN REAL SPACE
 C        VG:POTENTIAL IN REAL SPACE
 C       VGG: HXC POTENTIAL IN R-  SPACE
@@ -1989,43 +1960,10 @@ c       enddo
 c       write(6,*)' in sub. S2: before exp(Vlocal) : norm = ',
 c     & sum/dfloat(NXYZ)
 c **** temp check : end
-! ==============================================================================
-      do ib=nbegin,nend
-       iib=ib-nbegin+1
-! ==============================================================================
-         DO 300 I=1,NXYZ
-         fac=dt*dreal( vg(i) )
-  300    RHO2_(I,iib)=dcmplx( dcos(fac),-dsin(fac) )*RHO1_(I,iib)
-! ==============================================================================
-      enddo
-! ==============================================================================
-c **** temp check
-c       sum=0
-c       do ig=1,nxyz
-c       sum=sum+dreal( dconjg( RHO2(ig) )*RHO2(ig) )
-c       enddo
-c       write(6,*)' in sub. S2: after exp(Vlocal) : norm = ',
-c     & sum/dfloat(NXYZ)
-c **** temp check : end
-C From R-space to G-space
-c *** for Sugino FFT
-c         CALL FFT3FX(NRX,NRY,NRZ,NXYZ,RHO2,RHO1,
-c     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
-c *** for Kokubo ASL FFT
-! ==============================================================================
-      do ib=nbegin,nend
-       iib=ib-nbegin+1
-! ==============================================================================  for KOKUBO ASL
-c      CALL FFT3FX_ASL(NRX,NRY,NRZ,NXYZ,RHO2_(1,iib),RHO1_(1,iib),
-c     &                WSAVE_XYZ,IFAC_XYZ)
-!==  for KOKUBO fftw ASL compativle
-      CALL FFT3FX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO2_(1,iib),RHO1_(1,iib),
-     &                plancfp,plancbp)
-! ==============================================================================
-      enddo
-! ==============================================================================
-c *** for Kokubo FFTW
-c      call FFT3FX_fftw(NXYZ,RHO2,plancfp,plancbp)
+C Local potential FFT pair: G -> R, Vlocal, then R -> G.
+      NBLOCK=nend-nbegin+1
+      CALL FFT3_LOCALPOT_fftwASL(NRX,NRY,NRZ,NXYZ,NBLOCK,
+     &     RHO1_,RHO2_,VG,DT,plancfp,plancbp)
 C
 c         DO 110 IG=1,NG2
 ! ==============================================================================

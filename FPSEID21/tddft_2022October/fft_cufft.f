@@ -56,6 +56,35 @@ C
       END
 
 C***********************************************************
+      SUBROUTINE FFT3_LOCALPOT_fftwASL(NRX,NRY,NRZ,NG,NBLOCK,
+     & RHO1,RHO2,VG,DT,plancfp,plancbp)
+C***********************************************************
+C     cuFFT resident local-potential FFT pair used by TDDFT S2_.
+C     RHO1/RHO2 are host arrays at the Fortran boundary, but the
+C     backward FFT, local-potential multiply, forward FFT, and scaling
+C     are performed on the GPU as one batch.
+C
+      use mod_timer, only: start_timer, stop_timer
+      IMPLICIT REAL*8 (A-H,O-Z)
+      complex*16 RHO1(NG,NBLOCK),RHO2(NG,NBLOCK)
+      dimension VG(NG)
+      integer*8 plancfp,plancbp
+      integer ierr
+C
+      call prof_start(14)
+      call start_timer('cufft_localpot')
+      call fpseid_cufft_localpot(plancfp,plancbp,RHO1,RHO2,VG,NG,
+     &                           NBLOCK,DT,ierr)
+      call stop_timer('cufft_localpot')
+      call prof_stop(14)
+      if (ierr.ne.0) then
+        write(6,*) 'ERROR: fpseid_cufft_localpot failed, ierr=',ierr
+        stop
+      endif
+C
+      END
+
+C***********************************************************
       SUBROUTINE FFT3FX_fftwASL(NRX,NRY,NRZ,NG,RHOG,WORK
      & ,plancfp,plancbp)
       use mod_timer, only: start_timer, stop_timer

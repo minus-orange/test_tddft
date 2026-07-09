@@ -9,8 +9,10 @@ set -eu
 #
 # Optional:
 #   CC         C compiler wrapper for the FFTW thread API shim. Default: mpicc
+#   CUDA_CC    CUDA-capable C compiler for the cuFFT wrapper. Default: $CC
 #   FFLAGS     Fortran flags. Default depends on FC.
 #   CFLAGS     Additional C flags.
+#   CUDA_CFLAGS Additional CUDA C flags for FFT_BACKEND=cufft.
 #   LDFLAGS    Additional linker flags.
 #   FFTW_LIBS  FFTW libraries. Default: -lfftw3_omp -lfftw3
 #   FFT_BACKEND FFT implementation. Default: fftw. Set to cufft for GPU FFT.
@@ -23,6 +25,7 @@ set -eu
 
 FC=${FC:-mpiifort}
 CC=${CC:-mpicc}
+CUDA_CC=${CUDA_CC:-$CC}
 FFTW_ROOT=${FFTW_ROOT:-}
 FFT_BACKEND=${FFT_BACKEND:-fftw}
 
@@ -51,6 +54,7 @@ else
     PSPW_SRC=${PSPW_SRC:-pspw_tm11_Vext_Avec_v4_alloc.f}
 fi
 CFLAGS=${CFLAGS:-"-O2"}
+CUDA_CFLAGS=${CUDA_CFLAGS:-"-O2 -cuda"}
 LDFLAGS=${LDFLAGS:-}
 FFTW_LIBS=${FFTW_LIBS:-"-lfftw3_omp -lfftw3"}
 CUFFT_LIBS=${CUFFT_LIBS:-"-lcufft -lcudart"}
@@ -149,7 +153,7 @@ case "$FFT_BACKEND" in
       -o fftw_threads_fwrap.o
     ;;
   cufft)
-    "$CC" $CFLAGS $FFT_INCLUDE -c fpseid_cufft_wrap.c \
+    "$CUDA_CC" $CUDA_CFLAGS $FFT_INCLUDE -c fpseid_cufft_wrap.c \
       -o fpseid_cufft_wrap.o
     ;;
 esac

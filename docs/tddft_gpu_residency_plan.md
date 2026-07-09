@@ -128,6 +128,31 @@ GPU化を検討します。
 
 Use the existing TDDFT archive and comparison flow:
 
+Experimental cuFFT resident build example:
+
+```sh
+cd FPSEID21/tddft_2022October
+FC=mpifort \
+CC=mpicc \
+CUDA_CC=nvc \
+FFLAGS="-O2 -mp -Msave -Mlarge_arrays -Kieee" \
+CUDA_CFLAGS="-O2 -cuda" \
+FFT_BACKEND=cufft \
+CUDA_RUNTIME_INCLUDE=/path/to/cuda/include \
+CUFFT_INCLUDE=/path/to/math_libs/include \
+CUDA_RUNTIME_LIB=/path/to/cuda/lib64 \
+CUFFT_LIB=/path/to/math_libs/lib64 \
+./mk_ifort.sh
+```
+
+`CUDA_CC` is separate from `CC` because the cuFFT wrapper now contains CUDA
+kernels for the resident local-potential path. `CC` can remain the MPI C
+wrapper used by the FFTW shim.
+
+`CUDA_CC` は `CC` と分けています。cuFFT wrapperがGPU常駐ローカルポテンシャル
+経路用のCUDAカーネルを含むためです。`CC` は従来どおりFFTW shim用のMPI C
+wrapperとして残せます。
+
 ```sh
 LABEL=<label> ./tools/archive_tddft_result.sh ./run/Si111-H_nvhpc/
 

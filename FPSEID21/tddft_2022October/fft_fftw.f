@@ -77,6 +77,38 @@ C
       END
 
 C***********************************************************
+      SUBROUTINE FFT3_LOCALPOT_fftwASL(NRX,NRY,NRZ,NG,NBLOCK,
+     & RHO1,RHO2,VG,DT,plancfp,plancbp)
+C***********************************************************
+C     Local-potential FFT pair used by TDDFT S2_.
+C     CPU/FFTW implementation preserves the previous per-band operation.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      complex*16 RHO1(NG,NBLOCK),RHO2(NG,NBLOCK)
+      dimension VG(NG)
+      integer*8 plancfp,plancbp
+C
+      DO IB=1,NBLOCK
+        CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NG,RHO1(1,IB),RHO2(1,IB),
+     &                      plancfp,plancbp)
+      ENDDO
+C
+      DO IB=1,NBLOCK
+!$omp parallel do default(shared) private(I,FAC)
+        DO I=1,NG
+          FAC=DT*DREAL(VG(I))
+          RHO2(I,IB)=DCMPLX(DCOS(FAC),-DSIN(FAC))*RHO1(I,IB)
+        ENDDO
+      ENDDO
+C
+      DO IB=1,NBLOCK
+        CALL FFT3FX_fftwASL(NRX,NRY,NRZ,NG,RHO2(1,IB),RHO1(1,IB),
+     &                      plancfp,plancbp)
+      ENDDO
+C
+      END
+
+C***********************************************************
       SUBROUTINE FFT3FX_fftwASL(NRX,NRY,NRZ,NG,RHOG,WORK
      & ,plancfp,plancbp)
 C***********************************************************
