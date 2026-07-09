@@ -161,6 +161,9 @@ FC=mpifort CC=mpicc FFT_BACKEND=cufft \
 cuFFT builds print an additional `FPSEID_CUFFT_PROFILE` block at shutdown. It
 splits the FFT wrapper time into host-to-device copy, cuFFT execution,
 device-to-host copy, and CUDA-event measured total time.
+They also build `mod_timer.f90` and print a `[Timer Output]` table for the
+Fortran-side cuFFT wrapper regions, currently `cufft_fft3bx` and
+`cufft_fft3fx`.
 
 If the MPI C wrapper cannot find CUDA headers, use the NVIDIA C compiler or
 add the CUDA include/library paths supplied by the site module, for example:

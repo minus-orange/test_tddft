@@ -346,6 +346,17 @@ whether the next optimization should target transfers or FFT execution itself.
 device-to-host 転送、CUDA eventで測った合計時間に分解できます。次の最適化で
 転送削減を優先すべきか、FFT実行そのものを優先すべきかを判断する材料にします。
 
+The TDDFT cuFFT build also includes `mod_timer.f90`, based on a simple
+`system_clock` timer module. It prints a `[Timer Output]` table for the
+Fortran-side cuFFT wrapper regions:
+
+TDDFT cuFFTビルドには、`system_clock` ベースの簡易タイマーmoduleである
+`mod_timer.f90` も含めています。このタイマーはFortran側のcuFFT wrapper領域を
+`[Timer Output]` 表として出力します。
+
+- `cufft_fft3bx`
+- `cufft_fft3fx`
+
 Compare both correctness and profile regions:
 
 正当性比較と同時に、以下のプロファイル領域を比較します。

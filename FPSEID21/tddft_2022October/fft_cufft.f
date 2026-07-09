@@ -17,9 +17,11 @@ C
       END
 c
       SUBROUTINE ENDFFT_fftwASL(NRX,NRY,NRZ)
+      use mod_timer, only: print_timer
       IMPLICIT REAL*8 (A-H,O-Z)
       integer ierr
 C
+      call print_timer()
       call fpseid_cufft_destroy(ierr)
       if (ierr.ne.0) then
         write(6,*) 'ERROR: fpseid_cufft_destroy failed, ierr=',ierr
@@ -30,6 +32,7 @@ C
 c
       SUBROUTINE FFT3BX_fftwASL(NRX,NRY,NRZ,NG,RHOG,WORK
      &  ,plancfp,plancbp)
+      use mod_timer, only: start_timer, stop_timer
 C***********************************************************
 C     R-space -> G-space, matching the previous FFTW backward call.
 C
@@ -40,7 +43,9 @@ C
       integer ierr
 C
       call prof_start(14)
+      call start_timer('cufft_fft3bx')
       call fpseid_cufft_exec(plancbp,RHOG,NG,1,ierr)
+      call stop_timer('cufft_fft3bx')
       call prof_stop(14)
       if (ierr.ne.0) then
         write(6,*) 'ERROR: fpseid_cufft_exec backward failed, ierr=',
@@ -53,6 +58,7 @@ C
 C***********************************************************
       SUBROUTINE FFT3FX_fftwASL(NRX,NRY,NRZ,NG,RHOG,WORK
      & ,plancfp,plancbp)
+      use mod_timer, only: start_timer, stop_timer
 C***********************************************************
 C     G-space -> R-space, matching the previous FFTW forward call.
 C
@@ -63,7 +69,9 @@ C
       integer ierr
 C
       call prof_start(14)
+      call start_timer('cufft_fft3fx')
       call fpseid_cufft_exec(plancfp,RHOG,NG,-1,ierr)
+      call stop_timer('cufft_fft3fx')
       call prof_stop(14)
       if (ierr.ne.0) then
         write(6,*) 'ERROR: fpseid_cufft_exec forward failed, ierr=',
