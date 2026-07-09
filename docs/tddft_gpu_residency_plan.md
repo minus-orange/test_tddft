@@ -90,6 +90,8 @@ The practical meaning is:
 - Keep the existing CPU/FFTW path and GNU/Intel-oriented source variants usable.
 - Treat cuFFT calls as library calls that can operate on OpenACC-managed device
   buffers.
+- Keep the existing host-copy cuFFT wrapper for compatibility, and add a
+  separate device-pointer cuFFT wrapper for OpenACC-managed arrays.
 
 実務上は以下の方針です。
 
@@ -99,6 +101,52 @@ The practical meaning is:
 - 既存のCPU/FFTW経路、およびGNU/Intel向けsource variantは維持します。
 - cuFFTはOpenACC管理下のdevice bufferに対して動作するライブラリ呼び出しとして
   扱います。
+- 既存のhost-copy型cuFFT wrapperは互換性維持用として残し、OpenACC管理配列用に
+  device pointerを受け取る別APIを追加します。
+
+## cuFFT Wrapper API Boundary / cuFFT Wrapper API境界
+
+The current cuFFT wrapper copies host arrays to a private CUDA buffer, executes
+cuFFT, and copies the result back. That path should remain as the compatibility
+backend because it has already passed validation.
+
+現行のcuFFT wrapperは、host配列をprivate CUDA bufferへコピーし、cuFFTを実行して
+結果をhostへ戻します。この経路は検証済みのため、互換backendとして残します。
+
+For OpenACC residency, add a second wrapper interface that receives a device
+pointer and does not perform host-device copies:
+
+OpenACC常駐化用には、device pointerを受け取り、host-device copyを行わない
+第2のwrapper interfaceを追加します。
+
+```text
+existing compatibility API:
+  host array -> wrapper H2D -> cuFFT -> wrapper D2H -> host array
+
+new OpenACC API:
+  OpenACC device array -> host_data use_device -> cuFFT only
+```
+
+The new device-pointer path should:
+
+- assume the input pointer is already a valid device pointer;
+- execute cuFFT in place;
+- optionally apply cuFFT normalization through OpenACC on the Fortran side;
+- report errors without silently falling back to host copies.
+
+新しいdevice-pointer経路では以下を前提にします。
+
+- 入力pointerはすでに有効なdevice pointerである。
+- cuFFTはin-placeで実行する。
+- cuFFT正規化は必要に応じてFortran側OpenACC loopで行う。
+- エラー時に暗黙のhost copy fallbackを行わない。
+
+This separation is important: if the OpenACC path accidentally calls the
+host-copy wrapper, transfer time will remain dominant and the experiment will
+not test GPU residency.
+
+この分離は重要です。OpenACC経路が誤ってhost-copy wrapperを呼ぶと、転送時間が
+支配的なままで、GPU常駐化の検証になりません。
 
 ## Recommended Implementation Order / 実装順序
 
@@ -116,6 +164,31 @@ Expected benefit:
 - Makes data movement explicit and measurable in Fortran.
 - Gives a stable base for cuFFT/OpenACC interoperability.
 - Avoids introducing custom CUDA kernels before the data lifetime is clear.
+
+The first data-region boundary should be deliberately narrow:
+
+```text
+CPU-side nonlocal section completes
+copyin P, VGG, Vloc, J2G as needed for the local FFT section
+create/copy RHO1_, RHO2_, VG on device
+run local FFT section on device
+copyout P before returning to CPU-side/nonlocal code
+```
+
+最初のdata region境界は意図的に狭くします。
+
+```text
+CPU側の非局所項処理が完了
+local FFT部に必要な P, VGG, Vloc, J2G をdeviceへ転送
+RHO1_, RHO2_, VG をdevice上で作成または保持
+local FFT部をdevice上で実行
+CPU側処理へ戻る前に P をhostへ戻す
+```
+
+This keeps the CPU/GPU ownership clear while the nonlocal sections remain on the
+CPU.
+
+非局所項をCPU側に残す段階では、この境界によりCPU/GPUの所有関係を明確にします。
 
 ### Step 2: Use cuFFT through OpenACC device pointers
 
@@ -149,6 +222,20 @@ copy out only the data required by the following CPU-side section
 
 This changes the transfer granularity from one transfer pair per FFT call to
 one transfer pair per local FFT block.
+
+Build `VG` on the GPU from `VGG` and `Vloc` unless a validation issue requires a
+temporary CPU-generated `VG`:
+
+```fortran
+VG(I)=VGG(I)+Vloc(I)
+```
+
+`VG` は、検証上の理由で一時的にCPU生成が必要な場合を除き、GPU上で `VGG` と
+`Vloc` から作ります。
+
+```fortran
+VG(I)=VGG(I)+Vloc(I)
+```
 
 ### Step 4: Leave nonlocal sections on CPU initially
 
@@ -195,6 +282,51 @@ specific strict test is being run.
 
 正当性確認は、特にstrict確認を指定しない限り、既存のTDDFT relaxed比較基準を
 使います。
+
+For the first OpenACC residency changes, also run a short strict-oriented check
+before relying on the 100-step relaxed comparison:
+
+OpenACC常駐化の初期変更では、100 step relaxed比較に進む前に短時間のstrict寄り
+確認も行います。
+
+```text
+1. 2-step or smallest practical TDDFT run.
+2. check_tddft_result.py check must pass.
+3. compare against the current validated output with tighter tolerances where
+   practical.
+4. then run the 100-step relaxed comparison.
+```
+
+The goal is to catch synchronization mistakes, stale device data, or accidental
+use of the host-copy cuFFT wrapper early.
+
+目的は、同期ミス、古いdevice dataの使用、host-copy cuFFT wrapperの誤使用を
+早い段階で検出することです。
+
+## NVHPC OpenACC Build Notes / NVHPC OpenACCビルドメモ
+
+The OpenACC path should be built explicitly with NVHPC OpenACC flags. The exact
+GPU architecture flag can be environment-specific, but the build must make the
+OpenACC mode visible in the command line.
+
+OpenACC経路は、NVHPCのOpenACC flagを明示してビルドします。GPU architecture flag
+は環境依存でよいですが、OpenACC modeであることがビルドコマンド上で分かる
+ようにします。
+
+Typical direction:
+
+```sh
+FFLAGS="-O2 -acc -gpu=cc80 -mp -Msave -Mlarge_arrays -Kieee"
+FFT_BACKEND=cufft
+```
+
+For cuFFT linkage, keep using the existing cuFFT library settings. If the
+OpenACC device-pointer wrapper needs CUDA runtime types or cuFFT declarations,
+include/library paths should remain explicit as in the validated cuFFT build.
+
+cuFFT linkは既存のcuFFT library設定を継続します。OpenACC device-pointer wrapper
+がCUDA runtime型やcuFFT宣言を必要とする場合、include/library pathは検証済み
+cuFFTビルドと同様に明示します。
 
 ## Current Decision / 現時点の判断
 

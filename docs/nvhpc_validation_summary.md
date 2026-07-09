@@ -391,3 +391,24 @@ device pointers to cuFFT where FFT operations are needed.
 初期cuFFT実装の主な対象は`fft_wrapper`と`s2_fft_local`です。さらに大きな
 高速化には、OpenACCで`tmevl_s2`の作業配列をGPU上に保持し、FFTが必要な箇所で
 そのdevice pointerをcuFFTに渡す実装が必要になる見込みです。
+
+Important design constraint:
+
+重要な設計上の制約:
+
+- Keep the current host-copy cuFFT wrapper as a validated compatibility path.
+- Add a separate device-pointer cuFFT wrapper for OpenACC-managed arrays.
+- The first OpenACC data region should be narrow: enter after the CPU-side
+  nonlocal section, keep `RHO1_`/`RHO2_`/`VG` device-side through the local FFT
+  pair, and copy `P` back before returning to CPU-side code.
+- Build `VG=VGG+Vloc` on the GPU when validating the OpenACC local FFT path.
+- Start with a short strict-oriented run, then use the existing 100-step relaxed
+  comparison.
+
+- 現行のhost-copy型cuFFT wrapperは、検証済み互換経路として残します。
+- OpenACC管理配列用には、device pointerを受け取るcuFFT wrapperを別に追加します。
+- 最初のOpenACC data regionは狭くし、CPU側非局所項の後で入り、local FFTペアの間
+  `RHO1_`/`RHO2_`/`VG` をdevice側に保持し、CPU側処理へ戻る前に `P` をhostへ
+  戻します。
+- OpenACC local FFT経路の検証では、`VG=VGG+Vloc` はGPU上で作ります。
+- まず短時間のstrict寄り確認を行い、その後に既存の100 step relaxed比較を使います。
