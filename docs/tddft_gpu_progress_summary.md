@@ -910,3 +910,63 @@ Expected result for the cache experiment:
 
 - 観測された `NP/phase` に対して `FPSEID_EXNLP_CACHE_REF` が出る。
 - `FPSEID_EXNLP_CACHE_DIFF` は出ない。
+
+## Step 15: Component Probe for exnlp Cache / exnlpキャッシュ成分別プローブ
+
+The Step 14 run showed `FPSEID_EXNLP_CACHE_DIFF` for all observed `NP/phase`
+pairs. This means the combined `work2_ + cfac_ + ngnl_` signature changes during
+the TDDFT time evolution, so a simple cache keyed only by `NP/phase` is not safe.
+
+Step 14 実行では、観測された全 `NP/phase` で `FPSEID_EXNLP_CACHE_DIFF` が出ました。
+したがって `work2_ + cfac_ + ngnl_` の合成 signature は TDDFT 時間発展中に変化して
+おり、`NP/phase` だけを key にした単純キャッシュは安全ではありません。
+
+Step 15 refines the probe by splitting the signature into three components:
+
+Step 15 では、signature を次の3成分に分けて再確認します。
+
+- `ng`: integer `ngnl_` projector lengths
+- `cf`: complex `cfac_` coefficients
+- `wk`: sampled `work2_` projector values
+
+The reference line now prints all three component signatures:
+
+初回 reference 行は3成分をまとめて出力します。
+
+```text
+FPSEID_EXNLP_CACHE_REF np phase ng cf wk= ...
+```
+
+If a component changes later, the diff line identifies the component:
+
+後続で変化した場合、diff 行に変化成分が出ます。
+
+```text
+FPSEID_EXNLP_CACHE_DIFF np phase comp= ... ngnl ...
+FPSEID_EXNLP_CACHE_DIFF np phase comp= ... cfac ...
+FPSEID_EXNLP_CACHE_DIFF np phase comp= ... work ...
+```
+
+Interpretation:
+
+解釈:
+
+- If only `work` changes, keep `ngnl_` and `cfac_` resident/cached and move
+  projector value generation closer to GPU.
+- If `cfac` also changes, keep only `ngnl_` resident and generate/copy
+  coefficient data per step.
+- If `ngnl` changes, do not cache the projector metadata for this path.
+
+- `work` だけが変化する場合、`ngnl_` と `cfac_` は常駐/キャッシュ候補にし、
+  projector 値生成を GPU 側へ寄せます。
+- `cfac` も変化する場合、`ngnl_` だけを常駐候補にし、係数データは step ごとに
+  生成または転送します。
+- `ngnl` も変化する場合、この経路では projector metadata のキャッシュは避けます。
+
+Recommended archive label:
+
+推奨 archive label:
+
+```text
+nvhpc_cufft_1rank_02_STEP14_01
+```
