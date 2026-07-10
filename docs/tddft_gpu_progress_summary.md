@@ -1278,3 +1278,178 @@ cost rather than the removed `ct1`/update split.
 残る主なコストは `tmevl_total`, `s2_nonlocal`, `s2_fft_local` です。
 `s2_nonlocal` 内では、削除済みの `ct1`/update 分離ではなく、残っている
 nonlocal GEMM と入力生成コストが次の対象です。
+
+## Step 19: Move exnlp Input Lifetime Toward the Caller / exnlp入力寿命の呼び出し側寄せ
+
+Step 19 continued the attempt to reduce data motion in the nonlocal path by
+moving more of the `exnlp_gemm` input ownership toward the `S2_` call site.
+
+Step 19 では、非局所項経路の data motion を減らすため、`exnlp_gemm` 入力の
+所有をさらに `S2_` 呼び出し側へ寄せました。
+
+Observed Step 19 result:
+
+Step 19 実測結果:
+
+```text
+archive label: nvhpc_cufft_1rank_02_STEP19_01
+check: PASS
+compare: PASS
+wall_sec: 178.063332081
+time_step_total: about 178.36 sec
+tmevl_total: about 108.53 sec
+tmevl_s2: about 66.17 sec
+s2_nonlocal: about 45.51 sec
+s2_fft_local: about 20.64 sec
+fft_wrapper: about 27.01 sec
+s2_nonlocal_make: about 30.44 sec
+s2_nonlocal_gemm: about 15.04 sec
+exnlp_gemm_data: about 14.86 sec
+exnlp_gemm_dot: about 14.52 sec
+exnlp_work1_enter: about 0.03 sec
+exnlp_meta_enter: about 0.13 sec
+```
+
+The result stayed numerically valid, but performance regressed relative to
+Step 18. The explicit input transfer cost moved out of `exnlp_gemm_data`, but
+the cost reappeared in `s2_nonlocal_make`. In other words, the GEMM consumer was
+cleaner, but the producer side became the bottleneck.
+
+数値結果は維持できましたが、性能は Step 18 より悪化しました。
+明示的な入力転送コストは `exnlp_gemm_data` からは減りましたが、その分が
+`s2_nonlocal_make` 側に現れています。つまり、GEMM consumer 側は整理できた
+一方で、producer 側が律速になりました。
+
+## Step 20: exnlp Make Lookup Copy Experiment / exnlp make lookup 転送実験
+
+Step 20 tested a correctness-first variant for the `exnlp_only_make_acc` input
+lookup arrays. It avoided the OpenACC present-table mismatch that occurred when
+trying to keep larger parent arrays resident, but it introduced heavy repeated
+copy cost.
+
+Step 20 では、`exnlp_only_make_acc` の lookup 入力配列について、まず正しく
+動くことを優先した実験を行いました。大きな親配列を resident に保とうとした時の
+OpenACC present-table mismatch は回避できましたが、細かい copy が大量に発生し、
+大きな性能劣化を招きました。
+
+Observed Step 20 result:
+
+Step 20 実測結果:
+
+```text
+archive label: nvhpc_cufft_1rank_02_STEP20_01
+check: PASS
+compare: PASS
+wall_sec: 819.404727936
+time_step_total: about 819.69 sec
+tmevl_total: about 749.54 sec
+tmevl_s2: about 707.44 sec
+s2_nonlocal: about 691.47 sec
+s2_fft_local: about 15.95 sec
+fft_wrapper: about 22.61 sec
+s2_nonlocal_make: about 679.87 sec
+s2_nonlocal_gemm: about 11.57 sec
+exnlp_gemm_dot: about 11.39 sec
+exnlp_work1_enter: about 1.00 sec
+exnlp_meta_enter: about 0.03 sec
+```
+
+This confirms that the current `exnlp_only_make_acc` lookup-transfer approach
+is correct but not a viable performance direction. The dominant regression is
+`s2_nonlocal_make`, not cuFFT or the fused GEMM body.
+
+この結果から、現在の `exnlp_only_make_acc` lookup 転送方式は正しく動くものの、
+性能面では採用すべき方向ではないことが分かります。支配的な悪化箇所は cuFFT や
+fused GEMM body ではなく、`s2_nonlocal_make` です。
+
+## Current Status / 現状
+
+The working goal remains:
+
+現在のゴールは次です。
+
+```text
+Keep the full TDDFT time-step loop on the GPU and minimize host/device memory
+transfers inside the step loop.
+```
+
+```text
+TDDFT のタイムステップ内処理を GPU 上に載せ、step loop 内の host/device 間
+メモリ転送を最小化する。
+```
+
+Validated positive results so far:
+
+これまでに確認できた有効な結果:
+
+- cuFFT replacement is numerically valid with the relaxed TDDFT comparator.
+- The one-rank, one-GPU route is the current baseline policy.
+- `S2_` local/FFT-side residency and cuFFT device-resident execution are valid.
+- The fused present-input nonlocal GEMM path is valid and improved performance
+  through Step 18.
+- Step 18 is the latest clearly useful performance point in this sequence:
+  about 163 sec for the 100-step Si111-H TDDFT sample.
+
+- cuFFT 置き換えは relaxed TDDFT comparator で数値的に妥当です。
+- 現在の基準方針は 1 rank / 1 GPU です。
+- `S2_` の local/FFT 側 residency と cuFFT device-resident 実行は妥当です。
+- fused present-input nonlocal GEMM 経路は妥当で、Step 18 までは性能改善しました。
+- この一連の中で、明確に有効な性能点は Step 18 の約163秒です。
+
+Current code state:
+
+現在のコード状態:
+
+- The latest code is past Step 20 experiments and includes a correctness-first
+  lookup-input copy approach for `exnlp_only_make_acc`.
+- It should be treated as an experimental state, not as the performance
+  baseline.
+- If the current head is used for timing, compare it with Step 18 and confirm
+  whether `s2_nonlocal_make` dominates before accepting it.
+
+- 最新コードは Step 20 系の実験を含み、`exnlp_only_make_acc` に対して
+  correctness-first の lookup 入力 copy 方式を含みます。
+- これは性能 baseline ではなく、実験状態として扱うべきです。
+- 現 HEAD で性能測定する場合は Step 18 と比較し、`s2_nonlocal_make` が
+  支配していないかを確認してから採否判断します。
+
+## Remaining Work / 残課題
+
+1. Fix `exnlp_only_make_acc` input residency.
+
+   `ylm`, `vpj`, and `extau` need a stable OpenACC ownership strategy. The
+   present-table failures show that parent-array lifetime and dummy-argument
+   sections are not yet aligned. Repeated fine-grained copyin is correct but too
+   slow.
+
+   `ylm`, `vpj`, `extau` に対して安定した OpenACC ownership 方針が必要です。
+   present-table error は、親配列の寿命と dummy argument section の扱いがまだ
+   揃っていないことを示しています。細かい copyin の繰り返しは正しいですが遅すぎます。
+
+2. Recover or exceed the Step 18 performance point.
+
+   Any next step should first recover the Step 18 level of about 163 sec before
+   being considered a real improvement. Step 20 is useful as a correctness
+   checkpoint, not as a performance checkpoint.
+
+   次の step は、まず Step 18 の約163秒水準を回復する必要があります。Step 20 は
+   正しさ確認としては有用ですが、性能確認点としては不採用です。
+
+3. Continue reducing host/device transfers inside the time-step loop.
+
+   The remaining high-cost areas are `s2_nonlocal`, `tmevl_s2`, and the FFT path.
+   The priority is still to avoid moving large or frequently used arrays across
+   the host/device boundary inside the repeated loops.
+
+   残る高コスト領域は `s2_nonlocal`, `tmevl_s2`, FFT 経路です。優先順位は、
+   反復 loop 内で大きい配列や頻繁に使う配列を host/device 間で動かさないことです。
+
+4. Keep fallback paths and validation scripts.
+
+   The CPU/FFTW fallback and the relaxed TDDFT comparator remain important
+   because the OpenACC work is now experimental. Every performance step should
+   continue to archive output and pass both `check` and `compare`.
+
+   OpenACC 作業は実験色が強いため、CPU/FFTW fallback と relaxed TDDFT comparator
+   は引き続き重要です。各性能 step では、出力を archive し、`check` と `compare`
+   の両方を通す必要があります。
