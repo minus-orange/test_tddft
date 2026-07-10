@@ -2464,7 +2464,6 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       dimension g2(4,ng2q), vpj(NGcont,3,4,NTYQ)
       dimension ylm(NGcont,16), tau(3)
       complex*16 extau(NGcont,5,NTAUQ), work1(NGcont), cfac
-      logical, save :: exnlp_make_inputs_on_device = .false.
       pi = 4.d0*atan(1.d0)
       fpi = 4.d0*pi
       fpisq = fpi**2
@@ -2478,18 +2477,10 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       if (l .eq. 3)  lylm =4
       if (l .eq. 4)  lylm =2
       if (l .ge. 5)  lylm = l  ! This is not 1 but l !!
-      if (.not. exnlp_make_inputs_on_device) then
-      call prof_start(38)
-!$acc enter data copyin(ylm(1:NGcont,1:16),
-!$acc& extau(1:NGcont,1:5,1:NTAUQ),
-!$acc& vpj(1:NGcont,1:3,1:4,1:NTYQ))
-      call prof_stop(38)
-      exnlp_make_inputs_on_device = .true.
-      endif
 !$acc parallel loop present(work1(1:NGcont))
-!$acc& present(ylm(1:NGcont,1:16))
-!$acc& present(extau(1:NGcont,1:5,1:NTAUQ))
-!$acc& present(vpj(1:NGcont,1:3,1:4,1:NTYQ))
+!$acc& copyin(ylm(1:NGcont,1:16))
+!$acc& copyin(extau(1:NGcont,1:5,1:NTAUQ))
+!$acc& copyin(vpj(1:NGcont,1:3,1:4,1:NTYQ))
       do ig = 1, ngnl
          work1(ig) = fac*ylm(ig,lylm)*extau(ig,np,itseq)
      &              *vpj(ig,ip,il,ity)
