@@ -442,3 +442,45 @@ Recommended archive label:
 ```text
 nvhpc_cufft_1rank_02_STEP9_01
 ```
+
+## Step 10: Keep P Resident Across S2 / S2 内での P 常駐化
+
+The Step 9-style run showed that `exnlp_gemm_enter` and `exnlp_gemm_exit`
+remain large. This means that copying `P` into and out of each `exnlp_gemm`
+call is a major part of the remaining cost.
+
+Step 9 相当の結果では、`exnlp_gemm_enter` と `exnlp_gemm_exit` がまだ大きく、
+`exnlp_gemm` 呼び出しごとの `P` 転送が残コストの大きな部分であることが
+分かりました。
+
+Step 10 keeps `P` resident across the whole `S2_` routine:
+
+Step 10 では `P` を `S2_` 全体で device resident にします。
+
+- `P(1:NG2Q,1:nbndloc)` is copied to the device once before the first
+  nonlocal operation.
+- Both `exnlp_gemm` calls use `P` through `present`.
+- The local FFT/potential section also uses the same device-resident `P`.
+- `P` is copied back once at the end of `S2_`.
+
+- 最初の非局所項処理前に `P(1:NG2Q,1:nbndloc)` を一度だけ device に転送します。
+- 2回の `exnlp_gemm` は `present` な `P` を使います。
+- local FFT/potential 部分も同じ device resident な `P` を使います。
+- `S2_` の最後で `P` を一度だけ host に戻します。
+
+Additional timers:
+
+追加タイマー:
+
+| id | label | measured work |
+| ---: | --- | --- |
+| 33 | `s2_p_enter` | one-time `P` copy-in at the beginning of `S2_` |
+| 34 | `s2_p_exit` | one-time `P` copy-out at the end of `S2_` |
+
+Recommended archive label:
+
+推奨 archive label:
+
+```text
+nvhpc_cufft_1rank_02_STEP10_01
+```

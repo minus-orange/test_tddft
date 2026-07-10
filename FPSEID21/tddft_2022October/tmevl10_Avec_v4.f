@@ -1801,6 +1801,10 @@ c ***  temp check for YLM : end
          first = .false.
       endif
 ! ==============================================================================
+      nbndloc=nend-nbegin+1
+      call prof_start(33)
+!$acc enter data copyin(P(1:NG2Q,1:nbndloc))
+      call prof_stop(33)
       call prof_start(11)
       call prof_start(25)
       loopcnt = 0
@@ -1907,8 +1911,8 @@ c *** temp check:end
 c ** third: operate local potential term
       call prof_start(12)
       nbndloc=nend-nbegin+1
-!$acc data copyin(P(1:NXYZ,1:nbndloc),VGG(1:NXYZ),
-!$acc& Vloc(1:NXYZ),J2G(1:NXYZ))
+!$acc data present(P(1:NXYZ,1:nbndloc))
+!$acc& copyin(VGG(1:NXYZ),Vloc(1:NXYZ),J2G(1:NXYZ))
 !$acc& create(RHO1_(1:NXYZ,1:nbndloc),
 !$acc& RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ))
 ! ==============================================================================
@@ -2070,11 +2074,6 @@ c         DO 110 IG=1,NG2
       enddo
       call prof_stop(23)
       call prof_stop(18)
-      call prof_start(17)
-      call prof_start(24)
-!$acc update self(P(1:NXYZ,1:nbndloc))
-      call prof_stop(24)
-      call prof_stop(17)
 ! ==============================================================================
 !$acc end data
       call prof_stop(12)
@@ -2204,6 +2203,13 @@ c      snorm=snorm+dble( dconjg( p(ig) )*p(ig)  )
 c      enddo
 c      write(6,*)' norm = ',snorm
 c ***  check norm :end
+      call prof_start(17)
+      call prof_start(24)
+      call prof_start(34)
+!$acc exit data copyout(P(1:NG2Q,1:nbndloc))
+      call prof_stop(34)
+      call prof_stop(24)
+      call prof_stop(17)
       call prof_stop(10)
       return
       end
@@ -2422,8 +2428,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       nbndloc = nend-nbegin+1
       call prof_start(27)
       call prof_start(30)
-!$acc enter data copyin(coef(1:ng2q,1:nbndloc),
-!$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
+!$acc enter data copyin(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
 !$acc& ngnl(1:loopcnt)) create(ct1(1:nbndloc))
       call prof_stop(30)
       do ia = 1, loopcnt
@@ -2468,8 +2473,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
          call prof_stop(29)
       end do
       call prof_start(32)
-!$acc exit data copyout(coef(1:ng2q,1:nbndloc))
-!$acc& delete(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
+!$acc exit data delete(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
 !$acc& ngnl(1:loopcnt),ct1(1:nbndloc))
       call prof_stop(32)
       call prof_stop(27)

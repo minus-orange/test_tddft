@@ -216,5 +216,9 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'exnlp_gemm_zero'
   case (32)
     name = 'exnlp_gemm_exit'
+  case (33)
+    name = 's2_p_enter'
+  case (34)
+    name = 's2_p_exit'
   end select
 end subroutine fpseid_mod_timer_name

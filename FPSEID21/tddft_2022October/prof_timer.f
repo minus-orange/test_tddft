@@ -108,5 +108,7 @@
       if (id.eq.30) name='exnlp_gemm_enter'
       if (id.eq.31) name='exnlp_gemm_zero'
       if (id.eq.32) name='exnlp_gemm_exit'
+      if (id.eq.33) name='s2_p_enter'
+      if (id.eq.34) name='s2_p_exit'
       return
       end
