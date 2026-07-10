@@ -1,6 +1,6 @@
 # TDDFT GPU Progress Summary / TDDFT GPU化進捗まとめ
 
-Date: 2026-07-09
+Date: 2026-07-10
 
 This note summarizes the TDDFT GPU work performed on the
 `tddft-openacc-residency` branch for the FPSEID21 `Si111-H` 100-step validation
@@ -835,3 +835,78 @@ Recommended archive label:
 ```text
 nvhpc_cufft_1rank_02_STEP12_01
 ```
+
+## Step 14: Probe exnlp Cache Invariance / exnlp キャッシュ可能性の確認
+
+Step 14 is also a measurement-only change. The Step 13 result showed that
+`exnlp_work1_enter` dominates `exnlp_gemm_enter`, so the next optimization
+candidate is to avoid rebuilding or recopying the nonlocal projector input
+buffer passed as `work1` to `exnlp_gemm`.
+
+Step 14 も計測のみの変更です。Step 13 の結果から `exnlp_gemm_enter` の大半は
+`exnlp_work1_enter` であることが分かったため、次の最適化候補は
+`exnlp_gemm` に渡す非局所 projector 入力 buffer (`work1`) の再生成または再転送を
+避けることです。
+
+Before doing that, the code now probes whether the generated inputs are stable
+for each atom-type index and phase:
+
+実際にキャッシュ化する前に、各 atom-type index と phase ごとに生成される入力が
+安定しているかを確認します。
+
+- `phase=1`: the first nonlocal block in `S2_`
+- `phase=2`: the second nonlocal block in `S2_`
+- probed data: `work2_`, `cfac_`, and `ngnl_`
+
+The probe records a lightweight numeric signature the first time each
+`NP/phase` pair is seen and prints:
+
+各 `NP/phase` の初回出現時に軽量な数値 signature を記録し、次を出力します。
+
+```text
+FPSEID_EXNLP_CACHE_REF np phase sig= ...
+```
+
+If the signature later changes beyond the diagnostic tolerance, it prints:
+
+後続の呼び出しで signature が許容範囲を超えて変化した場合は、次を出力します。
+
+```text
+FPSEID_EXNLP_CACHE_DIFF np phase ref sig= ...
+```
+
+This is not an exhaustive bitwise comparison. It is a low-cost guard for the
+current validation run. If no `FPSEID_EXNLP_CACHE_DIFF` lines appear in the
+100-step run, the next coding step is to cache `work2_` per `NP/phase` and make
+`exnlp_gemm` consume the cached, device-resident buffer.
+
+これは完全な bitwise 比較ではなく、現在の検証実行向けの低コストなガードです。
+100 step 実行で `FPSEID_EXNLP_CACHE_DIFF` が出なければ、次の実装では `work2_` を
+`NP/phase` ごとにキャッシュし、`exnlp_gemm` が device resident なキャッシュを
+使う形に進めます。
+
+Recommended archive label:
+
+推奨 archive label:
+
+```text
+nvhpc_cufft_1rank_02_STEP13_01
+```
+
+Suggested check:
+
+確認コマンド:
+
+```sh
+grep FPSEID_EXNLP_CACHE run/tddft_archives/nvhpc_cufft_1rank_02_STEP13_01/tddft.out
+```
+
+Expected result for the cache experiment:
+
+キャッシュ化へ進むための期待結果:
+
+- `FPSEID_EXNLP_CACHE_REF` appears for the observed `NP/phase` pairs.
+- `FPSEID_EXNLP_CACHE_DIFF` does not appear.
+
+- 観測された `NP/phase` に対して `FPSEID_EXNLP_CACHE_REF` が出る。
+- `FPSEID_EXNLP_CACHE_DIFF` は出ない。
