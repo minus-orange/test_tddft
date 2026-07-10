@@ -1747,6 +1747,7 @@ c      COMMON/SAITO2/IBUN(3,NTYQ2)
       integer, allocatable, save, dimension(:) :: ngnl_
       integer, save :: work2_ncol = 0
       logical, save :: first = .true.
+      logical, save :: exnlp_inputs_on_device = .false.
       call prof_start(10)
 c *** first: operate kinetic energy term
 c      do ig=1,ng2
@@ -1815,6 +1816,14 @@ c ***  temp check for YLM : end
       endif
 ! ==============================================================================
       nbndloc=nend-nbegin+1
+      if (.not. exnlp_inputs_on_device) then
+      call prof_start(38)
+!$acc enter data copyin(ylm(1:NGcont,1:16),
+!$acc& vpj(1:NGcont,1:3,1:4,1:NTYQ),
+!$acc& extau(1:NGcont,1:5,1:NTAUQ))
+      call prof_stop(38)
+      exnlp_inputs_on_device = .true.
+      endif
       call prof_start(11)
       call prof_start(25)
       call prof_start(38)
@@ -2460,7 +2469,8 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       if (l .eq. 4)  lylm =2
       if (l .ge. 5)  lylm = l  ! This is not 1 but l !!
 !$acc parallel loop present(work1(1:NGcont))
-!$acc& copyin(ylm(1:NGcont,lylm),extau(1:NGcont),vpj(1:NGcont))
+!$acc& present(ylm(1:NGcont,1:16))
+!$acc& present(extau(1:NGcont),vpj(1:NGcont))
       do ig = 1, ngnl
          work1(ig) = fac*ylm(ig,lylm)*extau(ig)*vpj(ig)
       end do
