@@ -527,6 +527,10 @@ c        enddo
 c        write(6,*)' norm = ',temp
 c      endif
 c *** temp check:end
+      nbndloc=nend(my_rank)-nbegin(my_rank)+1
+      call prof_start(35)
+!$acc enter data copyin(P(1:NG2Q,1:nbndloc))
+      call prof_stop(35)
       dt1=pr1*dt
 c      call exkin(dt1,nxyz,ng2q,P(1,ib),G2,TPIBA2,GDUMP,GMHF)
       call exkin_(dt1,nxyz,ng2q,P,G2,TPIBA2,GDUMP1,GMHF,
@@ -706,6 +710,9 @@ c       enddo
 c      enddo
 c      endif
 c ***
+      call prof_start(36)
+!$acc exit data copyout(P(1:NG2Q,1:nbndloc))
+      call prof_stop(36)
       endif  ! end of if (ioption.eq...)  loop
 c      WRITE(71,REC=IOWF(JJB)) PJ
 c
@@ -1264,14 +1271,18 @@ c      fac=dtqrt*( GDUMP(ig) - GMHF ) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr)
 ccc      dthalf=0.5d0*dt
       call prof_start(9)
       dtqrt=0.25d0*dt*TPIBA2
-      do ib=nbegin,nend
-       iib=ib-nbegin+1
+      nbndloc=nend-nbegin+1
+      call prof_start(37)
+!$acc parallel loop collapse(2) present(P(1:NG2Q,1:nbndloc))
+!$acc+ copyin(GDUMP(1:ng2))
+      do iib=1,nbndloc
       do ig=1,ng2
 c      fac=dtqrt*( GDUMP(ig) - GMHF ) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr) 
       fac=dtqrt*GDUMP(ig) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr) 
       P(ig,iib)=dcmplx( dcos(fac),-dsin(fac) )*P(ig,iib)
       enddo
       enddo
+      call prof_stop(37)
       call prof_stop(9)
       return
       end
@@ -1802,9 +1813,6 @@ c ***  temp check for YLM : end
       endif
 ! ==============================================================================
       nbndloc=nend-nbegin+1
-      call prof_start(33)
-!$acc enter data copyin(P(1:NG2Q,1:nbndloc))
-      call prof_stop(33)
       call prof_start(11)
       call prof_start(25)
       loopcnt = 0
@@ -2203,13 +2211,6 @@ c      snorm=snorm+dble( dconjg( p(ig) )*p(ig)  )
 c      enddo
 c      write(6,*)' norm = ',snorm
 c ***  check norm :end
-      call prof_start(17)
-      call prof_start(24)
-      call prof_start(34)
-!$acc exit data copyout(P(1:NG2Q,1:nbndloc))
-      call prof_stop(34)
-      call prof_stop(24)
-      call prof_stop(17)
       call prof_stop(10)
       return
       end

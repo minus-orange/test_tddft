@@ -484,3 +484,79 @@ Recommended archive label:
 ```text
 nvhpc_cufft_1rank_02_STEP10_01
 ```
+
+Observed Step 10-equivalent result:
+
+Step 10 相当の確認結果:
+
+```text
+archive label: nvhpc_cufft_1rank_02_STEP9_01
+check: PASS
+compare: PASS
+wall_sec: 232.159
+time_step_total: about 232.46 sec
+s2_p_enter: about 14.05 sec
+s2_p_exit: about 11.18 sec
+```
+
+This confirms that keeping `P` resident within each `S2_` call is correct and
+substantially faster than the previous finer-grained `exnlp_gemm` transfer
+split. The remaining `s2_p_enter + s2_p_exit` cost is still about 25 sec, so the
+next step is to move the `P` residency boundary from `S2_` to `TMEVL`.
+
+この結果から、`S2_` 呼び出し単位で `P` を常駐させる方針は正しく、以前の
+`exnlp_gemm` 単位の転送分解より大きく高速化することが確認できました。一方で
+`s2_p_enter + s2_p_exit` がまだ約25秒残っているため、次は `P` の常駐境界を
+`S2_` 単位から `TMEVL` 単位へ広げます。
+
+## Step 11: Keep P Resident Across TMEVL / TMEVL 内での P 常駐化
+
+Step 11 moves ownership of `P(1:NG2Q,1:nbndloc)` from `S2_` to the surrounding
+`TMEVL` fourth-order propagation path (`ioption.eq.4`).
+
+Step 11 では、`P(1:NG2Q,1:nbndloc)` の GPU 常駐管理を `S2_` から外側の
+`TMEVL` 4次分解経路 (`ioption.eq.4`) に移します。
+
+Implemented changes:
+
+実装内容:
+
+- `TMEVL` copies `P` to the device once before the first `exkin_` call.
+- `TMEVL` copies `P` back to the host once after the final `exkin_` call.
+- `S2_` no longer performs its own `P` enter/exit.
+- `exkin_` now updates resident `P` with an OpenACC `parallel loop`.
+
+- `TMEVL` が最初の `exkin_` 呼び出し前に `P` を一度だけ device へ転送します。
+- `TMEVL` が最後の `exkin_` 呼び出し後に `P` を一度だけ host へ戻します。
+- `S2_` 内部では `P` の enter/exit を行いません。
+- `exkin_` は resident な `P` を OpenACC `parallel loop` で更新します。
+
+Additional timers:
+
+追加タイマー:
+
+| id | label | measured work |
+| ---: | --- | --- |
+| 35 | `tmevl_p_enter` | one-time `P` copy-in before the `ioption.eq.4` propagation sequence |
+| 36 | `tmevl_p_exit` | one-time `P` copy-out after the `ioption.eq.4` propagation sequence |
+| 37 | `exkin_acc_kernel` | OpenACC kinetic-energy phase update in `exkin_` |
+
+Expected validation:
+
+想定する確認:
+
+```text
+LABEL=nvhpc_cufft_1rank_02_STEP10_01 ./tools/archive_tddft_result.sh ./run/Si111-H_nvhpc/
+python3 ./tools/check_tddft_result.py check ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.err
+python3 ./tools/check_tddft_result.py compare ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.err
+```
+
+The main expected performance signal is that `s2_p_enter` and `s2_p_exit`
+should disappear from the active timer list, replaced by one `tmevl_p_enter`
+and one `tmevl_p_exit` per time step. `exkin_acc_kernel` should also appear and
+should be checked against the existing `tmevl_exkin` aggregate.
+
+主な性能確認ポイントは、`s2_p_enter` と `s2_p_exit` が active timer から消え、
+time step ごとに `tmevl_p_enter` と `tmevl_p_exit` が1回ずつ出ることです。
+また `exkin_acc_kernel` が出力されるため、既存の `tmevl_exkin` 集計との関係を
+確認します。

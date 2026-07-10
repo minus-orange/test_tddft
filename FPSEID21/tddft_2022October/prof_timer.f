@@ -110,5 +110,8 @@
       if (id.eq.32) name='exnlp_gemm_exit'
       if (id.eq.33) name='s2_p_enter'
       if (id.eq.34) name='s2_p_exit'
+      if (id.eq.35) name='tmevl_p_enter'
+      if (id.eq.36) name='tmevl_p_exit'
+      if (id.eq.37) name='exkin_acc_kernel'
       return
       end
