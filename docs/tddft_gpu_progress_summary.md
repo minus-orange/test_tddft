@@ -1238,3 +1238,43 @@ Expected validation label:
 ```text
 nvhpc_cufft_1rank_02_STEP18_01
 ```
+
+Observed Step 18 result:
+
+Step 18 実測結果:
+
+```text
+archive label: nvhpc_cufft_1rank_02_STEP18_01
+check: PASS
+compare: PASS
+wall_sec: 163.310745001
+time_step_total: about 163.60 sec
+tmevl_total: about 92.92 sec
+tmevl_s2: about 50.91 sec
+s2_nonlocal: about 28.41 sec
+s2_fft_local: about 22.48 sec
+fft_wrapper: about 28.80 sec
+s2_nonlocal_make: about 2.88 sec
+s2_nonlocal_gemm: about 25.51 sec
+exnlp_gemm_data: about 17.20 sec
+exnlp_gemm_dot: about 16.84 sec
+exnlp_gemm_update: removed from the present-input path
+exnlp_ct1_create: removed from the present-input path
+exnlp_work1_enter: about 8.10 sec
+exnlp_meta_enter: about 0.15 sec
+```
+
+The expected signal was confirmed. The fused present-input path removes the
+`ct1` allocation and the separate update kernel from this path while preserving
+the relaxed TDDFT comparison result. The measured wall time improved from the
+Step 17 result of about 170.25 sec to about 163.31 sec. The remaining major
+costs are now `tmevl_total`, `s2_nonlocal`, and `s2_fft_local`; inside
+`s2_nonlocal`, the next target is the remaining nonlocal GEMM/input-generation
+cost rather than the removed `ct1`/update split.
+
+期待したシグナルは確認できました。fused present-input 経路では、この経路から
+`ct1` allocation と独立した update kernel が消え、relaxed TDDFT 比較も維持
+できています。wall time は Step 17 の約170.25秒から約163.31秒へ改善しました。
+残る主なコストは `tmevl_total`, `s2_nonlocal`, `s2_fft_local` です。
+`s2_nonlocal` 内では、削除済みの `ct1`/update 分離ではなく、残っている
+nonlocal GEMM と入力生成コストが次の対象です。
