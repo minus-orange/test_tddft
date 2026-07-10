@@ -12,11 +12,30 @@ used, but custom CUDA kernels are not the first target.
 実装手段はOpenACCとし、cuFFTなどのCUDAライブラリは使用可とします。ただし、
 独自CUDAカーネルを書く実装は最初の対象から外します。
 
-Implementation progress and measured Step 1-3 results are summarized in
+Implementation progress and measured step results are summarized in
 `docs/tddft_gpu_progress_summary.md`.
 
-実装済みの内容と Step 1-3 の測定結果は
+実装済みの内容と各 step の測定結果は
 `docs/tddft_gpu_progress_summary.md` にまとめています。
+
+## Goal / ゴール
+
+The goal of this branch is to move the TDDFT time-step body to GPU execution
+where practical and to minimize host-device memory transfers across the
+time-step loop.
+
+このブランチのゴールは、TDDFT のタイムステップ内部を実用上可能な範囲で GPU
+実行へ移し、タイムステップループ中の Host-Device 間メモリ転送を最小化すること
+です。
+
+The initial target was `s2_fft_local`, but that was only the first high-impact
+transfer bottleneck. The optimization boundary should now expand toward the
+entire propagation path, while preserving the validated CPU/FFTW path and the
+current one-GPU, one-MPI-rank validation policy.
+
+初期対象は `s2_fft_local` でしたが、これは最初に効果が大きい転送ボトルネック
+だったためです。今後の最適化境界は伝播経路全体へ広げます。ただし、検証済みの
+CPU/FFTW 経路と、現在の 1 GPU / 1 MPI rank 検証方針は維持します。
 
 ## Current Finding / 現状
 
@@ -371,11 +390,38 @@ cuFFTビルドと同様に明示します。
 
 ## Current Decision / 現時点の判断
 
-The next coding target is not replacing more physics kernels immediately and
-not writing custom CUDA kernels. The next target is reducing transfer frequency
-in `s2_fft_local` by using OpenACC data regions and cuFFT/OpenACC device-pointer
-interoperability.
+The current validated direction is:
 
-次のコーディング対象は、物理カーネルを一気に置き換えることではありません。
-また、独自CUDAカーネルを書くことでもありません。まずOpenACC data regionと
-cuFFT/OpenACC device pointer連携により、`s2_fft_local` の転送回数を減らします。
+現在の検証済み方針は以下です。
+
+- Use OpenACC for Fortran-side GPU residency and kernels.
+- Use cuFFT as a library backend through OpenACC device pointers.
+- Avoid custom CUDA kernels for now.
+- Keep one GPU with one MPI rank as the validation target.
+- Expand residency from local `S2_` sections toward the whole TDDFT time-step
+  body.
+
+- Fortran 側の GPU 常駐化と kernel 化には OpenACC を使います。
+- FFT は OpenACC device pointer 経由の cuFFT library backend を使います。
+- 当面は独自 CUDA kernel を追加しません。
+- 検証対象は 1 GPU / 1 MPI rank とします。
+- 常駐範囲は局所的な `S2_` 区間から TDDFT time-step 内部全体へ広げます。
+
+The next coding target should be chosen by measured cost, not by replacing all
+physics routines at once. After the latest validated run, the likely next
+targets are:
+
+次のコーディング対象は、物理 routine を一括で置き換えるのではなく、測定コストに
+基づいて選びます。最新の検証済み実行後、次の候補は以下です。
+
+1. Reduce `exnlp_gemm_enter` setup/copy cost.
+2. Improve the `exnlp_gemm_dot` and `exnlp_gemm_update` kernel structure
+   without changing the sequential `ia` dependency.
+3. Identify compatibility FFT calls that still use host-copy cuFFT wrappers.
+4. Reduce remaining `TMEVL` boundary copies for `P`.
+
+1. `exnlp_gemm_enter` の setup/copy cost を削減します。
+2. `ia` の逐次依存を変えずに、`exnlp_gemm_dot` と `exnlp_gemm_update` の kernel
+   構造を改善します。
+3. まだ host-copy cuFFT wrapper を使っている互換 FFT 呼び出しを特定します。
+4. `TMEVL` 境界に残る `P` 転送を削減します。

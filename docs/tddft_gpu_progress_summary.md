@@ -651,3 +651,158 @@ overhead.
 `check` と relaxed `compare` が引き続き `PASS` することです。これが通れば、
 次の大きめの実験として `exnlp_gemm` の dot/update 構造を見直し、不要な一時
 データ準備や kernel launch overhead を減らします。
+
+Observed result with the Step 12 code, archived as `STEP11_01`:
+
+Step 12 コードの実測結果です。archive label は `STEP11_01` です。
+
+```text
+archive label: nvhpc_cufft_1rank_02_STEP11_01
+check: PASS
+compare: PASS
+wall_sec: 172.646986008
+time_step_total: about 172.94 sec
+tmevl_total: about 101.42 sec
+tmevl_s2: about 58.80 sec
+s2_nonlocal: about 37.05 sec
+s2_fft_local: about 21.74 sec
+fft_wrapper: about 28.05 sec
+s2_nonlocal_make: about 2.90 sec
+s2_nonlocal_gemm: about 34.13 sec
+exnlp_gemm_data: about 34.11 sec
+exnlp_gemm_dot: about 13.37 sec
+exnlp_gemm_update: about 11.88 sec
+exnlp_gemm_enter: about 8.16 sec
+exnlp_gemm_exit: about 0.03 sec
+tmevl_p_enter: about 3.00 sec
+tmevl_p_exit: about 2.71 sec
+exkin_acc_kernel: about 1.07 sec
+```
+
+The expected signal was confirmed: `exnlp_gemm_zero` no longer appears in the
+timer output, while both `check` and relaxed `compare` still pass. The measured
+wall time improved from about 179.77 sec to about 172.65 sec.
+
+期待通り、`exnlp_gemm_zero` はタイマー出力から消え、`check` と relaxed
+`compare` はどちらも `PASS` のままです。wall time は約179.77秒から約172.65秒へ
+改善しました。
+
+## Current Goal / 現在のゴール
+
+The project goal for this branch is now:
+
+このブランチのゴールは、以下に置きます。
+
+```text
+Move the whole TDDFT time-step body to GPU execution where practical, and
+minimize host-device memory transfers across the time-step loop.
+```
+
+```text
+TDDFT のタイムステップ内部を、実用上可能な範囲で GPU 実行へ移し、
+タイムステップループ中の Host-Device 間メモリ転送を最小化する。
+```
+
+This means the optimization boundary is no longer only `s2_fft_local`.
+`s2_fft_local` was the first target because it exposed the largest avoidable
+FFT transfer cost, but the remaining work should expand toward all major
+regions inside the propagation step.
+
+つまり、最適化境界は `s2_fft_local` だけではありません。`s2_fft_local` は
+回避可能な FFT 転送コストが大きかったため最初の対象にしましたが、今後は
+伝播ステップ内部の主要領域全体へ対象を広げます。
+
+## Current Status / 現在の状態
+
+Accomplished:
+
+達成済み:
+
+- The validated path is still one GPU with one MPI rank.
+- cuFFT is used as the FFT library backend.
+- OpenACC manages device-resident arrays and element-wise kernels.
+- `P` is resident across the `TMEVL` propagation block instead of being copied
+  in/out for every `S2_` call.
+- The S2 local FFT path uses device-pointer cuFFT entry points.
+- Scatter, gather, local-potential multiply, kinetic phase update, and parts of
+  the nonlocal GEMM path are OpenACC kernels.
+- The Step 12 code passes `check` and relaxed `compare` against the committed
+  GNU reference.
+
+- 検証済み経路は引き続き 1 GPU / 1 MPI rank です。
+- FFT library backend として cuFFT を使用しています。
+- device resident 配列と要素演算 kernel は OpenACC で管理しています。
+- `P` は `S2_` 呼び出しごとではなく、`TMEVL` 伝播 block 全体で常駐します。
+- S2 local FFT 経路は device pointer 版 cuFFT entry を使用しています。
+- scatter、gather、local-potential multiply、kinetic phase update、非局所
+  GEMM 経路の一部は OpenACC kernel 化済みです。
+- Step 12 コードはコミット済み GNU 基準に対して `check` と relaxed `compare` が
+  `PASS` です。
+
+Remaining issues:
+
+残課題:
+
+1. `exnlp_gemm_enter` is still about 8 sec.
+
+   `work1`, `cfac`, and `ngnl` are still copied or created per `exnlp_gemm`
+   call. The next target is to reduce this setup cost or extend the residency
+   of these nonlocal inputs safely.
+
+   `work1`, `cfac`, `ngnl` はまだ `exnlp_gemm` 呼び出し単位で転送または作成
+   されています。次は、この setup cost の削減、またはこれら非局所入力の
+   常駐期間拡大が対象です。
+
+2. `exnlp_gemm_dot + exnlp_gemm_update` remains about 25 sec.
+
+   The dot/update structure is correct but still expensive. Any change here
+   must preserve the sequential `ia` update dependency.
+
+   dot/update 構造は正しく動作していますが、まだ約25秒残っています。ここを
+   変更する場合は、`ia` 更新順序の依存関係を壊さない必要があります。
+
+3. `fft_wrapper` still reports about 28 sec.
+
+   Major S2 local FFT calls are device-resident, but compatibility host-copy
+   FFT calls remain elsewhere. These should be moved only after confirming
+   their data ownership boundaries.
+
+   主要な S2 local FFT 呼び出しは device resident ですが、他の互換 host-copy
+   FFT 呼び出しが残っています。これらは data ownership 境界を確認してから
+   移行します。
+
+4. `tmevl_p_enter + tmevl_p_exit` remains about 5.7 sec.
+
+   This is much smaller than the previous S2-level copies, but full time-step
+   GPU residency will require reducing or eliminating these remaining
+   time-step boundary transfers.
+
+   これは以前の S2 単位転送より大幅に小さいですが、タイムステップ全体の GPU
+   常駐化には、この残りの time-step 境界転送も削減または除去する必要があります。
+
+5. CPU-side routines still exist inside the time-step body.
+
+   The current GPU work has focused on the measured hot regions. A later pass
+   should audit the full time-step body and classify each CPU-side section as:
+   keep on CPU, move to OpenACC, or isolate behind a transfer boundary.
+
+   現在の GPU 化は測定上のホット領域に集中しています。次段階では
+   time-step 内部全体を棚卸しし、各 CPU 側処理を「CPUに残す」「OpenACC化する」
+   「転送境界として分離する」に分類します。
+
+Recommended next step:
+
+推奨される次ステップ:
+
+1. Split `exnlp_gemm_enter` into copy/setup components, or move one candidate
+   nonlocal input buffer to a longer-lived OpenACC data region.
+2. Keep using `check_tddft_result.py check` and relaxed `compare` after every
+   step.
+3. Archive each successful run with a monotonic label such as
+   `nvhpc_cufft_1rank_02_STEP12_01`.
+
+1. `exnlp_gemm_enter` をさらに転送・setup 要素へ分解する、または非局所入力
+   buffer の一つをより長い OpenACC data region に移します。
+2. 各ステップ後は `check_tddft_result.py check` と relaxed `compare` を継続します。
+3. 成功した実行は `nvhpc_cufft_1rank_02_STEP12_01` のような単調増加 label で
+   archive します。
