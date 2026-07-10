@@ -1141,3 +1141,44 @@ Expected validation label:
 ```text
 nvhpc_cufft_1rank_02_STEP17_01
 ```
+
+Observed Step 17 result:
+
+Step 17 実測結果:
+
+```text
+archive label: nvhpc_cufft_1rank_02_STEP17_01
+check: PASS
+compare: PASS
+wall_sec: 170.24688876
+time_step_total: about 170.53 sec
+tmevl_total: about 100.45 sec
+tmevl_s2: about 58.46 sec
+s2_nonlocal: about 36.39 sec
+s2_fft_local: about 22.06 sec
+fft_wrapper: about 28.39 sec
+s2_nonlocal_make: about 2.68 sec
+s2_nonlocal_gemm: about 33.69 sec
+exnlp_gemm_data: about 25.39 sec
+exnlp_gemm_dot: about 13.35 sec
+exnlp_gemm_update: about 11.25 sec
+exnlp_work1_enter: about 8.08 sec
+exnlp_meta_enter: about 0.16 sec
+exnlp_ct1_create: about 0.02 sec
+tmevl_p_enter: about 2.97 sec
+tmevl_p_exit: about 2.72 sec
+```
+
+The correctness result is unchanged from Step 16. The wall time is also nearly
+unchanged, which is expected because Step 17 only moves the explicit ownership
+of `work2_`, `cfac_`, and `ngnl_` to the caller. The data is still generated on
+the host and copied to the device. The important outcome is that the
+present-input path is now validated at the real call sites, so the next step can
+start moving `exnlp_only_make` output generation toward the GPU without changing
+the GEMM consumer again.
+
+正しさは Step 16 から変わらず `PASS` です。wall time もほぼ同等で、これは想定通り
+です。Step 17 は `work2_`, `cfac_`, `ngnl_` の所有境界を呼び出し側へ移しただけで、
+データ生成自体はまだ host 側にあり、device へのコピーも残っています。重要なのは、
+present-input 経路が実際の呼び出し箇所で検証できたことです。次 step では GEMM
+consumer を再変更せず、`exnlp_only_make` 出力生成を GPU 側へ近づけられます。
