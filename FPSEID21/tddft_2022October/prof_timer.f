@@ -94,5 +94,11 @@
       if (id.eq.16) name='fft_plan_init'
       if (id.eq.17) name='s2_acc_update'
       if (id.eq.18) name='s2_acc_kernel'
+      if (id.eq.19) name='s2_zero_rho2'
+      if (id.eq.20) name='s2_scatter_p'
+      if (id.eq.21) name='s2_vg_build'
+      if (id.eq.22) name='s2_local_multiply'
+      if (id.eq.23) name='s2_gather_p'
+      if (id.eq.24) name='s2_copyout_p'
       return
       end

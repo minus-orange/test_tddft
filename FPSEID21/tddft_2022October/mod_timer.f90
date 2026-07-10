@@ -188,5 +188,17 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 's2_acc_update'
   case (18)
     name = 's2_acc_kernel'
+  case (19)
+    name = 's2_zero_rho2'
+  case (20)
+    name = 's2_scatter_p'
+  case (21)
+    name = 's2_vg_build'
+  case (22)
+    name = 's2_local_multiply'
+  case (23)
+    name = 's2_gather_p'
+  case (24)
+    name = 's2_copyout_p'
   end select
 end subroutine fpseid_mod_timer_name

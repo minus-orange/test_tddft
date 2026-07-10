@@ -227,3 +227,58 @@ region before the remaining Step 3 costs are understood.
 
 これにより、次の実験を測定可能な範囲に保ち、Step 3 後に残ったコストの内訳を
 理解する前に GPU 常駐範囲を広げすぎることを避けられます。
+
+## Added Fine-Grained Timers / 追加した細粒度タイマー
+
+After the Step 3 run, additional timers were added to split the remaining
+`s2_acc_kernel` and `s2_acc_update` costs. These timers are nested inside the
+existing aggregate timers, so the aggregate labels remain comparable with the
+previous Step 1-3 measurements.
+
+Step 3 実行後、残っている `s2_acc_kernel` と `s2_acc_update` の内訳を見るために
+細粒度タイマーを追加しました。これらは既存の集計タイマーの内側で計測するため、
+従来の Step 1-3 の集計ラベルとの比較は維持されます。
+
+| id | label | measured work |
+| ---: | --- | --- |
+| 19 | `s2_zero_rho2` | zero initialization of `RHO2_` |
+| 20 | `s2_scatter_p` | scatter from `P` to `RHO1_` through `J2G` |
+| 21 | `s2_vg_build` | build `VG = VGG + Vloc` |
+| 22 | `s2_local_multiply` | apply the local-potential phase factor |
+| 23 | `s2_gather_p` | gather from `RHO2_` back to `P` through `J2G` |
+| 24 | `s2_copyout_p` | final `P` copyout from device to host |
+
+These labels should appear in both `FPSEID_PROFILE` and `[Timer Output]`.
+
+これらのラベルは `FPSEID_PROFILE` と `[Timer Output]` の両方に出力されます。
+
+## Remaining Host-Copy FFT Calls / 残るhost-copy FFT呼び出し
+
+The S2 local FFT block now calls `FFT3BX_fftwASL_ACC` and `FFT3FX_fftwASL_ACC`.
+However, the codebase still has other compatibility FFT calls that use the
+host-copy wrapper path. They are outside the current S2 local FFT residency
+experiment and explain why `FPSEID_CUFFT_PROFILE` can still show non-zero
+`h2d_sec` and `d2h_sec`.
+
+S2 local FFT block は現在 `FFT3BX_fftwASL_ACC` / `FFT3FX_fftwASL_ACC` を呼びます。
+一方で、コード全体にはまだ host-copy wrapper 経路を使う互換 FFT 呼び出しが
+残っています。これらは現在の S2 local FFT 常駐化実験の外側にあるため、
+`FPSEID_CUFFT_PROFILE` の `h2d_sec` / `d2h_sec` がまだ 0 にならない理由になります。
+
+Main remaining call areas:
+
+主な残存箇所:
+
+- `gga_lib_3_PBE.f`: PBE/GGA derivative FFTs
+- `lib4_ASL_2_check_Vext_SXACE.f`: startup/external-potential related FFTs
+- `frprmn_tm12_check_Vext_Avec_v4.f`: force/minimization related FFTs
+- `pspw_tm11_Vext_Avec_v4_alloc.f`: PSPW setup and related transforms
+- other `tmevl10_Avec_v4.f` regions outside the current S2 local FFT block
+
+These should not be moved blindly to `_ACC` because each area has a different
+data lifetime and CPU/GPU ownership boundary. The next decision should be based
+on the new fine-grained timer output.
+
+これらはデータ寿命と CPU/GPU 所有境界がそれぞれ異なるため、機械的に `_ACC` 化
+しない方が安全です。次の判断は、今回追加した細粒度タイマーの出力に基づいて
+行います。

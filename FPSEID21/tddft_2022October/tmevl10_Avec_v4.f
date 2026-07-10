@@ -1908,6 +1908,7 @@ c ** third: operate local potential term
 !$acc& RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ))
 ! ==============================================================================
       call prof_start(18)
+      call prof_start(19)
 !$acc parallel loop present(RHO2_(1:NXYZ,1:nbndloc)) private(iib,JG)
       do ib=nbegin,nend
        iib=ib-nbegin+1
@@ -1917,8 +1918,10 @@ c  101    RHO1(JG)=(0.D0,0.D0)
   101    RHO2_(JG,iib)=(0.D0,0.D0)
 ! ==============================================================================
       enddo
+      call prof_stop(19)
 ! ==============================================================================
 ! ==============================================================================
+      call prof_start(20)
 !$acc parallel loop present(P(1:NXYZ,1:nbndloc),
 !$acc& RHO1_(1:NXYZ,1:nbndloc),J2G(1:NXYZ)) private(iib,IG,JG)
       do ib=nbegin,nend
@@ -1932,6 +1935,7 @@ c         DO 100 IG=1,NG2
   100    RHO1_(JG,iib)=P(IG,iib)
 ! ==============================================================================
       enddo
+      call prof_stop(20)
       call prof_stop(18)
 ! ==============================================================================
 c **** temp check
@@ -1980,6 +1984,7 @@ C        VG:POTENTIAL IN REAL SPACE
 C       VGG: HXC POTENTIAL IN R-  SPACE
 C       RHO4:LOCAL PSEUDOPOTENTIAL in R- SPACE
       call prof_start(18)
+      call prof_start(21)
 !$acc parallel loop present(VG(1:NXYZ),VGG(1:NXYZ),Vloc(1:NXYZ))
       do ig=1,nxyz
 c      jg=i2g(ig)
@@ -1987,6 +1992,7 @@ c      VG(jg)=VGG(jg)+rho4(jg)*fdump(ig)
 c      VG(ig)=VGG(ig)+rho4(ig)
       VG(ig)=VGG(ig)+Vloc(ig)
       enddo
+      call prof_stop(21)
 C
 C
 c *** temp check
@@ -2003,6 +2009,7 @@ c       write(6,*)' in sub. S2: before exp(Vlocal) : norm = ',
 c     & sum/dfloat(NXYZ)
 c **** temp check : end
 ! ==============================================================================
+      call prof_start(22)
 !$acc parallel loop present(RHO1_(1:NXYZ,1:nbndloc),
 !$acc& RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ)) private(iib,I,fac)
       do ib=nbegin,nend
@@ -2013,6 +2020,7 @@ c **** temp check : end
   300    RHO2_(I,iib)=dcmplx( dcos(fac),-dsin(fac) )*RHO1_(I,iib)
 ! ==============================================================================
       enddo
+      call prof_stop(22)
       call prof_stop(18)
 ! ==============================================================================
 c **** temp check
@@ -2047,6 +2055,7 @@ C
 c         DO 110 IG=1,NG2
 ! ==============================================================================
       call prof_start(18)
+      call prof_start(23)
 !$acc parallel loop present(P(1:NXYZ,1:nbndloc),
 !$acc& RHO2_(1:NXYZ,1:nbndloc),J2G(1:NXYZ)) private(iib,IG,JG)
       do ib=nbegin,nend
@@ -2059,9 +2068,12 @@ c         DO 110 IG=1,NG2
   110    P(IG,iib)=RHO2_(JG,iib)
 ! ==============================================================================
       enddo
+      call prof_stop(23)
       call prof_stop(18)
       call prof_start(17)
+      call prof_start(24)
 !$acc update self(P(1:NXYZ,1:nbndloc))
+      call prof_stop(24)
       call prof_stop(17)
 ! ==============================================================================
 !$acc end data
