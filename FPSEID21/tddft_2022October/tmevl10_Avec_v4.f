@@ -2421,14 +2421,18 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       real*8 sr,si,ar,ai,br,bi,cr,ci
       nbndloc = nend-nbegin+1
       call prof_start(27)
-!$acc data copy(coef(1:ng2q,1:nbndloc))
-!$acc& copyin(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
+      call prof_start(30)
+!$acc enter data copyin(coef(1:ng2q,1:nbndloc),
+!$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
 !$acc& ngnl(1:loopcnt)) create(ct1(1:nbndloc))
+      call prof_stop(30)
       do ia = 1, loopcnt
+         call prof_start(31)
 !$acc parallel loop gang vector present(ct1(1:nbndloc))
          do iib = 1, nbndloc
             ct1(iib) = (0.d0,0.d0)
          end do
+         call prof_stop(31)
          call prof_start(28)
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
@@ -2463,7 +2467,11 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
          end do
          call prof_stop(29)
       end do
-!$acc end data
+      call prof_start(32)
+!$acc exit data copyout(coef(1:ng2q,1:nbndloc))
+!$acc& delete(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
+!$acc& ngnl(1:loopcnt),ct1(1:nbndloc))
+      call prof_stop(32)
       call prof_stop(27)
       return
       end

@@ -105,5 +105,8 @@
       if (id.eq.27) name='exnlp_gemm_data'
       if (id.eq.28) name='exnlp_gemm_dot'
       if (id.eq.29) name='exnlp_gemm_update'
+      if (id.eq.30) name='exnlp_gemm_enter'
+      if (id.eq.31) name='exnlp_gemm_zero'
+      if (id.eq.32) name='exnlp_gemm_exit'
       return
       end

@@ -411,3 +411,34 @@ Recommended archive label:
 ```text
 nvhpc_cufft_1rank_02_STEP8_01
 ```
+
+## Step 9: exnlp_gemm Transfer Split / exnlp_gemm 転送分解
+
+The Step 8 result showed that `exnlp_gemm_data` is much larger than
+`exnlp_gemm_dot + exnlp_gemm_update`, so the remaining cost is likely dominated
+by OpenACC data-region overhead, data transfer, or untimed setup kernels.
+
+Step 8 の結果では、`exnlp_gemm_data` が `exnlp_gemm_dot + exnlp_gemm_update`
+よりかなり大きく、残りのコストは OpenACC data region の overhead、データ転送、
+または未分解の初期化 kernel が支配的と考えられます。
+
+Step 9 replaces the implicit structured data region in `exnlp_gemm` with
+explicit `enter data` / `exit data` directives so that the cost can be split
+without changing the computation.
+
+Step 9 では `exnlp_gemm` の structured data region を明示的な `enter data` /
+`exit data` に置き換え、計算内容を変えずにコストを分解します。
+
+| id | label | measured work |
+| ---: | --- | --- |
+| 30 | `exnlp_gemm_enter` | device allocation and copy-in before the `ia` loop |
+| 31 | `exnlp_gemm_zero` | `ct1` initialization kernel inside the `ia` loop |
+| 32 | `exnlp_gemm_exit` | copy-out of `coef` and device deallocation after the `ia` loop |
+
+Recommended archive label:
+
+推奨 archive label:
+
+```text
+nvhpc_cufft_1rank_02_STEP9_01
+```

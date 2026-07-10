@@ -210,5 +210,11 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'exnlp_gemm_dot'
   case (29)
     name = 'exnlp_gemm_update'
+  case (30)
+    name = 'exnlp_gemm_enter'
+  case (31)
+    name = 'exnlp_gemm_zero'
+  case (32)
+    name = 'exnlp_gemm_exit'
   end select
 end subroutine fpseid_mod_timer_name
