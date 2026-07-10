@@ -1045,3 +1045,36 @@ Recommended archive label for the next successful run:
 ```text
 nvhpc_cufft_1rank_02_STEP16_01
 ```
+
+Implemented Step 16 change:
+
+Step 16 実装内容:
+
+- Split `exnlp_gemm` into a transfer-owning wrapper and a shared GPU kernel
+  body.
+- Added `exnlp_gemm_present_inputs`, which assumes `work1`, `cfac`, `ngnl`,
+  and `coef` are already present on the device and only creates/deletes the
+  temporary `ct1` buffer.
+- The current call sites still use the original `exnlp_gemm` wrapper, so this
+  step is intended to preserve numerical behavior while preparing the next
+  step where `work2_`, `cfac_`, and `ngnl_` can be generated and consumed on
+  the device.
+
+- `exnlp_gemm` を、転送を持つ wrapper と共通 GPU kernel 本体に分割しました。
+- `work1`, `cfac`, `ngnl`, `coef` が device 上に存在する前提で、temporary な
+  `ct1` だけを作成/削除する `exnlp_gemm_present_inputs` を追加しました。
+- 現在の呼び出し箇所はまだ従来の `exnlp_gemm` wrapper を使うため、この step は
+  数値挙動を維持しながら、次 step で `work2_`, `cfac_`, `ngnl_` を device 上で
+  生成してそのまま消費するための準備です。
+
+Expected validation:
+
+期待する検証:
+
+```text
+python3 ./tools/check_tddft_result.py check \
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err
+
+python3 ./tools/check_tddft_result.py compare \
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err
+```

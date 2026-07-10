@@ -2425,7 +2425,6 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
      &           cfac(loopcnt), ct1(mxbnd)
       integer ngnl(loopcnt)
       integer nbndloc
-      real*8 sr,si,ar,ai,br,bi,cr,ci
       nbndloc = nend-nbegin+1
       call prof_start(27)
       call prof_start(30)
@@ -2439,6 +2438,48 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
 !$acc enter data create(ct1(1:nbndloc))
       call prof_stop(40)
       call prof_stop(30)
+      call exnlp_gemm_body(ng2q,work1,coef,omega,ngnl,
+     &     mxbnd,nbegin,nend,loopcnt,cfac,NGcont,ct1)
+      call prof_start(32)
+!$acc exit data delete(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
+!$acc& ngnl(1:loopcnt),ct1(1:nbndloc))
+      call prof_stop(32)
+      call prof_stop(27)
+      return
+      end
+
+      subroutine exnlp_gemm_present_inputs(ng2q, work1, coef, omega,
+     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,NGcont)
+      implicit double precision(a-h,o-z)
+      complex*16 coef(ng2q,mxbnd), work1(NGcont,loopcnt),
+     &           cfac(loopcnt), ct1(mxbnd)
+      integer ngnl(loopcnt)
+      integer nbndloc
+      nbndloc = nend-nbegin+1
+      call prof_start(27)
+      call prof_start(30)
+      call prof_start(40)
+!$acc enter data create(ct1(1:nbndloc))
+      call prof_stop(40)
+      call prof_stop(30)
+      call exnlp_gemm_body(ng2q,work1,coef,omega,ngnl,
+     &     mxbnd,nbegin,nend,loopcnt,cfac,NGcont,ct1)
+      call prof_start(32)
+!$acc exit data delete(ct1(1:nbndloc))
+      call prof_stop(32)
+      call prof_stop(27)
+      return
+      end
+
+      subroutine exnlp_gemm_body(ng2q, work1, coef, omega, ngnl,
+     &   mxbnd, nbegin, nend, loopcnt, cfac,NGcont,ct1)
+      implicit double precision(a-h,o-z)
+      complex*16 coef(ng2q,mxbnd), work1(NGcont,loopcnt),
+     &           cfac(loopcnt), ct1(mxbnd)
+      integer ngnl(loopcnt)
+      integer nbndloc
+      real*8 sr,si,ar,ai,br,bi,cr,ci
+      nbndloc = nend-nbegin+1
       do ia = 1, loopcnt
          call prof_start(28)
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
@@ -2464,7 +2505,8 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
          call prof_stop(28)
          call prof_start(29)
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
-!$acc& work1(1:NGcont,1:loopcnt),ct1(1:nbndloc))
+!$acc& work1(1:NGcont,1:loopcnt),ngnl(1:loopcnt),
+!$acc& ct1(1:nbndloc))
          do iib = 1, nbndloc
 !$acc loop vector
             do ig = 1, ngnl(ia)
@@ -2474,11 +2516,6 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
          end do
          call prof_stop(29)
       end do
-      call prof_start(32)
-!$acc exit data delete(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
-!$acc& ngnl(1:loopcnt),ct1(1:nbndloc))
-      call prof_stop(32)
-      call prof_stop(27)
       return
       end
 C*****************************************************************
