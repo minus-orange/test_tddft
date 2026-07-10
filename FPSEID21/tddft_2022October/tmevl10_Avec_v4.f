@@ -2478,9 +2478,9 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       if (l .eq. 4)  lylm =2
       if (l .ge. 5)  lylm = l  ! This is not 1 but l !!
 !$acc parallel loop present(work1(1:NGcont))
-!$acc& copyin(ylm(1:NGcont,1:16))
-!$acc& copyin(extau(1:NGcont,1:5,1:NTAUQ))
-!$acc& copyin(vpj(1:NGcont,1:3,1:4,1:NTYQ))
+!$acc& copyin(ylm(1:NGcont,lylm))
+!$acc& copyin(extau(1:NGcont,np,itseq))
+!$acc& copyin(vpj(1:NGcont,ip,il,ity))
       do ig = 1, ngnl
          work1(ig) = fac*ylm(ig,lylm)*extau(ig,np,itseq)
      &              *vpj(ig,ip,il,ity)
