@@ -2429,8 +2429,15 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       nbndloc = nend-nbegin+1
       call prof_start(27)
       call prof_start(30)
-!$acc enter data copyin(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
-!$acc& ngnl(1:loopcnt)) create(ct1(1:nbndloc))
+      call prof_start(38)
+!$acc enter data copyin(work1(1:NGcont,1:loopcnt))
+      call prof_stop(38)
+      call prof_start(39)
+!$acc enter data copyin(cfac(1:loopcnt),ngnl(1:loopcnt))
+      call prof_stop(39)
+      call prof_start(40)
+!$acc enter data create(ct1(1:nbndloc))
+      call prof_stop(40)
       call prof_stop(30)
       do ia = 1, loopcnt
          call prof_start(28)

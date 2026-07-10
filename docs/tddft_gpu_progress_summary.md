@@ -806,3 +806,32 @@ Recommended next step:
 2. 各ステップ後は `check_tddft_result.py check` と relaxed `compare` を継続します。
 3. 成功した実行は `nvhpc_cufft_1rank_02_STEP12_01` のような単調増加 label で
    archive します。
+
+## Step 13: Split exnlp_gemm Enter Cost / exnlp_gemm enter 内訳分解
+
+Step 13 is a measurement-only change. It keeps the aggregate
+`exnlp_gemm_enter` timer, but splits the OpenACC `enter data` work inside it:
+
+Step 13 は計測のみの変更です。集計用の `exnlp_gemm_enter` は維持し、その内側の
+OpenACC `enter data` を以下に分解します。
+
+| id | label | measured work |
+| ---: | --- | --- |
+| 38 | `exnlp_work1_enter` | copy-in of `work1(1:NGcont,1:loopcnt)` |
+| 39 | `exnlp_meta_enter` | copy-in of `cfac(1:loopcnt)` and `ngnl(1:loopcnt)` |
+| 40 | `exnlp_ct1_create` | device allocation of `ct1(1:nbndloc)` |
+
+This should not change numerical results. The purpose is to decide whether the
+next real optimization should target the large `work1` transfer, metadata
+transfer, or temporary allocation.
+
+数値結果は変わらない想定です。目的は、次の実最適化対象を大きな `work1` 転送、
+metadata 転送、一時配列 allocation のどれに置くべきか判断することです。
+
+Recommended archive label:
+
+推奨 archive label:
+
+```text
+nvhpc_cufft_1rank_02_STEP12_01
+```

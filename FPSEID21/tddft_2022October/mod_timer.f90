@@ -226,5 +226,11 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'tmevl_p_exit'
   case (37)
     name = 'exkin_acc_kernel'
+  case (38)
+    name = 'exnlp_work1_enter'
+  case (39)
+    name = 'exnlp_meta_enter'
+  case (40)
+    name = 'exnlp_ct1_create'
   end select
 end subroutine fpseid_mod_timer_name
