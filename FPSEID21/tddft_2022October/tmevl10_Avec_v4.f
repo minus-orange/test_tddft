@@ -2472,22 +2472,56 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
      &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,NGcont)
       implicit double precision(a-h,o-z)
       complex*16 coef(ng2q,mxbnd), work1(NGcont,loopcnt),
-     &           cfac(loopcnt), ct1(mxbnd)
+     &           cfac(loopcnt)
+      integer ngnl(loopcnt)
+      call prof_start(27)
+      call exnlp_gemm_body_fused(ng2q,work1,coef,omega,ngnl,
+     &     mxbnd,nbegin,nend,loopcnt,cfac,NGcont)
+      call prof_stop(27)
+      return
+      end
+
+      subroutine exnlp_gemm_body_fused(ng2q, work1, coef, omega,
+     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,NGcont)
+      implicit double precision(a-h,o-z)
+      complex*16 coef(ng2q,mxbnd), work1(NGcont,loopcnt),
+     &           cfac(loopcnt)
       integer ngnl(loopcnt)
       integer nbndloc
+      real*8 sr,si,ar,ai,br,bi,cr,ci,ctr,cti
       nbndloc = nend-nbegin+1
-      call prof_start(27)
-      call prof_start(30)
-      call prof_start(40)
-!$acc enter data create(ct1(1:nbndloc))
-      call prof_stop(40)
-      call prof_stop(30)
-      call exnlp_gemm_body(ng2q,work1,coef,omega,ngnl,
-     &     mxbnd,nbegin,nend,loopcnt,cfac,NGcont,ct1)
-      call prof_start(32)
-!$acc exit data delete(ct1(1:nbndloc))
-      call prof_stop(32)
-      call prof_stop(27)
+      do ia = 1, loopcnt
+         call prof_start(28)
+!$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
+!$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
+!$acc& ngnl(1:loopcnt)) private(sr,si,ar,ai,br,bi,cr,ci,
+!$acc& ctr,cti)
+         do iib = 1, nbndloc
+            sr = 0.d0
+            si = 0.d0
+!$acc loop vector reduction(+:sr,si)
+            do ig = 1, ngnl(ia)
+               ar = dble(coef(ig,iib))
+               ai = dimag(coef(ig,iib))
+               br = dble(work1(ig,ia))
+               bi = dimag(work1(ig,ia))
+               sr = sr + ar*br - ai*bi
+               si = si + ar*bi + ai*br
+            end do
+            cr = dble(cfac(ia))
+            ci = dimag(cfac(ia))
+            ctr = (cr*sr-ci*si)/omega
+            cti = (cr*si+ci*sr)/omega
+!$acc loop vector
+            do ig = 1, ngnl(ia)
+               br = dble(work1(ig,ia))
+               bi = dimag(work1(ig,ia))
+               coef(ig,iib) = coef(ig,iib)
+     &         + dcmplx(ctr*br + cti*bi, cti*br - ctr*bi)
+            end do
+         end do
+         call prof_stop(28)
+      end do
       return
       end
 

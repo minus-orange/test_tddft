@@ -1182,3 +1182,59 @@ the GEMM consumer again.
 データ生成自体はまだ host 側にあり、device へのコピーも残っています。重要なのは、
 present-input 経路が実際の呼び出し箇所で検証できたことです。次 step では GEMM
 consumer を再変更せず、`exnlp_only_make` 出力生成を GPU 側へ近づけられます。
+
+## Step 18: Fuse Present-Input exnlp GEMM Dot/Update / present-input exnlp GEMM の dot/update 融合
+
+Step 18 changes only the already validated `exnlp_gemm_present_inputs` path.
+The older transfer-owning `exnlp_gemm` wrapper is kept as the fallback path.
+
+Step 18 では、検証済みの `exnlp_gemm_present_inputs` 経路だけを変更します。
+転送を内部に持つ従来の `exnlp_gemm` wrapper は fallback として残しています。
+
+Implementation change:
+
+実装変更:
+
+- Added `exnlp_gemm_body_fused`.
+- `exnlp_gemm_present_inputs` now calls the fused body directly.
+- The fused body computes the dot product and immediately applies the
+  coefficient update inside the same OpenACC `parallel loop` over local bands.
+- The temporary `ct1` device allocation is no longer used by the
+  present-input path.
+- The original `exnlp_gemm_body` remains in place for the fallback
+  `exnlp_gemm` wrapper.
+
+- `exnlp_gemm_body_fused` を追加しました。
+- `exnlp_gemm_present_inputs` は fused body を直接呼びます。
+- fused body は local band ごとの OpenACC `parallel loop` 内で dot product を
+  計算し、そのまま係数更新を行います。
+- present-input 経路では、一時配列 `ct1` の device allocation を使わなくなります。
+- fallback の `exnlp_gemm` wrapper 用に、従来の `exnlp_gemm_body` は残しています。
+
+Expected performance signal:
+
+期待する性能シグナル:
+
+- `exnlp_ct1_create` should disappear from the present-input path.
+- `exnlp_gemm_update` should disappear from the present-input path because the
+  update is included in `exnlp_gemm_dot`.
+- `exnlp_gemm_dot` should increase relative to Step 17, but the combined
+  `exnlp_gemm_dot + exnlp_gemm_update + exnlp_ct1_create` cost should decrease
+  if the fused kernel is effective.
+- Correctness should continue to pass with the relaxed TDDFT comparator.
+
+- present-input 経路では `exnlp_ct1_create` が消える見込みです。
+- update は `exnlp_gemm_dot` に含めるため、present-input 経路では
+  `exnlp_gemm_update` も消える見込みです。
+- `exnlp_gemm_dot` 単体は Step 17 より増える可能性がありますが、
+  `exnlp_gemm_dot + exnlp_gemm_update + exnlp_ct1_create` の合計が下がるなら
+  fused kernel は有効です。
+- 正しさは relaxed TDDFT comparator で引き続き `PASS` する必要があります。
+
+Expected validation label:
+
+想定する検証 label:
+
+```text
+nvhpc_cufft_1rank_02_STEP18_01
+```
