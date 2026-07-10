@@ -606,3 +606,48 @@ kernel structure, rather than further extending `P` copy boundaries first.
 
 この結果から、次の有効な実験対象は `P` の転送境界拡大ではなく、`exnlp_gemm`
 本体、特に呼び出しごとの data setup 削減と dot/update kernel 構造の改善と考えます。
+
+## Step 12: Remove Redundant exnlp_gemm Zero Kernel / exnlp_gemm の冗長ゼロ初期化削除
+
+Step 12 removes the `ct1` zero-initialization OpenACC kernel from the
+`exnlp_gemm` inner `ia` loop.
+
+Step 12 では、`exnlp_gemm` の内側 `ia` ループにあった `ct1` のゼロ初期化
+OpenACC kernel を削除します。
+
+Rationale:
+
+理由:
+
+- The following `exnlp_gemm_dot` kernel writes `ct1(iib)` for every
+  `iib = 1, nbndloc` before `ct1` is used by the update kernel.
+- Therefore the previous `ct1(iib) = (0.d0,0.d0)` kernel was redundant.
+- In the Step 11 measurement, `exnlp_gemm_zero` cost about 5.8 sec, so removing
+  it should reduce kernel launch work and eliminate that timer region.
+
+- 後続の `exnlp_gemm_dot` kernel は、update kernel が `ct1` を参照する前に
+  `iib = 1, nbndloc` の全要素へ `ct1(iib)` を書き込みます。
+- そのため、従来の `ct1(iib) = (0.d0,0.d0)` kernel は冗長でした。
+- Step 11 の測定では `exnlp_gemm_zero` が約5.8秒だったため、削除により
+  kernel launch とそのタイマー領域が減ることを期待します。
+
+Expected validation:
+
+想定する確認:
+
+```text
+LABEL=nvhpc_cufft_1rank_02_STEP11_01 ./tools/archive_tddft_result.sh ./run/Si111-H_nvhpc/
+python3 ./tools/check_tddft_result.py check ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.err
+python3 ./tools/check_tddft_result.py compare ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.err
+```
+
+The expected performance signal is that `exnlp_gemm_zero` should disappear
+from the timer output, while `check` and relaxed `compare` should remain `PASS`.
+If this passes, the next larger experiment is to restructure `exnlp_gemm` so
+that the dot and update work can avoid unnecessary temporary setup or launch
+overhead.
+
+期待する性能上のシグナルは、`exnlp_gemm_zero` がタイマー出力から消え、
+`check` と relaxed `compare` が引き続き `PASS` することです。これが通れば、
+次の大きめの実験として `exnlp_gemm` の dot/update 構造を見直し、不要な一時
+データ準備や kernel launch overhead を減らします。

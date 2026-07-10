@@ -2433,12 +2433,6 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
 !$acc& ngnl(1:loopcnt)) create(ct1(1:nbndloc))
       call prof_stop(30)
       do ia = 1, loopcnt
-         call prof_start(31)
-!$acc parallel loop gang vector present(ct1(1:nbndloc))
-         do iib = 1, nbndloc
-            ct1(iib) = (0.d0,0.d0)
-         end do
-         call prof_stop(31)
          call prof_start(28)
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
