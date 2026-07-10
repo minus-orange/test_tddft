@@ -102,5 +102,8 @@
       if (id.eq.24) name='s2_copyout_p'
       if (id.eq.25) name='s2_nonlocal_make'
       if (id.eq.26) name='s2_nonlocal_gemm'
+      if (id.eq.27) name='exnlp_gemm_data'
+      if (id.eq.28) name='exnlp_gemm_dot'
+      if (id.eq.29) name='exnlp_gemm_update'
       return
       end

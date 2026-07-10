@@ -2420,6 +2420,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       integer nbndloc
       real*8 sr,si,ar,ai,br,bi,cr,ci
       nbndloc = nend-nbegin+1
+      call prof_start(27)
 !$acc data copy(coef(1:ng2q,1:nbndloc))
 !$acc& copyin(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
 !$acc& ngnl(1:loopcnt)) create(ct1(1:nbndloc))
@@ -2428,6 +2429,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
          do iib = 1, nbndloc
             ct1(iib) = (0.d0,0.d0)
          end do
+         call prof_start(28)
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
 !$acc& ngnl(1:loopcnt),ct1(1:nbndloc))
@@ -2448,6 +2450,8 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
             ct1(iib) = dcmplx((cr*sr-ci*si)/omega,
      &                         (cr*si+ci*sr)/omega)
          end do
+         call prof_stop(28)
+         call prof_start(29)
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:NGcont,1:loopcnt),ct1(1:nbndloc))
          do iib = 1, nbndloc
@@ -2457,8 +2461,10 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
      &         + ct1(iib)*dconjg(work1(ig,ia))
             end do
          end do
+         call prof_stop(29)
       end do
 !$acc end data
+      call prof_stop(27)
       return
       end
 C*****************************************************************

@@ -200,5 +200,15 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 's2_gather_p'
   case (24)
     name = 's2_copyout_p'
+  case (25)
+    name = 's2_nonlocal_make'
+  case (26)
+    name = 's2_nonlocal_gemm'
+  case (27)
+    name = 'exnlp_gemm_data'
+  case (28)
+    name = 'exnlp_gemm_dot'
+  case (29)
+    name = 'exnlp_gemm_update'
   end select
 end subroutine fpseid_mod_timer_name

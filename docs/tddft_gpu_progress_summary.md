@@ -377,3 +377,37 @@ Recommended archive label:
 ```text
 nvhpc_cufft_1rank_02_STEP7_01
 ```
+
+## Step 8: exnlp_gemm Split Timers / exnlp_gemm 分解タイマー
+
+Step 7 made `exnlp_gemm` correct and useful, but it remains the largest
+nonlocal contribution. Step 8 adds nested timers to split the region without
+changing the numerical algorithm.
+
+Step 7 で `exnlp_gemm` は正しく動作し、有効な改善になりましたが、非局所項の
+中ではまだ最大のコストです。Step 8 では数値アルゴリズムを変えずに、この領域を
+分解するネストタイマーを追加しました。
+
+| id | label | measured work |
+| ---: | --- | --- |
+| 27 | `exnlp_gemm_data` | whole OpenACC data region in `exnlp_gemm`, including transfer and kernels |
+| 28 | `exnlp_gemm_dot` | dot-product/reduction kernel that builds `ct1` |
+| 29 | `exnlp_gemm_update` | coefficient update kernel using `ct1` and `work1` |
+
+`exnlp_gemm_data` is intentionally broad. It is not a pure copy timer; it
+contains the OpenACC data-region lifetime plus the inner GPU kernels. If this
+region is still expensive after the next run, the next step should separate
+explicit `enter data` / `exit data` transfer timing from kernel timing.
+
+`exnlp_gemm_data` は意図的に広い範囲です。純粋な転送時間ではなく、OpenACC
+data region の寿命全体と内部 GPU kernel を含みます。次回実行でここがまだ
+大きい場合は、次の段階で `enter data` / `exit data` を使い、転送時間と kernel
+時間を分離します。
+
+Recommended archive label:
+
+推奨 archive label:
+
+```text
+nvhpc_cufft_1rank_02_STEP8_01
+```
