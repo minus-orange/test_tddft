@@ -560,3 +560,49 @@ should be checked against the existing `tmevl_exkin` aggregate.
 time step ごとに `tmevl_p_enter` と `tmevl_p_exit` が1回ずつ出ることです。
 また `exkin_acc_kernel` が出力されるため、既存の `tmevl_exkin` 集計との関係を
 確認します。
+
+Observed Step 11 result:
+
+Step 11 実測結果:
+
+```text
+archive label: nvhpc_cufft_1rank_02_STEP10_01
+check: PASS
+compare: PASS
+wall_sec: 179.769
+time_step_total: about 180.06 sec
+tmevl_total: about 108.94 sec
+tmevl_s2: about 66.22 sec
+s2_nonlocal: about 43.74 sec
+s2_fft_local: about 22.46 sec
+fft_wrapper: about 28.77 sec
+tmevl_p_enter: about 2.99 sec
+tmevl_p_exit: about 2.73 sec
+exkin_acc_kernel: about 1.08 sec
+```
+
+Compared with the Step 10-equivalent run, the `P` transfer cost dropped from
+about `s2_p_enter + s2_p_exit = 25.2 sec` to about
+`tmevl_p_enter + tmevl_p_exit = 5.7 sec`. The 100-step wall time improved from
+about 232 sec to about 180 sec.
+
+Step 10 相当の実行と比べると、`P` 転送コストは
+`s2_p_enter + s2_p_exit = 約25.2秒` から
+`tmevl_p_enter + tmevl_p_exit = 約5.7秒` へ減少しました。100 step の wall time
+は約232秒から約180秒へ改善しました。
+
+The remaining dominant regions are now:
+
+現時点で残っている主なコスト:
+
+- `s2_nonlocal_gemm`: about 40.8 sec
+- `s2_fft_local`: about 22.5 sec
+- `exnlp_gemm_dot + exnlp_gemm_update`: about 25.8 sec
+- `exnlp_gemm_enter + exnlp_gemm_zero`: about 13.9 sec
+
+This suggests that the next useful experiment should target `exnlp_gemm`
+itself, especially reducing per-call data setup and improving the dot/update
+kernel structure, rather than further extending `P` copy boundaries first.
+
+この結果から、次の有効な実験対象は `P` の転送境界拡大ではなく、`exnlp_gemm`
+本体、特に呼び出しごとの data setup 削減と dot/update kernel 構造の改善と考えます。
