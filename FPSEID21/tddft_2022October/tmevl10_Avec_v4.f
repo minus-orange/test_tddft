@@ -2417,25 +2417,45 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       complex*16 coef(ng2q,mxbnd), work1(NGcont,loopcnt),
      &           cfac(loopcnt), ct1(mxbnd)
       integer ngnl(loopcnt)
+      integer nbndloc
+      real*8 sr,si,ar,ai,br,bi,cr,ci
+      nbndloc = nend-nbegin+1
+!$acc data copy(coef(1:ng2q,1:nbndloc))
+!$acc& copyin(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
+!$acc& ngnl(1:loopcnt)) create(ct1(1:nbndloc))
       do ia = 1, loopcnt
-         do iib = 1, nend-nbegin+1
+!$acc parallel loop gang vector present(ct1)
+         do iib = 1, nbndloc
             ct1(iib) = (0.d0,0.d0)
          end do
-         do iib = 1, nend-nbegin+1
+!$acc parallel loop gang present(coef,work1,cfac,ngnl,ct1)
+         do iib = 1, nbndloc
+            sr = 0.d0
+            si = 0.d0
+!$acc loop vector reduction(+:sr,si)
             do ig = 1, ngnl(ia)
-               ct1(iib) = ct1(iib) + coef(ig,iib)*work1(ig,ia)
+               ar = dble(coef(ig,iib))
+               ai = dimag(coef(ig,iib))
+               br = dble(work1(ig,ia))
+               bi = dimag(work1(ig,ia))
+               sr = sr + ar*br - ai*bi
+               si = si + ar*bi + ai*br
             end do
+            cr = dble(cfac(ia))
+            ci = dimag(cfac(ia))
+            ct1(iib) = dcmplx((cr*sr-ci*si)/omega,
+     &                         (cr*si+ci*sr)/omega)
          end do
-         do iib = 1, nend-nbegin+1
-            ct1(iib) = cfac(ia)*ct1(iib)/omega
-         end do
-         do iib = 1, nend-nbegin+1
+!$acc parallel loop gang present(coef,work1,ct1)
+         do iib = 1, nbndloc
+!$acc loop vector
             do ig = 1, ngnl(ia)
                coef(ig,iib) = coef(ig,iib)
      &         + ct1(iib)*dconjg(work1(ig,ia))
             end do
          end do
       end do
+!$acc end data
       return
       end
 C*****************************************************************

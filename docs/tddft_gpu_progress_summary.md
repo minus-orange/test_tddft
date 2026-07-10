@@ -333,3 +333,47 @@ Use the next run to decide whether the next GPU work should target
 
 次回の実行結果で、次の GPU 化対象を `exnlp_only_make` 側にするか、
 `exnlp_gemm` 側にするか、あるいは両方にするかを判断します。
+
+The Step 6 result showed that `s2_nonlocal_gemm` dominates this region:
+
+Step 6 の結果では、この領域の大半が `s2_nonlocal_gemm` であることが分かりました。
+
+```text
+s2_nonlocal       about 119.0 sec
+s2_nonlocal_make  about   3.3 sec
+s2_nonlocal_gemm  about 115.7 sec
+```
+
+## Step 7: Experimental OpenACC exnlp_gemm / 実験的 OpenACC exnlp_gemm
+
+Step 7 moves the inner work of `exnlp_gemm` to OpenACC while preserving the
+outer `ia` order. The `ia` loop updates `coef` sequentially and therefore is
+kept on the host side for correctness. Within each `ia`, the implementation
+parallelizes over local bands and uses real/imaginary reductions for the dot
+product.
+
+Step 7 では `exnlp_gemm` の内側処理を OpenACC 化します。ただし `ia` loop は
+`coef` を逐次更新する依存関係があるため、順序を維持します。各 `ia` の内側で
+local band 方向を並列化し、dot product は実部・虚部の reduction に分けています。
+
+This is intentionally conservative:
+
+この変更は意図的に保守的です。
+
+- It does not reorder the `ia` updates.
+- It avoids complex reduction syntax and uses two real reductions.
+- It is expected to validate correctness first; performance may still be
+  limited by per-call data movement and kernel launch overhead.
+
+- `ia` 更新順序は変更しません。
+- complex reduction にはせず、実部・虚部の2つの実数 reduction に分けます。
+- まず正しさの確認を優先します。性能は、呼び出しごとのデータ移動や kernel 起動
+  overhead に制限される可能性があります。
+
+Recommended archive label:
+
+推奨 archive label:
+
+```text
+nvhpc_cufft_1rank_02_STEP7_01
+```
