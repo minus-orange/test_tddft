@@ -2424,11 +2424,13 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
 !$acc& copyin(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
 !$acc& ngnl(1:loopcnt)) create(ct1(1:nbndloc))
       do ia = 1, loopcnt
-!$acc parallel loop gang vector present(ct1)
+!$acc parallel loop gang vector present(ct1(1:nbndloc))
          do iib = 1, nbndloc
             ct1(iib) = (0.d0,0.d0)
          end do
-!$acc parallel loop gang present(coef,work1,cfac,ngnl,ct1)
+!$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
+!$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
+!$acc& ngnl(1:loopcnt),ct1(1:nbndloc))
          do iib = 1, nbndloc
             sr = 0.d0
             si = 0.d0
@@ -2446,7 +2448,8 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
             ct1(iib) = dcmplx((cr*sr-ci*si)/omega,
      &                         (cr*si+ci*sr)/omega)
          end do
-!$acc parallel loop gang present(coef,work1,ct1)
+!$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
+!$acc& work1(1:NGcont,1:loopcnt),ct1(1:nbndloc))
          do iib = 1, nbndloc
 !$acc loop vector
             do ig = 1, ngnl(ia)
