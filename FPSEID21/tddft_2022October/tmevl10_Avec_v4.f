@@ -1903,8 +1903,6 @@ c ***  temp check for YLM : end
     2  continue
     1 continue
       call prof_stop(25)
-      call exnlp_cache_probe(NP,1,work2_,cfac_,ngnl_,
-     &     NGcont,loopcnt)
       call prof_start(26)
       call exnlp_gemm(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont)
@@ -2186,8 +2184,6 @@ c ** fourth: operate nonlocal potential terms
     5  continue
     4 continue
       call prof_stop(25)
-      call exnlp_cache_probe(NP,2,work2_,cfac_,ngnl_,
-     &     NGcont,loopcnt)
       call prof_start(26)
       call exnlp_gemm(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont)
@@ -2421,80 +2417,6 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       end do
       return
       end subroutine exnlp_only_make
-
-      subroutine exnlp_cache_probe(np, phase, work1, cfac, ngnl,
-     &   NGcont, loopcnt)
-      implicit double precision(a-h,o-z)
-      complex*16 work1(NGcont,loopcnt), cfac(loopcnt)
-      integer ngnl(loopcnt)
-      integer phase, seen(5,2), reported(5,2,3)
-      real*8 refng(5,2), refcf(5,2), refwk(5,2)
-      save seen, reported, refng, refcf, refwk
-      data seen /10*0/
-      data reported /30*0/
-
-      if (np .lt. 1 .or. np .gt. 5) return
-      if (phase .lt. 1 .or. phase .gt. 2) return
-
-      signg = 0.d0
-      sigcf = 0.d0
-      sigwk = 0.d0
-      do ia = 1, loopcnt
-         n = ngnl(ia)
-         signg = signg + dble(n)*dble(ia)*1.d-12
-         sigcf = sigcf + dble(cfac(ia))*dble(ia)*1.d-8
-         sigcf = sigcf + dimag(cfac(ia))*dble(ia)*1.d-8
-         if (n .ge. 1) then
-            sigwk = sigwk + dble(work1(1,ia))
-            sigwk = sigwk + dimag(work1(1,ia))*0.5d0
-         end if
-         imid = max(1,n/2)
-         if (imid .le. NGcont) then
-            sigwk = sigwk + dble(work1(imid,ia))*0.25d0
-            sigwk = sigwk + dimag(work1(imid,ia))*0.125d0
-         end if
-         if (n .ge. 1 .and. n .le. NGcont) then
-            sigwk = sigwk + dble(work1(n,ia))*0.0625d0
-            sigwk = sigwk + dimag(work1(n,ia))*0.03125d0
-         end if
-      end do
-
-      if (seen(np,phase) .eq. 0) then
-         refng(np,phase) = signg
-         refcf(np,phase) = sigcf
-         refwk(np,phase) = sigwk
-         seen(np,phase) = 1
-         write(6,'(a,2i4,3(1pe24.15))')
-     &        'FPSEID_EXNLP_CACHE_REF np phase ng cf wk=',
-     &        np,phase,signg,sigcf,sigwk
-      else
-         diff = dabs(signg-refng(np,phase))
-         tol = 1.d-12*(1.d0+dabs(refng(np,phase)))
-         if (diff .gt. tol .and. reported(np,phase,1) .eq. 0) then
-            reported(np,phase,1) = 1
-            write(6,'(a,2i4,a,3(1pe24.15))')
-     &        'FPSEID_EXNLP_CACHE_DIFF np phase comp=',
-     &        np,phase,' ngnl ',refng(np,phase),signg,diff
-         end if
-         diff = dabs(sigcf-refcf(np,phase))
-         tol = 1.d-10*(1.d0+dabs(refcf(np,phase)))
-         if (diff .gt. tol .and. reported(np,phase,2) .eq. 0) then
-            reported(np,phase,2) = 1
-            write(6,'(a,2i4,a,3(1pe24.15))')
-     &        'FPSEID_EXNLP_CACHE_DIFF np phase comp=',
-     &        np,phase,' cfac ',refcf(np,phase),sigcf,diff
-         end if
-         diff = dabs(sigwk-refwk(np,phase))
-         tol = 1.d-8*(1.d0+dabs(refwk(np,phase)))
-         if (diff .gt. tol .and. reported(np,phase,3) .eq. 0) then
-            reported(np,phase,3) = 1
-            write(6,'(a,2i4,a,3(1pe24.15))')
-     &        'FPSEID_EXNLP_CACHE_DIFF np phase comp=',
-     &        np,phase,' work ',refwk(np,phase),sigwk,diff
-         end if
-      end if
-      return
-      end
 
       subroutine exnlp_gemm(ng2q, work1, coef, omega, ngnl,
      &   mxbnd, nbegin, nend, loopcnt, cfac,NGcont)

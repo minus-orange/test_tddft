@@ -970,3 +970,78 @@ Recommended archive label:
 ```text
 nvhpc_cufft_1rank_02_STEP14_01
 ```
+
+Observed Step 15 result:
+
+Step 15 実測結果:
+
+The component probe showed differences in all checked nonlocal input
+components:
+
+成分別プローブでは、確認対象の非局所入力成分すべてで差分が出ました。
+
+- `ngnl`
+- `cfac`
+- `work`
+
+Therefore a cache keyed by only `NP/phase` is rejected. Caching only metadata is
+also not safe for this validation path because `ngnl` changes. The probe was
+removed from the active code after recording this result so that later timing
+runs are not polluted by diagnostic output or extra host-side work.
+
+したがって、`NP/phase` だけを key にしたキャッシュは不採用です。`ngnl` も変化する
+ため、metadata だけのキャッシュもこの検証経路では安全ではありません。この結果を
+記録した後、以降の計測に診断出力や余分な host 側処理を混ぜないため、プローブは
+active code から削除しました。
+
+## Step 16: Nonlocal Input Residency Direction / 非局所入力常駐化の方針
+
+Step 16 resets the nonlocal optimization direction after the cache experiment.
+The next target is not reuse of old projector input data. Instead, the target
+is to move projector input generation closer to its GPU consumer:
+
+Step 16 では、キャッシュ実験後の非局所項最適化方針を整理します。次の対象は、
+古い projector 入力データの再利用ではありません。次の対象は、projector 入力の
+生成を GPU 側の利用箇所へ近づけることです。
+
+```text
+exnlp_only_make -> exnlp_gemm
+```
+
+The current cost model is:
+
+現時点のコスト構造:
+
+- `exnlp_only_make` builds `work2_`, `cfac_`, and `ngnl_` on the host.
+- `exnlp_gemm` copies those inputs to the device, then updates resident `P`.
+- `exnlp_work1_enter` remains a measurable transfer/setup cost.
+
+- `exnlp_only_make` は `work2_`, `cfac_`, `ngnl_` を host 側で生成します。
+- `exnlp_gemm` はそれらを device へ転送し、resident な `P` を更新します。
+- `exnlp_work1_enter` はまだ有意な転送/setup コストとして残っています。
+
+The preferred next implementation path is:
+
+推奨する次の実装方針:
+
+1. Keep the existing host-generated path as the correctness fallback.
+2. Add an experimental OpenACC path that generates the nonlocal projector input
+   and consumes it without a host round trip.
+3. Validate each step with `check_tddft_result.py check` and relaxed `compare`.
+4. Keep the `ia` update order in `exnlp_gemm` unchanged unless a separate
+   correctness experiment proves the reorder acceptable.
+
+1. 既存の host 生成経路は correctness fallback として残します。
+2. 非局所 projector 入力を GPU 側で生成し、host 往復なしで利用する実験的 OpenACC
+   経路を追加します。
+3. 各ステップで `check_tddft_result.py check` と relaxed `compare` を実施します。
+4. `exnlp_gemm` の `ia` 更新順序は、別途 correctness 実験で許容されると確認する
+   までは変更しません。
+
+Recommended archive label for the next successful run:
+
+次の成功実行の推奨 archive label:
+
+```text
+nvhpc_cufft_1rank_02_STEP16_01
+```
