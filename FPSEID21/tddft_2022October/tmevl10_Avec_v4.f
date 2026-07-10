@@ -1904,8 +1904,18 @@ c ***  temp check for YLM : end
     1 continue
       call prof_stop(25)
       call prof_start(26)
-      call exnlp_gemm(ng2q,work2_,p,omega,ngnl_,
+      call prof_start(38)
+!$acc enter data copyin(work2_(1:NGcont,1:loopcnt))
+      call prof_stop(38)
+      call prof_start(39)
+!$acc enter data copyin(cfac_(1:loopcnt),ngnl_(1:loopcnt))
+      call prof_stop(39)
+      call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont)
+      call prof_start(32)
+!$acc exit data delete(work2_(1:NGcont,1:loopcnt),
+!$acc& cfac_(1:loopcnt),ngnl_(1:loopcnt))
+      call prof_stop(32)
       call prof_stop(26)
       call prof_stop(11)
 c ****
@@ -2185,8 +2195,18 @@ c ** fourth: operate nonlocal potential terms
     4 continue
       call prof_stop(25)
       call prof_start(26)
-      call exnlp_gemm(ng2q,work2_,p,omega,ngnl_,
+      call prof_start(38)
+!$acc enter data copyin(work2_(1:NGcont,1:loopcnt))
+      call prof_stop(38)
+      call prof_start(39)
+!$acc enter data copyin(cfac_(1:loopcnt),ngnl_(1:loopcnt))
+      call prof_stop(39)
+      call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont)
+      call prof_start(32)
+!$acc exit data delete(work2_(1:NGcont,1:loopcnt),
+!$acc& cfac_(1:loopcnt),ngnl_(1:loopcnt))
+      call prof_stop(32)
       call prof_stop(26)
       call prof_stop(11)
 c ****

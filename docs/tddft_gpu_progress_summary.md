@@ -1078,3 +1078,66 @@ python3 ./tools/check_tddft_result.py check \
 python3 ./tools/check_tddft_result.py compare \
   ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err
 ```
+
+## Step 17: Use Present-Input exnlp GEMM Call Path / present入力版exnlp GEMM経路の使用
+
+Step 17 connects the new `exnlp_gemm_present_inputs` routine to the two
+nonlocal call sites in `S2_`.
+
+Step 17 では、Step 16 で追加した `exnlp_gemm_present_inputs` を `S2_` 内の
+2つの非局所項呼び出し箇所から実際に使うようにしました。
+
+Implemented change:
+
+実装内容:
+
+- `work2_`, `cfac_`, and `ngnl_` are explicitly copied to the device at the
+  `S2_` call site before `exnlp_gemm_present_inputs`.
+- `exnlp_gemm_present_inputs` consumes those already-present inputs and updates
+  the resident `P`.
+- The call site explicitly deletes `work2_`, `cfac_`, and `ngnl_` after the
+  GEMM path returns.
+- The original transfer-owning `exnlp_gemm` wrapper is kept as the fallback
+  implementation.
+
+- `exnlp_gemm_present_inputs` 呼び出し前に、`S2_` 側で `work2_`, `cfac_`,
+  `ngnl_` を明示的に device へ転送します。
+- `exnlp_gemm_present_inputs` は、すでに present な入力を使って resident な
+  `P` を更新します。
+- GEMM 経路の終了後、呼び出し側で `work2_`, `cfac_`, `ngnl_` を明示的に
+  delete します。
+- 転送を内部に持つ従来の `exnlp_gemm` wrapper は fallback として残しています。
+
+This step does not yet remove the host generation of `work2_`, `cfac_`, and
+`ngnl_`. It makes the data ownership boundary explicit so that the next step can
+move selected input generation onto the GPU and feed the present-input GEMM
+path without a host round trip.
+
+この step では、`work2_`, `cfac_`, `ngnl_` の host 生成はまだ残っています。
+目的は data ownership 境界を明示し、次 step で入力生成を GPU 側へ移して
+host 往復なしで present-input GEMM 経路へ渡せるようにすることです。
+
+Timer interpretation:
+
+タイマーの見方:
+
+- `exnlp_work1_enter` and `exnlp_meta_enter` now measure the caller-side
+  explicit input copy-in.
+- `exnlp_ct1_create` and `exnlp_gemm_dot/update` remain inside
+  `exnlp_gemm_present_inputs`.
+- `exnlp_gemm_exit` now also includes caller-side deletion of the explicit
+  nonlocal input buffers.
+
+- `exnlp_work1_enter` と `exnlp_meta_enter` は、呼び出し側で行う明示的な
+  input copy-in を測ります。
+- `exnlp_ct1_create` と `exnlp_gemm_dot/update` は
+  `exnlp_gemm_present_inputs` 内に残ります。
+- `exnlp_gemm_exit` には、呼び出し側の非局所入力 buffer delete も含まれます。
+
+Expected validation label:
+
+想定する検証 label:
+
+```text
+nvhpc_cufft_1rank_02_STEP17_01
+```
