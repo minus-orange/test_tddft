@@ -282,3 +282,17 @@ on the new fine-grained timer output.
 これらはデータ寿命と CPU/GPU 所有境界がそれぞれ異なるため、機械的に `_ACC` 化
 しない方が安全です。次の判断は、今回追加した細粒度タイマーの出力に基づいて
 行います。
+
+## Scatter Parallelization Experiment / scatter並列化実験
+
+The Step 4 timer output showed that `s2_scatter_p` dominated the remaining
+OpenACC kernel time. The first follow-up change flattens the `P -> RHO1_`
+scatter loop from a band-outer nested loop into a single
+`NXYZ * nbndloc` OpenACC loop. This gives the compiler a much larger iteration
+space for the scatter kernel while preserving the same `J2G` mapping.
+
+Step 4 の timer 出力では、残っている OpenACC kernel 時間の大半が
+`s2_scatter_p` でした。最初の追試として、`P -> RHO1_` の scatter loop を
+band 外側の二重 loop から `NXYZ * nbndloc` の一次元 OpenACC loop に変更しました。
+これにより `J2G` mapping は維持したまま、scatter kernel の並列化粒度を大きく
+します。

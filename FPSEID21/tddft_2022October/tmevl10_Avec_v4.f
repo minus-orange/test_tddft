@@ -845,6 +845,7 @@ c      COMPLEX*16 WSAVE_XYZ(NRX+NRY+NRZ)
 c      DIMENSION IFAC_XYZ(60)
 c *** for Kokubo FFTW
       integer*8 plancfp,plancbp
+      integer idx
       DIMENSION J2G(NG2Q),G2(4,NG2Q)
       DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ), MXOFL(NTYQ)
 c      DIMENSION VPJ(NG2Q,3,2,NTYQ),VPP(3,2,NTYQ),VPP2(4,3,NTYQ)
@@ -1924,16 +1925,11 @@ c  101    RHO1(JG)=(0.D0,0.D0)
       call prof_start(20)
 !$acc parallel loop present(P(1:NXYZ,1:nbndloc),
 !$acc& RHO1_(1:NXYZ,1:nbndloc),J2G(1:NXYZ)) private(iib,IG,JG)
-      do ib=nbegin,nend
-       iib=ib-nbegin+1
-! ==============================================================================
-*VDIR NODEP(RHO1)
-!ocl norecurrence(RHO1)
-c         DO 100 IG=1,NG2
-         DO 100 IG=1,NXYZ
+      do idx=1,NXYZ*nbndloc
+         IG=mod(idx-1,NXYZ)+1
+         iib=(idx-1)/NXYZ+1
          JG=J2G(IG)
-  100    RHO1_(JG,iib)=P(IG,iib)
-! ==============================================================================
+         RHO1_(JG,iib)=P(IG,iib)
       enddo
       call prof_stop(20)
       call prof_stop(18)
