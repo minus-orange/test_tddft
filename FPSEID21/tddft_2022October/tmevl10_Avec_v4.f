@@ -1802,6 +1802,7 @@ c ***  temp check for YLM : end
       endif
 ! ==============================================================================
       call prof_start(11)
+      call prof_start(25)
       loopcnt = 0
       dthalf=0.5d0*dt
       do 1 ity=ntype,1,-1
@@ -1889,8 +1890,11 @@ c ***  temp check for YLM : end
     3   continue
     2  continue
     1 continue
+      call prof_stop(25)
+      call prof_start(26)
       call exnlp_gemm(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont)
+      call prof_stop(26)
       call prof_stop(11)
 c ****
 c *****  temp check : orthonormality
@@ -2085,6 +2089,7 @@ c *** temp check:end
 C
 c ** fourth: operate nonlocal potential terms
       call prof_start(11)
+      call prof_start(25)
       loopcnt = 0
       do 4 ity=1,ntype
        if ( numty(ity).lt.0 ) goto 4 ! skip Hydrogen
@@ -2171,8 +2176,11 @@ c ** fourth: operate nonlocal potential terms
     6   continue
     5  continue
     4 continue
+      call prof_stop(25)
+      call prof_start(26)
       call exnlp_gemm(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont)
+      call prof_stop(26)
       call prof_stop(11)
 c ****
 c *****  temp check : orthonormality

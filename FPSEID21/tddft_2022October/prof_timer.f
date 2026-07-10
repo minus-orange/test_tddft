@@ -100,5 +100,7 @@
       if (id.eq.22) name='s2_local_multiply'
       if (id.eq.23) name='s2_gather_p'
       if (id.eq.24) name='s2_copyout_p'
+      if (id.eq.25) name='s2_nonlocal_make'
+      if (id.eq.26) name='s2_nonlocal_gemm'
       return
       end

@@ -296,3 +296,40 @@ Step 4 の timer 出力では、残っている OpenACC kernel 時間の大半�
 band 外側の二重 loop から `NXYZ * nbndloc` の一次元 OpenACC loop に変更しました。
 これにより `J2G` mapping は維持したまま、scatter kernel の並列化粒度を大きく
 します。
+
+The Step 5 run passed both `check` and relaxed `compare`. In that run,
+`s2_scatter_p` dropped from about 56 s to about 0.46 s, and total wall time
+dropped to about 303 s. This confirms that the scatter loop flattening is a
+useful optimization for the current one-rank A100 case.
+
+Step 5 実行では `check` と relaxed `compare` の両方が PASS しました。
+`s2_scatter_p` は約 56 秒から約 0.46 秒へ減少し、wall time は約 303 秒まで
+短縮しました。現在の 1 rank / A100 ケースでは、scatter loop 平坦化は有効な
+最適化と判断できます。
+
+## Step 6: Nonlocal Split Timers / 非局所項の分解タイマー
+
+After Step 5, the largest remaining S2 cost is `s2_nonlocal`. Step 6 adds nested
+timers that split this aggregate region without changing the computation:
+
+Step 5 後、S2 内で最も大きく残っているコストは `s2_nonlocal` です。Step 6 では
+計算内容を変えず、この集計領域を次の2つに分解するネストタイマーを追加しました。
+
+| id | label | measured work |
+| ---: | --- | --- |
+| 25 | `s2_nonlocal_make` | repeated `exnlp_only_make` calls that build `work2_`, `cfac_`, and `ngnl_` input data |
+| 26 | `s2_nonlocal_gemm` | `exnlp_gemm` accumulation into `P` |
+
+These timers are nested inside `s2_nonlocal`, so:
+
+これらは `s2_nonlocal` の内側に入っているため、以下の関係になります。
+
+```text
+s2_nonlocal ≈ s2_nonlocal_make + s2_nonlocal_gemm + loop/control overhead
+```
+
+Use the next run to decide whether the next GPU work should target
+`exnlp_only_make` construction, `exnlp_gemm`, or both.
+
+次回の実行結果で、次の GPU 化対象を `exnlp_only_make` 側にするか、
+`exnlp_gemm` 側にするか、あるいは両方にするかを判断します。
