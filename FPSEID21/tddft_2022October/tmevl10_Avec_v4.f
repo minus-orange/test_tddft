@@ -1841,35 +1841,39 @@ c ***  temp check for YLM : end
          l=il
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          elseif ( il.eq.2 ) then
          do l=4,2,-1
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.3 ) then
          do l=9,5,-1
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.4 ) then
          do l=16,10,-1
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          endif
@@ -1879,35 +1883,39 @@ c ***  temp check for YLM : end
          l=il
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          elseif ( il.eq.2 ) then
          do l=4,2,-1
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.3 ) then
          do l=9,5,-1
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.4 ) then
          do l=16,10,-1
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          endif
@@ -2132,35 +2140,39 @@ c ** fourth: operate nonlocal potential terms
          l=il
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          elseif ( il.eq.2 ) then
          do l=2,4
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.3 ) then
          do l=5,9
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.4 ) then
          do l=10,16
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          endif
@@ -2170,35 +2182,39 @@ c ** fourth: operate nonlocal potential terms
          l=il
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          elseif ( il.eq.2 ) then
          do l=2,4
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.3 ) then
          do l=5,9
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.4 ) then
          do l=10,16
          loopcnt = loopcnt + 1
          call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NTYQ,NTAUQ,NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          endif
@@ -2450,11 +2466,13 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       end subroutine exnlp_only_make
 
       subroutine exnlp_only_make_acc(dt, ng2q, ng2, g2, vpj, vpp, vpp2,
-     &   l, ylm, extau, work1, tpiba, omega, tau, ngnl, cfac,NGcont)
+     &   l, ylm, extau, np, itseq, ip, il, ity, work1, tpiba, omega,
+     &   tau, ngnl, cfac, NTYQ, NTAUQ, NGcont)
       implicit double precision(a-h,o-z)
 c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
-      dimension g2(4,ng2q), vpj(NGcont), ylm(NGcont,16), tau(3)
-      complex*16 extau(NGcont), work1(NGcont), cfac
+      dimension g2(4,ng2q), vpj(NGcont,3,4,NTYQ)
+      dimension ylm(NGcont,16), tau(3)
+      complex*16 extau(NGcont,5,NTAUQ), work1(NGcont), cfac
       pi = 4.d0*atan(1.d0)
       fpi = 4.d0*pi
       fpisq = fpi**2
@@ -2470,9 +2488,11 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       if (l .ge. 5)  lylm = l  ! This is not 1 but l !!
 !$acc parallel loop present(work1(1:NGcont))
 !$acc& present(ylm(1:NGcont,1:16))
-!$acc& present(extau(1:NGcont),vpj(1:NGcont))
+!$acc& present(extau(1:NGcont,1:5,1:NTAUQ))
+!$acc& present(vpj(1:NGcont,1:3,1:4,1:NTYQ))
       do ig = 1, ngnl
-         work1(ig) = fac*ylm(ig,lylm)*extau(ig)*vpj(ig)
+         work1(ig) = fac*ylm(ig,lylm)*extau(ig,np,itseq)
+     &              *vpj(ig,ip,il,ity)
       end do
       return
       end subroutine exnlp_only_make_acc
