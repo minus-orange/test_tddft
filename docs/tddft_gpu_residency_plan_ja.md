@@ -1,0 +1,259 @@
+# TDDFT GPU常駐化方針
+
+> [English version](tddft_gpu_residency_plan_en.md)
+
+> この日本語版は、TDDFTのGPU常駐化方針を実装順に読めるよう整理しています。
+> 配列名、routine名、OpenACC directive、ビルド変数はソースと一致させるため原表記を維持します。
+
+## 用語メモ
+
+- **GPU常駐（residency）**: 複数の処理にまたがって配列をGPUメモリ上に保持する設計です。
+- **ownership（所有責任）**: どのroutineがdevice mappingの作成、同期、削除を担当するかを表します。
+- **authority（正本）**: HostとDeviceのどちらの値を最新かつ正しい値として扱うかを表します。
+- **data region**: OpenACCで配列のGPU上の寿命を囲む範囲です。
+- **host_data use_device**: OpenACC管理配列のdevice pointerをcuFFTなどのCUDAライブラリへ渡す仕組みです。
+
+日付: 2026-07-09
+
+このメモは、FPSEID21 TDDFT `Si111-H` 検証ケースに対する次のGPU最適化方針を
+記録します。対象は、現在確認している1 GPU / 1 MPI rankの経路です。最初の
+実装手段はOpenACCとし、cuFFTなどのCUDAライブラリは使用可とします。ただし、
+独自CUDAカーネルを書く実装は最初の対象から外します。
+
+実装済みの内容と各 step の測定結果は
+`docs/tddft_gpu_progress_summary.md` にまとめています。
+
+## ゴール
+
+このブランチのゴールは、TDDFT のタイムステップ内部を実用上可能な範囲で GPU
+実行へ移し、タイムステップループ中の Host-Device 間メモリ転送を最小化すること
+です。
+
+初期対象は `s2_fft_local` でしたが、これは最初に効果が大きい転送ボトルネック
+だったためです。今後の最適化境界は伝播経路全体へ広げます。ただし、検証済みの
+CPU/FFTW 経路と、現在の 1 GPU / 1 MPI rank 検証方針は維持します。
+
+## 現状
+
+cuFFT版は、コミット済みGNU基準とのrelaxed比較で許容範囲に入っています。
+
+100 stepのprofile比較:
+
+| backend | `time_step_total` | `tmevl_s2` | `s2_fft_local` | `fft_wrapper` |
+|---|---:|---:|---:|---:|
+| FFTW | 501.068871秒 | 357.088483秒 | 234.100450秒 | 163.592244秒 |
+| cuFFT | 443.502158秒 | 306.979328秒 | 183.825464秒 | 100.969549秒 |
+| cuFFT + detailed timer | 450.275156秒 | 312.923191秒 | 190.457058秒 | 109.613606秒 |
+
+cuFFT詳細profile:
+
+| 項目 | 値 |
+|---|---:|
+| cuFFT calls | 336589 |
+| HostからDeviceへのcopy | 47.947526631秒 |
+| cuFFT実行 | 15.640776237秒 |
+| DeviceからHostへのcopy | 41.666117352秒 |
+| wrapper合計 | 105.254420208秒 |
+
+支配的なコストはFFTカーネルではなく、Host <-> Device転送です。
+
+## ソース上のデータフロー
+
+ホット領域は `FPSEID21/tddft_2022October/tmevl10_Avec_v4.f` の `S2_` です。
+
+| profile label | source上の処理 |
+|---|---|
+| `tmevl_s2` | `S2_`全体 |
+| `s2_nonlocal` | `exnlp_only_make`と`exnlp_gemm`による非局所擬ポテンシャル |
+| `s2_fft_local` | 局所ポテンシャルFFT部 |
+| `fft_wrapper` | 個々のFFT wrapper呼び出し |
+
+`s2_fft_local`内のdata flow:
+
+1. `J2G`を使って`P(IG,iib)`を`RHO1_(JG,iib)`へscatterします。
+2. bandごとにinverse FFTを実行します。
+3. `VG(I)=VGG(I)+Vloc(I)`を作ります。
+4. 局所ポテンシャルのphase factorを`RHO2_`へ適用します。
+5. bandごとにforward FFTを実行します。
+6. `RHO2_(JG,iib)`を`P(IG,iib)`へgatherします。
+
+`RHO1_(NXYZ,mxbnd)` と `RHO2_(NXYZ,mxbnd)` は、各bandスライスがFortran配列上で
+連続しているため、最初にGPU常駐化する対象として扱いやすいです。
+
+## 実装方針
+
+TDDFTのFortran側では、GPU常駐配列と要素ごとの処理をOpenACCで表現します。
+FFT操作のみ、ライブラリbackendとしてcuFFTを使います。
+
+実務上は以下の方針です。
+
+- 新しいTDDFT GPU化では `!$acc data`, `!$acc parallel loop`,
+  `!$acc kernels`, `!$acc host_data use_device(...)` を優先します。
+- 独自CUDAカーネルを主実装として追加しません。
+- 既存のCPU/FFTW経路、およびGNU/Intel向けsource variantは維持します。
+- cuFFTはOpenACC管理下のdevice bufferに対して動作するライブラリ呼び出しとして
+  扱います。
+- 既存のhost-copy型cuFFT wrapperは互換性維持用として残し、OpenACC管理配列用に
+  device pointerを受け取る別APIを追加します。
+
+## cuFFT Wrapper API境界
+
+現行のcuFFT wrapperは、host配列をprivate CUDA bufferへコピーし、cuFFTを実行して
+結果をhostへ戻します。この経路は検証済みのため、互換backendとして残します。
+
+OpenACC常駐化用には、device pointerを受け取り、host-device copyを行わない
+第2のwrapper interfaceを追加します。
+
+```text
+existing compatibility API:
+  host array -> wrapper H2D -> cuFFT -> wrapper D2H -> host array
+
+new OpenACC API:
+  OpenACC device array -> host_data use_device -> cuFFT only
+```
+
+新しいdevice-pointer経路では以下を前提にします。
+
+- 入力pointerはすでに有効なdevice pointerである。
+- cuFFTはin-placeで実行する。
+- cuFFT正規化は必要に応じてFortran側OpenACC loopで行う。
+- エラー時に暗黙のhost copy fallbackを行わない。
+
+この分離は重要です。OpenACC経路が誤ってhost-copy wrapperを呼ぶと、転送時間が
+支配的なままで、GPU常駐化の検証になりません。
+
+## 実装順序
+
+`S2_` のlocal FFT部にOpenACC data regionを追加し、local FFTペアの処理中に
+`RHO1_`, `RHO2_`, local potential vectorをGPU上に保持します。
+
+期待する効果:
+
+- Fortran側でdata movementを明示し、計測可能にします。
+- OpenACCとcuFFTの相互運用に安定した境界を作ります。
+- 配列寿命が明確になる前に独自CUDA kernelを追加しません。
+
+最初のdata region境界は意図的に狭くします。
+
+```text
+CPU側の非局所項処理が完了
+local FFT部に必要な P, VGG, Vloc, J2G をdeviceへ転送
+RHO1_, RHO2_, VG をdevice上で作成または保持
+local FFT部をdevice上で実行
+CPU側処理へ戻る前に P をhostへ戻す
+```
+
+非局所項をCPU側に残す段階では、この境界によりCPU/GPUの所有関係を明確にします。
+
+初期実装メモ:
+
+- Step 1では、既存のhost-copy型FFT wrapperを呼ぶ移行状態を許容します。
+- その場合、FFT呼び出し前に `!$acc update self(...)`、FFT呼び出し後に
+  `!$acc update device(...)` を明示します。
+- この段階ではFFT転送オーバーヘッドはまだ削減されません。Step 2で
+  device-pointer cuFFT APIを追加する前に、OpenACC data lifetimeと同期境界を
+  検証することを目的とします。
+
+OpenACC管理下のdevice memoryに対して、active band blockをcuFFTで処理します。
+Fortran側ではcuFFT呼び出しの周囲で `!$acc host_data use_device(...)` を使い、
+C wrapper内部でbandごとにprivate CUDA bufferへコピーする方式を減らします。
+
+```fortran
+RHO2_(I,iib)=dcmplx(dcos(fac),-dsin(fac))*RHO1_(I,iib)
+```
+
+```text
+OpenACC data region for RHO1_/RHO2_/VG
+cuFFT inverse/bx using OpenACC device pointer
+OpenACC local-potential multiply using VG
+cuFFT forward/fx using OpenACC device pointer
+OpenACC scaling
+copy out only the data required by the following CPU-side section
+```
+
+`VG` は、検証上の理由で一時的にCPU生成が必要な場合を除き、GPU上で `VGG` と
+`Vloc` から作ります。
+
+```fortran
+VG(I)=VGG(I)+Vloc(I)
+```
+
+2つの `s2_nonlocal` 領域は、まずCPU側に残します。ローカルFFT部の常駐化が
+正しく動くことを確認してから、次段階として検討します。
+
+Step 3後も転送が支配的な場合に、`P`/`J2G` のscatter/gatherや非局所GEMMの
+GPU化を検討します。
+
+## 確認方法
+
+```sh
+LABEL=<label> ./tools/archive_tddft_result.sh ./run/Si111-H_nvhpc/
+
+python3 ./tools/check_tddft_result.py check \
+  ./run/tddft_archives/<label>/tddft.out \
+  --err ./run/tddft_archives/<label>/tddft.err
+
+python3 ./tools/check_tddft_result.py compare \
+  ./run/tddft_archives/<label>/tddft.err
+```
+
+正当性確認は、特にstrict確認を指定しない限り、既存のTDDFT relaxed比較基準を
+使います。
+
+OpenACC常駐化の初期変更では、100 step relaxed比較に進む前に短時間のstrict寄り
+確認も行います。
+
+```text
+1. 2 step、または実用上最小のTDDFT runを実行する。
+2. check_tddft_result.py checkがPASSすることを確認する。
+3. 可能な範囲で厳しいtoleranceを使い、検証済み出力と比較する。
+4. その後に100 stepのrelaxed比較を実行する。
+```
+
+目的は、同期ミス、古いdevice dataの使用、host-copy cuFFT wrapperの誤使用を
+早い段階で検出することです。
+
+## NVHPC OpenACCビルドメモ
+
+OpenACC経路は、NVHPCのOpenACC flagを明示してビルドします。GPU architecture flag
+は環境依存でよいですが、OpenACC modeであることがビルドコマンド上で分かる
+ようにします。
+
+```sh
+BUILD_REPORT=1
+FFLAGS="-O2 -acc -gpu=cc80 -mp -Msave -Mlarge_arrays -Kieee"
+FFT_BACKEND=cufft
+```
+
+`BUILD_REPORT=1` はcompiler report flagを追加し、最終的なビルド設定を表示します。
+NVHPCでのdefault report flagは以下です。
+
+```sh
+REPORT_FLAGS="-Minfo=accel -Minfo=mp"
+```
+
+このreportにより、`S2_` のOpenACC regionが認識されているか、既存CPU OpenMP
+regionが想定通りコンパイルされているかを確認します。
+
+cuFFT linkは既存のcuFFT library設定を継続します。OpenACC device-pointer wrapper
+がCUDA runtime型やcuFFT宣言を必要とする場合、include/library pathは検証済み
+cuFFTビルドと同様に明示します。
+
+## 現時点の判断
+
+現在の検証済み方針は以下です。
+
+- Fortran 側の GPU 常駐化と kernel 化には OpenACC を使います。
+- FFT は OpenACC device pointer 経由の cuFFT library backend を使います。
+- 当面は独自 CUDA kernel を追加しません。
+- 検証対象は 1 GPU / 1 MPI rank とします。
+- 常駐範囲は局所的な `S2_` 区間から TDDFT time-step 内部全体へ広げます。
+
+次のコーディング対象は、物理 routine を一括で置き換えるのではなく、測定コストに
+基づいて選びます。最新の検証済み実行後、次の候補は以下です。
+
+1. `exnlp_gemm_enter` の setup/copy cost を削減します。
+2. `ia` の逐次依存を変えずに、`exnlp_gemm_dot` と `exnlp_gemm_update` の kernel
+   構造を改善します。
+3. まだ host-copy cuFFT wrapper を使っている互換 FFT 呼び出しを特定します。
+4. `TMEVL` 境界に残る `P` 転送を削減します。
