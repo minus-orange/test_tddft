@@ -534,6 +534,9 @@ c *** temp check:end
       nbndloc=nend(my_rank)-nbegin(my_rank)+1
       call prof_start(35)
 !$acc enter data copyin(P(1:NG2Q,1:nbndloc))
+!$acc enter data copyin(YLM1(1:NGcont,1:16),
+!$acc& YLM2(1:NGcont,1:16),YLM3(1:NGcont,1:16),
+!$acc& YLM4(1:NGcont,1:16),YLM5(1:NGcont,1:16))
       call prof_stop(35)
       dt1=pr1*dt
 c      call exkin(dt1,nxyz,ng2q,P(1,ib),G2,TPIBA2,GDUMP,GMHF)
@@ -740,6 +743,9 @@ c      enddo
 c      endif
 c ***
       call prof_start(36)
+!$acc exit data delete(YLM1(1:NGcont,1:16),
+!$acc& YLM2(1:NGcont,1:16),YLM3(1:NGcont,1:16),
+!$acc& YLM4(1:NGcont,1:16),YLM5(1:NGcont,1:16))
 !$acc exit data copyout(P(1:NG2Q,1:nbndloc))
       call prof_stop(36)
       endif  ! end of if (ioption.eq...)  loop
@@ -2533,7 +2539,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
      & extau)
 #endif
 !$acc parallel loop present(work1(1:NGcont))
-!$acc& copyin(ylm(1:NGcont,lylm))
+!$acc& present(ylm(1:NGcont,1:16))
 !$acc& copyin(extau(1:NGcont,np,itseq))
 !$acc& copyin(vpj(1:NGcont,ip,il,ity))
       do ig = 1, ngnl
