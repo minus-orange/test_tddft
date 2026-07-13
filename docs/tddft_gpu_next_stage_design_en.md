@@ -617,6 +617,18 @@ All A commits use the ON/OFF commands in Section 12.
 
 Save one monotonic archive label such as `nvhpc_cufft_1rank_o2_STEPA_01` containing:
 
+For B1 and later ownership logs, the five-phase Y1 conditions for YLM can be
+checked automatically with:
+
+```sh
+python3 ./tools/check_stepa_ownership.py --family ylm /path/to/tddft.err
+```
+
+The check validates parent/section `query_status=OK`, present values,
+symbols, contiguity, expected/observed offsets, and matching `ngcont`. Numerical
+correctness and the performance gate remain separate checks using
+`check_tddft_result.py` and the archived wall time.
+
 - source commit and build command;
 - compiler version and `-Minfo` report;
 - A1-A6 output;

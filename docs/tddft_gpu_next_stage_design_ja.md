@@ -518,6 +518,17 @@ FPSEID_STEPA_NONLOCAL rank= block=forward|reverse loopcnt= work2_ncol= ngcont= n
 
 archive labelは`nvhpc_cufft_1rank_o2_STEPA_01`のように単調増加させ、次を保存します。
 
+B1以降のownership診断ログは、YLMについて次のコマンドで5 phaseのY1条件を
+自動確認できます。
+
+```sh
+python3 ./tools/check_stepa_ownership.py --family ylm /path/to/tddft.err
+```
+
+このcheckはparent/sectionの`query_status=OK`、present値、symbol、contiguity、
+expected/observed offset、`ngcont`一致を確認します。数値結果と性能gateは別途
+`check_tddft_result.py`と保存済みwall timeで判定します。
+
 - source commitとbuild command
 - compiler versionと`-Minfo` report
 - A1-A6出力
