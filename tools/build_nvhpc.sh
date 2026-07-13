@@ -13,6 +13,7 @@ FFTW_ROOT=${FFTW_ROOT:-"$ROOT_DIR/tools/fftw-${VERSION}-nvhpc/install"}
 SKIP_FFTW=${SKIP_FFTW:-0}
 ENABLE_GPU_FFT=${ENABLE_GPU_FFT:-0}
 BUILD_REPORT=${BUILD_REPORT:-0}
+FPSEID_STEP_A_DIAGNOSTIC=${FPSEID_STEP_A_DIAGNOSTIC:-0}
 
 NVFORTRAN=${NVFORTRAN:-nvfortran}
 MPI_FC=${MPI_FC:-mpifort}
@@ -124,7 +125,8 @@ if ! command -v "$MPI_FC" >/dev/null 2>&1; then
   echo "ERROR: $MPI_FC was not found. Load the MPI environment first." >&2
   exit 1
 fi
-if [ "$ENABLE_GPU_FFT" = 1 ] && ! command -v "$GPU_CC" >/dev/null 2>&1; then
+if { [ "$ENABLE_GPU_FFT" = 1 ] || [ "$FPSEID_STEP_A_DIAGNOSTIC" = 1 ]; } &&
+   ! command -v "$GPU_CC" >/dev/null 2>&1; then
   echo "ERROR: $GPU_CC was not found. Set GPU_CC to a C compiler that can find CUDA headers." >&2
   exit 1
 fi
@@ -191,12 +193,20 @@ echo "Building TDDFT with $MPI_FC"
     echo "Using CUFFT_INCLUDE=$CUFFT_INCLUDE"
     echo "Using GPU_CFLAGS=$GPU_CFLAGS"
     echo "Using BUILD_REPORT=$BUILD_REPORT"
+    echo "Using FPSEID_STEP_A_DIAGNOSTIC=$FPSEID_STEP_A_DIAGNOSTIC"
     FC="$MPI_FC" CC="$GPU_CC" CFLAGS="$GPU_CFLAGS" FFLAGS="$TDDFT_FFLAGS" \
       BUILD_REPORT="$BUILD_REPORT" REPORT_FLAGS="$NVHPC_REPORT_FLAGS" \
+      FPSEID_STEP_A_DIAGNOSTIC="$FPSEID_STEP_A_DIAGNOSTIC" \
       FFT_BACKEND=cufft CUFFT_LIBS="$TDDFT_CUFFT_LIBS" ./mk_ifort.sh
   else
-    FC="$MPI_FC" CC="$MPI_CC" FFLAGS="$TDDFT_FFLAGS" FFTW_ROOT="$FFTW_ROOT" \
+    if [ "$FPSEID_STEP_A_DIAGNOSTIC" = 1 ]; then
+      TDDFT_CC=$GPU_CC
+    else
+      TDDFT_CC=$MPI_CC
+    fi
+    FC="$MPI_FC" CC="$TDDFT_CC" FFLAGS="$TDDFT_FFLAGS" FFTW_ROOT="$FFTW_ROOT" \
       BUILD_REPORT="$BUILD_REPORT" REPORT_FLAGS="$NVHPC_REPORT_FLAGS" \
+      FPSEID_STEP_A_DIAGNOSTIC="$FPSEID_STEP_A_DIAGNOSTIC" \
       FFTW_LIBS="$TDDFT_FFTW_LIBS" ./mk_ifort.sh
   fi
 )
