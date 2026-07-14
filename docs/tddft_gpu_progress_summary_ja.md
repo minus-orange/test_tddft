@@ -955,3 +955,33 @@ run 01のprofileでは、`s2_nonlocal`が`29.425824`秒、`tmevl_s2`が
 `0.150348`秒でした。反復deleteに対応していた`exnlp_gemm_exit`はprofileから消え、
 timer数は32から31になりました。wall改善は小さいものの、反復device allocationを
 削減しながら性能非悪化gateを満たすため、Step 22を正式採用します。
+
+## Step 23: reverse nonlocal phaseでのstaging buffer再利用
+
+各`S2_`ではlocal potentialの前後にnonlocal projectorを適用します。前半は
+`ity/it/il/ip/l`をすべて降順、後半は同じindex集合をすべて昇順に走査しており、
+後半のprojector列は前半の完全な逆順です。Step 23では前半でhost生成してdeviceへ
+転送した`work2_`、`cfac_`、`ngnl_`を後半でも再利用し、consumerの列indexだけを
+`loopcnt-ia+1`へ変換します。これにより、元の逐次`ia`適用順序を変えず、後半の
+host生成と大規模H2Dを削減します。
+
+実装commitは`f911621` (`Reuse nonlocal staging buffers in reverse phase`)です。
+CPU/FFTW fallbackのフルリンクを確認後、diagnostic OFF、1 GPU / 1 MPI rank、
+100 stepで3回測定しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP23_REVERSE_REUSE_01` | 140.934056997 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP23_REVERSE_REUSE_02` | 140.840327024 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP23_REVERSE_REUSE_03` | 140.451899052 | PASS | PASS |
+
+3回中央値は`140.840327024`秒です。Step 22中央値`146.268707991`秒より約3.711%
+速く、rollback後のStep 18中央値`161.753436089`秒より約12.929%速い結果です。
+実行間の幅は約0.482秒で、全runの通常checkとrelaxed compareがPASSしました。
+
+run 01では`exnlp_work1_enter`と`exnlp_meta_enter`のcountが9440から4720へ半減し、
+時間もそれぞれ`4.046410`秒と`0.074782`秒へほぼ半減しました。
+`exnlp_gemm_dot` countは`453120`のまま維持されています。`s2_nonlocal_make`は
+`1.517394`秒、`s2_nonlocal`は`24.380108`秒、`tmevl_s2`は`29.408207`秒でした。
+数値結果とprojector適用回数を維持しながら後半H2Dを削減できたため、Step 23を
+正式採用します。
