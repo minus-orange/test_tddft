@@ -877,3 +877,22 @@ increase: about 6.7 percent
 不採用とし、commit `a40ddd6`でYLM ownership変更だけをrollbackしました。この
 rollbackは`origin/tddft-openacc-residency`へpush済みです。VPJ/EXTAU ownershipへは
 進まず、diagnostic OFFのStep 18相当条件を3回再測定してbaseline回復を確認します。
+
+### rollback後のStep 18 baseline回復確認
+
+コードをStep 18記録commit `732793d`相当へ戻した後、diagnostic OFF、1 GPU / 1 MPI
+rankで100 stepを3回再測定しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_B1_ROLLBACK_01` | 162.262726068 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_B1_ROLLBACK_02` | 161.753436089 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_B1_ROLLBACK_03` | 161.717231989 | PASS | PASS |
+
+3回中央値は`161.753436089`秒です。正式Step 18値`163.310745001`秒より約0.954%速く、
+実行間の幅は約0.545秒です。+3%上限`168.210067351`秒以内であり、全runで通常checkと
+relaxed compareがPASSしたため、rollback後のbaseline回復gateは完了です。
+
+relaxed compareの各run共通最大絶対差は、ETOT `9.287000e-05`、
+Eelec+Enucl-Eext-Ework `9.497180e-05`、force `9.050000e-05`、positions
+`8.117602e-07`、velocities `2.087788e-07`で、すべて設定tolerance以内です。

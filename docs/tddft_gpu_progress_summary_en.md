@@ -981,3 +981,26 @@ gate. B1 was therefore rejected, and commit `a40ddd6` rolled back only the YLM
 ownership change. The rollback has been pushed to
 `origin/tddft-openacc-residency`. VPJ/EXTAU ownership must not proceed until
 three diagnostic-OFF Step-18-equivalent runs confirm baseline recovery.
+
+### Post-rollback Step 18 baseline recovery
+
+After restoring the code to the state recorded by Step 18 commit `732793d`,
+the 100-step case was rerun three times with diagnostics off and one GPU / one
+MPI rank.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_B1_ROLLBACK_01` | 162.262726068 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_B1_ROLLBACK_02` | 161.753436089 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_B1_ROLLBACK_03` | 161.717231989 | PASS | PASS |
+
+The three-run median is `161.753436089` sec, about 0.954% faster than the
+official Step 18 value of `163.310745001` sec. The run-to-run range is about
+0.545 sec. The median is within the +3% limit of `168.210067351` sec, and all
+runs passed both the normal check and relaxed comparison. The post-rollback
+baseline recovery gate is therefore complete.
+
+The common maximum absolute differences in the relaxed comparisons were ETOT
+`9.287000e-05`, Eelec+Enucl-Eext-Ework `9.497180e-05`, force `9.050000e-05`,
+positions `8.117602e-07`, and velocities `2.087788e-07`; all were within their
+configured tolerances.
