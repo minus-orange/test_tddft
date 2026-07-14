@@ -1233,3 +1233,35 @@ deprioritized. The next candidate is to raise `P/COEF` mapping ownership above
 TMEVL, initially retaining D2H synchronization for host consumers while
 removing repeated H2D. The second candidate is direct device generation of
 `work2_`, removing the bulk H2D at line 1913.
+
+## Step 28: COEF Residency Across the Predictor-Corrector Sequence
+
+To remove the repeated TMEVL-entry H2D identified in Step 27, the device
+mapping of `COEF` and its correction restart value `COEF0` was moved to the
+FRPRMN predictor-corrector scope. Each correction now restores `COEF` from
+`COEF0` on the device. The D2H at the end of TMEVL remains because the
+immediately following host-side `RHOOFK` and `SUMCHR` routines read `COEF`.
+The CPU/FFTW fallback retains the original host `coefcp` path, and its full
+link passed.
+
+The implementation commit is `c3552af` (`Keep TDDFT coefficients resident
+across corrections`). Three diagnostic-off, one-GPU / one-MPI-rank, 100-step
+runs were made.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP28_COEF_RESIDENT_01` | 129.075486183 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP28_COEF_RESIDENT_02` | 127.753921986 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP28_COEF_RESIDENT_03` | 129.260547161 | PASS | PASS |
+
+The three-run median is `129.075486183` sec, about 1.173% faster than the Step
+25 median of `130.607889175` sec and about 20.202% faster than the refreshed
+Step 18 median of `161.753436089` sec. The run-to-run range is about 1.507 sec,
+and every run passed both the normal check and relaxed comparison.
+
+In run 01, `tmevl_p_enter` was nearly eliminated, falling from `2.925959` sec
+in Step 25 run 01 to `0.001273` sec. `tmevl_total` fell by about 4.745%, from
+`61.235540` sec to `58.329469` sec. `tmevl_p_exit` remained at `2.825121` sec,
+as intended for the host consumers. Step 28 is accepted because it removes the
+repeated H2D while preserving the numerical result. The next candidate is
+direct device generation of the nonlocal `work2_` buffer identified in Step 27.

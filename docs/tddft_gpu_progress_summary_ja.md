@@ -1102,3 +1102,30 @@ kernel summaryでは`exnlp_gemm_body_fused`が9440回、約82.06秒でGPU kernel
 第一候補は、TMEVL単位の`P/COEF` mappingをcaller所有へ拡大し、host consumer向けの
 D2Hを当面維持しながら、反復H2Dを削減することです。第二候補は`work2_`をdevice上で
 直接生成してline 1913のbulk H2Dを削減することです。
+
+## Step 28: predictor-corrector区間でのCOEF常駐化
+
+Step 27で特定したTMEVL entryの反復H2Dを削減するため、`COEF`と、その反復開始値を
+保持する`COEF0`のdevice mappingをFRPRMNのpredictor-corrector区間へ移しました。
+各補正反復の`COEF0`から`COEF`への復元はdevice上で実行します。TMEVL終了時のD2Hは、
+直後のhost側`RHOOFK`および`SUMCHR`が`COEF`を読むため維持しています。CPU/FFTW
+fallbackでは従来のhost `coefcp`経路を変更せず、フルリンクがPASSしました。
+
+実装commitは`c3552af` (`Keep TDDFT coefficients resident across corrections`)です。
+diagnostic OFF、1 GPU / 1 MPI rank、100 stepで3回測定しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP28_COEF_RESIDENT_01` | 129.075486183 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP28_COEF_RESIDENT_02` | 127.753921986 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP28_COEF_RESIDENT_03` | 129.260547161 | PASS | PASS |
+
+3回中央値は`129.075486183`秒です。Step 25中央値`130.607889175`秒より約1.173%
+速く、rollback後のStep 18中央値`161.753436089`秒より約20.202%高速です。実行間の
+幅は約1.507秒で、全runの通常checkとrelaxed compareがPASSしました。
+
+run 01では、`tmevl_p_enter`がStep 25 run 01の`2.925959`秒から`0.001273`秒へ
+ほぼ消失しました。`tmevl_total`も`61.235540`秒から`58.329469`秒へ約4.745%
+短縮しました。`tmevl_p_exit`は`2.825121`秒で、意図どおりhost consumer向けD2Hを
+維持しています。数値結果を保ちながら反復H2Dを削減できたため、Step 28を正式採用
+します。次の候補は、Step 27で第二候補だったnonlocal `work2_`のdevice直接生成です。
