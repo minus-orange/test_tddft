@@ -529,7 +529,8 @@ c      endif
 c *** temp check:end
       nbndloc=nend(my_rank)-nbegin(my_rank)+1
       call prof_start(35)
-!$acc enter data copyin(P(1:NG2Q,1:nbndloc))
+c     P is owned by FRPRMN across the predictor-corrector sequence.
+c     Keep its mapping after this call and only synchronize the host result.
       call prof_stop(35)
       dt1=pr1*dt
 c      call exkin(dt1,nxyz,ng2q,P(1,ib),G2,TPIBA2,GDUMP,GMHF)
@@ -711,7 +712,7 @@ c      enddo
 c      endif
 c ***
       call prof_start(36)
-!$acc exit data copyout(P(1:NG2Q,1:nbndloc))
+!$acc update self(P(1:NG2Q,1:nbndloc))
       call prof_stop(36)
       endif  ! end of if (ioption.eq...)  loop
 c      WRITE(71,REC=IOWF(JJB)) PJ
