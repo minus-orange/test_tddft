@@ -116,5 +116,7 @@
       if (id.eq.38) name='exnlp_work1_enter'
       if (id.eq.39) name='exnlp_meta_enter'
       if (id.eq.40) name='exnlp_ct1_create'
+      if (id.eq.41) name='tmevl_gdump_enter'
+      if (id.eq.42) name='tmevl_gdump_exit'
       return
       end
