@@ -1916,7 +1916,7 @@ c ***  temp check for YLM : end
 !$acc update device(cfac_(1:loopcnt),ngnl_(1:loopcnt))
       call prof_stop(39)
       call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
-     &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont)
+     &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont,.false.)
       call prof_stop(26)
       call prof_stop(11)
 c ****
@@ -2091,102 +2091,13 @@ C
 c ** fourth: operate nonlocal potential terms
       call prof_start(11)
       call prof_start(25)
-      loopcnt = 0
-      do 4 ity=1,ntype
-       if ( numty(ity).lt.0 ) goto 4 ! skip Hydrogen
-       do 5 it=1,numty(ity)
-       itseq=nidn(it,ity)  ! seq # of atomic site
-        do 6 il=1,mxofl(ity)
-        if ( IBUN(il,ity).ne.1 ) then
-         if ( il.eq.1 ) then
-         l=il
-         loopcnt = loopcnt + 1
-         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
-         ngnl_(loopcnt) = ngnl(ity)
-         elseif ( il.eq.2 ) then
-         do l=2,4
-         loopcnt = loopcnt + 1
-         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
-         ngnl_(loopcnt) = ngnl(ity)
-         enddo
-         elseif ( il.eq.3 ) then
-         do l=5,9
-         loopcnt = loopcnt + 1
-         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
-         ngnl_(loopcnt) = ngnl(ity)
-         enddo
-         elseif ( il.eq.4 ) then
-         do l=10,16
-         loopcnt = loopcnt + 1
-         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
-         ngnl_(loopcnt) = ngnl(ity)
-         enddo
-         endif
-        else
-         do ip=2,3
-         if ( il.eq.1 ) then
-         l=il
-         loopcnt = loopcnt + 1
-         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
-         ngnl_(loopcnt) = ngnl(ity)
-         elseif ( il.eq.2 ) then
-         do l=2,4
-         loopcnt = loopcnt + 1
-         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
-         ngnl_(loopcnt) = ngnl(ity)
-         enddo
-         elseif ( il.eq.3 ) then
-         do l=5,9
-         loopcnt = loopcnt + 1
-         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
-         ngnl_(loopcnt) = ngnl(ity)
-         enddo
-         elseif ( il.eq.4 ) then
-         do l=10,16
-         loopcnt = loopcnt + 1
-         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
-     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
-         ngnl_(loopcnt) = ngnl(ity)
-         enddo
-         endif
-         enddo
-        endif
-    6   continue
-    5  continue
-    4 continue
+! The second traversal is the exact reverse of the first traversal over
+! ity/it/il/ip/l.  Reuse the read-only staging columns and reverse their
+! lookup; this preserves the original sequential projector order.
       call prof_stop(25)
       call prof_start(26)
-      call prof_start(38)
-!$acc update device(work2_(1:NGcont,1:loopcnt))
-      call prof_stop(38)
-      call prof_start(39)
-!$acc update device(cfac_(1:loopcnt),ngnl_(1:loopcnt))
-      call prof_stop(39)
       call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
-     &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont)
+     &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont,.true.)
       call prof_stop(26)
       call prof_stop(11)
 c ****
@@ -2449,28 +2360,32 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       end
 
       subroutine exnlp_gemm_present_inputs(ng2q, work1, coef, omega,
-     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,NGcont)
+     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,NGcont,reverse_order)
       implicit double precision(a-h,o-z)
       complex*16 coef(ng2q,mxbnd), work1(NGcont,loopcnt),
      &           cfac(loopcnt)
       integer ngnl(loopcnt)
+      logical reverse_order
       call prof_start(27)
       call exnlp_gemm_body_fused(ng2q,work1,coef,omega,ngnl,
-     &     mxbnd,nbegin,nend,loopcnt,cfac,NGcont)
+     &     mxbnd,nbegin,nend,loopcnt,cfac,NGcont,reverse_order)
       call prof_stop(27)
       return
       end
 
       subroutine exnlp_gemm_body_fused(ng2q, work1, coef, omega,
-     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,NGcont)
+     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,NGcont,reverse_order)
       implicit double precision(a-h,o-z)
       complex*16 coef(ng2q,mxbnd), work1(NGcont,loopcnt),
      &           cfac(loopcnt)
       integer ngnl(loopcnt)
-      integer nbndloc
+      integer nbndloc, ja
+      logical reverse_order
       real*8 sr,si,ar,ai,br,bi,cr,ci,ctr,cti
       nbndloc = nend-nbegin+1
       do ia = 1, loopcnt
+         ja = ia
+         if (reverse_order) ja = loopcnt-ia+1
          call prof_start(28)
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
@@ -2480,22 +2395,22 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
             sr = 0.d0
             si = 0.d0
 !$acc loop vector reduction(+:sr,si)
-            do ig = 1, ngnl(ia)
+            do ig = 1, ngnl(ja)
                ar = dble(coef(ig,iib))
                ai = dimag(coef(ig,iib))
-               br = dble(work1(ig,ia))
-               bi = dimag(work1(ig,ia))
+               br = dble(work1(ig,ja))
+               bi = dimag(work1(ig,ja))
                sr = sr + ar*br - ai*bi
                si = si + ar*bi + ai*br
             end do
-            cr = dble(cfac(ia))
-            ci = dimag(cfac(ia))
+            cr = dble(cfac(ja))
+            ci = dimag(cfac(ja))
             ctr = (cr*sr-ci*si)/omega
             cti = (cr*si+ci*sr)/omega
 !$acc loop vector
-            do ig = 1, ngnl(ia)
-               br = dble(work1(ig,ia))
-               bi = dimag(work1(ig,ia))
+            do ig = 1, ngnl(ja)
+               br = dble(work1(ig,ja))
+               bi = dimag(work1(ig,ja))
                coef(ig,iib) = coef(ig,iib)
      &         + dcmplx(ctr*br + cti*bi, cti*br - ctr*bi)
             end do
