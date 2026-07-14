@@ -1086,13 +1086,13 @@ Nsight CLIログとTDDFTログを分離しました。
 | H2D | 73,230 | 54,124.284 MB | 78.231 sec |
 | D2H | 35,453 | 30,054.575 MB | 39.284 sec |
 
-OpenACC summaryでは、`P`のTMEVL entry（line 532）が944回、約29.77秒、対応する
-uploadが約28.99秒でした。TMEVL exit（line 714）とdownloadも944回で、それぞれ
-約28.07秒、約27.94秒でした。nonlocal staging `work2_`のupdate（line 1913）は
-4,720回、約41.46秒、対応するuploadは約37.34秒でした。時間はnested eventを含む
+OpenACC summaryでは、`P`のTMEVL entry（line 532）が944回、約2.977秒、対応する
+uploadが約2.899秒でした。TMEVL exit（line 714）とdownloadも944回で、それぞれ
+約2.807秒、約2.794秒でした。nonlocal staging `work2_`のupdate（line 1913）は
+4,720回、約4.146秒、対応するuploadは約3.734秒でした。時間はnested eventを含む
 ため相互に加算しません。
 
-kernel summaryでは`exnlp_gemm_body_fused`が9440回、約82.06秒でGPU kernel時間の
+kernel summaryでは`exnlp_gemm_body_fused`が9440回、約8.206秒でGPU kernel時間の
 約63%を占めました。CUDA APIでは`cuLaunchKernel`が222,996回でしたがAPI時間は
 約1.16秒です。一方、実allocationは`cuMemAlloc_v2`が16回、`cuMemFree_v2`が14回、
 `cudaMalloc`/`cudaFree`が各1回に限定されており、time-step loop内の反復allocation
@@ -1149,3 +1149,26 @@ TMEVL後のD2H、数式およびloop順序は変更していません。実装co
 H2Dは追加のdevice copy kernelを含むwall改善につながりませんでした。このため
 Step 29は不採用とし、commit `bd53a88` (`Restore accepted Step28 coefficient mapping`)
 でStep 28方式へ戻しました。rollback後のCPU/FFTW fallbackフルリンクはPASSしました。
+
+## Step 30: Step 28採用コードのNsight Systems再診断
+
+Step 28採用コードをNsight Systems 2026.2.1で再計測しました。archive labelは
+`nvhpc_cufft_1rank_02_STEP30_NSYS_01`、source revisionは`1f5d474`です。trace時wall
+`133.093063116`秒はbaselineには使用しません。Nsight由来の単独stderr行を除外した
+`tddft.out`単独の通常checkとrelaxed compareはともにPASSしました。以後の診断では
+commit `21c084a`がraw stderr検証結果を保存しつつ、この既知artifactを誤FAILにしません。
+
+| operation | count | total size | device time |
+|---|---:|---:|---:|
+| H2D | 72,486 | 46,225.769 MB | 62.951 sec |
+| D2H | 35,453 | 30,054.575 MB | 39.972 sec |
+
+Step 27比でH2Dは744回、7,898.515 MB、約15.280秒減少しました。D2Hのcountと総量は
+不変です。OpenACC上位項目から旧TMEVL `P` entryは消え、代わりにFRPRMN line 1382の
+caller所有mappingが100回、約1.247秒、対応する200 uploadが約1.235秒となりました。
+これによりStep 28のP/COEF H2D削減がNsight上でも確認できました。
+
+最大の残存反復uploadは、line 1914の`work2_` update 4,720回、約4.184秒と、その
+enqueue upload約3.745秒です。TMEVL exitのD2Hも944回、約2.892秒、対応するdownload
+約2.882秒残っています。次の実装候補は`work2_`直接生成ですが、YLM・VPJ・EXTAUの
+入力転送量を増やさない構成に限定して検討します。

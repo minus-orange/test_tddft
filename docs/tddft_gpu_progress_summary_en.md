@@ -1215,14 +1215,14 @@ The principal data movement was:
 | D2H | 35,453 | 30,054.575 MB | 39.284 sec |
 
 In the OpenACC summary, the TMEVL entry for `P` at line 532 occurred 944 times
-and took about 29.77 sec, with about 28.99 sec in the corresponding uploads.
+and took about 2.977 sec, with about 2.899 sec in the corresponding uploads.
 The TMEVL exit and download at line 714 also occurred 944 times and took about
-28.07 sec and 27.94 sec, respectively. The nonlocal `work2_` update at line
-1913 occurred 4,720 times and took about 41.46 sec, with about 37.34 sec in the
+2.807 sec and 2.794 sec, respectively. The nonlocal `work2_` update at line
+1913 occurred 4,720 times and took about 4.146 sec, with about 3.734 sec in the
 corresponding uploads. These nested event times must not be added together.
 
 The kernel summary reported 9,440 `exnlp_gemm_body_fused` launches totaling
-about 82.06 sec, approximately 63% of GPU kernel time. CUDA reported 222,996
+about 8.206 sec, approximately 63% of GPU kernel time. CUDA reported 222,996
 `cuLaunchKernel` calls, but their API time was only about 1.16 sec. Actual
 allocation was limited to 16 `cuMemAlloc_v2` calls, 14 `cuMemFree_v2` calls,
 and one call each to `cudaMalloc` and `cudaFree`; repeated time-step allocation
@@ -1287,3 +1287,32 @@ relaxed comparison, but the removed initial H2D did not offset the additional
 device-copy kernel in wall time. Step 29 is therefore rejected, and commit
 `bd53a88` (`Restore accepted Step28 coefficient mapping`) restores the Step 28
 method. The CPU/FFTW fallback full link passed after the rollback.
+
+## Step 30: Nsight Systems Recheck of the Accepted Step 28 Code
+
+The accepted Step 28 code was traced again with Nsight Systems 2026.2.1. The
+archive label is `nvhpc_cufft_1rank_02_STEP30_NSYS_01`, and the source revision
+is `1f5d474`. The traced wall time of `133.093063116` sec is not a baseline.
+Both the normal check and relaxed comparison passed on `tddft.out` after
+excluding the standalone Nsight stderr artifact. Commit `21c084a` preserves
+the raw-stderr validation while preventing this known artifact from causing a
+false failure in subsequent diagnostic runs.
+
+| operation | count | total size | device time |
+|---|---:|---:|---:|
+| H2D | 72,486 | 46,225.769 MB | 62.951 sec |
+| D2H | 35,453 | 30,054.575 MB | 39.972 sec |
+
+Relative to Step 27, H2D fell by 744 operations, 7,898.515 MB, and about 15.280
+sec of device time. The D2H count and total size were unchanged. The old TMEVL
+`P` entry disappeared from the leading OpenACC rows. The replacement
+caller-owned mapping at FRPRMN line 1382 occurred 100 times and took about
+1.247 sec, with 200 corresponding uploads totaling about 1.235 sec. This
+confirms the Step 28 P/COEF H2D reduction in the trace.
+
+The largest remaining repeated upload is the line-1914 `work2_` update: 4,720
+events taking about 4.184 sec, with about 3.745 sec in the enqueue-upload
+events. The TMEVL-exit D2H also remains at 944 events and about 2.892 sec, with
+about 2.882 sec in the corresponding downloads. Direct generation of `work2_`
+is the next implementation candidate, but only if it does not increase the
+input traffic for YLM, VPJ, and EXTAU.
