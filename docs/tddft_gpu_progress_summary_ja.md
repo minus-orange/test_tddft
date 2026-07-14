@@ -1042,3 +1042,28 @@ run 01では`exnlp_gemm_dot` countを9440に維持したまま、時間がStep 2
 `11.048592`秒から`8.444633`秒へ約23.57%短縮しました。`s2_nonlocal`は
 `14.127723`秒、`tmevl_s2`は`19.169946`秒で、それぞれ約15.64%、12.01%
 短縮しました。このためvector length 256を正式採用します。
+
+## Step 26: fused nonlocal kernelのvector length 512化（不採用）
+
+Step 25と同じfused nonlocal kernelだけを`vector_length(512)`へ変更し、その他の
+数式、loop順序、data mappingは変更せずに上限側を測定しました。実装commitは
+`a8b4db0` (`Tune fused nonlocal vector length to 512`)です。diagnostic OFF、
+1 GPU / 1 MPI rank、100 stepで3回測定しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP26_VEC512_01` | 130.546390057 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP26_VEC512_02` | 130.834260225 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP26_VEC512_03` | 133.752757072 | PASS | PASS |
+
+3回中央値は`130.834260225`秒です。全runの通常checkとrelaxed compareはPASSし、
+rollback後のStep 18中央値`161.753436089`秒より約19.115%速い一方、正式採用済みの
+Step 25中央値`130.607889175`秒より約0.173%遅い結果です。実行間の幅も約3.206秒
+となり、Step 25の約0.445秒より大きくなりました。
+
+run 01のprofileでは`exnlp_gemm_dot`がStep 25 run 01の`8.444633`秒から
+`8.348217`秒へ約1.14%短縮しましたが、この局所差はwall中央値の改善には
+つながりませんでした。より軽い256設定に対する性能優位を確認できないため、
+Step 26は不採用とし、commit `336422e` (`Restore accepted nonlocal vector length
+256`)で256へ戻しました。rollback後のCPU/FFTW fallbackフルリンクはPASSしました
+（既存legacy warningのみ）。

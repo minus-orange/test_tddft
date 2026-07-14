@@ -1166,3 +1166,31 @@ In run 01, the `exnlp_gemm_dot` count remained 9440 while its time fell by about
 23.57%, from `11.048592` sec in Step 24 run 01 to `8.444633` sec.
 `s2_nonlocal` was `14.127723` sec and `tmevl_s2` was `19.169946` sec, reductions
 of about 15.64% and 12.01%. Vector length 256 is therefore accepted.
+
+## Step 26: Vector Length 512 for the Fused Nonlocal Kernel (Rejected)
+
+Step 26 changed only the fused nonlocal kernel from `vector_length(256)` to
+`vector_length(512)` to test the upper tuning point. The equations, loop order,
+and data mapping were unchanged. The implementation commit is `a8b4db0` (`Tune
+fused nonlocal vector length to 512`). Three diagnostic-off, one-GPU /
+one-MPI-rank, 100-step runs were made.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP26_VEC512_01` | 130.546390057 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP26_VEC512_02` | 130.834260225 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP26_VEC512_03` | 133.752757072 | PASS | PASS |
+
+The three-run median is `130.834260225` sec. Every run passed both the normal
+check and relaxed comparison. This is about 19.115% faster than the refreshed
+Step 18 median of `161.753436089` sec, but about 0.173% slower than the accepted
+Step 25 median of `130.607889175` sec. The run-to-run range also increased to
+about 3.206 sec from about 0.445 sec for Step 25.
+
+The run 01 profile showed a local reduction of about 1.14% in
+`exnlp_gemm_dot`, from `8.444633` sec in Step 25 run 01 to `8.348217` sec, but
+this did not improve the wall-time median. Because 512 showed no performance
+advantage over the lighter 256 setting, Step 26 is rejected. Commit `336422e`
+(`Restore accepted nonlocal vector length 256`) restores 256. The CPU/FFTW
+fallback full link passed after the rollback, with only the existing legacy
+warnings.
