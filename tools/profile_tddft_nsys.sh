@@ -25,6 +25,20 @@ set -eu
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 
+# Internal target mode keeps the application stdout/stderr separate from the
+# Nsight CLI diagnostics while Nsight still traces this process tree.
+if [ "${FPSEID_NSYS_TARGET_MODE:-0}" = 1 ]; then
+  cd "$FPSEID_NSYS_RUN_DIR"
+  ulimit -s unlimited 2>/dev/null || true
+  # shellcheck disable=SC2086
+  "$FPSEID_NSYS_MPIRUN" $FPSEID_NSYS_MPIRUN_FLAGS \
+    -np "$FPSEID_NSYS_NPROCS" "$FPSEID_NSYS_TDDFT_EXE" \
+    < "$FPSEID_NSYS_INPUT" \
+    > "$FPSEID_NSYS_TDDFT_OUT" \
+    2> "$FPSEID_NSYS_TDDFT_ERR"
+  exit
+fi
+
 if [ "$#" -ne 1 ]; then
   echo "Usage: LABEL=<label> $0 RUN_DIR" >&2
   exit 2
@@ -157,9 +171,16 @@ fi
 cd "$RUN_DIR"
 ulimit -s unlimited 2>/dev/null || true
 
-# MPIRUN_FLAGS is intentionally split so callers can pass multiple launcher
-# options. LABEL validation and fixed paths keep the generated archive scoped.
-# shellcheck disable=SC2086
+export FPSEID_NSYS_TARGET_MODE=1
+export FPSEID_NSYS_RUN_DIR=$RUN_DIR
+export FPSEID_NSYS_MPIRUN=$MPIRUN
+export FPSEID_NSYS_MPIRUN_FLAGS=$MPIRUN_FLAGS
+export FPSEID_NSYS_NPROCS=$NPROCS
+export FPSEID_NSYS_TDDFT_EXE=$TDDFT_EXE
+export FPSEID_NSYS_INPUT=$INPUT_PATH
+export FPSEID_NSYS_TDDFT_OUT=$TDDFT_OUT
+export FPSEID_NSYS_TDDFT_ERR=$TDDFT_ERR
+
 "$NSYS" profile \
   --trace="$NSYS_TRACE" \
   --sample=none \
@@ -167,8 +188,14 @@ ulimit -s unlimited 2>/dev/null || true
   --cuda-memory-usage=true \
   --force-overwrite=true \
   --output="$REPORT_BASE" \
-  "$MPIRUN" $MPIRUN_FLAGS -np "$NPROCS" "$TDDFT_EXE" \
-  < "$INPUT_PATH" > "$TDDFT_OUT" 2> "$TDDFT_ERR"
+  "$SCRIPT_DIR/profile_tddft_nsys.sh" \
+  > "$ARCHIVE_DIR/nsys-profile.out" \
+  2> "$ARCHIVE_DIR/nsys-profile.err"
+
+unset FPSEID_NSYS_TARGET_MODE FPSEID_NSYS_RUN_DIR FPSEID_NSYS_MPIRUN
+unset FPSEID_NSYS_MPIRUN_FLAGS FPSEID_NSYS_NPROCS
+unset FPSEID_NSYS_TDDFT_EXE FPSEID_NSYS_INPUT
+unset FPSEID_NSYS_TDDFT_OUT FPSEID_NSYS_TDDFT_ERR
 
 REPORT_FILE=$REPORT_BASE.nsys-rep
 if [ ! -f "$REPORT_FILE" ]; then
@@ -222,13 +249,19 @@ SUMMARY=$ARCHIVE_DIR/nsys-summary.txt
 } > "$SUMMARY"
 
 cd "$ROOT_DIR"
-python3 ./tools/check_tddft_result.py check "$TDDFT_OUT" \
-  --err "$TDDFT_ERR" > "$ARCHIVE_DIR/check.txt"
-python3 ./tools/check_tddft_result.py compare "$TDDFT_OUT" \
-  --test-err "$TDDFT_ERR" > "$ARCHIVE_DIR/compare.txt"
+validation_status=0
+if ! python3 ./tools/check_tddft_result.py check "$TDDFT_OUT" \
+    --err "$TDDFT_ERR" > "$ARCHIVE_DIR/check.txt"; then
+  validation_status=1
+fi
+if ! python3 ./tools/check_tddft_result.py compare "$TDDFT_OUT" \
+    --test-err "$TDDFT_ERR" > "$ARCHIVE_DIR/compare.txt"; then
+  validation_status=1
+fi
 
 cat "$ARCHIVE_DIR/check.txt"
 cat "$ARCHIVE_DIR/compare.txt"
 echo "Nsight archive: $ARCHIVE_DIR"
 echo "Condensed summary: $SUMMARY"
 echo "This diagnostic run is not a wall-time baseline."
+exit "$validation_status"
