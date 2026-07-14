@@ -1139,3 +1139,30 @@ fell by about 39.87%, from `18.374716` sec to `11.048592` sec. `s2_nonlocal`
 was `16.746555` sec and `tmevl_s2` was `21.786372` sec, reductions of about
 31.31% and 25.92% from Step 23 run 01. Step 24 is accepted because it removes
 kernel launches while preserving projector order and the numerical result.
+
+## Step 25: Vector Length 256 for the Fused Nonlocal Kernel
+
+The Step 24 NVHPC compiler report showed that the fused nonlocal kernel mapped
+bands to `gang`, `ia` to `seq`, and both `ig` loops to `vector(128)`. Step 25
+sets `vector_length(256)` only on this kernel. The equations, per-band `ia`
+order, `ig` reduction, and reverse-phase mapping are unchanged. The CPU/FFTW
+fallback full link also passed.
+
+The implementation commit is `825697a` (`Tune fused nonlocal vector length to
+256`). Three diagnostic-off, one-GPU / one-MPI-rank, 100-step runs were made.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP25_VEC256_01` | 130.607889175 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP25_VEC256_02` | 130.404011011 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP25_VEC256_03` | 130.849056005 | PASS | PASS |
+
+The three-run median is `130.607889175` sec. It is about 1.996% faster than the
+Step 24 median of `133.268284082` sec and about 19.255% faster than the refreshed
+Step 18 median of `161.753436089` sec. The run-to-run range is about 0.445 sec,
+and every run passed both the normal check and relaxed comparison.
+
+In run 01, the `exnlp_gemm_dot` count remained 9440 while its time fell by about
+23.57%, from `11.048592` sec in Step 24 run 01 to `8.444633` sec.
+`s2_nonlocal` was `14.127723` sec and `tmevl_s2` was `19.169946` sec, reductions
+of about 15.64% and 12.01%. Vector length 256 is therefore accepted.

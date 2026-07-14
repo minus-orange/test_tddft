@@ -1016,3 +1016,29 @@ run 01では`exnlp_gemm_dot` countが453120から9440へ減り、時間は
 `16.746555`秒、`tmevl_s2`は`21.786372`秒となり、Step 23 run 01比でそれぞれ
 約31.31%、25.92%短縮しました。projector順序と数値結果を維持したままkernel
 launchを削減できたため、Step 24を正式採用します。
+
+## Step 25: fused nonlocal kernelのvector length 256化
+
+Step 24のNVHPC compiler reportでは、fused nonlocal kernelがbandを`gang`、
+`ia`を`seq`、2本の`ig` loopを`vector(128)`として生成されていました。Step 25では
+このkernelだけに`vector_length(256)`を指定しました。数式、各band内の`ia`順序、
+`ig` reduction、reverse phase写像は変更していません。CPU/FFTW fallbackの
+フルリンクもPASSしました。
+
+実装commitは`825697a` (`Tune fused nonlocal vector length to 256`)です。
+diagnostic OFF、1 GPU / 1 MPI rank、100 stepで3回測定しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP25_VEC256_01` | 130.607889175 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP25_VEC256_02` | 130.404011011 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP25_VEC256_03` | 130.849056005 | PASS | PASS |
+
+3回中央値は`130.607889175`秒です。Step 24中央値`133.268284082`秒より約1.996%
+速く、rollback後のStep 18中央値`161.753436089`秒より約19.255%速い結果です。
+実行間の幅は約0.445秒で、全runの通常checkとrelaxed compareがPASSしました。
+
+run 01では`exnlp_gemm_dot` countを9440に維持したまま、時間がStep 24 run 01の
+`11.048592`秒から`8.444633`秒へ約23.57%短縮しました。`s2_nonlocal`は
+`14.127723`秒、`tmevl_s2`は`19.169946`秒で、それぞれ約15.64%、12.01%
+短縮しました。このためvector length 256を正式採用します。
