@@ -1194,3 +1194,42 @@ advantage over the lighter 256 setting, Step 26 is rejected. Commit `336422e`
 (`Restore accepted nonlocal vector length 256`) restores 256. The CPU/FFTW
 fallback full link passed after the rollback, with only the existing legacy
 warnings.
+
+## Step 27: Nsight Systems Diagnosis of the Accepted Step 25 Code
+
+The accepted vector-length-256 code was profiled without a source change for
+100 steps with one GPU and one MPI rank, using Nsight Systems 2026.2.1. The
+archive label is `nvhpc_cufft_1rank_02_STEP27_NSYS_03`, and the source revision
+is `deefc3e`. The traced wall time was `134.876740932` sec, but it includes
+profiler overhead and is not a performance baseline. The normal check and
+relaxed comparison both passed when applied to the TDDFT application log. The
+first automatic check failed only because a standalone Nsight CLI error line
+was mixed into the same stderr and flagged as suspicious. Commit `1cfde9a`
+separates the Nsight CLI and TDDFT logs for subsequent traces.
+
+The principal data movement was:
+
+| operation | count | total size | device time |
+|---|---:|---:|---:|
+| H2D | 73,230 | 54,124.284 MB | 78.231 sec |
+| D2H | 35,453 | 30,054.575 MB | 39.284 sec |
+
+In the OpenACC summary, the TMEVL entry for `P` at line 532 occurred 944 times
+and took about 29.77 sec, with about 28.99 sec in the corresponding uploads.
+The TMEVL exit and download at line 714 also occurred 944 times and took about
+28.07 sec and 27.94 sec, respectively. The nonlocal `work2_` update at line
+1913 occurred 4,720 times and took about 41.46 sec, with about 37.34 sec in the
+corresponding uploads. These nested event times must not be added together.
+
+The kernel summary reported 9,440 `exnlp_gemm_body_fused` launches totaling
+about 82.06 sec, approximately 63% of GPU kernel time. CUDA reported 222,996
+`cuLaunchKernel` calls, but their API time was only about 1.16 sec. Actual
+allocation was limited to 16 `cuMemAlloc_v2` calls, 14 `cuMemFree_v2` calls,
+and one call each to `cudaMalloc` and `cudaFree`; repeated time-step allocation
+is therefore not a primary bottleneck.
+
+The scratch-allocation persistence and further launch-reduction candidates are
+deprioritized. The next candidate is to raise `P/COEF` mapping ownership above
+TMEVL, initially retaining D2H synchronization for host consumers while
+removing repeated H2D. The second candidate is direct device generation of
+`work2_`, removing the bulk H2D at line 1913.

@@ -1067,3 +1067,38 @@ run 01のprofileでは`exnlp_gemm_dot`がStep 25 run 01の`8.444633`秒から
 Step 26は不採用とし、commit `336422e` (`Restore accepted nonlocal vector length
 256`)で256へ戻しました。rollback後のCPU/FFTW fallbackフルリンクはPASSしました
 （既存legacy warningのみ）。
+
+## Step 27: Step 25採用コードのNsight Systems診断
+
+採用済みのvector length 256コードを変更せず、1 GPU / 1 MPI rank、100 stepを
+Nsight Systems 2026.2.1で計測しました。archive labelは
+`nvhpc_cufft_1rank_02_STEP27_NSYS_03`、source revisionは`deefc3e`です。
+Nsight実行時wallは`134.876740932`秒ですが、trace overheadを含むため性能baseline
+には使用しません。TDDFT本体ログだけを対象にした通常checkとrelaxed compareは
+ともにPASSしました。Nsight CLIの単独エラー行が同じstderrへ混入したため、最初の
+自動checkだけはsuspicious lineとしてFAILしました。commit `1cfde9a`で以後の
+Nsight CLIログとTDDFTログを分離しました。
+
+主要なdata movementは次の通りです。
+
+| operation | count | total size | device time |
+|---|---:|---:|---:|
+| H2D | 73,230 | 54,124.284 MB | 78.231 sec |
+| D2H | 35,453 | 30,054.575 MB | 39.284 sec |
+
+OpenACC summaryでは、`P`のTMEVL entry（line 532）が944回、約29.77秒、対応する
+uploadが約28.99秒でした。TMEVL exit（line 714）とdownloadも944回で、それぞれ
+約28.07秒、約27.94秒でした。nonlocal staging `work2_`のupdate（line 1913）は
+4,720回、約41.46秒、対応するuploadは約37.34秒でした。時間はnested eventを含む
+ため相互に加算しません。
+
+kernel summaryでは`exnlp_gemm_body_fused`が9440回、約82.06秒でGPU kernel時間の
+約63%を占めました。CUDA APIでは`cuLaunchKernel`が222,996回でしたがAPI時間は
+約1.16秒です。一方、実allocationは`cuMemAlloc_v2`が16回、`cuMemFree_v2`が14回、
+`cudaMalloc`/`cudaFree`が各1回に限定されており、time-step loop内の反復allocation
+は主要因ではありません。
+
+この結果からscratch allocation永続化と追加launch削減の優先度を下げます。次の
+第一候補は、TMEVL単位の`P/COEF` mappingをcaller所有へ拡大し、host consumer向けの
+D2Hを当面維持しながら、反復H2Dを削減することです。第二候補は`work2_`をdevice上で
+直接生成してline 1913のbulk H2Dを削減することです。
