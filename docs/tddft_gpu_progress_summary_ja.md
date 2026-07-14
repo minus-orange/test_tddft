@@ -896,3 +896,34 @@ relaxed compareがPASSしたため、rollback後のbaseline回復gateは完了�
 relaxed compareの各run共通最大絶対差は、ETOT `9.287000e-05`、
 Eelec+Enucl-Eext-Ework `9.497180e-05`、force `9.050000e-05`、positions
 `8.117602e-07`、velocities `2.087788e-07`で、すべて設定tolerance以内です。
+
+## Step 21: S2 local FFTのdevice-resident batch cuFFT化
+
+Step 21では、`S2_`がlocal bandごとに個別実行していたforward/backward cuFFTを、
+`nbndloc`全体の1回のbatch cuFFTへ置き換えました。cuFFT側では
+`cufftPlanMany`のbatch planを遅延生成して再利用し、既存finalizerで破棄します。
+OpenACC device pointerを直接渡すため、この変更による追加の大規模H2D/D2H転送は
+ありません。CPU/FFTW fallbackは従来関数をband順に呼ぶbatch entryで維持しています。
+
+実装commitは`bad046f` (`Batch device-resident S2 cuFFT calls`)です。diagnostic OFF、
+1 GPU / 1 MPI rank、100 stepで3回測定しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP21_BATCHFFT_01` | 146.439893007 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP21_BATCHFFT_02` | 147.131322861 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP21_BATCHFFT_03` | 146.540076017 | PASS | PASS |
+
+3回中央値は`146.540076017`秒です。rollback後のStep 18再測定中央値
+`161.753436089`秒より約9.405%速く、正式Step 18値`163.310745001`秒より約10.269%
+速い結果です。実行間の幅は約0.691秒で、Step 18再測定中央値に対する+3%上限
+`166.606039172`秒より約20.066秒短く、性能採用gateを満たします。
+
+run 01のprofileでは、`s2_fft_local`が`5.026740`秒、`fft_wrapper`が
+`13.494185`秒、`tmevl_s2`が`34.768706`秒でした。従来のStep 18 profile概算値との
+比較では、それぞれ約77.6%、53.1%、31.7%短縮しており、batch化の効果がFFT経路に
+現れています。現在の主要コストは`s2_nonlocal`の`29.728696`秒へ移りました。
+
+全runで通常checkとrelaxed compareがPASSし、共通の最大絶対差もStep 18回復runと
+同一で設定tolerance以内です。このためStep 21 batch cuFFT変更を正式採用します。
+次の性能仮説へ進む際も、このcommitをrollback先および比較点として維持します。

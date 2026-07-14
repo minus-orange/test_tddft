@@ -1004,3 +1004,39 @@ The common maximum absolute differences in the relaxed comparisons were ETOT
 `9.287000e-05`, Eelec+Enucl-Eext-Ework `9.497180e-05`, force `9.050000e-05`,
 positions `8.117602e-07`, and velocities `2.087788e-07`; all were within their
 configured tolerances.
+
+## Step 21: Device-Resident Batched cuFFT for the S2 Local FFT Path
+
+Step 21 replaces the separate forward and backward cuFFT calls for every local
+band in `S2_` with one batched cuFFT call over all `nbndloc` bands. The cuFFT
+wrapper lazily creates and reuses `cufftPlanMany` batch plans and destroys them
+through the existing finalizer. OpenACC device pointers are passed directly, so
+the change adds no large H2D or D2H transfer. The CPU/FFTW fallback is preserved
+by batch entries that invoke the original functions in band order.
+
+The implementation commit is `bad046f` (`Batch device-resident S2 cuFFT
+calls`). Three diagnostic-off, one-GPU / one-MPI-rank, 100-step runs were made.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP21_BATCHFFT_01` | 146.439893007 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP21_BATCHFFT_02` | 147.131322861 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP21_BATCHFFT_03` | 146.540076017 | PASS | PASS |
+
+The three-run median is `146.540076017` sec. It is about 9.405% faster than the
+refreshed post-rollback Step 18 median of `161.753436089` sec and about 10.269%
+faster than the official Step 18 value of `163.310745001` sec. The run-to-run
+range is about 0.691 sec. The median is about 20.066 sec below the +3% adoption
+limit of `166.606039172` sec, so it passes the performance gate.
+
+In the run 01 profile, `s2_fft_local` was `5.026740` sec, `fft_wrapper` was
+`13.494185` sec, and `tmevl_s2` was `34.768706` sec. Relative to the approximate
+Step 18 profile values, these are reductions of about 77.6%, 53.1%, and 31.7%,
+respectively, confirming that the batch optimization affected the intended FFT
+path. The main remaining cost has shifted to `s2_nonlocal` at `29.728696` sec.
+
+All runs passed both the normal check and relaxed comparison. Their common
+maximum absolute differences are unchanged from the recovered Step 18 runs and
+remain within the configured tolerances. Step 21 is therefore accepted. Its
+implementation commit remains the rollback target and comparison point for the
+next performance hypothesis.
