@@ -2383,15 +2383,16 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       logical reverse_order
       real*8 sr,si,ar,ai,br,bi,cr,ci,ctr,cti
       nbndloc = nend-nbegin+1
-      do ia = 1, loopcnt
-         ja = ia
-         if (reverse_order) ja = loopcnt-ia+1
-         call prof_start(28)
+      call prof_start(28)
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
-!$acc& ngnl(1:loopcnt)) private(sr,si,ar,ai,br,bi,cr,ci,
-!$acc& ctr,cti)
-         do iib = 1, nbndloc
+!$acc& ngnl(1:loopcnt)) private(ia,ja,sr,si,ar,ai,br,bi,
+!$acc& cr,ci,ctr,cti)
+      do iib = 1, nbndloc
+!$acc loop seq
+         do ia = 1, loopcnt
+            ja = ia
+            if (reverse_order) ja = loopcnt-ia+1
             sr = 0.d0
             si = 0.d0
 !$acc loop vector reduction(+:sr,si)
@@ -2415,8 +2416,8 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
      &         + dcmplx(ctr*br + cti*bi, cti*br - ctr*bi)
             end do
          end do
-         call prof_stop(28)
       end do
+      call prof_stop(28)
       return
       end
 
