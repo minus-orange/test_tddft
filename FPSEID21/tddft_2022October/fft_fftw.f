@@ -94,6 +94,25 @@ C
       END
 
 C***********************************************************
+      SUBROUTINE FFT3BX_fftwASL_ACC_BATCH(NRX,NRY,NRZ,NG,
+     & NBATCH,RHOG,WORK,plancfp,plancbp)
+C***********************************************************
+C     FFTW fallback for the batched OpenACC/cuFFT S2 entry.
+C     Preserve the original one-transform execution order.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      complex*16 WORK(NG,NBATCH)
+      complex*16 RHOG(NG,NBATCH)
+      integer*8 plancfp,plancbp
+C
+      DO IB=1,NBATCH
+        CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NG,RHOG(1,IB),
+     &       WORK(1,IB),plancfp,plancbp)
+      ENDDO
+C
+      END
+
+C***********************************************************
       SUBROUTINE FFT3FX_fftwASL_ACC(NRX,NRY,NRZ,NG,RHOG,WORK
      & ,plancfp,plancbp)
 C***********************************************************
@@ -107,6 +126,25 @@ C
       integer*8 plancfp,plancbp
 C
       CALL FFT3FX_fftwASL(NRX,NRY,NRZ,NG,RHOG,WORK,plancfp,plancbp)
+C
+      END
+
+C***********************************************************
+      SUBROUTINE FFT3FX_fftwASL_ACC_BATCH(NRX,NRY,NRZ,NG,
+     & NBATCH,RHOG,WORK,plancfp,plancbp)
+C***********************************************************
+C     FFTW fallback for the batched OpenACC/cuFFT S2 entry.
+C     Preserve the original one-transform execution order.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      complex*16 WORK(NG,NBATCH)
+      complex*16 RHOG(NG,NBATCH)
+      integer*8 plancfp,plancbp
+C
+      DO IB=1,NBATCH
+        CALL FFT3FX_fftwASL(NRX,NRY,NRZ,NG,RHOG(1,IB),
+     &       WORK(1,IB),plancfp,plancbp)
+      ENDDO
 C
       END
 

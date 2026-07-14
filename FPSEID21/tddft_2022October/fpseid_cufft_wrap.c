@@ -7,6 +7,11 @@
 
 static cufftHandle g_plan_fwd = 0;
 static cufftHandle g_plan_bwd = 0;
+static cufftHandle g_plan_batch_fwd = 0;
+static cufftHandle g_plan_batch_bwd = 0;
+static int g_plan_dims[3] = {0, 0, 0};
+static int g_transform_elems = 0;
+static int g_batch = 0;
 static size_t g_bytes = 0;
 static cufftDoubleComplex *g_dev = NULL;
 static cudaEvent_t g_ev_start = NULL;
@@ -36,6 +41,35 @@ static int check_cufft(cufftResult status, const char *where)
     fprintf(stderr, "cuFFT error at %s: %d\n", where, (int)status);
     return 1;
   }
+  return 0;
+}
+
+static int create_batch_plans(int batch)
+{
+  if (batch <= 0 || g_transform_elems <= 0) {
+    return 1;
+  }
+  if (g_plan_batch_fwd != 0 || g_plan_batch_bwd != 0) {
+    return (g_batch == batch) ? 0 : 2;
+  }
+
+  if (check_cufft(cufftPlanMany(&g_plan_batch_fwd, 3, g_plan_dims,
+                                g_plan_dims, 1, g_transform_elems,
+                                g_plan_dims, 1, g_transform_elems,
+                                CUFFT_Z2Z, batch),
+                  "cufftPlanMany batch forward")) {
+    return 3;
+  }
+  if (check_cufft(cufftPlanMany(&g_plan_batch_bwd, 3, g_plan_dims,
+                                g_plan_dims, 1, g_transform_elems,
+                                g_plan_dims, 1, g_transform_elems,
+                                CUFFT_Z2Z, batch),
+                  "cufftPlanMany batch backward")) {
+    cufftDestroy(g_plan_batch_fwd);
+    g_plan_batch_fwd = 0;
+    return 4;
+  }
+  g_batch = batch;
   return 0;
 }
 
@@ -182,6 +216,10 @@ void fpseid_cufft_plan_(int64_t *plan_fwd, int64_t *plan_bwd,
   }
 
   g_bytes = bytes;
+  g_plan_dims[0] = n[0];
+  g_plan_dims[1] = n[1];
+  g_plan_dims[2] = n[2];
+  g_transform_elems = (*nrx) * (*nry) * (*nrz);
   *plan_fwd = (int64_t)g_plan_fwd;
   *plan_bwd = (int64_t)g_plan_bwd;
 }
@@ -305,6 +343,62 @@ void fpseid_cufft_exec_device_(int64_t *plan_value,
   }
 }
 
+void fpseid_cufft_exec_device_batch_(cufftDoubleComplex *device_data,
+                                     int *ng, int *batch,
+                                     int *direction, int *ierr)
+{
+  cufftHandle plan;
+  int cufft_dir;
+  int plan_status;
+
+  *ierr = 0;
+  if (*ng != g_transform_elems || *batch <= 0) {
+    *ierr = 50;
+    return;
+  }
+  plan_status = create_batch_plans(*batch);
+  if (plan_status != 0) {
+    *ierr = 51 + plan_status;
+    return;
+  }
+
+  cufft_dir = (*direction < 0) ? CUFFT_FORWARD : CUFFT_INVERSE;
+  plan = (*direction < 0) ? g_plan_batch_fwd : g_plan_batch_bwd;
+
+  if (g_timing_enabled &&
+      check_cuda(cudaEventRecord(g_ev_start, 0), "cudaEventRecord start")) {
+    *ierr = 60;
+    return;
+  }
+  if (g_timing_enabled &&
+      check_cuda(cudaEventRecord(g_ev_after_h2d, 0),
+                 "cudaEventRecord after_h2d")) {
+    *ierr = 61;
+    return;
+  }
+  if (check_cufft(cufftExecZ2Z(plan, device_data, device_data, cufft_dir),
+                  "cufftExecZ2Z device batch")) {
+    *ierr = 62;
+    return;
+  }
+  if (g_timing_enabled &&
+      check_cuda(cudaEventRecord(g_ev_after_fft, 0),
+                 "cudaEventRecord after_fft")) {
+    *ierr = 63;
+    return;
+  }
+  if (g_timing_enabled &&
+      check_cuda(cudaEventRecord(g_ev_after_d2h, 0),
+                 "cudaEventRecord after_d2h")) {
+    *ierr = 64;
+    return;
+  }
+  if (accumulate_timing()) {
+    *ierr = 65;
+    return;
+  }
+}
+
 void fpseid_cufft_destroy_(int *ierr)
 {
   *ierr = 0;
@@ -321,6 +415,20 @@ void fpseid_cufft_destroy_(int *ierr)
     }
     g_plan_bwd = 0;
   }
+  if (g_plan_batch_fwd != 0) {
+    if (check_cufft(cufftDestroy(g_plan_batch_fwd),
+                    "cufftDestroy batch forward")) {
+      *ierr = 33;
+    }
+    g_plan_batch_fwd = 0;
+  }
+  if (g_plan_batch_bwd != 0) {
+    if (check_cufft(cufftDestroy(g_plan_batch_bwd),
+                    "cufftDestroy batch backward")) {
+      *ierr = 34;
+    }
+    g_plan_batch_bwd = 0;
+  }
   if (g_dev != NULL) {
     if (check_cuda(cudaFree(g_dev), "cudaFree")) {
       *ierr = 32;
@@ -329,6 +437,11 @@ void fpseid_cufft_destroy_(int *ierr)
   }
   destroy_timing_events();
   g_bytes = 0;
+  g_plan_dims[0] = 0;
+  g_plan_dims[1] = 0;
+  g_plan_dims[2] = 0;
+  g_transform_elems = 0;
+  g_batch = 0;
   g_exec_count = 0;
   g_h2d_sec = 0.0;
   g_fft_sec = 0.0;

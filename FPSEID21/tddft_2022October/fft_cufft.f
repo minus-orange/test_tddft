@@ -85,6 +85,35 @@ C
       END
 
 C***********************************************************
+      SUBROUTINE FFT3BX_fftwASL_ACC_BATCH(NRX,NRY,NRZ,NG,
+     & NBATCH,RHOG,WORK,plancfp,plancbp)
+      use mod_timer, only: start_timer, stop_timer
+C***********************************************************
+C     Batched device-resident R-space -> G-space cuFFT path.
+C     All local bands must be contiguous and present on the device.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      complex*16 WORK(NG,NBATCH)
+      complex*16 RHOG(NG,NBATCH)
+      integer*8 plancfp,plancbp
+      integer ierr
+C
+      call prof_start(14)
+      call start_timer('cufft_acc_fft3bx_batch')
+!$acc host_data use_device(RHOG)
+      call fpseid_cufft_exec_device_batch(RHOG,NG,NBATCH,1,ierr)
+!$acc end host_data
+      call stop_timer('cufft_acc_fft3bx_batch')
+      call prof_stop(14)
+      if (ierr.ne.0) then
+        write(6,*) 'ERROR: batched device backward FFT failed,',
+     &             ' ierr=',ierr
+        stop
+      endif
+C
+      END
+
+C***********************************************************
       SUBROUTINE FFT3FX_fftwASL_ACC(NRX,NRY,NRZ,NG,RHOG,WORK
      & ,plancfp,plancbp)
       use mod_timer, only: start_timer, stop_timer
@@ -115,6 +144,43 @@ C
 !$acc parallel loop present(RHOG(1:NG))
       DO I=1,NG
         RHOG(I)= RHOG(I)*FAC
+      ENDDO
+C
+      END
+
+C***********************************************************
+      SUBROUTINE FFT3FX_fftwASL_ACC_BATCH(NRX,NRY,NRZ,NG,
+     & NBATCH,RHOG,WORK,plancfp,plancbp)
+      use mod_timer, only: start_timer, stop_timer
+C***********************************************************
+C     Batched device-resident G-space -> R-space cuFFT path.
+C     All local bands must be contiguous and present on the device.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      complex*16 WORK(NG,NBATCH)
+      complex*16 RHOG(NG,NBATCH)
+      integer*8 plancfp,plancbp
+      integer ierr
+C
+      call prof_start(14)
+      call start_timer('cufft_acc_fft3fx_batch')
+!$acc host_data use_device(RHOG)
+      call fpseid_cufft_exec_device_batch(RHOG,NG,NBATCH,-1,ierr)
+!$acc end host_data
+      call stop_timer('cufft_acc_fft3fx_batch')
+      call prof_stop(14)
+      if (ierr.ne.0) then
+        write(6,*) 'ERROR: batched device forward FFT failed,',
+     &             ' ierr=',ierr
+        stop
+      endif
+C
+      FAC=1.0D0/DBLE(NG)
+!$acc parallel loop collapse(2) present(RHOG(1:NG,1:NBATCH))
+      DO IB=1,NBATCH
+        DO I=1,NG
+          RHOG(I,IB)=RHOG(I,IB)*FAC
+        ENDDO
       ENDDO
 C
       END
