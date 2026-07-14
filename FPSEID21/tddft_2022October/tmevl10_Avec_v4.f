@@ -2384,7 +2384,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       real*8 sr,si,ar,ai,br,bi,cr,ci,ctr,cti
       nbndloc = nend-nbegin+1
       call prof_start(28)
-!$acc parallel loop gang vector_length(512)
+!$acc parallel loop gang vector_length(256)
 !$acc& present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
 !$acc& ngnl(1:loopcnt)) private(ia,ja,sr,si,ar,ai,br,bi,
