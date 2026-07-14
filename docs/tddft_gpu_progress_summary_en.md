@@ -959,3 +959,25 @@ Current code state:
    The CPU/FFTW fallback and the relaxed TDDFT comparator remain important
    because the OpenACC work is now experimental. Every performance step should
    continue to archive output and pass both `check` and `compare`.
+
+## B1 YLM ownership experiment and rollback
+
+B1 made TMEVL the device-lifetime owner of `YLM1..5` and replaced the callee
+YLM-section `copyin` with `present`. Diagnostics reported present parent and
+section mappings in all five phases, with observed address offsets matching the
+expected offsets. Both the result `check` and relaxed `compare` passed.
+
+The three performance runs were:
+
+```text
+wall_sec: 174.30, 174.05, 174.32 sec
+median:   174.30 sec
+Step 18:  163.31 sec
+increase: about 6.7 percent
+```
+
+The median was about 6.7% slower than Step 18 and failed the within-3% adoption
+gate. B1 was therefore rejected, and commit `a40ddd6` rolled back only the YLM
+ownership change. The rollback has been pushed to
+`origin/tddft-openacc-residency`. VPJ/EXTAU ownership must not proceed until
+three diagnostic-OFF Step-18-equivalent runs confirm baseline recovery.

@@ -856,3 +856,24 @@ TDDFT のタイムステップ内処理を GPU 上に載せ、step loop 内の h
    OpenACC 作業は実験色が強いため、CPU/FFTW fallback と relaxed TDDFT comparator
    は引き続き重要です。各性能 step では、出力を archive し、`check` と `compare`
    の両方を通す必要があります。
+
+## B1 YLM ownership実験とrollback
+
+B1では、TMEVLを`YLM1..5`のdevice lifetime ownerとし、callee内のYLM section
+`copyin`を`present`へ置換しました。診断では5 phaseともparent/sectionがpresentで、
+address offsetも期待値と一致しました。数値結果も`check`とrelaxed `compare`の
+両方がPASSしました。
+
+3回の性能測定は次の通りです。
+
+```text
+wall_sec: 174.30, 174.05, 174.32 sec
+median:   174.30 sec
+Step 18:  163.31 sec
+increase: about 6.7 percent
+```
+
+中央値はStep 18より約6.7%遅く、採用条件の+3%以内を満たしません。そのためB1は
+不採用とし、commit `a40ddd6`でYLM ownership変更だけをrollbackしました。この
+rollbackは`origin/tddft-openacc-residency`へpush済みです。VPJ/EXTAU ownershipへは
+進まず、diagnostic OFFのStep 18相当条件を3回再測定してbaseline回復を確認します。
