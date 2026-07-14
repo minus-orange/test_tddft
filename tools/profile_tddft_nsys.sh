@@ -15,7 +15,7 @@ set -eu
 #   NSYS           default: nsys
 #   NSYS_TRACE     default: cuda,openacc,nvtx,osrt
 #   MPIRUN         default: mpirun
-#   MPIRUN_FLAGS   default: --quiet
+#   MPIRUN_FLAGS   default: empty
 #   NPROCS         default: 1
 #   NSYS_ROOT      default: <repo>/run/nsys_archives
 #   NSYS_TMPDIR    default: <Nsight archive>/tmp
@@ -52,7 +52,7 @@ TDDFT_EXE=${TDDFT_EXE:-"$ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe"}
 NSYS=${NSYS:-nsys}
 NSYS_TRACE=${NSYS_TRACE:-cuda,openacc,nvtx,osrt}
 MPIRUN=${MPIRUN:-mpirun}
-MPIRUN_FLAGS=${MPIRUN_FLAGS:---quiet}
+MPIRUN_FLAGS=${MPIRUN_FLAGS:-}
 NPROCS=${NPROCS:-1}
 NSYS_ROOT=${NSYS_ROOT:-"$ROOT_DIR/run/nsys_archives"}
 DRY_RUN=${DRY_RUN:-0}
