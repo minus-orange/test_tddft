@@ -1379,8 +1379,18 @@ c *** predictor-corrector sequence.  COEF0 is the unchanged wavefunction
 c *** used to restart every correction.  The host coefcp above remains the
 c *** CPU/FFTW path; on OpenACC the correction restart below is device-local.
       if (iscf.eq.1) then
-!$acc enter data copyin(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
+!$acc enter data copyin(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc& create(COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc parallel loop collapse(3)
+!$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
 !$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
+       do ik0=1,numkq
+        do ib=1,nblng
+         do ig=1,ng2q
+          COEF0(ig,ib,ik0)=COEF(ig,ib,ik0)
+         enddo
+        enddo
+       enddo
       else
 !$acc parallel loop collapse(3)
 !$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
