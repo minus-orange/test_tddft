@@ -14,7 +14,6 @@ set -eu
 #   LDFLAGS    Additional linker flags.
 #   BUILD_REPORT  Set to 1 to print more build details and add compiler reports.
 #   REPORT_FLAGS   Extra compiler report flags when BUILD_REPORT=1.
-#   FPSEID_STEP_A_DIAGNOSTIC  Set to 1 for bounded OpenACC diagnostics.
 #   FFTW_LIBS  FFTW libraries. Default: -lfftw3_omp -lfftw3
 #   FFT_BACKEND FFT implementation. Default: fftw. Set to cufft for GPU FFT.
 #   CUFFT_LIBS  cuFFT libraries when FFT_BACKEND=cufft.
@@ -29,7 +28,6 @@ CC=${CC:-mpicc}
 FFTW_ROOT=${FFTW_ROOT:-}
 FFT_BACKEND=${FFT_BACKEND:-fftw}
 BUILD_REPORT=${BUILD_REPORT:-0}
-FPSEID_STEP_A_DIAGNOSTIC=${FPSEID_STEP_A_DIAGNOSTIC:-0}
 
 FC_PROBE="$FC
 $("$FC" --version 2>/dev/null || true)
@@ -37,8 +35,6 @@ $("$FC" -show 2>/dev/null || true)
 $("$FC" --showme:command 2>/dev/null || true)"
 
 if printf '%s\n' "$FC_PROBE" | grep -Eiq 'nvfortran|pgfortran'; then
-    FC_FAMILY=nvhpc
-    PREPROCESS_FLAG=-Mpreprocess
     FFLAGS=${FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
     REPORT_FLAGS=${REPORT_FLAGS:-"-Minfo=accel -Minfo=mp"}
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE.f}
@@ -46,8 +42,6 @@ if printf '%s\n' "$FC_PROBE" | grep -Eiq 'nvfortran|pgfortran'; then
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs.f}
     PSPW_SRC=${PSPW_SRC:-pspw_tm11_Vext_Avec_v4_alloc.f}
 elif printf '%s\n' "$FC_PROBE" | grep -Eiq 'gfortran|GNU Fortran'; then
-    FC_FAMILY=gnu
-    PREPROCESS_FLAG=-cpp
     FFLAGS=${FFLAGS:-"-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz"}
     REPORT_FLAGS=${REPORT_FLAGS:-"-fopt-info-optimized -fopt-info-vec"}
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE_gnu.f}
@@ -55,8 +49,6 @@ elif printf '%s\n' "$FC_PROBE" | grep -Eiq 'gfortran|GNU Fortran'; then
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs_gnu.f}
     PSPW_SRC=${PSPW_SRC:-pspw_tm11_Vext_Avec_v4_alloc_gnu.f}
 else
-    FC_FAMILY=intel
-    PREPROCESS_FLAG=-fpp
     FFLAGS=${FFLAGS:-"-O3 -traceback -qopenmp"}
     REPORT_FLAGS=${REPORT_FLAGS:-"-qopt-report=2"}
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE.f}
@@ -71,47 +63,6 @@ CFLAGS=${CFLAGS:-"-O2"}
 LDFLAGS=${LDFLAGS:-}
 FFTW_LIBS=${FFTW_LIBS:-"-lfftw3_omp -lfftw3"}
 CUFFT_LIBS=${CUFFT_LIBS:-"-lcufft -lcudart"}
-
-case "$FPSEID_STEP_A_DIAGNOSTIC" in
-  0|1) ;;
-  *)
-    echo "ERROR: FPSEID_STEP_A_DIAGNOSTIC must be 0 or 1." >&2
-    exit 1
-    ;;
-esac
-
-STEPA_DEFINE=
-STEPA_SRC=
-STEPA_OBJS=
-if [ "$FPSEID_STEP_A_DIAGNOSTIC" = 1 ]; then
-  if [ "$FC_FAMILY" != nvhpc ]; then
-    echo "ERROR: FPSEID Step A diagnostics require an NVHPC Fortran compiler." >&2
-    exit 1
-  fi
-  case " $FFLAGS " in
-    *" -acc "*|*" -acc="*) ;;
-    *)
-      echo "ERROR: FPSEID Step A diagnostics require -acc in FFLAGS." >&2
-      exit 1
-      ;;
-  esac
-  CC_PROBE="$CC
-$($CC --version 2>/dev/null || true)"
-  if ! printf '%s\n' "$CC_PROBE" | grep -Eiq '(^|[/[:space:]])nvc([[:space:]]|$)|NVIDIA'; then
-    echo "ERROR: FPSEID Step A diagnostics require nvc as CC." >&2
-    exit 1
-  fi
-  if ! "$FC" $FFLAGS $PREPROCESS_FLAG -c stepa_default_int_probe.F90 \
-       -o stepa_default_int_probe.o; then
-    rm -f stepa_default_int_probe.o
-    echo "ERROR: FPSEID Step A requires default integer == c_int" >&2
-    exit 1
-  fi
-  rm -f stepa_default_int_probe.o
-  STEPA_DEFINE=-DFPSEID_STEP_A_DIAGNOSTIC=1
-  STEPA_SRC=mod_stepa_diag.F90
-  STEPA_OBJS=fpseid_stepa_acc_diag.o
-fi
 
 add_link_dir() {
   dir=$1
@@ -204,8 +155,6 @@ echo "  CC=$CC"
 echo "  FFLAGS=$FFLAGS"
 echo "  CFLAGS=$CFLAGS"
 echo "  LDFLAGS=$LDFLAGS"
-echo "  PREPROCESS_FLAG=$PREPROCESS_FLAG"
-echo "  FPSEID_STEP_A_DIAGNOSTIC=$FPSEID_STEP_A_DIAGNOSTIC"
 echo "  FFT_INCLUDE=$FFT_INCLUDE"
 echo "  FFT_LINK=$FFT_LINK"
 if [ "$BUILD_REPORT" = 1 ]; then
@@ -224,19 +173,14 @@ case "$FFT_BACKEND" in
       -o fpseid_cufft_wrap.o
     ;;
 esac
-if [ "$FPSEID_STEP_A_DIAGNOSTIC" = 1 ]; then
-  "$CC" $CFLAGS -acc -c fpseid_stepa_acc_diag.c \
-    -o fpseid_stepa_acc_diag.o
-fi
 "$FC" $FFLAGS \
-  $PREPROCESS_FLAG $STEPA_DEFINE \
   $FFT_INCLUDE \
   -o tddft_exe \
-  mod_timer.f90 $STEPA_SRC cpu_block.f prof_timer.f "$LIB4_SRC" \
+  mod_timer.f90 cpu_block.f prof_timer.f "$LIB4_SRC" \
   "$RARR3_SRC" "$TM_INPUTS_SRC" \
   rexgenDummy.f dipole.f orbanly_part_f.f smatchk2.f \
   frprmn_tm12_check_Vext_Avec_v4.f pack.f tdep.f vpj_gen.f \
   electf4_Vext_Avec.f gga_lib_3_PBE.f \
   "$PSPW_SRC" tmevl10_Avec_v4.f bannerTDDFT.f \
-  "$FFT_SRC" omp_clock.f $FFT_OBJS $STEPA_OBJS \
+  "$FFT_SRC" omp_clock.f $FFT_OBJS \
   $LDFLAGS $FFT_LINK

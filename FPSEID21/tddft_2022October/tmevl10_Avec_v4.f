@@ -47,10 +47,6 @@ c
 c
      &   ,nbegin,nend,mshbegin,mshend,ncpuq,ncpu )
 C
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      use mod_stepa_diag, only: fpseid_stepa_diag_ylm_parent,
-     & fpseid_stepa_diag_vpj_parent, fpseid_stepa_diag_extau_parent
-#endif
       IMPLICIT REAL*8(A-H,O-Z)
       include 'mpif.h'
 c      parameter ( ncpuq=30 )
@@ -550,11 +546,6 @@ c        write(6,*)' norm = ',temp
 c      endif
 c *** temp check:end
 c
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      call fpseid_stepa_diag_ylm_parent(1,'YLM1',NGcont,YLM1)
-      call fpseid_stepa_diag_vpj_parent(1,'VPJ1',NGcont,NTYQ,VPJ1)
-      call fpseid_stepa_diag_extau_parent(1,NGcont,NTAUQ,EXTAU)
-#endif
       call S2_(dt1, NXYZ,NRX,NRY,NRZ, NG2, NG2Q, NJ,
 c     &     P(1,ib), HP, YLM, G2,J2G, RHO1, RHO2, TPIBA, WORK2, VPJ,
 c     &     P, HP, YLM, G2,J2G, RHO1, RHO2, TPIBA, WORK2, VPJ,
@@ -593,11 +584,6 @@ c
       call exkin_(dt2,nxyz,ng2q,P,G2,TPIBA2,GDUMP2,GMHF,
      &            mxbnd,nbegin(my_rank),nend(my_rank))
 c
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      call fpseid_stepa_diag_ylm_parent(2,'YLM2',NGcont,YLM2)
-      call fpseid_stepa_diag_vpj_parent(2,'VPJ2',NGcont,NTYQ,VPJ2)
-      call fpseid_stepa_diag_extau_parent(2,NGcont,NTAUQ,EXTAU)
-#endif
       call S2_(dt2, NXYZ,NRX,NRY,NRZ, NG2, NG2Q, NJ,
 c     &     P(1,ib), HP, YLM, G2,J2G, RHO1, RHO2, TPIBA, WORK2, VPJ,
 c     &   P, HP, YLM, G2,J2G, RHO1, RHO2, TPIBA, WORK2, VPJ,
@@ -625,11 +611,6 @@ c
       call exkin_(dt3,nxyz,ng2q,P,G2,TPIBA2,GDUMP3,GMHF,
      &            mxbnd,nbegin(my_rank),nend(my_rank))
 c
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      call fpseid_stepa_diag_ylm_parent(3,'YLM3',NGcont,YLM3)
-      call fpseid_stepa_diag_vpj_parent(3,'VPJ3',NGcont,NTYQ,VPJ3)
-      call fpseid_stepa_diag_extau_parent(3,NGcont,NTAUQ,EXTAU)
-#endif
       call S2_(dt3, NXYZ,NRX,NRY,NRZ, NG2, NG2Q, NJ,
 c     &     P(1,ib), HP, YLM, G2,J2G, RHO1, RHO2, TPIBA, WORK2, VPJ,
 c     &     P, HP, YLM, G2,J2G, RHO1, RHO2, TPIBA, WORK2, VPJ,
@@ -657,11 +638,6 @@ C
       call exkin_(dt2,nxyz,ng2q,P,G2,TPIBA2,GDUMP4,GMHF,
      &            mxbnd,nbegin(my_rank),nend(my_rank))
 C
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      call fpseid_stepa_diag_ylm_parent(4,'YLM4',NGcont,YLM4)
-      call fpseid_stepa_diag_vpj_parent(4,'VPJ4',NGcont,NTYQ,VPJ4)
-      call fpseid_stepa_diag_extau_parent(4,NGcont,NTAUQ,EXTAU)
-#endif
       call S2_(dt2, NXYZ,NRX,NRY,NRZ, NG2, NG2Q, NJ,
 c     &     P(1,ib), HP, YLM, G2,J2G,RHO1, RHO2, TPIBA, WORK2, VPJ,
 c     &     P, HP, YLM, G2,J2G,RHO1, RHO2, TPIBA, WORK2, VPJ,
@@ -689,11 +665,6 @@ C
       call exkin_(dt1,nxyz,ng2q,P,G2,TPIBA2,GDUMP5,GMHF,
      &            mxbnd,nbegin(my_rank),nend(my_rank))
 C
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      call fpseid_stepa_diag_ylm_parent(5,'YLM5',NGcont,YLM5)
-      call fpseid_stepa_diag_vpj_parent(5,'VPJ5',NGcont,NTYQ,VPJ5)
-      call fpseid_stepa_diag_extau_parent(5,NGcont,NTAUQ,EXTAU)
-#endif
       call S2_(dt1, NXYZ,NRX,NRY,NRZ, NG2, NG2Q, NJ,
 c     &     P(1,ib), HP, YLM, G2,J2G,RHO1, RHO2, TPIBA, WORK2, VPJ,
 c     &     P, HP, YLM, G2,J2G,RHO1, RHO2, TPIBA, WORK2, VPJ,
@@ -1731,10 +1702,6 @@ c *** for Kokubo FFTW
      &     NIDN, IOVP, MXOFL, plancfp,plancbp,
      &     VG,VGG,fdump,Vloc,EXTAU,NP,NGNL,
      &     mxbnd,nbegin,nend,NGcont)
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      use mod_stepa_diag, only: fpseid_stepa_diag_p,
-     & fpseid_stepa_diag_nonlocal
-#endif
       implicit double precision(a-h,o-z)
 c      COMPLEX*16  P(NG2Q), HP(NG2Q,3)
       COMPLEX*16  P(NG2Q,mxbnd), HP(NG2Q)
@@ -1778,7 +1745,6 @@ c      COMMON/SAITO2/IBUN(3,NTYQ2)
       complex*16, allocatable, save, dimension(:,:) :: work2_
       complex*16, allocatable, save, dimension(:) :: cfac_
       integer, allocatable, save, dimension(:) :: ngnl_
-      integer, save :: work2_ncol = 0
       logical, save :: first = .true.
       call prof_start(10)
 c *** first: operate kinetic energy term
@@ -1843,20 +1809,12 @@ c ***  temp check for YLM : end
          allocate(work2_(NGcont,loopcnt))
          allocate(cfac_(loopcnt))
          allocate(ngnl_(loopcnt))
-         work2_ncol = loopcnt
          first = .false.
       endif
 ! ==============================================================================
       nbndloc=nend-nbegin+1
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      call fpseid_stepa_diag_p(NP,NG2Q,NXYZ,NG2,NGcont,mxbnd,
-     & nbndloc,nbegin,nend,P,J2G)
-#endif
       call prof_start(11)
       call prof_start(25)
-      call prof_start(38)
-!$acc enter data create(work2_(1:NGcont,1:work2_ncol))
-      call prof_stop(38)
       loopcnt = 0
       dthalf=0.5d0*dt
       do 1 ity=ntype,1,-1
@@ -1868,40 +1826,36 @@ c ***  temp check for YLM : end
          if ( il.eq.1 ) then
          l=il
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          elseif ( il.eq.2 ) then
          do l=4,2,-1
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.3 ) then
          do l=9,5,-1
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.4 ) then
          do l=16,10,-1
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          endif
@@ -1910,40 +1864,36 @@ c ***  temp check for YLM : end
          if ( il.eq.1 ) then
          l=il
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          elseif ( il.eq.2 ) then
          do l=4,2,-1
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.3 ) then
          do l=9,5,-1
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.4 ) then
          do l=16,10,-1
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          endif
@@ -1954,13 +1904,12 @@ c ***  temp check for YLM : end
     1 continue
       call prof_stop(25)
       call prof_start(26)
+      call prof_start(38)
+!$acc enter data copyin(work2_(1:NGcont,1:loopcnt))
+      call prof_stop(38)
       call prof_start(39)
 !$acc enter data copyin(cfac_(1:loopcnt),ngnl_(1:loopcnt))
       call prof_stop(39)
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      call fpseid_stepa_diag_nonlocal(1,loopcnt,work2_ncol,NGcont,
-     & NG2Q,work2_,cfac_,ngnl_)
-#endif
       call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont)
       call prof_start(32)
@@ -2158,9 +2107,6 @@ C
 c ** fourth: operate nonlocal potential terms
       call prof_start(11)
       call prof_start(25)
-      call prof_start(38)
-!$acc enter data create(work2_(1:NGcont,1:work2_ncol))
-      call prof_stop(38)
       loopcnt = 0
       do 4 ity=1,ntype
        if ( numty(ity).lt.0 ) goto 4 ! skip Hydrogen
@@ -2171,40 +2117,36 @@ c ** fourth: operate nonlocal potential terms
          if ( il.eq.1 ) then
          l=il
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          elseif ( il.eq.2 ) then
          do l=2,4
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.3 ) then
          do l=5,9
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.4 ) then
          do l=10,16
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(1,il,ity),vpp2(l,1,ity),
-     &   l,ylm,extau,np,itseq,1,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          endif
@@ -2213,40 +2155,36 @@ c ** fourth: operate nonlocal potential terms
          if ( il.eq.1 ) then
          l=il
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          elseif ( il.eq.2 ) then
          do l=2,4
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.3 ) then
          do l=5,9
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.4 ) then
          do l=10,16
          loopcnt = loopcnt + 1
-         call exnlp_only_make_acc(dthalf,ng2q,nxyz,g2,
-     &   vpj,vpp(ip,il,ity),vpp2(l,ip,ity),
-     &   l,ylm,extau,np,itseq,ip,il,ity,work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
-     &   NTYQ,NTAUQ,NGcont)
+         call exnlp_only_make(dthalf,ng2q,nxyz,g2,
+     &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
+     &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          endif
@@ -2257,13 +2195,12 @@ c ** fourth: operate nonlocal potential terms
     4 continue
       call prof_stop(25)
       call prof_start(26)
+      call prof_start(38)
+!$acc enter data copyin(work2_(1:NGcont,1:loopcnt))
+      call prof_stop(38)
       call prof_start(39)
 !$acc enter data copyin(cfac_(1:loopcnt),ngnl_(1:loopcnt))
       call prof_stop(39)
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      call fpseid_stepa_diag_nonlocal(2,loopcnt,work2_ncol,NGcont,
-     & NG2Q,work2_,cfac_,ngnl_)
-#endif
       call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont)
       call prof_start(32)
@@ -2501,48 +2438,6 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       return
       end subroutine exnlp_only_make
 
-      subroutine exnlp_only_make_acc(dt, ng2q, ng2, g2, vpj, vpp, vpp2,
-     &   l, ylm, extau, np, itseq, ip, il, ity, work1, tpiba, omega,
-     &   tau, ngnl, cfac, NTYQ, NTAUQ, NGcont)
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      use mod_stepa_diag, only: fpseid_stepa_diag_ylm_section,
-     & fpseid_stepa_diag_vpj_section, fpseid_stepa_diag_extau_section
-#endif
-      implicit double precision(a-h,o-z)
-c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
-      dimension g2(4,ng2q), vpj(NGcont,3,4,NTYQ)
-      dimension ylm(NGcont,16), tau(3)
-      complex*16 extau(NGcont,5,NTAUQ), work1(NGcont), cfac
-      pi = 4.d0*atan(1.d0)
-      fpi = 4.d0*pi
-      fpisq = fpi**2
-      fac = dt*vpp2/vpp
-      cfac = 1.d0/vpp2*(dcmplx(dcos(fac),-dsin(fac))
-     &                 -dcmplx( 1.d0,    0.d0      ))
-      fac = 1.d0
-      if (l .eq. 2 .or. l .eq. 3) fac = dsqrt(2.d0)
-      if (l .eq. 1)  lylm =1
-      if (l .eq. 2)  lylm =3
-      if (l .eq. 3)  lylm =4
-      if (l .eq. 4)  lylm =2
-      if (l .ge. 5)  lylm = l  ! This is not 1 but l !!
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      call fpseid_stepa_diag_ylm_section(np,NGcont,lylm,ylm)
-      call fpseid_stepa_diag_vpj_section(np,NGcont,NTYQ,ip,il,ity,vpj)
-      call fpseid_stepa_diag_extau_section(np,NGcont,NTAUQ,np,itseq,
-     & extau)
-#endif
-!$acc parallel loop present(work1(1:NGcont))
-!$acc& copyin(ylm(1:NGcont,lylm))
-!$acc& copyin(extau(1:NGcont,np,itseq))
-!$acc& copyin(vpj(1:NGcont,ip,il,ity))
-      do ig = 1, ngnl
-         work1(ig) = fac*ylm(ig,lylm)*extau(ig,np,itseq)
-     &              *vpj(ig,ip,il,ity)
-      end do
-      return
-      end subroutine exnlp_only_make_acc
-
       subroutine exnlp_gemm(ng2q, work1, coef, omega, ngnl,
      &   mxbnd, nbegin, nend, loopcnt, cfac,NGcont)
       implicit double precision(a-h,o-z)
@@ -2588,9 +2483,6 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
 
       subroutine exnlp_gemm_body_fused(ng2q, work1, coef, omega,
      &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,NGcont)
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      use mod_stepa_diag, only: fpseid_stepa_diag_coef
-#endif
       implicit double precision(a-h,o-z)
       complex*16 coef(ng2q,mxbnd), work1(NGcont,loopcnt),
      &           cfac(loopcnt)
@@ -2598,9 +2490,6 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       integer nbndloc
       real*8 sr,si,ar,ai,br,bi,cr,ci,ctr,cti
       nbndloc = nend-nbegin+1
-#ifdef FPSEID_STEP_A_DIAGNOSTIC
-      call fpseid_stepa_diag_coef(ng2q,mxbnd,nbndloc,coef)
-#endif
       do ia = 1, loopcnt
          call prof_start(28)
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
