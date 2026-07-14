@@ -985,3 +985,34 @@ run 01では`exnlp_work1_enter`と`exnlp_meta_enter`のcountが9440から4720へ
 `1.517394`秒、`s2_nonlocal`は`24.380108`秒、`tmevl_s2`は`29.408207`秒でした。
 数値結果とprojector適用回数を維持しながら後半H2Dを削減できたため、Step 23を
 正式採用します。
+
+## Step 24: nonlocal projector kernelのia方向融合
+
+Step 23時点の`exnlp_gemm_body_fused`は、逐次依存する`ia`順序をhost側に残し、
+各`ia`でlocal band全体のOpenACC kernelを起動していました。そのため100 stepで
+`exnlp_gemm_dot`が453120回となり、kernel launch overheadが残っていました。
+
+Step 24では、相互に独立なbandをOpenACC gangへ割り当て、各band内で
+`ia=1..loopcnt`を`seq`実行します。各band内のprojector適用順序、各`ia`内の`ig`
+reduction、およびreverse phaseの`loopcnt-ia+1`写像は変更していません。これにより
+nonlocal phaseごとに1 kernelとなり、`exnlp_gemm_dot` countを9440へ削減しました。
+
+実装commitは`b3559f1` (`Fuse nonlocal projector kernels across ia`)です。
+CPU/FFTW fallbackのフルリンクを確認後、diagnostic OFF、1 GPU / 1 MPI rank、
+100 stepで3回測定しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP24_IA_FUSION_01` | 133.278103113 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP24_IA_FUSION_02` | 133.268284082 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP24_IA_FUSION_03` | 133.029439926 | PASS | PASS |
+
+3回中央値は`133.268284082`秒です。Step 23中央値`140.840327024`秒より約5.376%
+速く、rollback後のStep 18中央値`161.753436089`秒より約17.610%速い結果です。
+実行間の幅は約0.249秒で、全runの通常checkとrelaxed compareがPASSしました。
+
+run 01では`exnlp_gemm_dot` countが453120から9440へ減り、時間は
+`18.374716`秒から`11.048592`秒へ約39.87%短縮しました。`s2_nonlocal`は
+`16.746555`秒、`tmevl_s2`は`21.786372`秒となり、Step 23 run 01比でそれぞれ
+約31.31%、25.92%短縮しました。projector順序と数値結果を維持したままkernel
+launchを削減できたため、Step 24を正式採用します。

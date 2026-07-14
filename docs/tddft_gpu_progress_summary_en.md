@@ -1105,3 +1105,37 @@ The `exnlp_gemm_dot` count remained unchanged at `453120`.
 `tmevl_s2` was `29.408207` sec. Step 23 is accepted because it removes the
 second-phase H2D transfer while preserving the numerical result and projector
 application count.
+
+## Step 24: Fuse Nonlocal Projector Kernels Across ia
+
+At Step 23, `exnlp_gemm_body_fused` kept the sequentially dependent `ia` order
+on the host and launched one OpenACC kernel over all local bands for every
+`ia`. This produced 453120 `exnlp_gemm_dot` calls in 100 steps and left a large
+kernel-launch overhead.
+
+Step 24 assigns independent bands to OpenACC gangs and executes
+`ia=1..loopcnt` sequentially inside each band. The projector order within each
+band, the `ig` reduction within each `ia`, and the reverse-phase
+`loopcnt-ia+1` mapping are unchanged. Each nonlocal phase now uses one kernel,
+reducing the `exnlp_gemm_dot` count to 9440.
+
+The implementation commit is `b3559f1` (`Fuse nonlocal projector kernels
+across ia`). After confirming the CPU/FFTW fallback full link, three
+diagnostic-off, one-GPU / one-MPI-rank, 100-step runs were made.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP24_IA_FUSION_01` | 133.278103113 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP24_IA_FUSION_02` | 133.268284082 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP24_IA_FUSION_03` | 133.029439926 | PASS | PASS |
+
+The three-run median is `133.268284082` sec. It is about 5.376% faster than the
+Step 23 median of `140.840327024` sec and about 17.610% faster than the refreshed
+Step 18 median of `161.753436089` sec. The run-to-run range is about 0.249 sec,
+and every run passed both the normal check and relaxed comparison.
+
+In run 01, the `exnlp_gemm_dot` count dropped from 453120 to 9440 and its time
+fell by about 39.87%, from `18.374716` sec to `11.048592` sec. `s2_nonlocal`
+was `16.746555` sec and `tmevl_s2` was `21.786372` sec, reductions of about
+31.31% and 25.92% from Step 23 run 01. Step 24 is accepted because it removes
+kernel launches while preserving projector order and the numerical result.
