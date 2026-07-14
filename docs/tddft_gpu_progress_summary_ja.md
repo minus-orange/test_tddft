@@ -1129,3 +1129,23 @@ run 01では、`tmevl_p_enter`がStep 25 run 01の`2.925959`秒から`0.001273`�
 短縮しました。`tmevl_p_exit`は`2.825121`秒で、意図どおりhost consumer向けD2Hを
 維持しています。数値結果を保ちながら反復H2Dを削減できたため、Step 28を正式採用
 します。次の候補は、Step 27で第二候補だったnonlocal `work2_`のdevice直接生成です。
+
+## Step 29: resident COEF0のdevice初期化（不採用）
+
+Step 28では各FRPRMNの最初に`COEF`と`COEF0`をcopyinしていました。Step 29では
+`COEF0`をdevice上でcreateし、転送済み`COEF`からGPU kernelで初期化することで、
+各FRPRMNにつき1本のH2Dをdevice内コピーへ置き換えました。補正反復の復元方法、
+TMEVL後のD2H、数式およびloop順序は変更していません。実装commitは`94e0e0e`
+(`Initialize resident coefficient backup on device`)です。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP29_COEF0_D2D_01` | 130.160923958 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP29_COEF0_D2D_02` | 129.451672077 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP29_COEF0_D2D_03` | 130.183923006 | PASS | PASS |
+
+3回中央値は`130.160923958`秒で、Step 28中央値`129.075486183`秒より約0.841%
+遅い結果です。全runの通常checkとrelaxed compareはPASSしましたが、削減した初期
+H2Dは追加のdevice copy kernelを含むwall改善につながりませんでした。このため
+Step 29は不採用とし、commit `bd53a88` (`Restore accepted Step28 coefficient mapping`)
+でStep 28方式へ戻しました。rollback後のCPU/FFTW fallbackフルリンクはPASSしました。

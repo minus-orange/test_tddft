@@ -1265,3 +1265,25 @@ in Step 25 run 01 to `0.001273` sec. `tmevl_total` fell by about 4.745%, from
 as intended for the host consumers. Step 28 is accepted because it removes the
 repeated H2D while preserving the numerical result. The next candidate is
 direct device generation of the nonlocal `work2_` buffer identified in Step 27.
+
+## Step 29: Device Initialization of Resident COEF0 (Rejected)
+
+Step 28 copied both `COEF` and `COEF0` to the device at the start of each
+FRPRMN call. Step 29 created `COEF0` on the device and initialized it with a GPU
+kernel from the already transferred `COEF`, replacing one H2D per FRPRMN with
+a device-local copy. The correction restore, post-TMEVL D2H, equations, and
+loop order were unchanged. The implementation commit is `94e0e0e`
+(`Initialize resident coefficient backup on device`).
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP29_COEF0_D2D_01` | 130.160923958 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP29_COEF0_D2D_02` | 129.451672077 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP29_COEF0_D2D_03` | 130.183923006 | PASS | PASS |
+
+The three-run median is `130.160923958` sec, about 0.841% slower than the Step
+28 median of `129.075486183` sec. Every run passed both the normal check and
+relaxed comparison, but the removed initial H2D did not offset the additional
+device-copy kernel in wall time. Step 29 is therefore rejected, and commit
+`bd53a88` (`Restore accepted Step28 coefficient mapping`) restores the Step 28
+method. The CPU/FFTW fallback full link passed after the rollback.
