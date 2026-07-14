@@ -18,6 +18,7 @@ set -eu
 #   MPIRUN_FLAGS   default: --quiet
 #   NPROCS         default: 1
 #   NSYS_ROOT      default: <repo>/run/nsys_archives
+#   NSYS_TMPDIR    default: <Nsight archive>/tmp
 #   CUDA_VISIBLE_DEVICES default: 0
 #   DRY_RUN        set to 1 to print the resolved run without executing it
 
@@ -109,6 +110,20 @@ fi
 mkdir -p "$ARCHIVE_DIR"
 cp -p "$INPUT_PATH" "$ARCHIVE_DIR/$TDDFT_INPUT"
 
+# Some shared systems have a non-writable /tmp/nvidia directory.  Keep Nsight
+# temporary files in this run's archive unless the caller explicitly selects
+# another writable location.
+NSYS_TMPDIR=${NSYS_TMPDIR:-"$ARCHIVE_DIR/tmp"}
+mkdir -p "$NSYS_TMPDIR"
+NSYS_TMPDIR=$(CDPATH= cd -- "$NSYS_TMPDIR" && pwd)
+if [ ! -w "$NSYS_TMPDIR" ]; then
+  echo "ERROR: Nsight temporary directory is not writable: $NSYS_TMPDIR" >&2
+  exit 1
+fi
+TMPDIR=$NSYS_TMPDIR
+export TMPDIR
+echo "  temp dir:   $TMPDIR"
+
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 export OMP_STACKSIZE=${OMP_STACKSIZE:-512M}
 export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
@@ -128,6 +143,7 @@ nsys_version=$($NSYS --version 2>&1 || true)
   echo "tddft_exe=$TDDFT_EXE"
   echo "nprocs=$NPROCS"
   echo "nsys_trace=$NSYS_TRACE"
+  echo "nsys_tmpdir=$NSYS_TMPDIR"
   echo "omp_num_threads=$OMP_NUM_THREADS"
   echo "omp_stacksize=$OMP_STACKSIZE"
   echo "cuda_visible_devices=$CUDA_VISIBLE_DEVICES"
