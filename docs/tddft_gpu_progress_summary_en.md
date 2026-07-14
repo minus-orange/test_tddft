@@ -1040,3 +1040,34 @@ maximum absolute differences are unchanged from the recovered Step 18 runs and
 remain within the configured tolerances. Step 21 is therefore accepted. Its
 implementation commit remains the rollback target and comparison point for the
 next performance hypothesis.
+
+## Step 22: Persistent Device Allocation for Nonlocal Staging Buffers
+
+Step 22 removes the repeated OpenACC `enter data copyin` and `exit data delete`
+operations for `work2_`, `cfac_`, and `ngnl_` in each `S2_` nonlocal phase.
+These arrays already have saved host allocations, so their device storage is
+now created once. Each phase only updates the host-generated values on the
+device. The large H2D data volume, nonlocal calculation, `ia` update order, and
+YLM/VPJ/EXTAU ownership are unchanged. The CPU/FFTW fallback full link passed.
+
+The implementation commit is `1b98197` (`Persist nonlocal staging buffers on
+device`). Three diagnostic-off, one-GPU / one-MPI-rank, 100-step runs were made.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP22_PERSIST_NLBUF_01` | 146.283041954 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP22_PERSIST_NLBUF_02` | 146.165471077 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP22_PERSIST_NLBUF_03` | 146.268707991 | PASS | PASS |
+
+The three-run median is `146.268707991` sec, about 0.185% faster than the Step
+21 median of `146.540076017` sec. The run-to-run range is about 0.118 sec, and
+the median is within the Step 21 +3% limit of `150.936278298` sec. Every run
+passed both the normal check and relaxed comparison with the same maximum
+absolute differences as the preceding runs.
+
+In the run 01 profile, `s2_nonlocal` was `29.425824` sec, `tmevl_s2` was
+`34.474580` sec, `exnlp_work1_enter` was `8.071267` sec, and
+`exnlp_meta_enter` was `0.150348` sec. `exnlp_gemm_exit`, which measured the
+repeated delete path, disappeared from the profile and the timer count dropped
+from 32 to 31. Although the wall-time improvement is small, Step 22 is accepted
+because it removes repeated device allocation without regressing performance.

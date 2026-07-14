@@ -927,3 +927,31 @@ run 01のprofileでは、`s2_fft_local`が`5.026740`秒、`fft_wrapper`が
 全runで通常checkとrelaxed compareがPASSし、共通の最大絶対差もStep 18回復runと
 同一で設定tolerance以内です。このためStep 21 batch cuFFT変更を正式採用します。
 次の性能仮説へ進む際も、このcommitをrollback先および比較点として維持します。
+
+## Step 22: nonlocal staging bufferのdevice allocation永続化
+
+Step 22では、`S2_`内の`work2_`、`cfac_`、`ngnl_`について、各nonlocal phaseで
+繰り返していたOpenACC `enter data copyin`と`exit data delete`を廃止しました。
+これらは`save`付き配列としてhost側でも初回だけallocateされるため、device側も初回に
+1度だけ`create`し、各phaseではhostで再生成した内容を`update device`します。
+大規模H2Dのデータ量、nonlocal計算、`ia`更新順序、YLM/VPJ/EXTAU ownershipは
+変更していません。CPU/FFTW fallbackのフルリンクもPASSしました。
+
+実装commitは`1b98197` (`Persist nonlocal staging buffers on device`)です。
+diagnostic OFF、1 GPU / 1 MPI rank、100 stepで3回測定しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP22_PERSIST_NLBUF_01` | 146.283041954 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP22_PERSIST_NLBUF_02` | 146.165471077 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP22_PERSIST_NLBUF_03` | 146.268707991 | PASS | PASS |
+
+3回中央値は`146.268707991`秒で、Step 21中央値`146.540076017`秒より約0.185%
+高速です。実行間の幅は約0.118秒で、Step 21比+3%上限`150.936278298`秒以内です。
+全runで通常checkとrelaxed compareがPASSし、最大絶対差も従来runと同一でした。
+
+run 01のprofileでは、`s2_nonlocal`が`29.425824`秒、`tmevl_s2`が
+`34.474580`秒、`exnlp_work1_enter`が`8.071267`秒、`exnlp_meta_enter`が
+`0.150348`秒でした。反復deleteに対応していた`exnlp_gemm_exit`はprofileから消え、
+timer数は32から31になりました。wall改善は小さいものの、反復device allocationを
+削減しながら性能非悪化gateを満たすため、Step 22を正式採用します。
