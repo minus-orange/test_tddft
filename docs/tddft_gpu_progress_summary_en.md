@@ -1381,3 +1381,37 @@ implementation candidate is therefore a device charge-density path that
 consumes resident `COEF` and avoids each TMEVL `tmevl_p_exit`. Step 32 is a
 measurement run and does not replace the official Step 28 median baseline of
 `129.075486183` sec.
+
+## Step 33: Batch Post-TMEVL Charge-Density FFTs
+
+Step 33 leaves the initial-density `RHOOFK` path unchanged and replaces only
+the post-TMEVL density rebuild with `RHOOFK_ACC_BATCH`. It scatters the
+predictor-corrector-resident `COEF` on the device, transforms all local bands
+with one batched cuFFT, and accumulates the occupation-weighted density on the
+device in the original band order. Only the local density required by the MPI
+reduction returns to the host. The full coefficient D2H was intentionally kept
+to isolate this hypothesis. The CPU/FFTW fallback batch entry executes scalar
+FFTW transforms in the original band order, and the full fallback link passed.
+
+The implementation commit is `b2a43c9` (`Batch post-TMEVL charge-density
+FFTs`). Three diagnostic-off runs used NVHPC with OpenACC and cuFFT, one GPU,
+one MPI rank, an A100-PCIE-40GB, and the 100-step Si111-H case.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_01` | 116.124675989 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_02` | 117.093669176 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_03` | 115.763577938 | PASS | PASS |
+
+The three-run median is `116.124675989` sec. This is `12.950810194` sec, or
+about `10.0335%`, faster than the Step 28 median of `129.075486183` sec. The
+run-to-run range is `1.330091238` sec. Every run passed both correctness
+checks, so Step 33 is accepted as the new official performance baseline.
+
+In run 01, `frprmn_rhoofk` fell by about 94.97%, from the Step 32 value of
+`14.509684` sec to `0.729800` sec. `fft_wrapper` fell from 43,949 calls and
+`13.369605` sec to 14,685 calls and `3.402723` sec. `tmevl_total` was nearly
+unchanged at `58.338570` sec, while the intentionally retained `tmevl_p_exit`
+occurred 944 times and took `2.880805` sec. The next separate hypothesis is to
+defer that full coefficient D2H until the predictor-corrector sequence ends,
+after verifying all intervening host consumers.

@@ -1231,3 +1231,33 @@ tmevl_p_exit: count 944, 2.819788 sec
 候補は、residentな`COEF`からdevice上でcharge densityを生成し、各TMEVLの
 `tmevl_p_exit`を避ける経路です。Step 32は計測runであり、正式性能baselineは
 引き続きStep 28中央値`129.075486183`秒です。
+
+## Step 33: TMEVL後charge-density FFTのbatch化
+
+Step 33では、初期密度用の`RHOOFK`は変更せず、TMEVL後の密度再構築だけを新しい
+`RHOOFK_ACC_BATCH`へ切り替えました。predictor-corrector区間でresidentな`COEF`を
+device上でscatterし、local bandを1回のbatched cuFFTで変換し、occupation付き密度を
+device上でband順に集約します。MPI reductionに必要なlocal densityだけをhostへ戻し、
+従来のfull coefficient D2Hは効果分離のため維持しました。CPU/FFTW fallbackでは
+batch entryが従来のband順でscalar FFTWを呼び、フルリンクがPASSしました。
+
+実装commitは`b2a43c9` (`Batch post-TMEVL charge-density FFTs`)です。
+diagnostic OFF、NVHPC + OpenACC + cuFFT、1 GPU / 1 MPI rank、A100-PCIE-40GB、
+Si111-H 100 stepで3回測定しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_01` | 116.124675989 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_02` | 117.093669176 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_03` | 115.763577938 | PASS | PASS |
+
+3回中央値は`116.124675989`秒です。Step 28中央値`129.075486183`秒より
+`12.950810194`秒、約`10.0335%`高速で、実行間の幅は`1.330091238`秒でした。
+全runで通常checkとrelaxed compareがPASSしたため、Step 33を正式採用し、新しい
+性能baselineとします。
+
+run 01では`frprmn_rhoofk`がStep 32の`14.509684`秒から`0.729800`秒へ約94.97%
+短縮しました。`fft_wrapper`は43,949回、`13.369605`秒から14,685回、`3.402723`秒へ
+減少しました。`tmevl_total`は`58.338570`秒でほぼ不変、意図的に残した
+`tmevl_p_exit`は944回、`2.880805`秒でした。次の独立仮説は、host consumerを確認した
+上で、このfull coefficient D2Hをpredictor-corrector終了時まで繰り延べることです。

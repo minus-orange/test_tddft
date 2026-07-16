@@ -13,10 +13,11 @@ implementation and timer notes are in the bilingual progress summaries.
 | 24 | Fuse nonlocal projector kernels across `ia` | 133.268284082 | accepted | `b3559f1` |
 | 25 | Use vector length 256 in the fused nonlocal kernel | 130.607889175 | accepted | `825697a` |
 | 26 | Increase the fused kernel vector length to 512 | 130.834260225 | rejected | `a8b4db0` / `336422e` |
-| 28 | Keep COEF/COEF0 resident across corrections | 129.075486183 | accepted baseline | `c3552af` |
+| 28 | Keep COEF/COEF0 resident across corrections | 129.075486183 | accepted | `c3552af` |
 | 29 | Initialize resident COEF0 on the device | 130.160923958 | rejected | `94e0e0e` / `bd53a88` |
 | 31 | Reuse GDUMP mappings across TMEVL kinetic stages | 129.250354052 | rejected | `f8b6188` / `8ef55bb` |
 | 32 | Measure post-TMEVL density rebuild | 129.658223152 (one diagnostic run) | measurement | `13f9e98` |
+| 33 | Batch post-TMEVL charge-density FFTs | 116.124675989 | accepted baseline | `b2a43c9` |
 
 ## Other Rejected Experiments
 
@@ -59,3 +60,22 @@ was reverted. Step 28 remains the official baseline.
 This measurement identifies resident-coefficient charge-density construction
 as a higher-value next target than returning directly to the rejected
 fine-grained `work2_` lookup-transfer design.
+
+## Step 33 Detail
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_01` | 116.124675989 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_02` | 117.093669176 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_03` | 115.763577938 | PASS | PASS |
+
+- Median: `116.124675989` sec
+- Run-to-run range: `1.330091238` sec
+- Improvement from Step 28: `12.950810194` sec (`10.0335%`)
+- Run 01 `frprmn_rhoofk`: 472 calls, `0.729800` sec
+- Run 01 `fft_wrapper`: 14,685 calls, `3.402723` sec
+- Run 01 `tmevl_p_exit`: 944 calls, `2.880805` sec
+
+All runs passed both correctness checks. Batching the post-TMEVL density FFTs
+reduced `frprmn_rhoofk` by about 94.97% relative to Step 32 run 01. Step 33 is
+accepted and becomes the official performance baseline.

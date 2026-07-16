@@ -5,12 +5,12 @@ Last updated: 2026-07-16
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted implementation baseline: `c3552af` (`Keep TDDFT coefficients resident across corrections`)
-- Accepted result record: `ccdd4a2`
-- Current source behavior after rollback: Step 28
+- Accepted implementation baseline: `b2a43c9` (`Batch post-TMEVL charge-density FFTs`)
+- Accepted result record: this documentation update
+- Current source behavior: Step 33
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 28 median `129.075486183` sec
+- Performance baseline: Step 33 median `116.124675989` sec
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
@@ -22,12 +22,20 @@ rebuild after TMEVL. Run 01 passed both correctness checks. `RHOOFK` took
 944 `tmevl_p_exit` operations took `2.819788` sec. `SUMCHR` was inactive because
 `NPFL=0`.
 
+Step 33 commit `b2a43c9` replaced only the post-TMEVL `RHOOFK` path with a
+device scatter, batched cuFFT, and device density accumulation. All three runs
+passed both correctness checks. The median was `116.124675989` sec, which is
+`10.0335%` faster than Step 28. Run 01 reduced `frprmn_rhoofk` from the Step 32
+value of `14.509684` sec to `0.729800` sec and reduced `fft_wrapper` calls from
+43,949 to 14,685. The per-TMEVL full coefficient D2H remains intentionally.
+
 ## Next Task Boundary
 
-Do not continue from the rejected GDUMP hypothesis. The next bounded hypothesis
-is to consume resident `COEF` in a device charge-density path, copy back only
-the density needed by `RHOGET`, and defer the full coefficient synchronization
-until the predictor-corrector sequence ends.
+The next bounded hypothesis is to remove the now-unneeded per-TMEVL full
+coefficient synchronization for the `NPFL=0` path and synchronize once at the
+end of the predictor-corrector sequence. Preserve a host synchronization before
+`SUMCHR` when `NPFL` is active, and verify every intervening host consumer
+before changing the ownership boundary.
 Step 30 Nsight data identifies the largest repeated remaining upload as
 `work2_`: 4,720 events, with its updates taking about 4.184 sec. The full trace
 reported 46,225.769 MB of aggregate H2D traffic. Direct GPU generation remains
@@ -46,7 +54,7 @@ For every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `129.075486183` sec.
+6. Compare the three-run median with `116.124675989` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait
