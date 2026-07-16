@@ -32,8 +32,15 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 if [ "${FPSEID_NCU_TARGET_MODE:-0}" = 1 ]; then
   cd "$FPSEID_NCU_RUN_DIR"
   ulimit -s unlimited 2>/dev/null || true
+  target_mpirun_flags=${FPSEID_NCU_MPIRUN_FLAGS:-}
+  if [ "$(id -u)" -eq 0 ]; then
+    case " $target_mpirun_flags " in
+      *" --allow-run-as-root "*) ;;
+      *) target_mpirun_flags="--allow-run-as-root $target_mpirun_flags" ;;
+    esac
+  fi
   # shellcheck disable=SC2086
-  "$FPSEID_NCU_MPIRUN" ${FPSEID_NCU_MPIRUN_FLAGS:-} \
+  "$FPSEID_NCU_MPIRUN" $target_mpirun_flags \
     -np "$FPSEID_NCU_NPROCS" "$FPSEID_NCU_TDDFT_EXE" \
     < "$FPSEID_NCU_INPUT" \
     > "$FPSEID_NCU_TDDFT_OUT" \
