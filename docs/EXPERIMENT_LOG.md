@@ -202,6 +202,8 @@ rejected the repository as an unsafe directory. The result nevertheless
 profiles the accepted Step 37 executable; it does not establish a new source
 or performance baseline. The main structural constraint is one gang per local
 band: 32 blocks cannot fill the A100's 108 SMs. Step 26 already rejected a
-simple increase to vector length 512. Any follow-up must preserve the sequential
-projector (`ia`) update order while introducing a mathematically equivalent
-multi-gang reduction and synchronization scheme.
+simple increase to vector length 512. Because 32 bands are the smallest
+operational case expected, a small-band-only multi-gang path is out of scope.
+The current path will instead be evaluated on medium and production-sized
+inputs, where its grid grows with the local band count, before any shared
+kernel bottleneck is selected for another source experiment.

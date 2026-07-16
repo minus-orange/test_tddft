@@ -72,4 +72,6 @@ Step 39 was a two-step Nsight Compute diagnostic of one fused nonlocal kernel
 launch. Its `11.1839032173` sec wall is not a baseline. The normal check passed;
 the relaxed comparison was not run. The launch used 32 blocks of 256 threads
 with 63 registers/thread, achieving `12.5%` occupancy and only `0.07` waves/SM
-on the 108-SM A100. This diagnosis does not replace the Step 37 median.
+on the 108-SM A100. Because 32 bands are the smallest operational case expected,
+no small-band-only kernel path is planned; scaling will be checked with larger
+band counts. This diagnosis does not replace the Step 37 median.

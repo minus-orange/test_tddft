@@ -1391,6 +1391,9 @@ Nsight Computeは、32 blockしか生成されず108 SMを満たさないlaunch�
 約51%のexcess sectorと、平均14.3 cycle中約7.1 cycleのscoreboard待ちも報告しました。
 ただしStep 26の同一kernel `vector_length(512)`は既に3回中央値で不採用なので、単純な
 block拡大は再試行しません。register制限だけを緩和しても32 blockというgrid上限は
-変わりません。次のkernel仮説には、`ia`の逐次更新を維持したまま1 bandを複数gangへ
-分割できる二段reductionまたは同等の同期設計が必要です。設計と数式同値性を確認する
-まではソース変更を行わず、正式baselineはStep 37の`108.096301079`秒を維持します。
+変わりません。一方、この32 bandsは運用上想定する最小規模であり、これより小さい
+入力を対象にしないため、小band専用のmulti-gang経路は追加しません。band数が増えれば
+現行の1 gang/band経路は自動的にgridを拡大します。Step 39の低occupancyはtutorial固有の
+下限特性として扱い、次は中・大規模データで同じkernelのscalingを確認してから、複数
+規模に共通するボトルネックだけを最適化します。正式baselineはStep 37の
+`108.096301079`秒を維持します。

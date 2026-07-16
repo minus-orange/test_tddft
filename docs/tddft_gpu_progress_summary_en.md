@@ -1564,8 +1564,11 @@ global-load/store sector, roughly 51% excess sectors, and about 7.1 scoreboard
 stall cycles out of an average 14.3 cycles. A simple block-size increase is not
 the next experiment because Step 26 already rejected `vector_length(512)` by a
 three-run median. Reducing register pressure alone also cannot remove the
-32-block grid limit. A credible next kernel hypothesis must split one band
-across multiple gangs with a two-stage reduction or equivalent synchronization
-while preserving sequential `ia` updates and proving mathematical equivalence.
-No source change is made until that design is validated; the official baseline
-remains the Step 37 median of `108.096301079` sec.
+32-block grid limit. However, 32 bands are the smallest operational problem
+size expected, so no small-band-specific multi-gang path will be added. The
+current one-gang-per-band path expands its grid naturally as the band count
+increases. Step 39's low occupancy is therefore treated as a tutorial-size
+lower-bound characteristic. The next step is to measure the same kernel on
+medium and production-sized inputs, then optimize only bottlenecks shared
+across those sizes. The official baseline remains the Step 37 median of
+`108.096301079` sec.
