@@ -5,12 +5,13 @@ Last updated: 2026-07-16
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted implementation baseline: `24e1cc3` (`Right-size nonlocal staging columns`)
+- Accepted source baseline: `24e1cc3` (`Right-size nonlocal staging columns`)
+- Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Accepted result record: this documentation update
-- Current source behavior: Step 36
+- Current configuration: Step 36 source with Step 37 pinned allocation
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 36 median `113.083628893` sec
+- Performance baseline: Step 37 median `108.096301079` sec
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
@@ -51,18 +52,23 @@ Step 34. In run 01, `exnlp_work1_enter` fell from the Step 34 run-01 value of
 `4.040431` sec to `3.759735` sec, and `s2_nonlocal` fell from `14.055285` sec
 to `13.758056` sec.
 
+Step 37 commit `9cbb6bc` added an optional, default-off NVHPC pinned-allocation
+build mode. The accepted GPU build uses `ENABLE_PINNED_ALLOC=1`, which adds
+`-gpu=mem:separate:pinnedalloc` while retaining separate host/device memory.
+All three runs passed both correctness checks. The median was `108.096301079`
+sec, `4.4103%` faster than Step 36. Run 01 reduced `exnlp_work1_enter` from
+`3.759735` to `1.542147` sec and `tmevl_total` from `55.183834` to
+`51.654634` sec.
+
 ## Next Task Boundary
 
-Step 36 reduced unused bytes in each `work2_` update but did not change the
-4,720-update count. The fused nonlocal projector therefore remains the main
-GPU kernel target. Direct GPU generation of `work2_` remains high risk because
-it may increase YLM, VPJ, or EXTAU traffic; the rejected B1 ownership
-experiment is strong evidence against adding those mappings without
-eliminating more transfer than they introduce.
-
-Before changing that path, design an ownership boundary that does not repeat
-fine-grained lookup copies and does not alter the sequential projector update
-order. CPU/FFTW fallback behavior must remain unchanged.
+Before another source optimization, collect an Nsight Systems trace of the
+accepted pinned-allocation build. Re-rank H2D/D2H time, `work2_` upload cost,
+and the fused nonlocal kernel after the broad transfer-time reduction. Do not
+infer the next ownership change from the pre-pinned Step 35 trace. Direct GPU
+generation of `work2_` remains high risk because it may increase YLM, VPJ, or
+EXTAU traffic. Any later source change must preserve the sequential projector
+order and CPU/FFTW fallback.
 
 ## Validation Gate
 
@@ -73,7 +79,7 @@ For every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `113.083628893` sec.
+6. Compare the three-run median with `108.096301079` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

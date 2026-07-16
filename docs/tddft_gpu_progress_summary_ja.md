@@ -1328,3 +1328,24 @@ PASSしました。run 01では`exnlp_work1_enter`がStep 34 run 01の`4.040431`
 `3.759735`秒へ約`6.947%`短縮し、`s2_nonlocal`も`14.055285`秒から
 `13.758056`秒へ約`2.115%`短縮しました。Step 36を採用し、正式性能baselineを
 `113.083628893`秒へ更新します。
+
+## Step 37: dynamic host allocationのpinned memory化
+
+Step 37では、NVHPC 26.5の`-gpu=mem:separate:pinnedalloc`をTDDFTのOpenACC +
+cuFFTビルドへ追加しました。host/deviceのseparate memory方式と既存data clauseは
+維持し、動的に確保されるhost配列だけをCUDA pinned memoryへ配置します。
+`tools/build_nvhpc.sh`では`ENABLE_PINNED_ALLOC=1`で有効化し、defaultはOFFです。
+build-mode commitは`9cbb6bc` (`Add optional pinned allocation build mode`)です。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_01` | 108.676812287 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_02` | 107.854416847 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_03` | 108.096301079 | PASS | PASS |
+
+3回中央値は`108.096301079`秒で、Step 36中央値より`4.987327814`秒、約`4.4103%`
+高速です。実行間の幅は`0.822395440`秒で、全runの通常checkとrelaxed compareが
+PASSしました。run 01では`exnlp_work1_enter`が`3.759735`秒から`1.542147`秒、
+`s2_nonlocal`が`13.758056`秒から`11.489188`秒、`tmevl_total`が`55.183834`秒から
+`51.654634`秒へ短縮しました。Step 37を正式採用し、新baselineを
+`108.096301079`秒とします。次はこのbuild条件でNsight Systemsを再取得します。

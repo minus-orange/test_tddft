@@ -1491,3 +1491,26 @@ about `6.947%`, from `4.040431` sec in Step 34 run 01 to `3.759735` sec, while
 `s2_nonlocal` fell about `2.115%`, from `14.055285` sec to `13.758056` sec.
 Step 36 is accepted and the official performance baseline becomes
 `113.083628893` sec.
+
+## Step 37: Use Pinned Memory for Dynamic Host Allocations
+
+Step 37 adds the NVHPC 26.5 option `-gpu=mem:separate:pinnedalloc` to the TDDFT
+OpenACC + cuFFT build. It retains separate host/device memory and the existing
+data clauses while placing dynamically allocated host arrays in CUDA pinned
+memory. `tools/build_nvhpc.sh` enables this with `ENABLE_PINNED_ALLOC=1`; the
+default remains off. The build-mode commit is `9cbb6bc` (`Add optional pinned
+allocation build mode`).
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_01` | 108.676812287 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_02` | 107.854416847 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_03` | 108.096301079 | PASS | PASS |
+
+The three-run median is `108.096301079` sec, `4.987327814` sec or about
+`4.4103%` faster than Step 36. The run-to-run range is `0.822395440` sec, and
+every run passed both correctness checks. In run 01, `exnlp_work1_enter` fell
+from `3.759735` to `1.542147` sec, `s2_nonlocal` fell from `13.758056` to
+`11.489188` sec, and `tmevl_total` fell from `55.183834` to `51.654634` sec.
+Step 37 is accepted with the new official median of `108.096301079` sec. The
+next task is a fresh Nsight Systems trace using this build configuration.

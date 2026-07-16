@@ -20,7 +20,8 @@ implementation and timer notes are in the bilingual progress summaries.
 | 33 | Batch post-TMEVL charge-density FFTs | 116.124675989 | accepted | `b2a43c9` |
 | 34 | Defer coefficient downloads across corrections | 113.561361074 | accepted | `83a030c` |
 | 35 | Re-profile the accepted Step 34 path with Nsight Systems | 116.000924826 (diagnostic trace) | measurement | `7567ae8` |
-| 36 | Right-size nonlocal staging columns to the maximum active NGNL | 113.083628893 | accepted baseline | `24e1cc3` |
+| 36 | Right-size nonlocal staging columns to the maximum active NGNL | 113.083628893 | accepted | `24e1cc3` |
+| 37 | Allocate dynamic TDDFT host data in pinned memory | 108.096301079 | accepted baseline | `9cbb6bc` |
 
 ## Other Rejected Experiments
 
@@ -140,3 +141,23 @@ All runs passed both correctness checks. The implementation uses the maximum
 active `NGNL` as the `work2_` leading dimension instead of `NGcont`, removing
 unused column tails without changing the transfer count, projector equations,
 or sequential `ia` order. It is accepted as the new official baseline.
+
+## Step 37 Detail
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_01` | 108.676812287 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_02` | 107.854416847 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_03` | 108.096301079 | PASS | PASS |
+
+- Median: `108.096301079` sec
+- Run-to-run range: `0.822395440` sec
+- Improvement from Step 36: `4.987327814` sec (`4.4103%`)
+- Run 01 `exnlp_work1_enter`: `1.542147` sec
+- Run 01 `s2_nonlocal`: `11.489188` sec
+- Run 01 `tmevl_total`: `51.654634` sec
+
+All runs passed both correctness checks. The build retains separate host and
+device memory and adds NVHPC 26.5 `-gpu=mem:separate:pinnedalloc`, causing
+dynamically allocated TDDFT host arrays to use pinned memory. Step 37 is
+accepted as the new official build configuration and performance baseline.
