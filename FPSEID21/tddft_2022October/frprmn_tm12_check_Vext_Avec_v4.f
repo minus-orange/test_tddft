@@ -1948,7 +1948,8 @@ c     & ' EE(',ib,',',ik,')=',EE(ib,ik)*27.212d0
 c       enddo
 c *** temp check
 c      CALL RHOOFK(ik, MXBND, 1, NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q,
-      CALL RHOOFK( MXBND, 1, NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q,
+      CALL RHOOFK_ACC_BATCH( MXBND, 1, NRX, NRY, NRZ, NXYZ,
+     &             NG2(IK), NG2Q,
      &             NBNDQ, NBND, NFL, RHO, RHO1, RHO2, RHO3,
      &             COEF(1,1,IK),
      &             WGT(IK), J2G(1,IK), IOWF(1,IK), OCC(1,IK),NBSEQ(IK)
@@ -2191,6 +2192,116 @@ c      write(6,*)' my_rank=',my_rank,' sum=',sum
 c      miya=13
 c      if (miya.eq.13 ) stop
 c *** temp check : end
+      RETURN
+      END
+c
+C*****************************************************************
+      SUBROUTINE RHOOFK_ACC_BATCH( MXBND, MBLK, NRX, NRY, NRZ,
+     &                   NXYZ, NG2, NG2Q, NBNDQ, NBND, NFL,
+     &                   RHO, RHO1, RHO2, RHO3,
+     &                   COEF, WGT, J2G, IOWF, OCC, NBSEQ,
+     &                   plancfp, plancbp, itstep, itmod,
+     &                   nbegin, nend, ncpuq )
+C
+C     Post-TMEVL charge-density path.  COEF is already resident for the
+C     predictor-corrector sequence.  Scatter all local bands, execute one
+C     batched transform, accumulate density on the device, and return only
+C     the local density required by MPI_ALLReduce.
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      include 'mpif.h'
+      REAL*8 RHO(NXYZ)
+      COMPLEX*16 RHO1(NXYZ),RHO2(NXYZ),RHO3(NXYZ)
+      COMPLEX*16 COEF(NG2Q,MXBND)
+      DIMENSION J2G(NG2Q),OCC(NBNDQ),IOWF(MBLK)
+      dimension nbegin(0:ncpuq),nend(0:ncpuq)
+      integer*8 plancfp,plancbp
+      COMPLEX*16, ALLOCATABLE, SAVE :: RHO1_ACC(:,:),RHO2_ACC(:,:)
+      COMPLEX*16, ALLOCATABLE, SAVE :: RHO3_ACC(:)
+      LOGICAL, SAVE :: FIRST=.TRUE.
+C
+      call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
+      nbndloc=nend(my_rank)-nbegin(my_rank)+1
+      ibfirst=nbegin(my_rank)
+C
+      if (FIRST) then
+       allocate(RHO1_ACC(NXYZ,MXBND),RHO2_ACC(NXYZ,MXBND))
+       allocate(RHO3_ACC(NXYZ))
+!$acc enter data create(RHO1_ACC(1:NXYZ,1:MXBND),
+!$acc& RHO2_ACC(1:NXYZ,1:MXBND),RHO3_ACC(1:NXYZ))
+       FIRST=.FALSE.
+      endif
+C
+!$acc data present(COEF(1:NG2Q,1:MXBND),
+!$acc& RHO1_ACC(1:NXYZ,1:MXBND),
+!$acc& RHO2_ACC(1:NXYZ,1:MXBND),RHO3_ACC(1:NXYZ))
+!$acc& copyin(J2G(1:NG2Q),OCC(1:NBNDQ))
+!$acc parallel loop collapse(2)
+!$acc& present(RHO2_ACC(1:NXYZ,1:MXBND))
+      do iib=1,nbndloc
+       do i=1,NXYZ
+        RHO2_ACC(i,iib)=(0.D0,0.D0)
+       enddo
+      enddo
+C
+!$acc parallel loop
+!$acc& present(COEF(1:NG2Q,1:MXBND),J2G(1:NG2Q),
+!$acc& RHO2_ACC(1:NXYZ,1:MXBND)) private(i,iib,ii)
+      do idx=1,NXYZ*nbndloc
+       i=mod(idx-1,NXYZ)+1
+       iib=(idx-1)/NXYZ+1
+       ii=J2G(i)
+       RHO2_ACC(ii,iib)=COEF(i,iib)
+      enddo
+C
+      CALL FFT3BX_fftwASL_ACC_BATCH(NRX,NRY,NRZ,NXYZ,nbndloc,
+     &             RHO2_ACC,RHO1_ACC,plancfp,plancbp)
+C
+!$acc parallel loop collapse(2)
+!$acc& present(RHO2_ACC(1:NXYZ,1:MXBND))
+      do iib=1,nbndloc
+       do i=1,NXYZ
+        RHO2_ACC(i,iib)=DCONJG(RHO2_ACC(i,iib))*RHO2_ACC(i,iib)
+       enddo
+      enddo
+C
+!$acc parallel loop gang vector
+!$acc& present(RHO2_ACC(1:NXYZ,1:MXBND),
+!$acc& RHO3_ACC(1:NXYZ),OCC(1:NBNDQ))
+      do i=1,NXYZ
+       RHO3_ACC(i)=(0.D0,0.D0)
+!$acc loop seq
+       do iib=1,nbndloc
+        RHO3_ACC(i)=RHO3_ACC(i)+RHO2_ACC(i,iib)
+     &              *OCC(ibfirst+iib-1)
+       enddo
+      enddo
+!$acc update self(RHO3_ACC(1:NXYZ))
+!$acc end data
+C
+      do i=1,NXYZ
+       RHO3(i)=RHO3_ACC(i)
+       RHO2(i)=(0.D0,0.D0)
+      enddo
+C
+      if ( itstep.eq.itmod ) then
+       if ( my_rank.eq.0 ) call clock(t00)
+      endif
+      call MPI_ALLReduce(RHO3,RHO1,NXYZ,MPI_DOUBLE_COMPLEX,
+     &    MPI_SUM,MPI_COMM_WORLD,ierr)
+      if ( itstep.eq.itmod ) then
+       if ( my_rank.eq.0 ) then
+        call clock(t01)
+        write(6,*)' MPI_ALLReduce for total charge took ',t01-t00,
+     &             ' sec'
+       endif
+      endif
+C
+      FWGT=WGT*2.D0
+      DO I=1,NXYZ
+       RHO(I)=RHO(I)+DBLE(RHO1(I))*FWGT
+      ENDDO
+C
       RETURN
       END
 c
