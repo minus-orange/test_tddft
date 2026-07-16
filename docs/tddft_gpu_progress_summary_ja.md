@@ -1300,7 +1300,7 @@ H2Dは44,166回、`32,307.014` MB、約`5.026`秒、D2Hは5,348回、
 `13,918.755` MB減少し、D2Hが30,105回、`24,461.806` MB減少しました。
 これによりSteps 33–34の密度FFT batch化とcoefficient D2H繰延べの効果を確認しました。
 
-最大のGPU kernelは`exnlp_gemm_body_fused_2387_gpu`で、9,440回、約`5.830`秒、
+最大のGPU kernelは`exnlp_gemm_body_fused_2387_gpu`で、9,440回、約`8.303`秒、
 CUDA kernel時間の66.5%でした。最大の反復uploadは引き続きline 1913の`work2_`
 updateで、4,720回、OpenACC summary上で約`3.728`秒、そのうちenqueue uploadが
 約`1.264`秒です。ただし`work2_`のdevice直接生成はYLM、VPJ、EXTAUのmappingを
@@ -1349,3 +1349,23 @@ PASSしました。run 01では`exnlp_work1_enter`が`3.759735`秒から`1.54214
 `s2_nonlocal`が`13.758056`秒から`11.489188`秒、`tmevl_total`が`55.183834`秒から
 `51.654634`秒へ短縮しました。Step 37を正式採用し、新baselineを
 `108.096301079`秒とします。次はこのbuild条件でNsight Systemsを再取得します。
+
+## Step 38: pinned allocation採用buildのNsight Systems再診断
+
+Step 37採用buildをrevision `643e639d45a163499a71355ecee33d7dba8466a3`で
+Nsight Systems 2026.2.1により計測しました。archive labelは
+`nvhpc_cufft_1rank_02_STEP38_PINNED_NSYS_01`、trace wallは`110.78916502`秒です。
+診断runなのでbaselineには使用しません。通常checkとrelaxed compareはPASSしました。
+
+H2Dは44,166回、`31,234.025` MB、`1.272192545`秒、D2Hは5,348回、
+`5,592.769` MB、`0.440373299`秒でした。Step 35比でH2D時間は`74.6861%`、
+D2H時間は`46.9758%`短縮しました。copy回数は変わらず、H2D量の`3.3212%`減少は
+主にStep 36の`work2_`実使用幅化によるものです。`work2_` OpenACC updateは
+4,720回、`3.728488477`秒から`1.617571795`秒へ`56.6159%`短縮しました。
+
+最大kernelの`exnlp_gemm_body_fused_2399_gpu`は9,440回、`8.311268224`秒、
+CUDA kernel時間の66.6%でした。Step 35の正しい値`8.302662687`秒との差は
+`+0.1036%`で実質不変です。従来資料のStep 35 `5.830`秒は画像転記誤りだったため、
+本stepで`8.303`秒へ訂正しました。pinned host poolの初期化では
+`cuMemHostAlloc`が1回、`0.273495492`秒でした。次は転送ownershipではなく、この
+fused kernelのresource/occupancyを確認してから独立仮説を設計します。

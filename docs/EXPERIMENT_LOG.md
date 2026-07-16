@@ -22,6 +22,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 35 | Re-profile the accepted Step 34 path with Nsight Systems | 116.000924826 (diagnostic trace) | measurement | `7567ae8` |
 | 36 | Right-size nonlocal staging columns to the maximum active NGNL | 113.083628893 | accepted | `24e1cc3` |
 | 37 | Allocate dynamic TDDFT host data in pinned memory | 108.096301079 | accepted baseline | `9cbb6bc` |
+| 38 | Re-profile the accepted pinned-allocation build | 110.78916502 (diagnostic trace) | measurement | `643e639` |
 
 ## Other Rejected Experiments
 
@@ -114,7 +115,7 @@ FRPRMN synchronizations in run 01. Step 34 is accepted as the new baseline.
 
 Relative to the Step 30 trace, H2D fell by 28,320 copies and `13,918.755` MB,
 while D2H fell by 30,105 copies and `24,461.806` MB. The dominant GPU kernel
-remains `exnlp_gemm_body_fused_2387_gpu`: 9,440 launches and about `5.830` sec,
+remains `exnlp_gemm_body_fused_2387_gpu`: 9,440 launches and about `8.303` sec,
 or 66.5% of reported CUDA-kernel time. The largest repeated actionable upload
 is still the line-1913 `work2_` update: 4,720 OpenACC updates taking about
 `3.728` sec in the OpenACC summary, including about `1.264` sec of enqueue
@@ -161,3 +162,23 @@ All runs passed both correctness checks. The build retains separate host and
 device memory and adds NVHPC 26.5 `-gpu=mem:separate:pinnedalloc`, causing
 dynamically allocated TDDFT host arrays to use pinned memory. Step 37 is
 accepted as the new official build configuration and performance baseline.
+
+## Step 38 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP38_PINNED_NSYS_01`
+- Source revision: `643e639d45a163499a71355ecee33d7dba8466a3`
+- Trace wall: `110.78916502` sec (diagnostic; not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- H2D: 44,166 copies, `31,234.025` MB, `1.272192545` sec
+- D2H: 5,348 copies, `5,592.769` MB, `0.440373299` sec
+- `work2_` OpenACC update: 4,720 calls, `1.617571795` sec
+- Fused nonlocal kernel: 9,440 launches, `8.311268224` sec
+- Pinned host pool allocation: one `cuMemHostAlloc`, `0.273495492` sec
+
+Relative to Step 35, H2D time fell by `74.6861%`, D2H time by `46.9758%`, and
+the `work2_` update by `56.6159%`. H2D bytes fell only `3.3212%`, primarily
+from Step 36 right-sizing, while D2H bytes and both copy counts were unchanged.
+The fused kernel changed by only `+0.1036%`, confirming that pinned allocation
+accelerated transfers rather than its arithmetic. The earlier Step 35 record
+of `5.830` sec for this kernel was a transcription error corrected above from
+the archived screenshot value of `8.302662687` sec.

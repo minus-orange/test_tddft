@@ -61,3 +61,9 @@ Step 35 was an Nsight Systems diagnostic trace of the accepted Step 34 source.
 Its `116.000924826` sec trace wall is also not a baseline. It passed both
 correctness checks and confirmed that aggregate D2H fell from the Step 30 value
 of 35,453 copies / `30,054.575` MB to 5,348 copies / `5,592.769` MB.
+
+Step 38 was an Nsight Systems diagnostic trace of the pinned Step 37 build. Its
+`110.78916502` sec trace wall is not a baseline. Both correctness checks passed.
+It measured H2D at `1.272192545` sec and D2H at `0.440373299` sec, reductions of
+`74.6861%` and `46.9758%` from Step 35, respectively. The fused nonlocal kernel
+was essentially unchanged at `8.311268224` sec.

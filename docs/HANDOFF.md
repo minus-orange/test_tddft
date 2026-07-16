@@ -60,15 +60,24 @@ sec, `4.4103%` faster than Step 36. Run 01 reduced `exnlp_work1_enter` from
 `3.759735` to `1.542147` sec and `tmevl_total` from `55.183834` to
 `51.654634` sec.
 
+Step 38 traced the accepted pinned build at revision `643e639`. Both
+correctness checks passed; its `110.78916502` sec wall is diagnostic only.
+H2D was 44,166 copies / `31,234.025` MB / `1.272192545` sec, and D2H was 5,348
+copies / `5,592.769` MB / `0.440373299` sec. Relative to Step 35, pinned
+allocation reduced H2D time by `74.6861%` and D2H time by `46.9758%` without
+changing copy counts. The `work2_` update fell from `3.728488477` to
+`1.617571795` sec. The fused kernel remained effectively unchanged at
+`8.311268224` sec versus the corrected Step 35 value of `8.302662687` sec.
+
 ## Next Task Boundary
 
-Before another source optimization, collect an Nsight Systems trace of the
-accepted pinned-allocation build. Re-rank H2D/D2H time, `work2_` upload cost,
-and the fused nonlocal kernel after the broad transfer-time reduction. Do not
-infer the next ownership change from the pre-pinned Step 35 trace. Direct GPU
-generation of `work2_` remains high risk because it may increase YLM, VPJ, or
-EXTAU traffic. Any later source change must preserve the sequential projector
-order and CPU/FFTW fallback.
+Step 38 shows that direct GPU generation of `work2_` can save at most a portion
+of the now `1.272` sec total H2D time and still risks increasing YLM, VPJ, or
+EXTAU traffic. The next investigation should therefore target the fused
+nonlocal kernel, which remains about `8.31` sec and 66.6% of reported CUDA
+kernel time. Obtain compiler resource information or a focused Nsight Compute
+measurement before changing its mapping. Any change must preserve the
+sequential `ia` order and CPU/FFTW fallback.
 
 ## Validation Gate
 

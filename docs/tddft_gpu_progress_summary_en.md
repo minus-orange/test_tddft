@@ -1460,7 +1460,7 @@ copies and `24,461.806` MB. This confirms the transfer reduction from the
 Steps 33–34 density FFT batching and deferred coefficient synchronization.
 
 The largest GPU kernel was `exnlp_gemm_body_fused_2387_gpu`, with 9,440
-launches, about `5.830` sec, and 66.5% of reported CUDA-kernel time. The largest
+launches, about `8.303` sec, and 66.5% of reported CUDA-kernel time. The largest
 repeated upload remains the line-1913 `work2_` update: 4,720 calls and about
 `3.728` sec in the OpenACC summary, including about `1.264` sec of enqueue
 upload time. Direct device construction of `work2_` requires YLM, VPJ, and
@@ -1514,3 +1514,27 @@ from `3.759735` to `1.542147` sec, `s2_nonlocal` fell from `13.758056` to
 `11.489188` sec, and `tmevl_total` fell from `55.183834` to `51.654634` sec.
 Step 37 is accepted with the new official median of `108.096301079` sec. The
 next task is a fresh Nsight Systems trace using this build configuration.
+
+## Step 38: Nsight Systems Recheck of the Pinned-Allocation Build
+
+The accepted Step 37 build was traced at revision
+`643e639d45a163499a71355ecee33d7dba8466a3` with Nsight Systems 2026.2.1. The
+archive is `nvhpc_cufft_1rank_02_STEP38_PINNED_NSYS_01`; its `110.78916502` sec
+wall includes diagnostic overhead and is not a baseline. Both correctness
+checks passed.
+
+H2D was 44,166 copies, `31,234.025` MB, and `1.272192545` sec. D2H was 5,348
+copies, `5,592.769` MB, and `0.440373299` sec. Relative to Step 35, pinned
+allocation reduced H2D time by `74.6861%` and D2H time by `46.9758%`. Copy
+counts were unchanged; the `3.3212%` H2D-byte reduction primarily reflects
+Step 36 right-sizing. The 4,720 `work2_` OpenACC updates fell `56.6159%`, from
+`3.728488477` sec to `1.617571795` sec.
+
+The largest kernel, `exnlp_gemm_body_fused_2399_gpu`, took `8.311268224` sec
+over 9,440 launches, or 66.6% of reported CUDA-kernel time. This is effectively
+unchanged (`+0.1036%`) from the corrected Step 35 value of `8.302662687` sec.
+The former Step 35 value of `5.830` sec in these documents was a screenshot
+transcription error and is corrected above to `8.303` sec. Initializing the
+pinned host pool added one `cuMemHostAlloc` call of `0.273495492` sec. The next
+investigation should measure fused-kernel resource use or occupancy before a
+separate mapping hypothesis is implemented.
