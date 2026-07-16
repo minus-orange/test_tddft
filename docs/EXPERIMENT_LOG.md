@@ -18,8 +18,9 @@ implementation and timer notes are in the bilingual progress summaries.
 | 31 | Reuse GDUMP mappings across TMEVL kinetic stages | 129.250354052 | rejected | `f8b6188` / `8ef55bb` |
 | 32 | Measure post-TMEVL density rebuild | 129.658223152 (one diagnostic run) | measurement | `13f9e98` |
 | 33 | Batch post-TMEVL charge-density FFTs | 116.124675989 | accepted | `b2a43c9` |
-| 34 | Defer coefficient downloads across corrections | 113.561361074 | accepted baseline | `83a030c` |
+| 34 | Defer coefficient downloads across corrections | 113.561361074 | accepted | `83a030c` |
 | 35 | Re-profile the accepted Step 34 path with Nsight Systems | 116.000924826 (diagnostic trace) | measurement | `7567ae8` |
+| 36 | Right-size nonlocal staging columns to the maximum active NGNL | 113.083628893 | accepted baseline | `24e1cc3` |
 
 ## Other Rejected Experiments
 
@@ -119,3 +120,23 @@ is still the line-1913 `work2_` update: 4,720 OpenACC updates taking about
 upload time. Direct device construction remains high risk because YLM, VPJ,
 and EXTAU ownership previously caused severe regressions and can replace one
 bulk transfer with larger or finer-grained transfers.
+
+## Step 36 Detail
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP36_WORK2_RIGHTSIZE_01` | 113.023494005 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP36_WORK2_RIGHTSIZE_02` | 113.083628893 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP36_WORK2_RIGHTSIZE_03` | 113.681638956 | PASS | PASS |
+
+- Median: `113.083628893` sec
+- Run-to-run range: `0.658144951` sec
+- Improvement from Step 34: `0.477732181` sec (`0.4207%`)
+- Run 01 `exnlp_work1_enter`: `3.759735` sec
+- Run 01 `s2_nonlocal`: `13.758056` sec
+- Run 01 `tmevl_total`: `55.183834` sec
+
+All runs passed both correctness checks. The implementation uses the maximum
+active `NGNL` as the `work2_` leading dimension instead of `NGcont`, removing
+unused column tails without changing the transfer count, projector equations,
+or sequential `ia` order. It is accepted as the new official baseline.

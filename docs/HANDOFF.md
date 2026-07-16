@@ -5,12 +5,12 @@ Last updated: 2026-07-16
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted implementation baseline: `83a030c` (`Defer coefficient downloads across corrections`)
+- Accepted implementation baseline: `24e1cc3` (`Right-size nonlocal staging columns`)
 - Accepted result record: this documentation update
-- Current source behavior: Step 34
+- Current source behavior: Step 36
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 34 median `113.561361074` sec
+- Performance baseline: Step 36 median `113.083628893` sec
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
@@ -43,15 +43,22 @@ copies and `32,307.014` MB; D2H was 5,348 copies and `5,592.769` MB. Compared
 with Step 30, this confirms reductions of 28,320 H2D copies / `13,918.755` MB
 and 30,105 D2H copies / `24,461.806` MB.
 
+Step 36 commit `24e1cc3` reduced the `work2_` leading dimension from `NGcont`
+to the maximum `NGNL` among active atom types. It does not change the number
+of updates, equations, or sequential `ia` order. All three runs passed both
+correctness checks. The median was `113.083628893` sec, `0.4207%` faster than
+Step 34. In run 01, `exnlp_work1_enter` fell from the Step 34 run-01 value of
+`4.040431` sec to `3.759735` sec, and `s2_nonlocal` fell from `14.055285` sec
+to `13.758056` sec.
+
 ## Next Task Boundary
 
-Step 35 confirms that `work2_` remains the largest repeated actionable upload:
-4,720 updates taking about `3.728` sec in the OpenACC summary, including about
-`1.264` sec of enqueue upload time. The fused nonlocal projector is the
-dominant GPU kernel at about `5.830` sec over 9,440 launches. Direct GPU
-generation remains high risk because it may increase YLM, VPJ, or EXTAU
-traffic; the rejected B1 ownership experiment is strong evidence against
-adding those mappings without eliminating more transfer than they introduce.
+Step 36 reduced unused bytes in each `work2_` update but did not change the
+4,720-update count. The fused nonlocal projector therefore remains the main
+GPU kernel target. Direct GPU generation of `work2_` remains high risk because
+it may increase YLM, VPJ, or EXTAU traffic; the rejected B1 ownership
+experiment is strong evidence against adding those mappings without
+eliminating more transfer than they introduce.
 
 Before changing that path, design an ownership boundary that does not repeat
 fine-grained lookup copies and does not alter the sequential projector update
@@ -66,7 +73,7 @@ For every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `113.561361074` sec.
+6. Compare the three-run median with `113.083628893` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

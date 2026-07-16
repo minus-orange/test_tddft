@@ -1307,3 +1307,24 @@ updateで、4,720回、OpenACC summary上で約`3.728`秒、そのうちenqueue 
 必要とし、B1 ownership実験の大幅悪化とStep 20の細粒度copy失敗があるため、
 producer入力転送を増やさない所有境界を確認するまで高リスク候補として扱います。
 正式性能baselineはStep 34中央値`113.561361074`秒のままです。
+
+## Step 36: nonlocal staging列の実使用幅化
+
+Step 36では、`work2_`のleading dimensionを固定上限`NGcont`からactive atom typeの
+最大`NGNL`へ縮小しました。各projector列は従来と同じhost loopで同じ値を生成し、
+転送回数、数式、reverse phaseの再利用、逐次`ia`更新順序は変更していません。
+実装commitは`24e1cc3` (`Right-size nonlocal staging columns`)で、CPU/FFTW
+fallbackのフルリンクもPASSしました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP36_WORK2_RIGHTSIZE_01` | 113.023494005 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP36_WORK2_RIGHTSIZE_02` | 113.083628893 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP36_WORK2_RIGHTSIZE_03` | 113.681638956 | PASS | PASS |
+
+3回中央値は`113.083628893`秒で、Step 34中央値より`0.477732181`秒、約`0.4207%`
+高速です。実行間の幅は`0.658144951`秒で、全runの通常checkとrelaxed compareが
+PASSしました。run 01では`exnlp_work1_enter`がStep 34 run 01の`4.040431`秒から
+`3.759735`秒へ約`6.947%`短縮し、`s2_nonlocal`も`14.055285`秒から
+`13.758056`秒へ約`2.115%`短縮しました。Step 36を採用し、正式性能baselineを
+`113.083628893`秒へ更新します。
