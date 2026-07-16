@@ -5,12 +5,12 @@ Last updated: 2026-07-16
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted implementation baseline: `b2a43c9` (`Batch post-TMEVL charge-density FFTs`)
+- Accepted implementation baseline: `83a030c` (`Defer coefficient downloads across corrections`)
 - Accepted result record: this documentation update
-- Current source behavior: Step 33
+- Current source behavior: Step 34
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 33 median `116.124675989` sec
+- Performance baseline: Step 34 median `113.561361074` sec
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
@@ -29,13 +29,18 @@ passed both correctness checks. The median was `116.124675989` sec, which is
 value of `14.509684` sec to `0.729800` sec and reduced `fft_wrapper` calls from
 43,949 to 14,685. The per-TMEVL full coefficient D2H remains intentionally.
 
+Step 34 commit `83a030c` removed the per-TMEVL coefficient D2H and synchronizes
+only before verified host consumers or at FRPRMN exit. All three runs passed
+both correctness checks. The median was `113.561361074` sec, `2.2074%` faster
+than Step 33. Run 01 replaced 944 `tmevl_p_exit` operations with 103
+`frprmn_coef_sync` operations taking `0.638588` sec.
+
 ## Next Task Boundary
 
-The next bounded hypothesis is to remove the now-unneeded per-TMEVL full
-coefficient synchronization for the `NPFL=0` path and synchronize once at the
-end of the predictor-corrector sequence. Preserve a host synchronization before
-`SUMCHR` when `NPFL` is active, and verify every intervening host consumer
-before changing the ownership boundary.
+Before another source optimization, collect a fresh Nsight Systems trace on
+the accepted Step 34 path. Confirm the new D2H count and size, re-rank repeated
+H2D operations, and verify whether `work2_` remains the largest actionable
+transfer after Steps 33 and 34.
 Step 30 Nsight data identifies the largest repeated remaining upload as
 `work2_`: 4,720 events, with its updates taking about 4.184 sec. The full trace
 reported 46,225.769 MB of aggregate H2D traffic. Direct GPU generation remains
@@ -54,7 +59,7 @@ For every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `116.124675989` sec.
+6. Compare the three-run median with `113.561361074` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

@@ -1261,3 +1261,28 @@ run 01では`frprmn_rhoofk`がStep 32の`14.509684`秒から`0.729800`秒へ約9
 減少しました。`tmevl_total`は`58.338570`秒でほぼ不変、意図的に残した
 `tmevl_p_exit`は944回、`2.880805`秒でした。次の独立仮説は、host consumerを確認した
 上で、このfull coefficient D2Hをpredictor-corrector終了時まで繰り延べることです。
+
+## Step 34: predictor-corrector間のcoefficient D2H繰延べ
+
+Step 34ではTMEVLごとの`COEF` host同期を削除し、deviceを正本として維持します。
+最終time stepのexpectation計算、`NPFL!=0`時の`SUMCHR`、またはFRPRMN終了のうち、
+最初にhost COEFが必要となる境界だけで同期します。device上の補正restart、数式、
+FFT経路、`ia`更新順序は変更していません。同期時間を`frprmn_coef_sync`で計測します。
+実装commitは`83a030c` (`Defer coefficient downloads across corrections`)で、
+CPU/FFTW fallbackのフルリンクもPASSしました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_01` | 113.896168210 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_02` | 113.491595984 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_03` | 113.561361074 | PASS | PASS |
+
+3回中央値は`113.561361074`秒です。Step 33中央値`116.124675989`秒より
+`2.563314915`秒、約`2.2074%`高速で、実行間の幅は`0.404572226`秒でした。
+全runで通常checkとrelaxed compareがPASSしたため、Step 34を正式採用し、新しい
+性能baselineとします。Step 28比では約`12.0194%`高速です。
+
+run 01では`frprmn_coef_sync`が103回、`0.638588`秒となり、944回だった
+`tmevl_p_exit`はprofileから消えました。`tmevl_total`はStep 33 run 01の
+`58.338570`秒から`55.375345`秒へ短縮しました。次はStep 34採用コードをNsight
+Systemsで再診断し、D2H削減量と残る反復H2Dの優先順位を更新します。

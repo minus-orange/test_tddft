@@ -17,7 +17,8 @@ implementation and timer notes are in the bilingual progress summaries.
 | 29 | Initialize resident COEF0 on the device | 130.160923958 | rejected | `94e0e0e` / `bd53a88` |
 | 31 | Reuse GDUMP mappings across TMEVL kinetic stages | 129.250354052 | rejected | `f8b6188` / `8ef55bb` |
 | 32 | Measure post-TMEVL density rebuild | 129.658223152 (one diagnostic run) | measurement | `13f9e98` |
-| 33 | Batch post-TMEVL charge-density FFTs | 116.124675989 | accepted baseline | `b2a43c9` |
+| 33 | Batch post-TMEVL charge-density FFTs | 116.124675989 | accepted | `b2a43c9` |
+| 34 | Defer coefficient downloads across corrections | 113.561361074 | accepted baseline | `83a030c` |
 
 ## Other Rejected Experiments
 
@@ -79,3 +80,22 @@ fine-grained `work2_` lookup-transfer design.
 All runs passed both correctness checks. Batching the post-TMEVL density FFTs
 reduced `frprmn_rhoofk` by about 94.97% relative to Step 32 run 01. Step 33 is
 accepted and becomes the official performance baseline.
+
+## Step 34 Detail
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_01` | 113.896168210 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_02` | 113.491595984 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_03` | 113.561361074 | PASS | PASS |
+
+- Median: `113.561361074` sec
+- Run-to-run range: `0.404572226` sec
+- Improvement from Step 33: `2.563314915` sec (`2.2074%`)
+- Run 01 `frprmn_coef_sync`: 103 calls, `0.638588` sec
+- Run 01 `tmevl_p_exit`: inactive
+- Run 01 `tmevl_total`: `55.375345` sec
+
+All runs passed both correctness checks. The deferred synchronization reduced
+the 944 per-TMEVL coefficient downloads to 103 verified host-consumer or final
+FRPRMN synchronizations in run 01. Step 34 is accepted as the new baseline.

@@ -1415,3 +1415,32 @@ unchanged at `58.338570` sec, while the intentionally retained `tmevl_p_exit`
 occurred 944 times and took `2.880805` sec. The next separate hypothesis is to
 defer that full coefficient D2H until the predictor-corrector sequence ends,
 after verifying all intervening host consumers.
+
+## Step 34: Defer Coefficient D2H Across Corrections
+
+Step 34 removes the per-TMEVL host synchronization of `COEF` and keeps the
+device copy authoritative. It synchronizes only at the first boundary that
+requires host coefficients: final-time-step expectation evaluation, `SUMCHR`
+when `NPFL!=0`, or FRPRMN exit. It does not change the device correction
+restart, equations, FFT path, or sequential `ia` update order. The new
+`frprmn_coef_sync` timer measures these synchronization points. The
+implementation commit is `83a030c` (`Defer coefficient downloads across
+corrections`), and the full CPU/FFTW fallback link passed.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_01` | 113.896168210 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_02` | 113.491595984 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_03` | 113.561361074 | PASS | PASS |
+
+The three-run median is `113.561361074` sec. This is `2.563314915` sec, or
+about `2.2074%`, faster than the Step 33 median of `116.124675989` sec. The
+run-to-run range is `0.404572226` sec. Every run passed both correctness
+checks, so Step 34 is accepted as the new official baseline. It is about
+`12.0194%` faster than Step 28.
+
+In run 01, `frprmn_coef_sync` occurred 103 times and took `0.638588` sec,
+while the former 944-call `tmevl_p_exit` timer disappeared. `tmevl_total` fell
+from `58.338570` sec in Step 33 run 01 to `55.375345` sec. The next task is a
+fresh Nsight Systems diagnosis of the accepted Step 34 path to quantify the
+D2H reduction and re-rank the remaining repeated H2D operations.

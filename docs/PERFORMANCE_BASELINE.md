@@ -4,8 +4,8 @@ Last updated: 2026-07-16
 
 ## Official Baseline
 
-- Logical step: Step 33
-- Implementation commit: `b2a43c9`
+- Logical step: Step 34
+- Implementation commit: `83a030c`
 - Result record commit: this documentation update
 - Diagnostics: off
 - Compiler/backend: NVHPC + OpenACC + cuFFT
@@ -14,29 +14,29 @@ Last updated: 2026-07-16
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_01` | 116.124675989 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_02` | 117.093669176 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP33_RHOOFK_BATCH_03` | 115.763577938 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_01` | 113.896168210 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_02` | 113.491595984 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP34_COEF_D2H_DEFER_03` | 113.561361074 | PASS | PASS |
 
-Official three-run median: `116.124675989` sec.
+Official three-run median: `113.561361074` sec.
 
-## Step 33 Run 01 Profile
+## Step 34 Run 01 Profile
 
 | timer | total_sec |
 |---|---:|
-| `time_step_total` | 116.417091 |
-| `frprmn` | 107.344084 |
-| `electf_force` | 9.021958 |
-| `tmevl_total` | 58.338570 |
-| `tmevl_s2` | 19.102467 |
-| `s2_nonlocal` | 14.105342 |
-| `s2_fft_local` | 4.980389 |
-| `fft_wrapper` | 3.402723 |
-| `exnlp_gemm_dot` | 8.418079 |
-| `tmevl_p_enter` | 0.001267 |
-| `tmevl_p_exit` | 2.880805 |
-| `frprmn_rhoofk` | 0.729800 |
-| `frprmn_rhoget` | 0.444423 |
+| `time_step_total` | 114.176747 |
+| `frprmn` | 104.778852 |
+| `electf_force` | 8.945334 |
+| `tmevl_total` | 55.375345 |
+| `tmevl_s2` | 19.051133 |
+| `s2_nonlocal` | 14.055285 |
+| `s2_fft_local` | 4.978761 |
+| `fft_wrapper` | 3.345579 |
+| `exnlp_gemm_dot` | 8.435714 |
+| `tmevl_p_enter` | 0.001195 |
+| `frprmn_rhoofk` | 0.739567 |
+| `frprmn_rhoget` | 0.436578 |
+| `frprmn_coef_sync` | 0.638588 |
 
 ## Comparison Policy
 
@@ -46,9 +46,8 @@ Official three-run median: `116.124675989` sec.
 - Correctness requires both `check` and relaxed `compare` to pass for every run.
 - An implementation without a median advantage is recorded and rolled back.
 
-Step 33 is `12.950810194` sec (`10.0335%`) faster than the former Step 28
-median of `129.075486183` sec. Step 28 remains the historical comparison point
-for experiments performed before Step 33.
+Step 34 is `2.563314915` sec (`2.2074%`) faster than the Step 33 median and
+`15.514125109` sec (`12.0194%`) faster than the former Step 28 median.
 
 Step 32 was a single measurement run (`129.658223152` sec) with additional
 density-rebuild timers. It is diagnostic evidence, not a replacement baseline.
