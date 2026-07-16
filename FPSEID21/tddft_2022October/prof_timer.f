@@ -116,5 +116,8 @@
       if (id.eq.38) name='exnlp_work1_enter'
       if (id.eq.39) name='exnlp_meta_enter'
       if (id.eq.40) name='exnlp_ct1_create'
+      if (id.eq.41) name='frprmn_rhoofk'
+      if (id.eq.42) name='frprmn_sumchr'
+      if (id.eq.43) name='frprmn_rhoget'
       return
       end

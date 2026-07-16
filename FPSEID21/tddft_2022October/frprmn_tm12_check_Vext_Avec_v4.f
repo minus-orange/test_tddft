@@ -1938,6 +1938,7 @@ c      enddo
 c 1911 format(4f20.12)
 c ****  temp check end
 cccc      NBND1 = NFL + 1
+      call prof_start(41)
       DO 630 IK=1,NUMK
 c *** temp check
 c      write(6,*)'my_rank=',my_rank,' IK=',ik
@@ -1961,6 +1962,7 @@ c *** for Kokubo FFTW
 c
      &            ,nbegin,nend,ncpuq)
   630 CONTINUE
+      call prof_stop(41)
 c *** temp check
 c      miya=13
 c      if ( miya.eq.13 ) then
@@ -1971,6 +1973,7 @@ c *** temp check
 C ****
                  IF( NPFL .EQ. 0 ) GO TO 8500
 C ****
+      call prof_start(42)
       DO 634 IK=1,NUMK
         CALL SUMCHR( MXBND, 1, NFL, NPFL, NRX, NRY, NRZ, NXYZ,
      &               RHO, RHO1, RHO2, RHO3, IOWF(1,IK), NG2Q,
@@ -1987,9 +1990,11 @@ c *** for Kokubo FFTW
 c
      &        ,nbegin,nend,ncpuq )
   634 CONTINUE
+      call prof_stop(42)
 C ****
  8500            CONTINUE
 C ****
+      call prof_start(43)
       CALL RHOGET( NRX, NRY, NRZ, NXYZ, RHO, RHO1, RHOG,
      &             NTOT, S, OMEGA, ZVAL,RHO2,I2G,G,
 c *** for Sugino FFT
@@ -1999,6 +2004,7 @@ c *** for Kokubo FFT -- LY2,LZ1,LZ2 are still necessary for ROTRA
 c     &    WSAVE_XYZ, IFAC_XYZ,LY2, LZ1, LZ2,fdump,itstep,itmod   )
 c *** for Kokubo FFT -- LY2,LZ1,LZ2 are still necessary for ROTRA
      &    plancfp,plancbp, LY2, LZ1, LZ2,fdump,itstep,itmod   )
+      call prof_stop(43)
 C
 c ****  temp check
 c      write(6,*)' After calling RHOGET ! -- RHO '
