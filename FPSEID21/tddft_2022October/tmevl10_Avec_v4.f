@@ -1745,6 +1745,7 @@ c      COMMON/SAITO2/IBUN(3,NTYQ2)
       complex*16, allocatable, save, dimension(:,:) :: work2_
       complex*16, allocatable, save, dimension(:) :: cfac_
       integer, allocatable, save, dimension(:) :: ngnl_
+      integer, save :: ngwork = 0
       logical, save :: first = .true.
       call prof_start(10)
 c *** first: operate kinetic energy term
@@ -1764,8 +1765,10 @@ c ***  temp check for YLM : end
 ! ==============================================================================
       if(first) then
          loopcnt = 0
+         ngwork = 0
          do ity = ntype, 1, -1
             if(numty(ity) .lt. 0) cycle
+            ngwork = max(ngwork,ngnl(ity))
             do it = numty(ity), 1, -1
                do il = mxofl(ity), 1, -1
                   if(ibun(il,ity) .ne. 1) then
@@ -1806,13 +1809,13 @@ c ***  temp check for YLM : end
                end do
             end do
          end do
-         allocate(work2_(NGcont,loopcnt))
+         allocate(work2_(ngwork,loopcnt))
          allocate(cfac_(loopcnt))
          allocate(ngnl_(loopcnt))
 ! Keep the nonlocal staging buffers allocated on the device.  Their host
 ! Values are regenerated for each phase and synchronized before the
 ! present-input GEMM path below.
-!$acc enter data create(work2_(1:NGcont,1:loopcnt),
+!$acc enter data create(work2_(1:ngwork,1:loopcnt),
 !$acc& cfac_(1:loopcnt),ngnl_(1:loopcnt))
          first = .false.
       endif
@@ -1834,7 +1837,8 @@ c ***  temp check for YLM : end
          call exnlp_only_make(dthalf,ng2q,nxyz,g2,
      &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
      &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NGcont,ngwork)
          ngnl_(loopcnt) = ngnl(ity)
          elseif ( il.eq.2 ) then
          do l=4,2,-1
@@ -1842,7 +1846,8 @@ c ***  temp check for YLM : end
          call exnlp_only_make(dthalf,ng2q,nxyz,g2,
      &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
      &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NGcont,ngwork)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.3 ) then
@@ -1851,7 +1856,8 @@ c ***  temp check for YLM : end
          call exnlp_only_make(dthalf,ng2q,nxyz,g2,
      &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
      &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NGcont,ngwork)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.4 ) then
@@ -1860,7 +1866,8 @@ c ***  temp check for YLM : end
          call exnlp_only_make(dthalf,ng2q,nxyz,g2,
      &   vpj(1,1,il,ity),vpp(1,il,ity),vpp2(l,1,ity),
      &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NGcont,ngwork)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          endif
@@ -1872,7 +1879,8 @@ c ***  temp check for YLM : end
          call exnlp_only_make(dthalf,ng2q,nxyz,g2,
      &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
      &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NGcont,ngwork)
          ngnl_(loopcnt) = ngnl(ity)
          elseif ( il.eq.2 ) then
          do l=4,2,-1
@@ -1880,7 +1888,8 @@ c ***  temp check for YLM : end
          call exnlp_only_make(dthalf,ng2q,nxyz,g2,
      &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
      &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NGcont,ngwork)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.3 ) then
@@ -1889,7 +1898,8 @@ c ***  temp check for YLM : end
          call exnlp_only_make(dthalf,ng2q,nxyz,g2,
      &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
      &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NGcont,ngwork)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          elseif ( il.eq.4 ) then
@@ -1898,7 +1908,8 @@ c ***  temp check for YLM : end
          call exnlp_only_make(dthalf,ng2q,nxyz,g2,
      &   vpj(1,ip,il,ity),vpp(ip,il,ity),vpp2(l,ip,ity),
      &   l,ylm,extau(1,np,itseq),work2_(1,loopcnt),
-     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),NGcont)
+     &   tpiba,omega,tau(1,itseq),ngnl(ity),cfac_(loopcnt),
+     &   NGcont,ngwork)
          ngnl_(loopcnt) = ngnl(ity)
          enddo
          endif
@@ -1910,13 +1921,13 @@ c ***  temp check for YLM : end
       call prof_stop(25)
       call prof_start(26)
       call prof_start(38)
-!$acc update device(work2_(1:NGcont,1:loopcnt))
+!$acc update device(work2_(1:ngwork,1:loopcnt))
       call prof_stop(38)
       call prof_start(39)
 !$acc update device(cfac_(1:loopcnt),ngnl_(1:loopcnt))
       call prof_stop(39)
       call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
-     &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont,.false.)
+     &     mxbnd,nbegin,nend,loopcnt,cfac_,ngwork,.false.)
       call prof_stop(26)
       call prof_stop(11)
 c ****
@@ -2097,7 +2108,7 @@ c ** fourth: operate nonlocal potential terms
       call prof_stop(25)
       call prof_start(26)
       call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
-     &     mxbnd,nbegin,nend,loopcnt,cfac_,NGcont,.true.)
+     &     mxbnd,nbegin,nend,loopcnt,cfac_,ngwork,.true.)
       call prof_stop(26)
       call prof_stop(11)
 c ****
@@ -2305,11 +2316,12 @@ c
       end
 
       subroutine exnlp_only_make(dt, ng2q, ng2, g2, vpj, vpp, vpp2,
-     &   l, ylm, extau, work1, tpiba, omega, tau, ngnl, cfac,NGcont)
+     &   l, ylm, extau, work1, tpiba, omega, tau, ngnl, cfac,
+     &   NGcont,ngwork)
       implicit double precision(a-h,o-z)
 c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       dimension g2(4,ng2q), vpj(NGcont), ylm(NGcont,16), tau(3)
-      complex*16 extau(NGcont), work1(NGcont), cfac
+      complex*16 extau(NGcont), work1(ngwork), cfac
       pi = 4.d0*atan(1.d0)
       fpi = 4.d0*pi
       fpisq = fpi**2
@@ -2360,23 +2372,23 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       end
 
       subroutine exnlp_gemm_present_inputs(ng2q, work1, coef, omega,
-     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,NGcont,reverse_order)
+     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,ngwork,reverse_order)
       implicit double precision(a-h,o-z)
-      complex*16 coef(ng2q,mxbnd), work1(NGcont,loopcnt),
+      complex*16 coef(ng2q,mxbnd), work1(ngwork,loopcnt),
      &           cfac(loopcnt)
       integer ngnl(loopcnt)
       logical reverse_order
       call prof_start(27)
       call exnlp_gemm_body_fused(ng2q,work1,coef,omega,ngnl,
-     &     mxbnd,nbegin,nend,loopcnt,cfac,NGcont,reverse_order)
+     &     mxbnd,nbegin,nend,loopcnt,cfac,ngwork,reverse_order)
       call prof_stop(27)
       return
       end
 
       subroutine exnlp_gemm_body_fused(ng2q, work1, coef, omega,
-     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,NGcont,reverse_order)
+     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,ngwork,reverse_order)
       implicit double precision(a-h,o-z)
-      complex*16 coef(ng2q,mxbnd), work1(NGcont,loopcnt),
+      complex*16 coef(ng2q,mxbnd), work1(ngwork,loopcnt),
      &           cfac(loopcnt)
       integer ngnl(loopcnt)
       integer nbndloc, ja
@@ -2386,7 +2398,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       call prof_start(28)
 !$acc parallel loop gang vector_length(256)
 !$acc& present(coef(1:ng2q,1:nbndloc),
-!$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
+!$acc& work1(1:ngwork,1:loopcnt),cfac(1:loopcnt),
 !$acc& ngnl(1:loopcnt)) private(ia,ja,sr,si,ar,ai,br,bi,
 !$acc& cr,ci,ctr,cti)
       do iib = 1, nbndloc
