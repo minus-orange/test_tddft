@@ -532,10 +532,6 @@ c *** temp check:end
 c     P is owned by FRPRMN across the predictor-corrector sequence.
 c     Keep its mapping after this call and only synchronize the host result.
       call prof_stop(35)
-      call prof_start(41)
-!$acc enter data copyin(GDUMP1(1:NG2),GDUMP2(1:NG2),
-!$acc& GDUMP3(1:NG2),GDUMP4(1:NG2),GDUMP5(1:NG2))
-      call prof_stop(41)
       dt1=pr1*dt
 c      call exkin(dt1,nxyz,ng2q,P(1,ib),G2,TPIBA2,GDUMP,GMHF)
       call exkin_(dt1,nxyz,ng2q,P,G2,TPIBA2,GDUMP1,GMHF,
@@ -715,10 +711,6 @@ c       enddo
 c      enddo
 c      endif
 c ***
-      call prof_start(42)
-!$acc exit data delete(GDUMP1(1:NG2),GDUMP2(1:NG2),
-!$acc& GDUMP3(1:NG2),GDUMP4(1:NG2),GDUMP5(1:NG2))
-      call prof_stop(42)
       call prof_start(36)
 !$acc update self(P(1:NG2Q,1:nbndloc))
       call prof_stop(36)
@@ -1282,8 +1274,8 @@ ccc      dthalf=0.5d0*dt
       dtqrt=0.25d0*dt*TPIBA2
       nbndloc=nend-nbegin+1
       call prof_start(37)
-!$acc parallel loop collapse(2) present(P(1:NG2Q,1:nbndloc),
-!$acc& GDUMP(1:ng2))
+!$acc parallel loop collapse(2) present(P(1:NG2Q,1:nbndloc))
+!$acc+ copyin(GDUMP(1:ng2))
       do iib=1,nbndloc
       do ig=1,ng2
 c      fac=dtqrt*( GDUMP(ig) - GMHF ) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr) 
