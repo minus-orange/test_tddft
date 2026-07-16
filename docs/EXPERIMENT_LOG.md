@@ -19,6 +19,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 32 | Measure post-TMEVL density rebuild | 129.658223152 (one diagnostic run) | measurement | `13f9e98` |
 | 33 | Batch post-TMEVL charge-density FFTs | 116.124675989 | accepted | `b2a43c9` |
 | 34 | Defer coefficient downloads across corrections | 113.561361074 | accepted baseline | `83a030c` |
+| 35 | Re-profile the accepted Step 34 path with Nsight Systems | 116.000924826 (diagnostic trace) | measurement | `7567ae8` |
 
 ## Other Rejected Experiments
 
@@ -99,3 +100,22 @@ accepted and becomes the official performance baseline.
 All runs passed both correctness checks. The deferred synchronization reduced
 the 944 per-TMEVL coefficient downloads to 103 verified host-consumer or final
 FRPRMN synchronizations in run 01. Step 34 is accepted as the new baseline.
+
+## Step 35 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP35_NSYS_01`
+- Source revision: `7567ae83e520a79e480ee6eaaa83842526938465`
+- Trace wall: `116.000924826` sec (diagnostic; not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- H2D: 44,166 copies, `32,307.014` MB, about `5.026` sec
+- D2H: 5,348 copies, `5,592.769` MB, about `0.831` sec
+
+Relative to the Step 30 trace, H2D fell by 28,320 copies and `13,918.755` MB,
+while D2H fell by 30,105 copies and `24,461.806` MB. The dominant GPU kernel
+remains `exnlp_gemm_body_fused_2387_gpu`: 9,440 launches and about `5.830` sec,
+or 66.5% of reported CUDA-kernel time. The largest repeated actionable upload
+is still the line-1913 `work2_` update: 4,720 OpenACC updates taking about
+`3.728` sec in the OpenACC summary, including about `1.264` sec of enqueue
+upload time. Direct device construction remains high risk because YLM, VPJ,
+and EXTAU ownership previously caused severe regressions and can replace one
+bulk transfer with larger or finer-grained transfers.

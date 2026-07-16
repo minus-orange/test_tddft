@@ -35,16 +35,23 @@ both correctness checks. The median was `113.561361074` sec, `2.2074%` faster
 than Step 33. Run 01 replaced 944 `tmevl_p_exit` operations with 103
 `frprmn_coef_sync` operations taking `0.638588` sec.
 
+Step 35 traced the accepted Step 34 source revision `7567ae8` with Nsight
+Systems. The diagnostic archive is
+`nvhpc_cufft_1rank_02_STEP35_NSYS_01`; its `116.000924826` sec trace wall is
+not a performance baseline. Both correctness checks passed. H2D was 44,166
+copies and `32,307.014` MB; D2H was 5,348 copies and `5,592.769` MB. Compared
+with Step 30, this confirms reductions of 28,320 H2D copies / `13,918.755` MB
+and 30,105 D2H copies / `24,461.806` MB.
+
 ## Next Task Boundary
 
-Before another source optimization, collect a fresh Nsight Systems trace on
-the accepted Step 34 path. Confirm the new D2H count and size, re-rank repeated
-H2D operations, and verify whether `work2_` remains the largest actionable
-transfer after Steps 33 and 34.
-Step 30 Nsight data identifies the largest repeated remaining upload as
-`work2_`: 4,720 events, with its updates taking about 4.184 sec. The full trace
-reported 46,225.769 MB of aggregate H2D traffic. Direct GPU generation remains
-high risk because it may increase YLM, VPJ, or EXTAU traffic.
+Step 35 confirms that `work2_` remains the largest repeated actionable upload:
+4,720 updates taking about `3.728` sec in the OpenACC summary, including about
+`1.264` sec of enqueue upload time. The fused nonlocal projector is the
+dominant GPU kernel at about `5.830` sec over 9,440 launches. Direct GPU
+generation remains high risk because it may increase YLM, VPJ, or EXTAU
+traffic; the rejected B1 ownership experiment is strong evidence against
+adding those mappings without eliminating more transfer than they introduce.
 
 Before changing that path, design an ownership boundary that does not repeat
 fine-grained lookup copies and does not alter the sequential projector update

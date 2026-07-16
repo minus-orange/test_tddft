@@ -51,3 +51,8 @@ Step 34 is `2.563314915` sec (`2.2074%`) faster than the Step 33 median and
 
 Step 32 was a single measurement run (`129.658223152` sec) with additional
 density-rebuild timers. It is diagnostic evidence, not a replacement baseline.
+
+Step 35 was an Nsight Systems diagnostic trace of the accepted Step 34 source.
+Its `116.000924826` sec trace wall is also not a baseline. It passed both
+correctness checks and confirmed that aggregate D2H fell from the Step 30 value
+of 35,453 copies / `30,054.575` MB to 5,348 copies / `5,592.769` MB.

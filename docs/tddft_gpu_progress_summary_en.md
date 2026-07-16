@@ -1444,3 +1444,27 @@ while the former 944-call `tmevl_p_exit` timer disappeared. `tmevl_total` fell
 from `58.338570` sec in Step 33 run 01 to `55.375345` sec. The next task is a
 fresh Nsight Systems diagnosis of the accepted Step 34 path to quantify the
 D2H reduction and re-rank the remaining repeated H2D operations.
+
+## Step 35: Nsight Systems Recheck of the Accepted Step 34 Code
+
+The accepted Step 34 source revision
+`7567ae83e520a79e480ee6eaaa83842526938465` was traced with Nsight Systems
+2026.2.1. The archive label is `nvhpc_cufft_1rank_02_STEP35_NSYS_01`. Its
+`116.000924826` sec trace wall includes diagnostic overhead and is not a
+performance baseline. Both the normal check and relaxed comparison passed.
+
+The trace reported 44,166 H2D copies, `32,307.014` MB, and about `5.026` sec;
+D2H was 5,348 copies, `5,592.769` MB, and about `0.831` sec. Relative to Step
+30, H2D fell by 28,320 copies and `13,918.755` MB, while D2H fell by 30,105
+copies and `24,461.806` MB. This confirms the transfer reduction from the
+Steps 33–34 density FFT batching and deferred coefficient synchronization.
+
+The largest GPU kernel was `exnlp_gemm_body_fused_2387_gpu`, with 9,440
+launches, about `5.830` sec, and 66.5% of reported CUDA-kernel time. The largest
+repeated upload remains the line-1913 `work2_` update: 4,720 calls and about
+`3.728` sec in the OpenACC summary, including about `1.264` sec of enqueue
+upload time. Direct device construction of `work2_` requires YLM, VPJ, and
+EXTAU mappings. Because the B1 ownership experiment regressed severely and
+Step 20's fine-grained copies failed, this remains a high-risk candidate until
+an ownership boundary can avoid increasing producer-input transfers. The
+official baseline remains the Step 34 median of `113.561361074` sec.

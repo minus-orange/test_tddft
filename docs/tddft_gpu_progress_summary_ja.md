@@ -1286,3 +1286,24 @@ run 01では`frprmn_coef_sync`が103回、`0.638588`秒となり、944回だっ�
 `tmevl_p_exit`はprofileから消えました。`tmevl_total`はStep 33 run 01の
 `58.338570`秒から`55.375345`秒へ短縮しました。次はStep 34採用コードをNsight
 Systemsで再診断し、D2H削減量と残る反復H2Dの優先順位を更新します。
+
+## Step 35: Step 34採用コードのNsight Systems再診断
+
+Step 34採用ソースrevision `7567ae83e520a79e480ee6eaaa83842526938465`を
+Nsight Systems 2026.2.1で計測しました。archive labelは
+`nvhpc_cufft_1rank_02_STEP35_NSYS_01`です。trace wallは
+`116.000924826`秒ですが、診断runなので性能baselineには使用しません。通常checkと
+relaxed compareはいずれもPASSしました。
+
+H2Dは44,166回、`32,307.014` MB、約`5.026`秒、D2Hは5,348回、
+`5,592.769` MB、約`0.831`秒でした。Step 30比ではH2Dが28,320回、
+`13,918.755` MB減少し、D2Hが30,105回、`24,461.806` MB減少しました。
+これによりSteps 33–34の密度FFT batch化とcoefficient D2H繰延べの効果を確認しました。
+
+最大のGPU kernelは`exnlp_gemm_body_fused_2387_gpu`で、9,440回、約`5.830`秒、
+CUDA kernel時間の66.5%でした。最大の反復uploadは引き続きline 1913の`work2_`
+updateで、4,720回、OpenACC summary上で約`3.728`秒、そのうちenqueue uploadが
+約`1.264`秒です。ただし`work2_`のdevice直接生成はYLM、VPJ、EXTAUのmappingを
+必要とし、B1 ownership実験の大幅悪化とStep 20の細粒度copy失敗があるため、
+producer入力転送を増やさない所有境界を確認するまで高リスク候補として扱います。
+正式性能baselineはStep 34中央値`113.561361074`秒のままです。
