@@ -24,7 +24,12 @@ git diff --cached
 
 Read `docs/HANDOFF.md`, `docs/PERFORMANCE_BASELINE.md`,
 `docs/EXPERIMENT_LOG.md`, both `docs/tddft_gpu_progress_summary_*.md` files,
-and `docs/tddft_gpu_residency_plan_ja.md` before starting a new experiment.
+`docs/tddft_gpu_residency_plan_ja.md`, and
+`docs/VALIDATION_WORKFLOW.md` before starting a new experiment.
+
+Follow `docs/VALIDATION_WORKFLOW.md` for Main, Investigation, Implementation,
+and Review responsibilities, A100 execution gates, early-stop conditions,
+human approval boundaries, adoption, and rollback.
 
 ## Permanent Rules
 

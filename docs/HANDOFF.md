@@ -9,6 +9,8 @@ Last updated: 2026-07-16
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Accepted result record: this documentation update
 - Current configuration: Step 36 source with Step 37 pinned allocation
+- Current HEAD: `ea81633` (`Specialize fused nonlocal kernel direction`)
+- Current HEAD status: unverified source experiment; not a performance baseline
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 37 median `108.096301079` sec
@@ -69,19 +71,37 @@ changing copy counts. The `work2_` update fell from `3.728488477` to
 `1.617571795` sec. The fused kernel remained effectively unchanged at
 `8.311268224` sec versus the corrected Step 35 value of `8.302662687` sec.
 
+Step 39 profiled one `exnlp_gemm_body_fused_2399_gpu` launch with Nsight
+Compute 2026.1.0. The two-step diagnostic archive is
+`nvhpc_cufft_1rank_02_STEP39_FUSED_NCU_01`; its `11.1839032173` sec wall is not
+a performance baseline. The normal check passed; relaxed compare was not run.
+The launch used a 32-block grid, 256 threads/block, and 63 registers/thread,
+with `12.5%` achieved occupancy and `0.07` waves/SM on the 108-SM A100.
+
+The 32-band tutorial is the smallest operational case expected. A dedicated
+smaller-band multi-gang path is out of scope. The current one-gang-per-band path
+expands naturally with local band count, so shared bottlenecks should be
+validated on medium or production-sized inputs rather than inferred only from
+the tutorial occupancy.
+
 ## Next Task Boundary
 
-Step 38 shows that direct GPU generation of `work2_` can save at most a portion
-of the now `1.272` sec total H2D time and still risks increasing YLM, VPJ, or
-EXTAU traffic. The next investigation should therefore target the fused
-nonlocal kernel, which remains about `8.31` sec and 66.6% of reported CUDA
-kernel time. Obtain compiler resource information or a focused Nsight Compute
-measurement before changing its mapping. Any change must preserve the
-sequential `ia` order and CPU/FFTW fallback.
+HEAD `ea81633` is an unverified implementation that splits the fused nonlocal
+kernel into explicit forward and reverse routines, removing the per-projector
+direction branch while preserving the forward and reverse `ia` sequences. It
+must not be treated as accepted merely because it is HEAD.
+
+The next and only active theme is to review and validate this exact
+implementation under the workflow below. Confirm the CPU/FFTW fallback, review
+fixed-form syntax, dummy shapes, `present` sections, and forward/reverse
+mathematical order, then run the diagnostic-off A100 correctness and performance
+gate. Do not start another mapping or scaling experiment until `ea81633` has
+been accepted or recorded and rolled back.
 
 ## Validation Gate
 
-For every performance implementation:
+The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for
+every performance implementation:
 
 1. Build CPU/FFTW fallback successfully.
 2. Build NVHPC OpenACC + cuFFT with diagnostics off.
