@@ -1172,3 +1172,35 @@ caller所有mappingが100回、約1.247秒、対応する200 uploadが約1.235�
 enqueue upload約3.745秒です。TMEVL exitのD2Hも944回、約2.892秒、対応するdownload
 約2.882秒残っています。次の実装候補は`work2_`直接生成ですが、YLM・VPJ・EXTAUの
 入力転送量を増やさない構成に限定して検討します。
+
+## Step 31: TMEVL kinetic stages間でのGDUMP mapping再利用（不採用）
+
+Step 31では、`exkin_`呼び出しごとに行っていた`GDUMP`の`copyin`を外側へ移し、
+`TMEVL`の4次分解区間で`GDUMP1..5`を1回mappingして5つのkinetic stageから
+`present`参照する実験を行いました。理論上のmapping回数は9,440回から4,720回へ
+減ります。数式、演算順序、配列shape、`ia`更新順序は変更していません。実装commitは
+`f8b6188` (`Reuse GDUMP mappings across TMEVL kinetic stages`)です。
+
+diagnostic OFF、NVHPC + OpenACC + cuFFT、1 GPU / 1 MPI rank、A100-PCIE-40GB、
+Si111-H 100 stepで3回測定しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP31_GDUMP_REUSE_01` | 129.635676146 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP31_GDUMP_REUSE_02` | 128.958827972 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP31_GDUMP_REUSE_03` | 129.250354052 | PASS | PASS |
+
+3回中央値は`129.250354052`秒です。正式Step 28中央値`129.075486183`秒より
+`0.174867869`秒、約`0.1355%`遅く、実行間の幅は`0.676848174`秒でした。
+全runで通常checkとrelaxed compareはPASSしましたが、正式baselineに対する性能優位を
+確認できないためStep 31は不採用です。
+
+run 01では、`tmevl_gdump_enter`が944回、`0.294118`秒、
+`tmevl_gdump_exit`が944回、`0.002970`秒、`exkin_acc_kernel`が9,440回、
+`0.348747`秒、`tmevl_total`が`57.794941`秒でした。GDUMP mapping境界の変更は
+正しく動作しましたが、約`0.297088`秒のTMEVL単位enter/exitを含め、wall中央値の
+改善にはつながりませんでした。
+
+commit `8ef55bb` (`Revert "Reuse GDUMP mappings across TMEVL kinetic stages"`)で
+Step 31のソース変更だけをrollbackし、正式なStep 28方式へ戻しました。次の実験でも
+Step 28中央値`129.075486183`秒を性能baselineとして使用します。

@@ -1316,3 +1316,39 @@ events. The TMEVL-exit D2H also remains at 944 events and about 2.892 sec, with
 about 2.882 sec in the corresponding downloads. Direct generation of `work2_`
 is the next implementation candidate, but only if it does not increase the
 input traffic for YLM, VPJ, and EXTAU.
+
+## Step 31: Reuse GDUMP Mappings Across TMEVL Kinetic Stages (Rejected)
+
+Step 31 moved the per-`exkin_` `GDUMP` `copyin` operations to the surrounding
+fourth-order `TMEVL` interval. `GDUMP1..5` were mapped once and referenced as
+`present` by the five kinetic stages. This was expected to reduce the mapping
+count from 9,440 to 4,720 without changing equations, operation order, array
+shapes, or the sequential `ia` update order. The implementation commit was
+`f8b6188` (`Reuse GDUMP mappings across TMEVL kinetic stages`).
+
+Three runs used diagnostics off, NVHPC with OpenACC and cuFFT, one GPU / one MPI
+rank, an A100-PCIE-40GB, and the 100-step Si111-H case.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP31_GDUMP_REUSE_01` | 129.635676146 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP31_GDUMP_REUSE_02` | 128.958827972 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP31_GDUMP_REUSE_03` | 129.250354052 | PASS | PASS |
+
+The three-run median was `129.250354052` sec, which is `0.174867869` sec, or
+about `0.1355%`, slower than the official Step 28 median of `129.075486183`
+sec. The run-to-run range was `0.676848174` sec. Every run passed both the
+normal check and relaxed comparison, but no performance advantage over the
+official baseline was demonstrated, so Step 31 is rejected.
+
+In run 01, `tmevl_gdump_enter` occurred 944 times and took `0.294118` sec,
+`tmevl_gdump_exit` occurred 944 times and took `0.002970` sec,
+`exkin_acc_kernel` occurred 9,440 times and took `0.348747` sec, and
+`tmevl_total` was `57.794941` sec. The changed GDUMP ownership boundary was
+functionally valid, but its approximately `0.297088` sec of TMEVL-level
+enter/exit time did not improve the wall-time median.
+
+Commit `8ef55bb` (`Revert "Reuse GDUMP mappings across TMEVL kinetic stages"`)
+rolls back only the Step 31 source change and restores the accepted Step 28
+method. The Step 28 median of `129.075486183` sec remains the performance
+baseline for subsequent experiments.
