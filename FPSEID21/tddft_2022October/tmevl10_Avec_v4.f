@@ -711,9 +711,8 @@ c       enddo
 c      enddo
 c      endif
 c ***
-      call prof_start(36)
-!$acc update self(P(1:NG2Q,1:nbndloc))
-      call prof_stop(36)
+c     P remains device-authoritative until a verified host consumer or the
+c     end of the caller-owned predictor-corrector sequence.
       endif  ! end of if (ioption.eq...)  loop
 c      WRITE(71,REC=IOWF(JJB)) PJ
 c

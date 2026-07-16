@@ -369,6 +369,7 @@ C
 c      nscf=10  ! but not 10, actually.
       nscf=ITMAX  ! but not 10, actually.
       endif
+      icoef_host_current=1
 c
       do 9898 iscf=1,nscf  ! start Predictor Corrector loop
 c ***
@@ -921,6 +922,15 @@ c
         call Efield(Vplt,nrx,nry,nrz,nxyz,time,93)
       endif
 c
+c *** The final-step expectation path below reads COEF on the host for
+c *** every correction, including corrections that have not converged.
+      if (itstep.eq.ntstep .and. icoef_host_current.eq.0) then
+       call prof_start(44)
+!$acc update self(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+       call prof_stop(44)
+       icoef_host_current=1
+      endif
+c
 c *** store all potential in file 90
       if ( itstep.eq.ntstep .and. my_rank.eq.0 .and. IOK.eq.1) then
       rewind 90
@@ -1392,6 +1402,7 @@ c *** CPU/FFTW path; on OpenACC the correction restart below is device-local.
          enddo
         enddo
        enddo
+       icoef_host_current=0
       endif
 c
       DO 600 I=1,NXYZ
@@ -1892,6 +1903,7 @@ c
      &   ,NGcont
 c
      &   ,nbegin,nend,mshbegin,mshend,ncpuq,ncpu  )
+      icoef_host_current=0
 c **** temp check
 c       miya=13
 c       if ( miya.eq.13 ) then
@@ -1974,6 +1986,12 @@ c *** temp check
 C ****
                  IF( NPFL .EQ. 0 ) GO TO 8500
 C ****
+      if (icoef_host_current.eq.0) then
+       call prof_start(44)
+!$acc update self(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+       call prof_stop(44)
+       icoef_host_current=1
+      endif
       call prof_start(42)
       DO 634 IK=1,NUMK
         CALL SUMCHR( MXBND, 1, NFL, NPFL, NRX, NRY, NRZ, NXYZ,
@@ -2015,6 +2033,12 @@ C
  9898 continue   ! finish of Predictor Correcter loop 
 C
  9899 continue
+      if (icoef_host_current.eq.0) then
+       call prof_start(44)
+!$acc update self(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+       call prof_stop(44)
+       icoef_host_current=1
+      endif
 !$acc exit data delete(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
 !$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
 c *** 

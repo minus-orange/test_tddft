@@ -119,5 +119,6 @@
       if (id.eq.41) name='frprmn_rhoofk'
       if (id.eq.42) name='frprmn_sumchr'
       if (id.eq.43) name='frprmn_rhoget'
+      if (id.eq.44) name='frprmn_coef_sync'
       return
       end
