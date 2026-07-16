@@ -16,6 +16,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 28 | Keep COEF/COEF0 resident across corrections | 129.075486183 | accepted baseline | `c3552af` |
 | 29 | Initialize resident COEF0 on the device | 130.160923958 | rejected | `94e0e0e` / `bd53a88` |
 | 31 | Reuse GDUMP mappings across TMEVL kinetic stages | 129.250354052 | rejected | `f8b6188` / `8ef55bb` |
+| 32 | Measure post-TMEVL density rebuild | 129.658223152 (one diagnostic run) | measurement | `13f9e98` |
 
 ## Other Rejected Experiments
 
@@ -44,3 +45,17 @@ implementation and timer notes are in the bilingual progress summaries.
 
 The mapping change was correct but did not improve the three-run median, so it
 was reverted. Step 28 remains the official baseline.
+
+## Step 32 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP32_DENSITY_TIMERS_01`
+- Wall: `129.658223152` sec
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn_rhoofk`: 472 calls, `14.509684` sec
+- `frprmn_rhoget`: 472 calls, `0.440581` sec
+- `frprmn_sumchr`: inactive because `NPFL=0`
+- `tmevl_p_exit`: 944 calls, `2.819788` sec
+
+This measurement identifies resident-coefficient charge-density construction
+as a higher-value next target than returning directly to the rejected
+fine-grained `work2_` lookup-transfer design.

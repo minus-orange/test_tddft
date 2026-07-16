@@ -1204,3 +1204,30 @@ run 01では、`tmevl_gdump_enter`が944回、`0.294118`秒、
 commit `8ef55bb` (`Revert "Reuse GDUMP mappings across TMEVL kinetic stages"`)で
 Step 31のソース変更だけをrollbackし、正式なStep 28方式へ戻しました。次の実験でも
 Step 28中央値`129.075486183`秒を性能baselineとして使用します。
+
+## Step 32: TMEVL後の密度再構築timer
+
+Step 32は、Step 30で残っていたTMEVL終了時の係数D2Hの次に実行されるhost処理を
+分解する計測stepです。`RHOOFK`、条件付き`SUMCHR`、`RHOGET`をそれぞれ
+`frprmn_rhoofk`、`frprmn_sumchr`、`frprmn_rhoget`で囲みました。数式、OpenACC
+data clause、FFT経路は変更していません。実装commitは`13f9e98`
+(`Measure post-TMEVL density rebuild costs`)です。
+
+diagnostic OFF、NVHPC + OpenACC + cuFFT、1 GPU / 1 MPI rank、A100-PCIE-40GB、
+Si111-H 100 stepのrun 01は次の結果でした。
+
+```text
+archive: nvhpc_cufft_1rank_02_STEP32_DENSITY_TIMERS_01
+wall_sec: 129.658223152
+check: PASS
+relaxed compare: PASS
+frprmn_rhoofk: count 472, 14.509684 sec
+frprmn_rhoget: count 472, 0.440581 sec
+tmevl_p_exit: count 944, 2.819788 sec
+```
+
+`NPFL=0`のため`frprmn_sumchr`はactive timerに現れませんでした。密度再構築の
+計測合計は約`14.950265`秒で、その大半を`RHOOFK`が占めます。したがって次の実装
+候補は、residentな`COEF`からdevice上でcharge densityを生成し、各TMEVLの
+`tmevl_p_exit`を避ける経路です。Step 32は計測runであり、正式性能baselineは
+引き続きStep 28中央値`129.075486183`秒です。

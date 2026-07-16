@@ -46,3 +46,6 @@ Official three-run median: `129.075486183` sec.
 
 The rejected Step 31 median was `129.250354052` sec, `0.174867869` sec
 (`0.1355%`) slower than this baseline. It does not replace Step 28.
+
+Step 32 was a single measurement run (`129.658223152` sec) with additional
+density-rebuild timers. It is diagnostic evidence, not a replacement baseline.

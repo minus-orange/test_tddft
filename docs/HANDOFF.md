@@ -16,10 +16,18 @@ Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
 `0.1355%` slower than Step 28. It was rejected and rolled back.
 
+Step 32 commit `13f9e98` added measurement-only timers around the density
+rebuild after TMEVL. Run 01 passed both correctness checks. `RHOOFK` took
+`14.509684` sec over 472 calls, `RHOGET` took `0.440581` sec, and the preceding
+944 `tmevl_p_exit` operations took `2.819788` sec. `SUMCHR` was inactive because
+`NPFL=0`.
+
 ## Next Task Boundary
 
-Do not continue from the rejected GDUMP hypothesis. Start from the restored
-Step 28 source and choose one new, independently measurable hypothesis.
+Do not continue from the rejected GDUMP hypothesis. The next bounded hypothesis
+is to consume resident `COEF` in a device charge-density path, copy back only
+the density needed by `RHOGET`, and defer the full coefficient synchronization
+until the predictor-corrector sequence ends.
 Step 30 Nsight data identifies the largest repeated remaining upload as
 `work2_`: 4,720 events, with its updates taking about 4.184 sec. The full trace
 reported 46,225.769 MB of aggregate H2D traffic. Direct GPU generation remains

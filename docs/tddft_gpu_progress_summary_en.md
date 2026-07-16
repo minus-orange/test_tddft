@@ -1352,3 +1352,32 @@ Commit `8ef55bb` (`Revert "Reuse GDUMP mappings across TMEVL kinetic stages"`)
 rolls back only the Step 31 source change and restores the accepted Step 28
 method. The Step 28 median of `129.075486183` sec remains the performance
 baseline for subsequent experiments.
+
+## Step 32: Post-TMEVL Density-Rebuild Timers
+
+Step 32 is a measurement step that separates the host work immediately after
+the TMEVL-exit coefficient D2H identified in Step 30. It adds
+`frprmn_rhoofk`, `frprmn_sumchr`, and `frprmn_rhoget` around `RHOOFK`, the
+conditional `SUMCHR`, and `RHOGET`, respectively. It does not change equations,
+OpenACC data clauses, or FFT paths. The implementation commit is `13f9e98`
+(`Measure post-TMEVL density rebuild costs`).
+
+The diagnostic-off NVHPC + OpenACC + cuFFT run used one A100-PCIE-40GB, one MPI
+rank, and the 100-step Si111-H case.
+
+```text
+archive: nvhpc_cufft_1rank_02_STEP32_DENSITY_TIMERS_01
+wall_sec: 129.658223152
+check: PASS
+relaxed compare: PASS
+frprmn_rhoofk: count 472, 14.509684 sec
+frprmn_rhoget: count 472, 0.440581 sec
+tmevl_p_exit: count 944, 2.819788 sec
+```
+
+`frprmn_sumchr` did not appear because `NPFL=0` in this case. The measured
+density-rebuild total is about `14.950265` sec, dominated by `RHOOFK`. The next
+implementation candidate is therefore a device charge-density path that
+consumes resident `COEF` and avoids each TMEVL `tmevl_p_exit`. Step 32 is a
+measurement run and does not replace the official Step 28 median baseline of
+`129.075486183` sec.
