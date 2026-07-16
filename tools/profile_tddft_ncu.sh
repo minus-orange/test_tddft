@@ -33,7 +33,7 @@ if [ "${FPSEID_NCU_TARGET_MODE:-0}" = 1 ]; then
   cd "$FPSEID_NCU_RUN_DIR"
   ulimit -s unlimited 2>/dev/null || true
   # shellcheck disable=SC2086
-  "$FPSEID_NCU_MPIRUN" $FPSEID_NCU_MPIRUN_FLAGS \
+  "$FPSEID_NCU_MPIRUN" ${FPSEID_NCU_MPIRUN_FLAGS:-} \
     -np "$FPSEID_NCU_NPROCS" "$FPSEID_NCU_TDDFT_EXE" \
     < "$FPSEID_NCU_INPUT" \
     > "$FPSEID_NCU_TDDFT_OUT" \
