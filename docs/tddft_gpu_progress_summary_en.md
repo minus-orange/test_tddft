@@ -1538,3 +1538,34 @@ transcription error and is corrected above to `8.303` sec. Initializing the
 pinned host pool added one `cuMemHostAlloc` call of `0.273495492` sec. The next
 investigation should measure fused-kernel resource use or occupancy before a
 separate mapping hypothesis is implemented.
+
+## Step 39: Nsight Compute Diagnosis of the Fused Nonlocal Kernel
+
+Nsight Compute 2026.1.0 profiled one launch of
+`exnlp_gemm_body_fused_2399_gpu` from the accepted Step 37 build. The archive
+is `nvhpc_cufft_1rank_02_STEP39_FUSED_NCU_01`, using the two-step input. The
+diagnostic wall time was `11.1839032173` sec and the normal check passed. This
+two-step diagnostic did not run the relaxed comparison, so neither its wall
+time nor its limited correctness result replaces the official baseline. The
+manifest's `git_revision` is blank because root execution triggered Git's
+safe-directory protection; the profiled executable still used the accepted
+Step 37 implementation and did not change equations or execution order.
+
+The selected kernel used a block size of 256, a grid size of 32, and 63
+registers per thread. On the A100's 108 SMs, it reported only `0.07` waves/SM.
+Theoretical occupancy was `50.0%`, but achieved occupancy was `12.5%` with
+`8.0` achieved active warps per SM. Compute (SM) throughput was `4.27%`, memory
+throughput was `16.35%`, DRAM throughput was `0.45%`, and the selected launch
+took `915.52 us`. The L1/TEX hit rate was `84.31%`.
+
+Nsight Compute identified the 32-block grid, which cannot fill 108 SMs, as the
+primary launch-shape limit. It also reported about `15.5 / 32` useful bytes per
+global-load/store sector, roughly 51% excess sectors, and about 7.1 scoreboard
+stall cycles out of an average 14.3 cycles. A simple block-size increase is not
+the next experiment because Step 26 already rejected `vector_length(512)` by a
+three-run median. Reducing register pressure alone also cannot remove the
+32-block grid limit. A credible next kernel hypothesis must split one band
+across multiple gangs with a two-stage reduction or equivalent synchronization
+while preserving sequential `ia` updates and proving mathematical equivalence.
+No source change is made until that design is validated; the official baseline
+remains the Step 37 median of `108.096301079` sec.

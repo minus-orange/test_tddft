@@ -67,3 +67,9 @@ Step 38 was an Nsight Systems diagnostic trace of the pinned Step 37 build. Its
 It measured H2D at `1.272192545` sec and D2H at `0.440373299` sec, reductions of
 `74.6861%` and `46.9758%` from Step 35, respectively. The fused nonlocal kernel
 was essentially unchanged at `8.311268224` sec.
+
+Step 39 was a two-step Nsight Compute diagnostic of one fused nonlocal kernel
+launch. Its `11.1839032173` sec wall is not a baseline. The normal check passed;
+the relaxed comparison was not run. The launch used 32 blocks of 256 threads
+with 63 registers/thread, achieving `12.5%` occupancy and only `0.07` waves/SM
+on the 108-SM A100. This diagnosis does not replace the Step 37 median.

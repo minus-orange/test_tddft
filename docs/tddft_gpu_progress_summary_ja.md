@@ -1369,3 +1369,28 @@ CUDA kernel時間の66.6%でした。Step 35の正しい値`8.302662687`秒と�
 本stepで`8.303`秒へ訂正しました。pinned host poolの初期化では
 `cuMemHostAlloc`が1回、`0.273495492`秒でした。次は転送ownershipではなく、この
 fused kernelのresource/occupancyを確認してから独立仮説を設計します。
+
+## Step 39: fused nonlocal kernelのNsight Compute診断
+
+Step 37採用buildの`exnlp_gemm_body_fused_2399_gpu`をNsight Compute 2026.1.0で
+1 launchだけ計測しました。archive labelは
+`nvhpc_cufft_1rank_02_STEP39_FUSED_NCU_01`、入力は2-step版です。診断時wallは
+`11.1839032173`秒で、通常checkはPASSしました。2-step診断でありrelaxed compareを
+実施していないため、correctnessまたはwall-time baselineの代替には使用しません。
+root実行時のGit safe-directory制約によりmanifestの`git_revision`は空欄でしたが、
+対象はStep 37採用buildで、ソース式と実行順序は変更していません。
+
+対象kernelはblock size 256、grid size 32、register 63/threadでした。A100の108 SMに
+対してwaves/SMは`0.07`、theoretical occupancyは`50.0%`でしたが、achieved occupancyは
+`12.5%`、achieved active warps/SMは`8.0`でした。Compute (SM) throughputは`4.27%`、
+memory throughputは`16.35%`、DRAM throughputは`0.45%`、1 launchのdurationは
+`915.52 us`です。L1/TEX hit rateは`84.31%`でした。
+
+Nsight Computeは、32 blockしか生成されず108 SMを満たさないlaunch形状を第一の
+制約として報告しました。また、global load/storeで平均`15.5 / 32` byte/sector、
+約51%のexcess sectorと、平均14.3 cycle中約7.1 cycleのscoreboard待ちも報告しました。
+ただしStep 26の同一kernel `vector_length(512)`は既に3回中央値で不採用なので、単純な
+block拡大は再試行しません。register制限だけを緩和しても32 blockというgrid上限は
+変わりません。次のkernel仮説には、`ia`の逐次更新を維持したまま1 bandを複数gangへ
+分割できる二段reductionまたは同等の同期設計が必要です。設計と数式同値性を確認する
+まではソース変更を行わず、正式baselineはStep 37の`108.096301079`秒を維持します。

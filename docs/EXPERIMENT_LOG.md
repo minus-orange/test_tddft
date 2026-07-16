@@ -182,3 +182,26 @@ The fused kernel changed by only `+0.1036%`, confirming that pinned allocation
 accelerated transfers rather than its arithmetic. The earlier Step 35 record
 of `5.830` sec for this kernel was a transcription error corrected above from
 the archived screenshot value of `8.302662687` sec.
+
+## Step 39 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP39_FUSED_NCU_01`
+- Tool: Nsight Compute 2026.1.0, `--set full`, one selected launch
+- Input: Si111-H, 2 steps
+- Diagnostic wall: `11.1839032173` sec (not a baseline)
+- Correctness: normal check PASS; relaxed comparison not run
+- Kernel: `exnlp_gemm_body_fused_2399_gpu`
+- Launch: grid 32, block 256, 63 registers/thread, `915.52 us`
+- Occupancy: theoretical `50.0%`, achieved `12.5%`, waves/SM `0.07`
+- Throughput: Compute (SM) `4.27%`, memory `16.35%`, DRAM `0.45%`
+- Cache/access: L1/TEX hit `84.31%`; about `15.5 / 32` useful bytes per
+  global-load/store sector and about 51% excess sectors
+
+The manifest revision is blank because the diagnostic was run as root and Git
+rejected the repository as an unsafe directory. The result nevertheless
+profiles the accepted Step 37 executable; it does not establish a new source
+or performance baseline. The main structural constraint is one gang per local
+band: 32 blocks cannot fill the A100's 108 SMs. Step 26 already rejected a
+simple increase to vector length 512. Any follow-up must preserve the sequential
+projector (`ia`) update order while introducing a mathematically equivalent
+multi-gang reduction and synchronization scheme.
