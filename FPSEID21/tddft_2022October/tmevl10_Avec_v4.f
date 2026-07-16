@@ -2379,52 +2379,100 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       integer ngnl(loopcnt)
       logical reverse_order
       call prof_start(27)
-      call exnlp_gemm_body_fused(ng2q,work1,coef,omega,ngnl,
-     &     mxbnd,nbegin,nend,loopcnt,cfac,ngwork,reverse_order)
+      if (reverse_order) then
+         call exnlp_gemm_body_fused_reverse(ng2q,work1,coef,omega,
+     &        ngnl,mxbnd,nbegin,nend,loopcnt,cfac,ngwork)
+      else
+         call exnlp_gemm_body_fused_forward(ng2q,work1,coef,omega,
+     &        ngnl,mxbnd,nbegin,nend,loopcnt,cfac,ngwork)
+      end if
       call prof_stop(27)
       return
       end
 
-      subroutine exnlp_gemm_body_fused(ng2q, work1, coef, omega,
-     &   ngnl, mxbnd, nbegin, nend, loopcnt, cfac,ngwork,reverse_order)
+      subroutine exnlp_gemm_body_fused_forward(ng2q, work1, coef,
+     &   omega, ngnl, mxbnd, nbegin, nend, loopcnt, cfac,ngwork)
       implicit double precision(a-h,o-z)
       complex*16 coef(ng2q,mxbnd), work1(ngwork,loopcnt),
      &           cfac(loopcnt)
       integer ngnl(loopcnt)
-      integer nbndloc, ja
-      logical reverse_order
+      integer nbndloc
       real*8 sr,si,ar,ai,br,bi,cr,ci,ctr,cti
       nbndloc = nend-nbegin+1
       call prof_start(28)
 !$acc parallel loop gang vector_length(256)
 !$acc& present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:ngwork,1:loopcnt),cfac(1:loopcnt),
-!$acc& ngnl(1:loopcnt)) private(ia,ja,sr,si,ar,ai,br,bi,
+!$acc& ngnl(1:loopcnt)) private(ia,sr,si,ar,ai,br,bi,
 !$acc& cr,ci,ctr,cti)
       do iib = 1, nbndloc
 !$acc loop seq
          do ia = 1, loopcnt
-            ja = ia
-            if (reverse_order) ja = loopcnt-ia+1
             sr = 0.d0
             si = 0.d0
 !$acc loop vector reduction(+:sr,si)
-            do ig = 1, ngnl(ja)
+            do ig = 1, ngnl(ia)
                ar = dble(coef(ig,iib))
                ai = dimag(coef(ig,iib))
-               br = dble(work1(ig,ja))
-               bi = dimag(work1(ig,ja))
+               br = dble(work1(ig,ia))
+               bi = dimag(work1(ig,ia))
                sr = sr + ar*br - ai*bi
                si = si + ar*bi + ai*br
             end do
-            cr = dble(cfac(ja))
-            ci = dimag(cfac(ja))
+            cr = dble(cfac(ia))
+            ci = dimag(cfac(ia))
             ctr = (cr*sr-ci*si)/omega
             cti = (cr*si+ci*sr)/omega
 !$acc loop vector
-            do ig = 1, ngnl(ja)
-               br = dble(work1(ig,ja))
-               bi = dimag(work1(ig,ja))
+            do ig = 1, ngnl(ia)
+               br = dble(work1(ig,ia))
+               bi = dimag(work1(ig,ia))
+               coef(ig,iib) = coef(ig,iib)
+     &         + dcmplx(ctr*br + cti*bi, cti*br - ctr*bi)
+            end do
+         end do
+      end do
+      call prof_stop(28)
+      return
+      end
+
+      subroutine exnlp_gemm_body_fused_reverse(ng2q, work1, coef,
+     &   omega, ngnl, mxbnd, nbegin, nend, loopcnt, cfac,ngwork)
+      implicit double precision(a-h,o-z)
+      complex*16 coef(ng2q,mxbnd), work1(ngwork,loopcnt),
+     &           cfac(loopcnt)
+      integer ngnl(loopcnt)
+      integer nbndloc
+      real*8 sr,si,ar,ai,br,bi,cr,ci,ctr,cti
+      nbndloc = nend-nbegin+1
+      call prof_start(28)
+!$acc parallel loop gang vector_length(256)
+!$acc& present(coef(1:ng2q,1:nbndloc),
+!$acc& work1(1:ngwork,1:loopcnt),cfac(1:loopcnt),
+!$acc& ngnl(1:loopcnt)) private(ia,sr,si,ar,ai,br,bi,
+!$acc& cr,ci,ctr,cti)
+      do iib = 1, nbndloc
+!$acc loop seq
+         do ia = loopcnt, 1, -1
+            sr = 0.d0
+            si = 0.d0
+!$acc loop vector reduction(+:sr,si)
+            do ig = 1, ngnl(ia)
+               ar = dble(coef(ig,iib))
+               ai = dimag(coef(ig,iib))
+               br = dble(work1(ig,ia))
+               bi = dimag(work1(ig,ia))
+               sr = sr + ar*br - ai*bi
+               si = si + ar*bi + ai*br
+            end do
+            cr = dble(cfac(ia))
+            ci = dimag(cfac(ia))
+            ctr = (cr*sr-ci*si)/omega
+            cti = (cr*si+ci*sr)/omega
+!$acc loop vector
+            do ig = 1, ngnl(ia)
+               br = dble(work1(ig,ia))
+               bi = dimag(work1(ig,ia))
                coef(ig,iib) = coef(ig,iib)
      &         + dcmplx(ctr*br + cti*bi, cti*br - ctr*bi)
             end do
