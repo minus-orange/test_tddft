@@ -1046,6 +1046,11 @@ c       enddo
 c      endif
 c *** temp check : end
       call prof_stop(15)
+! Keep static reciprocal-grid and occupation metadata resident for the
+! complete time-step loop.  Both arrays are initialized during setup and
+! remain host-read-only until time evolution finishes.
+!$acc enter data copyin(J2G(1:NG2Q,1:NUMKQ),
+!$acc& OCC(1:NBNDQ,1:NUMKQ))
       do 100 itstep=0,ntstep
       call prof_start(1)
       time=time0+dtfsec*itstep
@@ -1847,6 +1852,8 @@ c      write(6,*)' Time (fsec) = ',time
 c
       call prof_stop(1)
   100 continue
+!$acc exit data delete(J2G(1:NG2Q,1:NUMKQ),
+!$acc& OCC(1:NBNDQ,1:NUMKQ))
 c
       if ( ntstep.ge.1 .and. my_rank.eq.0 ) then
       call clock(T01)

@@ -2258,8 +2258,8 @@ C
 C
 !$acc data present(COEF(1:NG2Q,1:MXBND),
 !$acc& RHO1_ACC(1:NXYZ,1:MXBND),
-!$acc& RHO2_ACC(1:NXYZ,1:MXBND),RHO3_ACC(1:NXYZ))
-!$acc& copyin(J2G(1:NG2Q),OCC(1:NBNDQ))
+!$acc& RHO2_ACC(1:NXYZ,1:MXBND),RHO3_ACC(1:NXYZ),
+!$acc& J2G(1:NG2Q),OCC(1:NBNDQ))
 !$acc parallel loop collapse(2)
 !$acc& present(RHO2_ACC(1:NXYZ,1:MXBND))
       do iib=1,nbndloc
