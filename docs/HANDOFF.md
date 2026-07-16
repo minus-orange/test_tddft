@@ -9,8 +9,8 @@ Last updated: 2026-07-16
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Accepted result record: this documentation update
 - Current configuration: Step 36 source with Step 37 pinned allocation
-- Current HEAD: Step 40 rejection record following implementation `ea81633`
-- Current HEAD status: Step 40 rejected; source rollback pending
+- Current HEAD: Step 40 rollback `0726e26` plus its final documentation record
+- Current HEAD status: Step 40 rejected and rolled back; branch synchronized
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 37 median `108.096301079` sec
@@ -86,6 +86,8 @@ passed normal check and relaxed compare. Their wall median was
 `8.545724` sec (`+1.2310%` versus Step 37 run 01) and `s2_nonlocal` regressed
 to `11.571148` sec (`+0.7134%`). The sub-1% wall difference is not supported
 by the target timer, so Step 40 is rejected and does not replace Step 37.
+Implementation `ea81633` was reverted by `0726e26`; the CPU/FFTW fallback full
+link passed after rollback.
 
 The 32-band tutorial is the smallest operational case expected. A dedicated
 smaller-band multi-gang path is out of scope. The current one-gang-per-band path
@@ -95,11 +97,10 @@ the tutorial occupancy.
 
 ## Next Task Boundary
 
-Step 40 has been reviewed, validated, and rejected. The only remaining action
-in this cycle is to revert implementation `ea81633`, repeat the CPU/FFTW full
-link, record the rollback revision, and synchronize the branch. Do not start a
-new mapping, scaling, or kernel experiment until that rollback is complete and
-a separate next theme is explicitly approved.
+Step 40 has been reviewed, validated, rejected, recorded, and rolled back. The
+branch is synchronized and the CPU/FFTW fallback full link passes. No next
+mapping, scaling, or kernel experiment has been selected; require a separate
+explicit approval before starting another hypothesis.
 
 ## Validation Gate
 

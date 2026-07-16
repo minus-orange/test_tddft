@@ -1596,5 +1596,6 @@ timer median was `8.545724` sec, `1.2310%` worse than Step 37 run 01, and the
 All correctness checks passed, but the targeted timer consistently regressed
 and does not support the sub-1% wall-time difference. The duplicated
 forward/reverse implementation is not justified by the measured effect, so
-Step 40 is rejected. The official baseline remains Step 37 at
-`108.096301079` sec.
+Step 40 is rejected. Implementation `ea81633` was reverted by `0726e26`, and
+the CPU/FFTW fallback full link passed after rollback. The official baseline
+remains Step 37 at `108.096301079` sec.

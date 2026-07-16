@@ -1418,4 +1418,5 @@ Step 37中央値に対する見かけの改善は`0.344588042`秒、`0.3188%`で
 
 全runのcorrectnessはPASSしましたが、狙ったtimerが一貫して悪化し、1%未満のwall差を
 裏付けません。forward/reverseの重複実装は効果に見合わないためStep 40を不採用とし、
-正式baselineはStep 37中央値`108.096301079`秒を維持します。
+実装`ea81633`を`0726e26`でrevertしました。rollback後のCPU/FFTW fallback full linkは
+PASSし、正式baselineはStep 37中央値`108.096301079`秒を維持します。

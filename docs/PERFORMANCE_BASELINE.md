@@ -83,4 +83,5 @@ passed normal check and relaxed compare. Their wall-time median was
 `exnlp_gemm_dot` timer median regressed to `8.545724` sec (`+1.2310%` versus
 Step 37 run 01) and `s2_nonlocal` regressed to `11.571148` sec (`+0.7134%`).
 The small wall difference is not supported by the target timer, so Step 40 is
-rejected and does not replace the Step 37 baseline.
+rejected and does not replace the Step 37 baseline. Implementation `ea81633`
+was reverted by `0726e26`; the CPU/FFTW fallback full link passed afterward.

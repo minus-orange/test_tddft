@@ -23,7 +23,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 36 | Right-size nonlocal staging columns to the maximum active NGNL | 113.083628893 | accepted | `24e1cc3` |
 | 37 | Allocate dynamic TDDFT host data in pinned memory | 108.096301079 | accepted baseline | `9cbb6bc` |
 | 38 | Re-profile the accepted pinned-allocation build | 110.78916502 (diagnostic trace) | measurement | `643e639` |
-| 40 | Specialize the fused nonlocal kernel by direction | 107.751713037 | rejected | `ea81633` / rollback pending |
+| 40 | Specialize the fused nonlocal kernel by direction | 107.751713037 | rejected | `ea81633` / `0726e26` |
 
 ## Other Rejected Experiments
 
@@ -236,3 +236,5 @@ timer targeted by the branch specialization regressed consistently, and the
 small wall-time difference is below 1% and is not supported by the target
 timer. The duplicated forward/reverse implementation is therefore rejected as
 not justified by the measured effect. Step 37 remains the official baseline.
+Implementation `ea81633` was reverted by `0726e26`, after which the CPU/FFTW
+fallback full link passed.
