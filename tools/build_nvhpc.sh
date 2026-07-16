@@ -13,6 +13,7 @@ FFTW_ROOT=${FFTW_ROOT:-"$ROOT_DIR/tools/fftw-${VERSION}-nvhpc/install"}
 SKIP_FFTW=${SKIP_FFTW:-0}
 ENABLE_GPU_FFT=${ENABLE_GPU_FFT:-0}
 BUILD_REPORT=${BUILD_REPORT:-0}
+ENABLE_PINNED_ALLOC=${ENABLE_PINNED_ALLOC:-0}
 
 NVFORTRAN=${NVFORTRAN:-nvfortran}
 MPI_FC=${MPI_FC:-mpifort}
@@ -29,6 +30,21 @@ TDDFT_FFTW_LIBS=${TDDFT_FFTW_LIBS:-"-lfftw3_omp -lfftw3 -lgomp"}
 TDDFT_CUFFT_LIBS=${TDDFT_CUFFT_LIBS:-"-cudalib=cufft"}
 GPU_CFLAGS=${GPU_CFLAGS:-}
 NVHPC_REPORT_FLAGS=${NVHPC_REPORT_FLAGS:-"-Minfo=accel -Minfo=mp"}
+
+case "$ENABLE_PINNED_ALLOC" in
+  0) ;;
+  1)
+    if [ "$ENABLE_GPU_FFT" != 1 ]; then
+      echo "ERROR: ENABLE_PINNED_ALLOC=1 requires ENABLE_GPU_FFT=1." >&2
+      exit 1
+    fi
+    TDDFT_FFLAGS="$TDDFT_FFLAGS -gpu=mem:separate:pinnedalloc"
+    ;;
+  *)
+    echo "ERROR: ENABLE_PINNED_ALLOC must be 0 or 1." >&2
+    exit 1
+    ;;
+esac
 
 find_gcc_runtime_dir() {
   compiler=$1
@@ -183,6 +199,7 @@ echo "Building SD with $NVFORTRAN"
 )
 
 echo "Building TDDFT with $MPI_FC"
+echo "TDDFT pinned host allocation: $ENABLE_PINNED_ALLOC"
 (
   cd "$ROOT_DIR/FPSEID21/tddft_2022October"
   if [ "$ENABLE_GPU_FFT" = 1 ]; then
