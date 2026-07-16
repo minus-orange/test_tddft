@@ -1572,3 +1572,29 @@ lower-bound characteristic. The next step is to measure the same kernel on
 medium and production-sized inputs, then optimize only bottlenecks shared
 across those sizes. The official baseline remains the Step 37 median of
 `108.096301079` sec.
+
+## Step 40: Direction-Specialize the Fused Nonlocal Kernel (Rejected)
+
+Implementation commit `ea81633` split the fused nonlocal kernel into explicit
+forward and reverse routines, removing the per-projector direction branch while
+preserving each phase's sequential `ia` update order. The CPU/FFTW fallback
+full link passed before A100 validation.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP40_DIRSPEC_01` | 107.751713037 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP40_DIRSPEC_02` | 107.828091860 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP40_DIRSPEC_03` | 107.690500021 | PASS | PASS |
+
+The diagnostic-off three-run median was `107.751713037` sec, with a
+`0.137591839` sec range. The apparent improvement over Step 37 was only
+`0.344588042` sec (`0.3188%`). In contrast, the targeted `exnlp_gemm_dot`
+timer median was `8.545724` sec, `1.2310%` worse than Step 37 run 01, and the
+`s2_nonlocal` median was `11.571148` sec, `0.7134%` worse. The
+`tmevl_total` median was effectively unchanged at `51.656927` sec.
+
+All correctness checks passed, but the targeted timer consistently regressed
+and does not support the sub-1% wall-time difference. The duplicated
+forward/reverse implementation is not justified by the measured effect, so
+Step 40 is rejected. The official baseline remains Step 37 at
+`108.096301079` sec.

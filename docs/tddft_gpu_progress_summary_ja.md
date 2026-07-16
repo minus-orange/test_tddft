@@ -1397,3 +1397,25 @@ block拡大は再試行しません。register制限だけを緩和しても32 b
 下限特性として扱い、次は中・大規模データで同じkernelのscalingを確認してから、複数
 規模に共通するボトルネックだけを最適化します。正式baselineはStep 37の
 `108.096301079`秒を維持します。
+
+## Step 40: fused nonlocal kernelの方向別特殊化（不採用）
+
+実装commit `ea81633`では、fused nonlocal kernelをforward用とreverse用のroutineへ
+分割し、projectorごとの方向分岐を除去しました。forward/reverseそれぞれの逐次`ia`
+更新順序は維持し、A100検証前のCPU/FFTW fallback full linkもPASSしました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP40_DIRSPEC_01` | 107.751713037 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP40_DIRSPEC_02` | 107.828091860 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP40_DIRSPEC_03` | 107.690500021 | PASS | PASS |
+
+diagnostic OFFの3回中央値は`107.751713037`秒、実行間の幅は`0.137591839`秒で、
+Step 37中央値に対する見かけの改善は`0.344588042`秒、`0.3188%`でした。一方、
+変更対象の`exnlp_gemm_dot`中央値は`8.545724`秒でStep 37 run 01より`1.2310%`悪化し、
+`s2_nonlocal`中央値も`11.571148`秒で`0.7134%`悪化しました。`tmevl_total`中央値は
+`51.656927`秒で実質不変です。
+
+全runのcorrectnessはPASSしましたが、狙ったtimerが一貫して悪化し、1%未満のwall差を
+裏付けません。forward/reverseの重複実装は効果に見合わないためStep 40を不採用とし、
+正式baselineはStep 37中央値`108.096301079`秒を維持します。

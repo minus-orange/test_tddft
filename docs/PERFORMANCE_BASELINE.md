@@ -75,3 +75,12 @@ with 63 registers/thread, achieving `12.5%` occupancy and only `0.07` waves/SM
 on the 108-SM A100. Because 32 bands are the smallest operational case expected,
 no small-band-only kernel path is planned; scaling will be checked with larger
 band counts. This diagnosis does not replace the Step 37 median.
+
+Step 40 tested direction-specialized forward and reverse fused nonlocal
+kernels at implementation revision `ea81633`. All three diagnostic-off runs
+passed normal check and relaxed compare. Their wall-time median was
+`107.751713037` sec, an apparent `0.3188%` improvement, but the targeted
+`exnlp_gemm_dot` timer median regressed to `8.545724` sec (`+1.2310%` versus
+Step 37 run 01) and `s2_nonlocal` regressed to `11.571148` sec (`+0.7134%`).
+The small wall difference is not supported by the target timer, so Step 40 is
+rejected and does not replace the Step 37 baseline.

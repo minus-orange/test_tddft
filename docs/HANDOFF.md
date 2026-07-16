@@ -9,8 +9,8 @@ Last updated: 2026-07-16
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Accepted result record: this documentation update
 - Current configuration: Step 36 source with Step 37 pinned allocation
-- Current HEAD: `ea81633` (`Specialize fused nonlocal kernel direction`)
-- Current HEAD status: unverified source experiment; not a performance baseline
+- Current HEAD: Step 40 rejection record following implementation `ea81633`
+- Current HEAD status: Step 40 rejected; source rollback pending
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 37 median `108.096301079` sec
@@ -78,6 +78,15 @@ a performance baseline. The normal check passed; relaxed compare was not run.
 The launch used a 32-block grid, 256 threads/block, and 63 registers/thread,
 with `12.5%` achieved occupancy and `0.07` waves/SM on the 108-SM A100.
 
+Step 40 implementation `ea81633` split the fused nonlocal kernel into explicit
+forward and reverse routines while preserving each phase's sequential `ia`
+order. The CPU/FFTW full link passed, and all three diagnostic-off A100 runs
+passed normal check and relaxed compare. Their wall median was
+`107.751713037` sec, but the targeted `exnlp_gemm_dot` median regressed to
+`8.545724` sec (`+1.2310%` versus Step 37 run 01) and `s2_nonlocal` regressed
+to `11.571148` sec (`+0.7134%`). The sub-1% wall difference is not supported
+by the target timer, so Step 40 is rejected and does not replace Step 37.
+
 The 32-band tutorial is the smallest operational case expected. A dedicated
 smaller-band multi-gang path is out of scope. The current one-gang-per-band path
 expands naturally with local band count, so shared bottlenecks should be
@@ -86,17 +95,11 @@ the tutorial occupancy.
 
 ## Next Task Boundary
 
-HEAD `ea81633` is an unverified implementation that splits the fused nonlocal
-kernel into explicit forward and reverse routines, removing the per-projector
-direction branch while preserving the forward and reverse `ia` sequences. It
-must not be treated as accepted merely because it is HEAD.
-
-The next and only active theme is to review and validate this exact
-implementation under the workflow below. Confirm the CPU/FFTW fallback, review
-fixed-form syntax, dummy shapes, `present` sections, and forward/reverse
-mathematical order, then run the diagnostic-off A100 correctness and performance
-gate. Do not start another mapping or scaling experiment until `ea81633` has
-been accepted or recorded and rolled back.
+Step 40 has been reviewed, validated, and rejected. The only remaining action
+in this cycle is to revert implementation `ea81633`, repeat the CPU/FFTW full
+link, record the rollback revision, and synchronize the branch. Do not start a
+new mapping, scaling, or kernel experiment until that rollback is complete and
+a separate next theme is explicitly approved.
 
 ## Validation Gate
 

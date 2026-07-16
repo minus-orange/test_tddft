@@ -23,6 +23,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 36 | Right-size nonlocal staging columns to the maximum active NGNL | 113.083628893 | accepted | `24e1cc3` |
 | 37 | Allocate dynamic TDDFT host data in pinned memory | 108.096301079 | accepted baseline | `9cbb6bc` |
 | 38 | Re-profile the accepted pinned-allocation build | 110.78916502 (diagnostic trace) | measurement | `643e639` |
+| 40 | Specialize the fused nonlocal kernel by direction | 107.751713037 | rejected | `ea81633` / rollback pending |
 
 ## Other Rejected Experiments
 
@@ -207,3 +208,31 @@ operational case expected, a small-band-only multi-gang path is out of scope.
 The current path will instead be evaluated on medium and production-sized
 inputs, where its grid grows with the local band count, before any shared
 kernel bottleneck is selected for another source experiment.
+
+## Step 40 Detail
+
+Step 40 implementation `ea81633` split the fused nonlocal kernel into explicit
+forward and reverse routines. It removed the per-projector direction branch
+while retaining the existing forward and reverse sequential `ia` orders.
+The CPU/FFTW full link passed before A100 validation.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP40_DIRSPEC_01` | 107.751713037 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP40_DIRSPEC_02` | 107.828091860 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP40_DIRSPEC_03` | 107.690500021 | PASS | PASS |
+
+- Median: `107.751713037` sec
+- Run-to-run range: `0.137591839` sec
+- Apparent wall improvement from Step 37: `0.344588042` sec (`0.3188%`)
+- `exnlp_gemm_dot` median: `8.545724` sec, `+0.103917` sec (`+1.2310%`)
+  versus Step 37 run 01
+- `s2_nonlocal` median: `11.571148` sec, `+0.081960` sec (`+0.7134%`)
+  versus Step 37 run 01
+- `tmevl_total` median: `51.656927` sec, effectively unchanged (`+0.0044%`)
+
+All three diagnostic-off runs passed both correctness checks. However, the
+timer targeted by the branch specialization regressed consistently, and the
+small wall-time difference is below 1% and is not supported by the target
+timer. The duplicated forward/reverse implementation is therefore rejected as
+not justified by the measured effect. Step 37 remains the official baseline.
