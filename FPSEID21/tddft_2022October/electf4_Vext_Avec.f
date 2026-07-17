@@ -552,10 +552,13 @@ c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'DO 588 loop end'
 c **** temp check : end
          NG26=NG2(IK)/6
+         call prof_start(49)
          CALL GETYLM(NG2Q,NG26,G2(1,1,IK),RHOA,YLM,TPIBA,NGcont)
+         call prof_stop(49)
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'after end of GETYLM'
 c **** temp check : end
+         call prof_start(50)
          CALL SEPPOTF( NG2Q, NG2(IK),NBSEQ(IK),NBNDQ, G2(1,1,IK),
      &   VPJ(1,1,1,1,ik),VPP,YLM,RHO2
 c     &  ,WORK2(1,1),WORK2(1,2),WORK2(1,3),
@@ -568,6 +571,7 @@ c     &  ,WORK2(1,1),WORK2(1,2),WORK2(1,3),
      &  ,NGcont
 c
      &  ,nbegin,nend,ncpuq,ncpu )
+         call prof_stop(50)
              call prof_stop(48)
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'after end of SEPPOTF'

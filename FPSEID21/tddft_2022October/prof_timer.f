@@ -124,5 +124,7 @@
       if (id.eq.46) name='electf_nonlocf'
       if (id.eq.47) name='nonlocf_coef_kin_mpi'
       if (id.eq.48) name='nonlocf_projector_mpi'
+      if (id.eq.49) name='nonlocf_getylm'
+      if (id.eq.50) name='nonlocf_seppotf'
       return
       end
