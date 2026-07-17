@@ -10,10 +10,10 @@ Last updated: 2026-07-17
 - Accepted result record: this documentation update
 - Current configuration: Step 41 source with Step 37 pinned allocation mode
 - Current source implementation: Step 41 commit `4aaa33c`
-- Current experimental HEAD: Step 43 diagnostic implementation `e90c80a`
-- Current HEAD status: Step 43 adds ELECTF-only diagnostic timers; CPU/FFTW
-  full link and independent review passed, and the A100 diagnostic run is
-  pending
+- Current experimental HEAD: Step 44 diagnostic implementation `863995a`
+- Current HEAD status: Step 43 identified the dominant ELECTF sections;
+  Step 44 separates GETYLM from SEPPOTF, with CPU/FFTW full link and
+  independent review passed and the A100 diagnostic run pending
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -111,11 +111,12 @@ the tutorial occupancy.
 
 ## Next Task Boundary
 
-Step 43 is the only active theme. It separates `ELECTF` into `LOCPOTF` and
-`NONLOCF`, then separates the latter into host coefficient kinetic/current
-work and projector/SEPPOTF work. This is a diagnostic run, so its wall time
-must not replace the Step 41 performance baseline. Do not begin a GPU port of
-either region until the four new timers identify the dominant path.
+Step 43 measured `ELECTF` at `9.012769` sec: `LOCPOTF` used `4.071556` sec,
+`NONLOCF` used `4.939849` sec, and the combined GETYLM plus SEPPOTF section
+used `4.091718` sec. Step 44 is the only active theme and separates that last
+section into `nonlocf_getylm` and `nonlocf_seppotf`. This is diagnostic-only;
+its wall time must not replace the Step 41 baseline. Do not begin the GPU port
+until the two new timers identify the dominant routine.
 
 Step 42 kept `Vloc(:,1:5)` resident across each FRPRMN predictor-corrector
 sequence. All three runs passed both correctness checks, but the median was
