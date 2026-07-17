@@ -12,8 +12,9 @@ Last updated: 2026-07-17
 - Current source implementation: Step 41 commit `4aaa33c`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
-- Current HEAD status: Step 45 was recorded and rolled back; CPU/FFTW full link
-  passed and no experimental implementation is active
+- Current experimental implementation: Step 46 diagnostic `edfafed`
+- Current HEAD status: Step 46 establishes the FRPRMN-to-ELECTF COEF lifetime
+  and NONLOCF parent mappings; CPU/FFTW full link and review passed
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -123,9 +124,11 @@ SEPPOTF, MPI, equations, or arithmetic order. All three runs passed both
 correctness checks, but the median was `108.782176018` sec, `0.9540%` slower
 than Step 41, with a `2.832067967` sec range. No Nsight Systems trace was
 collected. Step 45 was reverted by `c406a4a`, and the CPU/FFTW fallback full
-link passed. The next bounded implementation direction is the tutorial
-non-partitioned s/p SEPPOTF band reduction identified by Step 44; it must keep
-atom/channel order and establish a non-repeating data-ownership boundary.
+link passed. Step 46 is a diagnostic-only ownership scaffold for the tutorial
+non-partitioned s/p SEPPOTF band reduction. It adds a no-op device `present`
+probe for the COEF, G2, YLM, VPJ, WORK2-column, DCOEF, and EXTAU dummy sections.
+Its wall time is not a performance baseline. A short A100 run must first show
+no present/partial-present error before any SEPPOTF arithmetic is ported.
 
 Step 42 kept `Vloc(:,1:5)` resident across each FRPRMN predictor-corrector
 sequence. All three runs passed both correctness checks, but the median was
