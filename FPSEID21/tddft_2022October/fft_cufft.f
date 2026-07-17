@@ -15,14 +15,6 @@ C
       endif
 C
       END
-
-C***********************************************************
-      SUBROUTINE FPSEID_ACC_BACKEND(IACC)
-C     cuFFT identifies the validated OpenACC device execution backend.
-      INTEGER IACC
-      IACC=1
-      RETURN
-      END
 c
       SUBROUTINE ENDFFT_fftwASL(NRX,NRY,NRZ)
       use mod_timer, only: print_timer

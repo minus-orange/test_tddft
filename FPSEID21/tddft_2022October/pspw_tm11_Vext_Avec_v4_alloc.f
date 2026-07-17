@@ -1719,9 +1719,6 @@ c
 c
      &   ,nbegin,nend,nbegint,nendt,nbegintt,nendtt,ncpuq,ncpu)
        call prof_stop(5)
-! FRPRMN created this mapping before all return paths.  ELECTF has now
-! finished consuming the host-current coefficients, so release it here.
-!$acc exit data delete(COEF(1:NG2Q,1:MXBND2,1:NUMKQ))
 c
 cc
 c *** include vector potential contribution
