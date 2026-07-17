@@ -1578,3 +1578,18 @@ predictor-corrector単位ownership、SEPPOTF、MPI、数式順序は変更して
 Nsight Systemsで未確認です。Step 45は不採用とし、正式baselineはStep 41中央値
 `107.754213095`秒を維持します。実装`da24adf`は`c406a4a`でrevertし、rollback後の
 CPU/FFTW fallback full linkはPASSしました。
+
+## Step 46: SEPPOTF data ownership診断
+
+診断実装`edfafed`と実行保証commit `3e2c630`では、FRPRMNからELECTFまでCOEFの
+device lifetimeを延長し、NONLOCFの親配列をk-point loop外でmappingしました。
+SEPPOTFではtutorialのs/p projectorに必要なdummy sectionをno-op serial kernelの
+`present`節で検証し、projector数式自体は変更していません。
+
+archive `nvhpc_cufft_1rank_02_STEP46_OWNERSHIP_01`は100 stepsを
+`107.869318008`秒で実行し、通常checkとrelaxed compareにPASSしました。
+present/partial-present errorとownership probe failureはありませんでした。このwallは
+追加転送とserial probeを含む診断値なので性能baselineには使用しません。正式baselineは
+Step 41中央値`107.754213095`秒のままです。次の1仮説は、tutorialで有効な
+非partitioned s/p経路だけを1 gang/bandでGPU化し、その他を元のhost経路へ
+完全fallbackさせる実装です。

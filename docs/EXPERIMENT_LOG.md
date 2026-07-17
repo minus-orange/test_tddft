@@ -362,3 +362,26 @@ transfer-count reduction was not profiled with Nsight Systems, and the median
 has no performance advantage over Step 41. Step 45 is rejected and does not
 replace the official baseline. Implementation `da24adf` was reverted by
 `c406a4a`, after which the CPU/FFTW fallback full link passed.
+
+## Step 46 Detail
+
+Step 46 diagnostic implementation `edfafed`, completed by enforcement commit
+`3e2c630`, established the COEF lifetime from FRPRMN through ELECTF and mapped
+the NONLOCF parent objects around the k-point loop. A no-op serial OpenACC
+region in SEPPOTF required all tutorial s/p projector dummy sections to be
+present. No projector arithmetic was moved to the device. CPU/FFTW full link
+and independent ownership review passed before A100 validation.
+
+- Archive: `nvhpc_cufft_1rank_02_STEP46_OWNERSHIP_01`
+- Diagnostic wall: `107.869318008` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- Steps: 100
+- Present/partial-present error: none
+- `SEPPOTF ownership probe failed`: absent
+
+The run proves that COEF, G2, YLM, VPJ, VPP, EXTAU, WORK2-column aliases, and
+DCOEF resolve inside their mapped parent objects at the real SEPPOTF call
+site. The probe adds transfers and a serial kernel, so its wall time is
+diagnostic evidence only. The official Step 41 median remains unchanged.
+The next single hypothesis is a tutorial-only non-partitioned s/p GPU path
+with a complete host fallback for unsupported projector shapes.

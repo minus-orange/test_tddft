@@ -12,9 +12,10 @@ Last updated: 2026-07-17
 - Current source implementation: Step 41 commit `4aaa33c`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
-- Current experimental implementation: Step 46 diagnostic `edfafed`
-- Current HEAD status: Step 46 establishes the FRPRMN-to-ELECTF COEF lifetime
-  and NONLOCF parent mappings; CPU/FFTW full link and review passed
+- Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
+  commit `3e2c630`
+- Current HEAD status: Step 46 ownership validation passed on A100; the next
+  implementation is limited to the tutorial non-partitioned s/p path
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -127,8 +128,14 @@ collected. Step 45 was reverted by `c406a4a`, and the CPU/FFTW fallback full
 link passed. Step 46 is a diagnostic-only ownership scaffold for the tutorial
 non-partitioned s/p SEPPOTF band reduction. It adds a no-op device `present`
 probe for the COEF, G2, YLM, VPJ, WORK2-column, DCOEF, and EXTAU dummy sections.
-Its wall time is not a performance baseline. A short A100 run must first show
-no present/partial-present error before any SEPPOTF arithmetic is ported.
+Archive `nvhpc_cufft_1rank_02_STEP46_OWNERSHIP_01` ran 100 steps in
+`107.869318008` sec, passed normal check and relaxed compare, and produced no
+present/partial-present or ownership-probe error. Its wall time is not a
+performance baseline because the diagnostic adds transfers and a serial
+probe. The next single hypothesis is to move only the tutorial
+non-partitioned s/p phase and band reductions to one-gang-per-band OpenACC
+kernels. Unsupported projector shapes must execute the complete original host
+SEPPOTF path, and output sections must return to the host before MPI.
 
 Step 42 kept `Vloc(:,1:5)` resident across each FRPRMN predictor-corrector
 sequence. All three runs passed both correctness checks, but the median was

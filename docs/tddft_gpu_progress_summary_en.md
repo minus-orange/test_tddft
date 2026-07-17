@@ -1718,3 +1718,20 @@ advantage. The expected H2D reduction was not verified with Nsight Systems.
 Step 45 is rejected, and the official baseline remains the Step 41 median of
 `107.754213095` sec. Implementation `da24adf` was reverted by `c406a4a`, and
 the CPU/FFTW fallback full link passed after rollback.
+
+## Step 46: Validate SEPPOTF Data Ownership
+
+Diagnostic implementation `edfafed` and enforcement commit `3e2c630`
+extended the COEF device lifetime from FRPRMN through ELECTF and mapped the
+NONLOCF parent arrays outside the k-point loop. A no-op serial kernel in
+SEPPOTF validated the `present` dummy sections required by the tutorial s/p
+projectors without changing projector arithmetic.
+
+Archive `nvhpc_cufft_1rank_02_STEP46_OWNERSHIP_01` completed 100 steps in
+`107.869318008` sec and passed normal check and relaxed compare. There was no
+present/partial-present error and no ownership-probe failure. The wall time
+includes diagnostic transfers and a serial probe, so it is not a performance
+baseline. The official Step 41 median remains `107.754213095` sec. The next
+single hypothesis is a one-gang-per-band GPU path restricted to the tutorial
+non-partitioned s/p case, with the complete original host path retained for
+all unsupported projector shapes.

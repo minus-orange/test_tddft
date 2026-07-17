@@ -132,3 +132,12 @@ passed normal check and relaxed compare. Their wall times were
 collected to verify the expected H2D reduction. Step 45 is rejected and the
 official baseline remains Step 41 at `107.754213095` sec. Implementation
 `da24adf` was reverted by `c406a4a`; the CPU/FFTW fallback full link passed.
+
+Step 46 was an ownership diagnostic at implementation `edfafed`, completed by
+enforcement commit `3e2c630`. Archive
+`nvhpc_cufft_1rank_02_STEP46_OWNERSHIP_01` ran 100 steps in
+`107.869318008` sec and passed normal check and relaxed compare. It produced
+no OpenACC present/partial-present error and did not trigger the SEPPOTF
+ownership-probe failure. Because the diagnostic adds parent-object transfers
+and a serial probe kernel, its wall time is not a performance result and does
+not replace the Step 41 median of `107.754213095` sec.
