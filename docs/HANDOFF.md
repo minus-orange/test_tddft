@@ -1,19 +1,19 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-07-16
+Last updated: 2026-07-17
 
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `24e1cc3` (`Right-size nonlocal staging columns`)
+- Accepted source baseline: `4aaa33c` (`Keep static TDDFT metadata resident`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Accepted result record: this documentation update
-- Current configuration: Step 36 source with Step 37 pinned allocation
-- Current HEAD: Step 40 rollback `0726e26` plus its final documentation record
-- Current HEAD status: Step 40 rejected and rolled back; branch synchronized
+- Current configuration: Step 41 source with Step 37 pinned allocation mode
+- Current source implementation: Step 41 commit `4aaa33c`
+- Current HEAD status: Step 41 accepted; result record is this documentation update
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 37 median `108.096301079` sec
+- Performance baseline: Step 41 median `107.754213095` sec
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
@@ -89,6 +89,17 @@ by the target timer, so Step 40 is rejected and does not replace Step 37.
 Implementation `ea81633` was reverted by `0726e26`; the CPU/FFTW fallback full
 link passed after rollback.
 
+Step 41 implementation `4aaa33c` keeps the read-only `J2G` and `OCC` metadata
+resident across the time-step loop. It replaces repeated `copyin` clauses in
+S2 and batched RHOOFK with `present` lookups without changing equations,
+kernel structure, or sequential `ia` order. The CPU/FFTW fallback full link
+passed. After an explicit diagnostic-off rebuild, three A100 runs (`_02` to
+`_04`) all passed normal check and relaxed compare. Their median was
+`107.754213095` sec, `0.342087984` sec (`0.3165%`) faster than Step 37, with a
+`0.065072060` sec range. The earlier `_01` run at `115.517135143` sec remains
+recorded as a pre-rebuild provenance anomaly and is not part of the controlled
+three-run series.
+
 The 32-band tutorial is the smallest operational case expected. A dedicated
 smaller-band multi-gang path is out of scope. The current one-gang-per-band path
 expands naturally with local band count, so shared bottlenecks should be
@@ -97,10 +108,10 @@ the tutorial occupancy.
 
 ## Next Task Boundary
 
-Step 40 has been reviewed, validated, rejected, recorded, and rolled back. The
-branch is synchronized and the CPU/FFTW fallback full link passes. No next
-mapping, scaling, or kernel experiment has been selected; require a separate
-explicit approval before starting another hypothesis.
+Step 41 has been reviewed, validated, and accepted. The CPU/FFTW fallback full
+link passes. No next transfer or kernel hypothesis has been selected. Continue
+toward minimizing time-step-loop host/device transfers, but do not start a new
+hypothesis until this result record is synchronized.
 
 ## Validation Gate
 
@@ -112,7 +123,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `108.096301079` sec.
+6. Compare the three-run median with `107.754213095` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

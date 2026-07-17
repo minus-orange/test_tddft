@@ -1,11 +1,11 @@
 # TDDFT GPU Performance Baseline
 
-Last updated: 2026-07-16
+Last updated: 2026-07-17
 
 ## Official Baseline
 
-- Logical step: Step 37
-- Source implementation commit: `24e1cc3`
+- Logical step: Step 41
+- Source implementation commit: `4aaa33c`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,31 +16,32 @@ Last updated: 2026-07-16
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_01` | 108.676812287 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_02` | 107.854416847 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP37_PINNED_ALLOC_03` | 108.096301079 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_02` | 107.783477068 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_03` | 107.718405008 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_04` | 107.754213095 | PASS | PASS |
 
-Official three-run median: `108.096301079` sec.
+Official three-run median: `107.754213095` sec.
+Run-to-run range: `0.065072060` sec.
 
-## Step 37 Run 01 Profile
+## Step 41 Run 02 Profile
 
 | timer | total_sec |
 |---|---:|
-| `time_step_total` | 108.927643 |
-| `frprmn` | 99.861167 |
-| `electf_force` | 9.015143 |
-| `tmevl_total` | 51.654634 |
-| `tmevl_s2` | 16.091806 |
-| `s2_nonlocal` | 11.489188 |
-| `s2_fft_local` | 4.586517 |
-| `fft_wrapper` | 2.642859 |
-| `exnlp_gemm_dot` | 8.441807 |
-| `tmevl_p_enter` | 0.001209 |
-| `exkin_acc_kernel` | 0.632053 |
-| `exnlp_work1_enter` | 1.542147 |
-| `frprmn_rhoofk` | 0.557789 |
-| `frprmn_rhoget` | 0.234999 |
-| `frprmn_coef_sync` | 0.241963 |
+| `time_step_total` | 108.026444 |
+| `frprmn` | 98.918635 |
+| `electf_force` | 9.055956 |
+| `tmevl_total` | 51.442021 |
+| `tmevl_s2` | 16.027619 |
+| `s2_nonlocal` | 11.489951 |
+| `s2_fft_local` | 4.521393 |
+| `fft_wrapper` | 2.648518 |
+| `exnlp_gemm_dot` | 8.441246 |
+| `tmevl_p_enter` | 0.001200 |
+| `exkin_acc_kernel` | 0.634409 |
+| `exnlp_work1_enter` | 1.543497 |
+| `frprmn_rhoofk` | 0.528846 |
+| `frprmn_rhoget` | 0.242984 |
+| `frprmn_coef_sync` | 0.242068 |
 
 ## Comparison Policy
 
@@ -50,9 +51,18 @@ Official three-run median: `108.096301079` sec.
 - Correctness requires both `check` and relaxed `compare` to pass for every run.
 - An implementation without a median advantage is recorded and rolled back.
 
-Step 37 is `4.987327814` sec (`4.4103%`) faster than the Step 36 median,
-`5.465059995` sec (`4.8124%`) faster than Step 34, and `20.979185104` sec
-(`16.2534%`) faster than the former Step 28 median.
+Step 41 is `0.342087984` sec (`0.3165%`) faster than the Step 37 median. Its
+source-level residency boundary replaces 5,664 repeated `J2G`/`OCC` copyins
+with two outer-loop copyins, a net reduction of up to 5,662 repeated H2D
+operations. This transfer-count effect has not yet been remeasured with Nsight
+Systems. Step 37 remains the underlying pinned-allocation build mode and the
+historical comparison baseline.
+
+The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
+both correctness checks but took `115.517135143` sec. It preceded the explicit
+controlled rebuild and lacked revision/build provenance in the standard
+archive manifest, so it is retained as an anomalous run and is not mixed into
+the `_02` through `_04` three-run series.
 
 Step 32 was a single measurement run (`129.658223152` sec) with additional
 density-rebuild timers. It is diagnostic evidence, not a replacement baseline.

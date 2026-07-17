@@ -1599,3 +1599,38 @@ forward/reverse implementation is not justified by the measured effect, so
 Step 40 is rejected. Implementation `ea81633` was reverted by `0726e26`, and
 the CPU/FFTW fallback full link passed after rollback. The official baseline
 remains Step 37 at `108.096301079` sec.
+
+## Step 41: Keep Static Metadata Resident Across the Time-Step Loop
+
+Implementation commit `4aaa33c` copies the read-only `J2G` and `OCC`
+metadata to the device outside the time-step loop and changes their repeated
+S2 and batched-RHOOFK `copyin` clauses to `present`. It does not change the
+equations, kernel loops, array shapes, or sequential `ia` update order. The
+CPU/FFTW fallback full link and independent review passed.
+
+The first archive, `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01`, passed
+normal check and relaxed compare but took `115.517135143` sec. Its standard
+manifest lacked the revision and build flags. It is retained as a pre-rebuild
+provenance anomaly and is not included in the official series. After an
+explicit diagnostic-off NVHPC OpenACC + cuFFT rebuild with
+`-gpu=mem:separate:pinnedalloc`, the results were:
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_02` | 107.783477068 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_03` | 107.718405008 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_04` | 107.754213095 | PASS | PASS |
+
+The three-run median is `107.754213095` sec with a `0.065072060` sec range.
+It is `0.342087984` sec (`0.3165%`) faster than the Step 37 median. In run
+02, `frprmn_rhoofk` was `0.528846` sec, about `5.19%` below Step 37 run 01,
+while `s2_nonlocal` at `11.489951` sec and `exnlp_gemm_dot` at
+`8.441246` sec were effectively unchanged.
+
+At source level, 4,720 S2 `J2G` copyins plus 472 RHOOFK `J2G` and 472
+RHOOFK `OCC` copyins are replaced by two outer-loop copyins, a net reduction
+of up to 5,662 repeated H2D operations. The actual runtime copy count can be
+remeasured later with Nsight Systems. All official runs passed both
+correctness checks, the median improved, and the change directly advances the
+goal of reducing transfers inside the time-step loop. Step 41 is accepted and
+the official baseline becomes `107.754213095` sec.

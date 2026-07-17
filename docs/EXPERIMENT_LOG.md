@@ -238,3 +238,39 @@ timer. The duplicated forward/reverse implementation is therefore rejected as
 not justified by the measured effect. Step 37 remains the official baseline.
 Implementation `ea81633` was reverted by `0726e26`, after which the CPU/FFTW
 fallback full link passed.
+
+## Step 41 Detail
+
+Step 41 implementation `4aaa33c` moves the read-only `J2G` and `OCC`
+OpenACC ownership boundary outside the time-step loop. The S2 and batched
+RHOOFK regions now use `present` instead of repeated `copyin` clauses. This
+does not change equations, kernel loop structure, array shapes, or sequential
+`ia` order. The CPU/FFTW fallback full link and independent review passed.
+
+An initial archive, `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01`, passed
+both correctness checks but took `115.517135143` sec. Its standard manifest
+did not capture the tested revision or build flags. It remains recorded as a
+pre-rebuild provenance anomaly and is excluded from the controlled series.
+After an explicit diagnostic-off NVHPC OpenACC + cuFFT rebuild with
+`-gpu=mem:separate:pinnedalloc`, the following runs were collected:
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_02` | 107.783477068 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_03` | 107.718405008 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_04` | 107.754213095 | PASS | PASS |
+
+- Median: `107.754213095` sec
+- Run-to-run range: `0.065072060` sec
+- Improvement from Step 37: `0.342087984` sec (`0.3165%`)
+- Run 02 `frprmn_rhoofk`: `0.528846` sec, `5.19%` below Step 37 run 01
+- Run 02 `s2_nonlocal`: `11.489951` sec, effectively unchanged
+- Run 02 `exnlp_gemm_dot`: `8.441246` sec, effectively unchanged
+
+At source level, 4,720 S2 `J2G` copyins plus 472 RHOOFK `J2G` and 472
+RHOOFK `OCC` copyins are replaced by two outer-loop copyins, a net reduction
+of up to 5,662 repeated H2D operations. Nsight Systems has not yet remeasured
+the actual runtime copy count. All controlled runs passed both correctness
+checks, the median is faster, the run range is small, and the change directly
+advances the time-step-loop transfer-reduction objective. Step 41 is accepted
+as the official source and performance baseline.

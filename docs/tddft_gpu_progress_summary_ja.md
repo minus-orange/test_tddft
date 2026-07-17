@@ -1420,3 +1420,33 @@ Step 37中央値に対する見かけの改善は`0.344588042`秒、`0.3188%`で
 裏付けません。forward/reverseの重複実装は効果に見合わないためStep 40を不採用とし、
 実装`ea81633`を`0726e26`でrevertしました。rollback後のCPU/FFTW fallback full linkは
 PASSし、正式baselineはStep 37中央値`108.096301079`秒を維持します。
+
+## Step 41: 静的metadataのtime-step loop外resident化
+
+実装commit `4aaa33c`では、time-step loop中に読み取り専用の`J2G`と`OCC`を
+loop外でdeviceへcopyinし、S2とbatched RHOOFK内の反復`copyin`を`present`へ
+変更しました。数式、kernel loop、配列shape、逐次`ia`更新順序は変更していません。
+CPU/FFTW fallback full linkと独立reviewはPASSしました。
+
+最初のarchive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01`は通常checkと
+relaxed compareにPASSしましたが、`115.517135143`秒でした。標準manifestに
+revisionとbuild flagがなく、明示的な再buildより前のprovenance異常runとして記録を
+残し、正式3回系列には含めません。diagnostic OFF、NVHPC OpenACC + cuFFT、
+`-gpu=mem:separate:pinnedalloc`で再build後の結果は以下です。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_02` | 107.783477068 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_03` | 107.718405008 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_04` | 107.754213095 | PASS | PASS |
+
+3回中央値は`107.754213095`秒、実行間の幅は`0.065072060`秒です。Step 37中央値
+より`0.342087984`秒、`0.3165%`高速でした。run 02の`frprmn_rhoofk`は
+`0.528846`秒でStep 37 run 01より約`5.19%`短縮し、`s2_nonlocal`の
+`11.489951`秒と`exnlp_gemm_dot`の`8.441246`秒は実質不変でした。
+
+source上では、S2の`J2G` 4,720回、RHOOFKの`J2G` 472回と`OCC` 472回の
+copyinをloop外の2回へ置き換え、最大5,662回の反復H2D削減となります。実際のcopy
+回数は今後Nsight Systemsで再確認できます。全正式runのcorrectnessがPASSし、
+中央値も改善し、time-step loop内転送削減という最終目的へ直接寄与するため、
+Step 41を採用し、正式baselineを`107.754213095`秒へ更新します。
