@@ -257,3 +257,44 @@ cuFFTビルドと同様に明示します。
    構造を改善します。
 3. まだ host-copy cuFFT wrapper を使っている互換 FFT 呼び出しを特定します。
 4. `TMEVL` 境界に残る `P` 転送を削減します。
+
+## Step 41以降のtime-step loop GPU化完了方針
+
+TDDFTの主要数式に、原理的にGPU実行できない処理はありません。ただし、現在の
+実装境界のままでは完全なdevice-only化が難しい箇所があります。
+
+- SCF収束判定は小さなscalarをhostで読み、loop継続を判断します。
+- density・forceのMPI集約と後続host consumerは現状host authorityです。
+- ion/外場更新とpotential再生成はhost producerに接続されています。
+- 出力、checkpoint、reference確認には必要時のD2Hが必要です。
+- CPU/FFTW fallbackは維持するため、host実行文自体は削除しません。
+
+したがって目標は、全処理を無条件にdevice-only化することではありません。大規模
+配列を可能な限り広い区間でresident化し、hostへ戻すデータを収束判定scalar、
+MPI/force境界で必要な値、出力対象だけへ限定します。
+
+現在の主な阻害要因と方針は以下です。
+
+1. `ELECTF/NONLOCF`がhost上の`COEF`を読むため、FRPRMN終了時のCOEF D2Hを
+   まだ除去できません。まず`ELECTF`内部を`LOCPOTF`、`NONLOCF`、主要reduction
+   へtimer分割し、その後`NONLOCF`のbounded consumerを段階的にGPU化します。
+2. `work2_`のdevice直接生成には`YLM`、`VPJ`、`EXTAU`のownershipが必要です。
+   B1とStep 20の既知悪化があるため、producer入力をbulk resident化できる設計なしに
+   再着手しません。
+3. density側のD2HはMPI、収束判定、host potential生成が直後に読むため、consumerを
+   一緒に移すまでは維持します。
+4. reduction順序の変更は丸め差へ影響するため、通常checkとrelaxed compareを維持し、
+   数値アルゴリズム変更として別承認なしに行いません。
+
+実施順序は以下です。
+
+1. 未検証Step 42 `Vloc(:,1:5)` FRPRMN residencyの採否を完了します。
+2. `ELECTF`内部timerを追加する診断で約9秒の内訳を確定します。
+3. `NONLOCF`のCOEF依存reductionを小さな1仮説単位でGPU化します。
+4. COEFのdevice authorityをFRPRMNからELECTF終了まで広げ、不要になった同期だけを
+   削除します。
+5. 最後にdensity/MPI/ion/output境界を再監査し、不可避な最小D2Hだけを残します。
+
+細粒度section copy、Step 31型GDUMP再利用、ownership未設計のYLM/`work2_`経路、
+小band専用kernelは再試行しません。異なるhardwareや入力サイズは独立baselineで
+評価します。

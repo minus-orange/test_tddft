@@ -10,7 +10,9 @@ Last updated: 2026-07-17
 - Accepted result record: this documentation update
 - Current configuration: Step 41 source with Step 37 pinned allocation mode
 - Current source implementation: Step 41 commit `4aaa33c`
-- Current HEAD status: Step 41 accepted; result record is this documentation update
+- Current experimental HEAD: Step 42 implementation `d56815e`
+- Current HEAD status: Step 42 CPU/FFTW link and independent review passed;
+  A100 run 01 is pending
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -108,10 +110,25 @@ the tutorial occupancy.
 
 ## Next Task Boundary
 
-Step 41 has been reviewed, validated, and accepted. The CPU/FFTW fallback full
-link passes. No next transfer or kernel hypothesis has been selected. Continue
-toward minimizing time-step-loop host/device transfers, but do not start a new
-hypothesis until this result record is synchronized.
+Step 42 keeps `Vloc(:,1:5)` resident across each FRPRMN predictor-corrector
+sequence. It is the only active hypothesis. Do not begin another implementation
+until its A100 correctness and performance disposition is complete.
+
+After Step 42 is accepted or rejected, the next direction is to decompose the
+roughly 9-second host-side `ELECTF` region into `LOCPOTF`, `NONLOCF`, and
+their major reductions. This first stage is diagnostic only. The expected
+implementation direction is then to port bounded `NONLOCF` coefficient
+consumers to the GPU and extend `COEF` device authority through `ELECTF`.
+Do not remove the current COEF download before every downstream host consumer,
+force reduction, MPI boundary, and output requirement has been accounted for.
+
+No core TDDFT equation is inherently unsuitable for a GPU. The practical
+host/device boundaries are scalar convergence decisions, non-device-aware MPI
+or host density consumers, ionic/control updates, and output/checkpoint I/O.
+The goal is therefore to leave only small scalars and required output data on
+these boundaries while keeping large arrays resident. Repeated fine-grained
+copyin, ownership-free `work2_` device generation, and previously rejected
+GDUMP/YLM mapping experiments remain prohibited.
 
 ## Validation Gate
 

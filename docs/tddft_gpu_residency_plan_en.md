@@ -295,3 +295,49 @@ targets are:
    without changing the sequential `ia` dependency.
 3. Identify compatibility FFT calls that still use host-copy cuFFT wrappers.
 4. Reduce remaining `TMEVL` boundary copies for `P`.
+
+## Post-Step-41 Strategy for Completing Time-Step GPU Residency
+
+No major TDDFT equation is inherently unsuitable for GPU execution. Complete
+device-only execution is nevertheless difficult with the current interfaces:
+
+- SCF convergence reads small scalars on the host to control the loop.
+- Density and force MPI aggregation and their downstream consumers currently
+  use host authority.
+- Ionic/external-field updates feed host-side potential producers.
+- Output, checkpoints, and reference validation require selected host data.
+- The CPU/FFTW fallback must retain its host computation statements.
+
+The goal is therefore not unconditional device-only execution. Large arrays
+should remain resident across the widest verified ownership interval, while
+host transfers are restricted to convergence scalars, required MPI/force
+boundaries, and output data.
+
+The main blockers and planned responses are:
+
+1. `ELECTF/NONLOCF` reads host `COEF`, so the download at FRPRMN exit cannot
+   yet be removed. First split `ELECTF` timing into `LOCPOTF`, `NONLOCF`,
+   and major reductions. Then port bounded `NONLOCF` consumers incrementally.
+2. Direct device generation of `work2_` requires stable ownership for `YLM`,
+   `VPJ`, and `EXTAU`. The B1 and Step 20 regressions prohibit retrying this
+   path without a bulk-resident producer-input design.
+3. Density D2H remains necessary while MPI, convergence, and host potential
+   consumers immediately read it. Producer and consumers must move together.
+4. Reduction-order changes can alter rounding. Normal check and relaxed
+   compare remain mandatory, and nontrivial numerical changes require separate
+   approval.
+
+The planned order is:
+
+1. Complete disposition of the unvalidated Step 42 FRPRMN residency for
+   `Vloc(:,1:5)`.
+2. Add diagnostic timers inside `ELECTF` to resolve its roughly 9-second cost.
+3. Port one bounded COEF-dependent `NONLOCF` reduction at a time.
+4. Extend COEF device authority from FRPRMN through ELECTF and remove only
+   synchronizations whose host consumers have been eliminated.
+5. Re-audit density, MPI, ionic, and output boundaries, leaving only unavoidable
+   minimal D2H transfers.
+
+Do not retry fine-grained section copies, Step-31-style GDUMP reuse,
+ownership-free YLM/`work2_` paths, or small-band-only kernels. Different
+hardware and input sizes retain independent performance baselines.
