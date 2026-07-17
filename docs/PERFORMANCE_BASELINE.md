@@ -149,3 +149,6 @@ The median `107.722885132` sec is only `0.031327963` sec (`0.0291%`) faster
 than Step 41, while the run range is `0.250077009` sec. This noise-level result
 does not justify the specialized implementation, so Step 47 is rejected and
 the official baseline remains Step 41 at `107.754213095` sec.
+
+Rollback `35f8542` restored the accepted Step 41 source and the CPU/FFTW
+fallback full link passed afterward.

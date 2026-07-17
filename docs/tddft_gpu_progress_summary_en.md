@@ -1754,3 +1754,7 @@ The median is `107.722885132` sec with a `0.250077009` sec range. It is only
 run range and does not justify the approximately 250-line specialized path.
 Step 47 is rejected, and the official baseline remains the Step 41 median of
 `107.754213095` sec.
+
+Rollback `35f8542` removed Step 47 and the completed Step 46 diagnostic source,
+restored the affected source files to the accepted Step 41 state, and passed
+the CPU/FFTW fallback full link.

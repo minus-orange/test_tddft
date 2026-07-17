@@ -409,3 +409,7 @@ The median advantage is far smaller than the run range and does not justify
 the approximately 250-line specialized path. Step 47 is rejected and does
 not replace the official Step 41 baseline. The implementation and its Step 46
 diagnostic scaffold are to be rolled back before another hypothesis begins.
+
+Rollback commit `35f8542` removes both the Step 47 implementation and the
+completed Step 46 diagnostic source, restoring the accepted Step 41 source
+for the affected files. The CPU/FFTW fallback full link passed afterward.

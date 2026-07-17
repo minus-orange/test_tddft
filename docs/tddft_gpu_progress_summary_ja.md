@@ -1610,3 +1610,6 @@ band reductionを1 gang/bandのOpenACC kernelへ移しました。ITY、原子�
 `0.031327963`秒（`0.0291%`）速いだけで、差は実行幅より小さく、約250行の
 専用経路に見合う性能優位ではありません。Step 47を不採用とし、正式baselineは
 Step 41中央値`107.754213095`秒を維持します。
+
+rollback `35f8542`でStep 47と完了済みStep 46診断sourceを除去し、対象sourceを
+正式Step 41状態へ戻しました。rollback後のCPU/FFTW fallback full linkはPASSしました。
