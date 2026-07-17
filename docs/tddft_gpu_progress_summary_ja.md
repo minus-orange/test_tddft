@@ -1463,8 +1463,8 @@ tutorialの1 MPI rank実行では`nbndloc=32`なので、32 bandsを1 batchと�
 FFT以外では、nonlocal projector、運動エネルギー、密度再構築などの主要演算をGPUへ移し、
 `COEF`、作業配列、`J2G`、`OCC`などのdevice residencyを延長してきました。現在は、
 time-step loop内で繰り返される大規模配列転送をloop外の最小回数へ移す方針で、Step 42の
-`Vloc` residencyをA100で検証待ちです。Step 42は未検証実装であり、以下の正式baselineは
-Step 41のままです。
+`Vloc` residencyをStep 42で検証しました。correctnessは全runでPASSしましたが、性能優位が
+なかったため不採用です。以下の正式baselineはStep 41のままです。
 
 ### GPU化の代表的な性能推移
 
@@ -1500,3 +1500,22 @@ VE向けコードと実行方法による参考性能として記録します。
 Intel、A100、H100、VE3はhardware、compiler、最適化経路、測定系列が異なります。
 この表は異種architecture間の傾向を示す参考比較であり、A100内の採否判断には引き続き
 同一条件のdiagnostic OFF 3回中央値だけを使用します。
+
+## Step 42: VlocのFRPRMN correction間resident化（不採用）
+
+実装commit `d56815e`では、FRPRMN predictor-corrector sequenceの先頭で
+`Vloc(:,1:5)`をdeviceへcopyinし、S2 local potential領域の反復`copyin`を
+`present`へ変更しました。数式、配列shape、kernel loop、逐次`ia`更新順序は
+変更していません。A100検証前のCPU/FFTW fallback full linkと独立reviewはPASSしました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP42_VLOC_RESIDENT_01` | 107.732875109 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP42_VLOC_RESIDENT_02` | 107.809727907 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP42_VLOC_RESIDENT_03` | 107.831543922 | PASS | PASS |
+
+diagnostic OFFの3回中央値は`107.809727907`秒、実行間の幅は`0.098668813`秒です。
+Step 41中央値より`0.055514812`秒、`0.0515%`遅い結果でした。全runの通常checkと
+relaxed compareはPASSし、source上の転送境界は意図どおり変更されましたが、性能優位は
+ありません。転送profileも未取得でruntime上の追加効果を裏付けられないため、Step 42を
+不採用とし、正式baselineはStep 41中央値`107.754213095`秒を維持します。

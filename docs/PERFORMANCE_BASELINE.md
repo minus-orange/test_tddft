@@ -95,3 +95,12 @@ Step 37 run 01) and `s2_nonlocal` regressed to `11.571148` sec (`+0.7134%`).
 The small wall difference is not supported by the target timer, so Step 40 is
 rejected and does not replace the Step 37 baseline. Implementation `ea81633`
 was reverted by `0726e26`; the CPU/FFTW fallback full link passed afterward.
+
+Step 42 tested keeping `Vloc(:,1:5)` resident across each FRPRMN
+predictor-corrector sequence at implementation revision `d56815e`. All three
+diagnostic-off runs passed normal check and relaxed compare. Their wall times
+were `107.732875109`, `107.809727907`, and `107.831543922` sec, giving a
+median of `107.809727907` sec and a range of `0.098668813` sec. The median is
+`0.055514812` sec (`0.0515%`) slower than Step 41. The source-level transfer
+boundary changed as intended, but it produced no measured performance
+advantage, so Step 42 is rejected and does not replace this baseline.

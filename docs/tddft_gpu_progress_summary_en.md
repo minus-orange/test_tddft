@@ -1634,3 +1634,25 @@ remeasured later with Nsight Systems. All official runs passed both
 correctness checks, the median improved, and the change directly advances the
 goal of reducing transfers inside the time-step loop. Step 41 is accepted and
 the official baseline becomes `107.754213095` sec.
+
+## Step 42: Keep Vloc Resident Across FRPRMN Corrections (Rejected)
+
+Implementation commit `d56815e` copied `Vloc(:,1:5)` to the device at the
+start of each FRPRMN predictor-corrector sequence and changed the repeated S2
+local-potential `copyin` to `present`. It did not change equations, array
+shapes, kernel loops, or sequential `ia` order. The CPU/FFTW fallback full
+link and independent review passed before A100 validation.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP42_VLOC_RESIDENT_01` | 107.732875109 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP42_VLOC_RESIDENT_02` | 107.809727907 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP42_VLOC_RESIDENT_03` | 107.831543922 | PASS | PASS |
+
+The diagnostic-off three-run median is `107.809727907` sec with a
+`0.098668813` sec range. It is `0.055514812` sec (`0.0515%`) slower than the
+Step 41 median. All normal checks and relaxed comparisons passed, and the
+source-level transfer boundary changed as intended, but there is no measured
+performance advantage. No transfer profile was collected to demonstrate an
+additional runtime benefit. Step 42 is therefore rejected, and the official
+baseline remains Step 41 at `107.754213095` sec.

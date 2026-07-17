@@ -1,6 +1,6 @@
 # TDDFT GPU Experiment Log
 
-Last updated: 2026-07-16
+Last updated: 2026-07-17
 
 The performance baseline is defined in `PERFORMANCE_BASELINE.md`. Detailed
 implementation and timer notes are in the bilingual progress summaries.
@@ -24,6 +24,8 @@ implementation and timer notes are in the bilingual progress summaries.
 | 37 | Allocate dynamic TDDFT host data in pinned memory | 108.096301079 | accepted baseline | `9cbb6bc` |
 | 38 | Re-profile the accepted pinned-allocation build | 110.78916502 (diagnostic trace) | measurement | `643e639` |
 | 40 | Specialize the fused nonlocal kernel by direction | 107.751713037 | rejected | `ea81633` / `0726e26` |
+| 41 | Keep static J2G/OCC metadata resident | 107.754213095 | accepted baseline | `4aaa33c` |
+| 42 | Keep Vloc resident across FRPRMN corrections | 107.809727907 | rejected | `d56815e` / rollback pending |
 
 ## Other Rejected Experiments
 
@@ -274,3 +276,27 @@ the actual runtime copy count. All controlled runs passed both correctness
 checks, the median is faster, the run range is small, and the change directly
 advances the time-step-loop transfer-reduction objective. Step 41 is accepted
 as the official source and performance baseline.
+
+## Step 42 Detail
+
+Step 42 implementation `d56815e` copied `Vloc(:,1:5)` to the device once per
+FRPRMN predictor-corrector sequence and changed the repeated S2 mapping to
+`present`. It did not change equations, array shapes, kernel loops, or the
+sequential `ia` order. The CPU/FFTW fallback full link and independent review
+passed before A100 validation.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP42_VLOC_RESIDENT_01` | 107.732875109 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP42_VLOC_RESIDENT_02` | 107.809727907 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP42_VLOC_RESIDENT_03` | 107.831543922 | PASS | PASS |
+
+- Median: `107.809727907` sec
+- Run-to-run range: `0.098668813` sec
+- Difference from Step 41: `+0.055514812` sec (`+0.0515%`)
+
+All three diagnostic-off runs passed both correctness checks. The source-level
+transfer boundary is cleaner, but the three-run median has no performance
+advantage over Step 41, and no transfer profile was collected to demonstrate a
+runtime benefit. Under the project acceptance rule, Step 42 is rejected and
+does not replace the Step 41 baseline. Its source rollback is pending.
