@@ -14,8 +14,9 @@ Last updated: 2026-07-17
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
-- Current HEAD status: Step 46 ownership validation passed on A100; the next
-  implementation is limited to the tutorial non-partitioned s/p path
+- Rejected Step 47 implementation: `0252da9`
+- Current HEAD status: Step 47 result is recorded; source rollback and
+  CPU/FFTW fallback revalidation are pending
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -136,6 +137,14 @@ probe. The next single hypothesis is to move only the tutorial
 non-partitioned s/p phase and band reductions to one-gang-per-band OpenACC
 kernels. Unsupported projector shapes must execute the complete original host
 SEPPOTF path, and output sections must return to the host before MPI.
+
+Step 47 implemented that bounded GPU path and passed both correctness checks
+in all three runs. Wall times were `107.598769903`, `107.722885132`, and
+`107.848846912` sec. The `107.722885132` sec median is only `0.0291%` faster
+than Step 41 and is smaller than the `0.250077009` sec run range. The roughly
+250-line specialized path therefore has no demonstrated performance advantage
+and is rejected. Roll back Step 47 and the completed Step 46 diagnostic
+scaffold before selecting another hypothesis.
 
 Step 42 kept `Vloc(:,1:5)` resident across each FRPRMN predictor-corrector
 sequence. All three runs passed both correctness checks, but the median was

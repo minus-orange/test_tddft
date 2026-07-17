@@ -1593,3 +1593,20 @@ present/partial-present errorとownership probe failureはありませんでし�
 Step 41中央値`107.754213095`秒のままです。次の1仮説は、tutorialで有効な
 非partitioned s/p経路だけを1 gang/bandでGPU化し、その他を元のhost経路へ
 完全fallbackさせる実装です。
+
+## Step 47: tutorial非partitioned s/p SEPPOTF GPU化（不採用）
+
+実装`0252da9`では、tutorialで使用する非partitioned s/p projectorのphaseと
+band reductionを1 gang/bandのOpenACC kernelへ移しました。ITY、原子、s、pの
+順序、MPI境界、FFTWおよび未対応shapeの完全host fallbackを維持しています。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP47_SEPPOTF_SP_ACC_01` | 107.598769903 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP47_SEPPOTF_SP_ACC_02` | 107.722885132 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP47_SEPPOTF_SP_ACC_03` | 107.848846912 | PASS | PASS |
+
+中央値は`107.722885132`秒、実行幅は`0.250077009`秒です。Step 41より
+`0.031327963`秒（`0.0291%`）速いだけで、差は実行幅より小さく、約250行の
+専用経路に見合う性能優位ではありません。Step 47を不採用とし、正式baselineは
+Step 41中央値`107.754213095`秒を維持します。

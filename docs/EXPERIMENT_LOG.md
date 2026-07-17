@@ -385,3 +385,27 @@ site. The probe adds transfers and a serial kernel, so its wall time is
 diagnostic evidence only. The official Step 41 median remains unchanged.
 The next single hypothesis is a tutorial-only non-partitioned s/p GPU path
 with a complete host fallback for unsupported projector shapes.
+
+## Step 47 Detail
+
+Step 47 implementation `0252da9` moved the tutorial non-partitioned s/p
+SEPPOTF phase and band reductions to one-gang-per-band OpenACC kernels. The
+original ITY, atom, s, then p order and MPI boundary were retained. All active
+types were gated as one unit, while FFTW and unsupported projector shapes used
+the complete original host path. CPU/FFTW full link and independent review
+passed before A100 execution.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP47_SEPPOTF_SP_ACC_01` | 107.598769903 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP47_SEPPOTF_SP_ACC_02` | 107.722885132 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP47_SEPPOTF_SP_ACC_03` | 107.848846912 | PASS | PASS |
+
+- Median: `107.722885132` sec
+- Run-to-run range: `0.250077009` sec
+- Difference from Step 41: `-0.031327963` sec (`-0.0291%`)
+
+The median advantage is far smaller than the run range and does not justify
+the approximately 250-line specialized path. Step 47 is rejected and does
+not replace the official Step 41 baseline. The implementation and its Step 46
+diagnostic scaffold are to be rolled back before another hypothesis begins.

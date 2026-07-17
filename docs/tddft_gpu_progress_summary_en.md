@@ -1735,3 +1735,22 @@ baseline. The official Step 41 median remains `107.754213095` sec. The next
 single hypothesis is a one-gang-per-band GPU path restricted to the tutorial
 non-partitioned s/p case, with the complete original host path retained for
 all unsupported projector shapes.
+
+## Step 47: Offload Tutorial Non-Partitioned s/p SEPPOTF (Rejected)
+
+Implementation `0252da9` moved the phase and band reductions for the tutorial
+non-partitioned s/p projectors to one-gang-per-band OpenACC kernels. It kept
+the ITY, atom, s, then p order, the MPI boundary, and complete host fallback
+for FFTW and unsupported shapes.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP47_SEPPOTF_SP_ACC_01` | 107.598769903 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP47_SEPPOTF_SP_ACC_02` | 107.722885132 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP47_SEPPOTF_SP_ACC_03` | 107.848846912 | PASS | PASS |
+
+The median is `107.722885132` sec with a `0.250077009` sec range. It is only
+`0.031327963` sec (`0.0291%`) faster than Step 41, which is smaller than the
+run range and does not justify the approximately 250-line specialized path.
+Step 47 is rejected, and the official baseline remains the Step 41 median of
+`107.754213095` sec.

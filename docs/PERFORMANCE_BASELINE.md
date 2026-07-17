@@ -141,3 +141,11 @@ no OpenACC present/partial-present error and did not trigger the SEPPOTF
 ownership-probe failure. Because the diagnostic adds parent-object transfers
 and a serial probe kernel, its wall time is not a performance result and does
 not replace the Step 41 median of `107.754213095` sec.
+
+Step 47 implementation `0252da9` offloaded the tutorial non-partitioned s/p
+SEPPOTF reductions. Its three diagnostic-off runs passed normal check and
+relaxed compare at `107.598769903`, `107.722885132`, and `107.848846912` sec.
+The median `107.722885132` sec is only `0.031327963` sec (`0.0291%`) faster
+than Step 41, while the run range is `0.250077009` sec. This noise-level result
+does not justify the specialized implementation, so Step 47 is rejected and
+the official baseline remains Step 41 at `107.754213095` sec.
