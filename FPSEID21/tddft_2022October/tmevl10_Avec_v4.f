@@ -1941,8 +1941,9 @@ c *** temp check:end
 c ** third: operate local potential term
       call prof_start(12)
       nbndloc=nend-nbegin+1
-!$acc data present(P(1:NXYZ,1:nbndloc),J2G(1:NXYZ))
-!$acc& copyin(VGG(1:NXYZ),Vloc(1:NXYZ))
+!$acc data present(P(1:NXYZ,1:nbndloc),J2G(1:NXYZ),
+!$acc& Vloc(1:NXYZ))
+!$acc& copyin(VGG(1:NXYZ))
 !$acc& create(RHO1_(1:NXYZ,1:nbndloc),
 !$acc& RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ))
 ! ==============================================================================
