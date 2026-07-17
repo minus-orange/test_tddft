@@ -441,13 +441,16 @@ C
       if (my_rank.eq.0 ) write(6,*)' something wrong in nonlocf'
       stop
       endif
-! Step 46 ownership diagnostic.  Map each parent object once around the k-point
-! loop so the SEPPOTF dummy sections can be checked with present semantics.
-! No arithmetic is moved to the device in this step.
+! Step 47 maps the validated Step 46 parent objects and output arrays once
+! around the k-point loop.  Unsupported projector shapes remain host-only.
 !$acc data present(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
 !$acc& copyin(G2(1:4,1:NG2Q,1:NUMKQ),
 !$acc& VPJ(1:NGcont,1:3,1:4,1:NTYQ,1:NUMKQ),
-!$acc& VPP(1:3,1:4,1:NTYQ))
+!$acc& VPP(1:3,1:4,1:NTYQ),
+!$acc& EENL(1:NBNDQ,1:NUMKQ),
+!$acc& FXNL(1:NTAUQ,1:NBNDQ,1:NUMKQ),
+!$acc& FYNL(1:NTAUQ,1:NBNDQ,1:NUMKQ),
+!$acc& FZNL(1:NTAUQ,1:NBNDQ,1:NUMKQ))
 !$acc& create(YLM(1:NGcont,1:16),RHO2(1:NXYZ),
 !$acc& WORK2(1:NG2Q,1:7),DCOEF(1:NG2Q,1:21))
       DO 580 IK=1,NUMK
@@ -770,20 +773,42 @@ c
       FPI=4.D0*PI
       FPISQ=FPI**2
       NBLENG=NEND(MY_RANK)-NBEGIN(MY_RANK)+1
-! Validate that 2-D and column dummy sections resolve inside their mapped
-! parent objects.  This serial region intentionally changes no numerical data.
-!$acc serial present(COEF(1:NG2Q,1:NBLENG),
-!$acc& G2K(1:4,1:NG2Q),YLM(1:NGcont,1:16),
-!$acc& VPJ(1:NGcont,1:3,1:4,1:NTYQ),VPP(1:3,1:4,1:NTYQ),
-!$acc& EXTAU(1:NG2Q),WORK1(1:NG2Q),WORK2(1:NG2Q),
-!$acc& WORK3(1:NG2Q),WORK4(1:NG2Q),WORK5(1:NG2Q),
-!$acc& WORK6(1:NG2Q),WORK7(1:NG2Q),DCOEF(1:NG2Q,1:21))
-!$acc& copyout(IACC_PROBE)
-      IACC_PROBE=NBLENG
-!$acc end serial
-      IF(IACC_PROBE.NE.NBLENG) THEN
-       WRITE(6,*)'ERROR: SEPPOTF ownership probe failed'
-       STOP
+! Use one authority for a complete call: the tutorial non-partitioned s/p
+! path is device-owned; every other shape executes the original host path.
+      CALL FPSEID_ACC_BACKEND(IACCSP)
+      IF(NBLENG.LE.0) IACCSP=0
+      DO ITYC=1,NTYPE
+       IF(NUMTY(ITYC).GT.0) THEN
+        IF(MXOFL(ITYC).LT.1.OR.MXOFL(ITYC).GT.2) IACCSP=0
+        IF(IBUN(1,ITYC).EQ.1) IACCSP=0
+        IF(MXOFL(ITYC).GE.2.AND.IBUN(2,ITYC).EQ.1) IACCSP=0
+       ENDIF
+      ENDDO
+      IF(IACCSP.EQ.1) THEN
+       DO ITYC=1,NTYPE
+        IF(NUMTY(ITYC).GT.0) THEN
+         DO IATMC=1,NUMTY(ITYC)
+          ITAUC=NIDN(IATMC,ITYC)
+          CALL SEPPOTF_PHASE_ACC(NG2Q,NGNL(ITYC),G2K,EXTAU,
+     &     TPIBA,TAU(1,ITAUC),TAU(2,ITAUC),TAU(3,ITAUC))
+          CALL SEPPOTF_S_ACC(NG2Q,NGNL(ITYC),NBNDQ,NBLENG,
+     &     NBEGIN(MY_RANK),NTAUQ,ITAUC,G2K,YLM(1,1),
+     &     EXTAU,VPJ(1,1,1,ITYC),VPP(1,1,ITYC),COEF,
+     &     EENL,FXNL,FYNL,FZNL,NGCONT)
+          IF(MXOFL(ITYC).GE.2) THEN
+           CALL SEPPOTF_P_ACC(NG2Q,NGNL(ITYC),NBNDQ,NBLENG,
+     &      NBEGIN(MY_RANK),NTAUQ,ITAUC,G2K,YLM,
+     &      EXTAU,VPJ(1,1,2,ITYC),VPP(1,2,ITYC),COEF,
+     &      EENL,FXNL,FYNL,FZNL,NGCONT)
+          ENDIF
+         ENDDO
+        ENDIF
+       ENDDO
+!$acc update self(EENL(NBEGIN(MY_RANK):NEND(MY_RANK)))
+!$acc update self(FXNL(1:NTAUQ,NBEGIN(MY_RANK):NEND(MY_RANK)))
+!$acc update self(FYNL(1:NTAUQ,NBEGIN(MY_RANK):NEND(MY_RANK)))
+!$acc update self(FZNL(1:NTAUQ,NBEGIN(MY_RANK):NEND(MY_RANK)))
+       GOTO 9
       ENDIF
 CC      CALL CLOCK(TIM0)
 C
@@ -1603,6 +1628,7 @@ c ****  temp check
 c      write(6,*)'my_rank=',my_rank,' end of DO 10 loop in SEPPOTF'
 c ****  temp check : end
    10 CONTINUE
+    9 CONTINUE
       if (my_rank.ne.0 ) then
       nbleng=nend(my_rank)-nbegin(my_rank)+1
       call MPI_Send(EENL(nbegin(my_rank)),nbleng,
@@ -1635,5 +1661,196 @@ c      write(6,*)' in sub. SEPPOTF '
 c      write(6,*)' EENL '
 c      write(6,*)( eenl(ib),ib=1,nbnd )
 c *** temp check : end
+      RETURN
+      END
+
+      SUBROUTINE SEPPOTF_PHASE_ACC(NG2Q,NGNL,G2K,EXTAU,TPIBA,
+     & TX,TY,TZ)
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION G2K(4,NG2Q)
+      COMPLEX*16 EXTAU(NG2Q)
+!$acc parallel loop vector present(G2K(1:4,1:NG2Q),
+!$acc& EXTAU(1:NG2Q))
+      DO IG=1,NGNL
+       TEMP=TPIBA*(G2K(1,IG)*TX+G2K(2,IG)*TY+G2K(3,IG)*TZ)
+       EXTAU(IG)=DCMPLX(COS(TEMP),SIN(TEMP))
+      ENDDO
+      RETURN
+      END
+
+      SUBROUTINE SEPPOTF_S_ACC(NG2Q,NGNL,NBNDQ,NBLENG,NB0,
+     & NTAUQ,ITAU,G2K,YLM1,EXTAU,VPJS,VPP1,COEF,
+     & EENL,FXNL,FYNL,FZNL,NGCONT)
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION G2K(4,NG2Q),YLM1(NGCONT),VPJS(NGCONT)
+      DIMENSION EENL(NBNDQ),FXNL(NTAUQ,NBNDQ),
+     & FYNL(NTAUQ,NBNDQ),FZNL(NTAUQ,NBNDQ)
+      COMPLEX*16 EXTAU(NG2Q),COEF(NG2Q,NBLENG)
+!$acc parallel loop gang vector_length(256)
+!$acc& present(G2K(1:4,1:NG2Q),YLM1(1:NGCONT),
+!$acc& VPJS(1:NGCONT),EXTAU(1:NG2Q),COEF(1:NG2Q,1:NBLENG),
+!$acc& EENL(1:NBNDQ),FXNL(1:NTAUQ,1:NBNDQ),
+!$acc& FYNL(1:NTAUQ,1:NBNDQ),FZNL(1:NTAUQ,1:NBNDQ))
+      DO IIB=1,NBLENG
+       CTR=0.D0
+       CTI=0.D0
+       DXR=0.D0
+       DXI=0.D0
+       DYR=0.D0
+       DYI=0.D0
+       DZR=0.D0
+       DZI=0.D0
+!$acc loop vector reduction(+:CTR,CTI,DXR,DXI,DYR,DYI,DZR,DZI)
+       DO IG=1,NGNL
+        WR=DBLE(EXTAU(IG))*YLM1(IG)
+        WI=DIMAG(EXTAU(IG))*YLM1(IG)
+        WR=WR*VPJS(IG)
+        WI=WI*VPJS(IG)
+        AR=DBLE(COEF(IG,IIB))
+        AI=DIMAG(COEF(IG,IIB))
+        PR=AR*WR-AI*WI
+        PI=AR*WI+AI*WR
+        CTR=CTR+PR
+        CTI=CTI+PI
+        DWR=WR*G2K(1,IG)
+        DWI=WI*G2K(1,IG)
+        DXR=DXR+AR*DWR-AI*DWI
+        DXI=DXI+AR*DWI+AI*DWR
+        DWR=WR*G2K(2,IG)
+        DWI=WI*G2K(2,IG)
+        DYR=DYR+AR*DWR-AI*DWI
+        DYI=DYI+AR*DWI+AI*DWR
+        DWR=WR*G2K(3,IG)
+        DWI=WI*G2K(3,IG)
+        DZR=DZR+AR*DWR-AI*DWI
+        DZI=DZI+AR*DWI+AI*DWR
+       ENDDO
+       IB=NB0+IIB-1
+       EENL(IB)=EENL(IB)+(CTR*CTR+CTI*CTI)/VPP1
+       FXNL(ITAU,IB)=FXNL(ITAU,IB)+(DXI*CTR-DXR*CTI)/VPP1
+       FYNL(ITAU,IB)=FYNL(ITAU,IB)+(DYI*CTR-DYR*CTI)/VPP1
+       FZNL(ITAU,IB)=FZNL(ITAU,IB)+(DZI*CTR-DZR*CTI)/VPP1
+      ENDDO
+      RETURN
+      END
+
+      SUBROUTINE SEPPOTF_P_ACC(NG2Q,NGNL,NBNDQ,NBLENG,NB0,
+     & NTAUQ,ITAU,G2K,YLM,EXTAU,VPJP,VPP1,COEF,
+     & EENL,FXNL,FYNL,FZNL,NGCONT)
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION G2K(4,NG2Q),YLM(NGCONT,16),VPJP(NGCONT)
+      DIMENSION EENL(NBNDQ),FXNL(NTAUQ,NBNDQ),
+     & FYNL(NTAUQ,NBNDQ),FZNL(NTAUQ,NBNDQ)
+      COMPLEX*16 EXTAU(NG2Q),COEF(NG2Q,NBLENG)
+!$acc parallel loop gang vector_length(256)
+!$acc& present(G2K(1:4,1:NG2Q),YLM(1:NGCONT,1:16),
+!$acc& VPJP(1:NGCONT),EXTAU(1:NG2Q),COEF(1:NG2Q,1:NBLENG),
+!$acc& EENL(1:NBNDQ),FXNL(1:NTAUQ,1:NBNDQ),
+!$acc& FYNL(1:NTAUQ,1:NBNDQ),FZNL(1:NTAUQ,1:NBNDQ))
+      DO IIB=1,NBLENG
+       C1R=0.D0
+       C1I=0.D0
+       X1R=0.D0
+       X1I=0.D0
+       Y1R=0.D0
+       Y1I=0.D0
+       Z1R=0.D0
+       Z1I=0.D0
+       C2R=0.D0
+       C2I=0.D0
+       X2R=0.D0
+       X2I=0.D0
+       Y2R=0.D0
+       Y2I=0.D0
+       Z2R=0.D0
+       Z2I=0.D0
+       C3R=0.D0
+       C3I=0.D0
+       X3R=0.D0
+       X3I=0.D0
+       Y3R=0.D0
+       Y3I=0.D0
+       Z3R=0.D0
+       Z3I=0.D0
+!$acc loop vector reduction(+:C1R,C1I,X1R,X1I,Y1R,Y1I,Z1R,Z1I,
+!$acc& C2R,C2I,X2R,X2I,Y2R,Y2I,Z2R,Z2I,
+!$acc& C3R,C3I,X3R,X3I,Y3R,Y3I,Z3R,Z3I)
+       DO IG=1,NGNL
+        AR=DBLE(COEF(IG,IIB))
+        AI=DIMAG(COEF(IG,IIB))
+        F1=YLM(IG,3)*DSQRT(2.D0)
+        F2=YLM(IG,4)*DSQRT(2.D0)
+        F3=YLM(IG,2)
+        W1R=DBLE(EXTAU(IG))*F1
+        W1I=DIMAG(EXTAU(IG))*F1
+        W2R=DBLE(EXTAU(IG))*F2
+        W2I=DIMAG(EXTAU(IG))*F2
+        W3R=DBLE(EXTAU(IG))*F3
+        W3I=DIMAG(EXTAU(IG))*F3
+        W1R=W1R*VPJP(IG)
+        W1I=W1I*VPJP(IG)
+        W2R=W2R*VPJP(IG)
+        W2I=W2I*VPJP(IG)
+        W3R=W3R*VPJP(IG)
+        W3I=W3I*VPJP(IG)
+        P1R=AR*W1R-AI*W1I
+        P1I=AR*W1I+AI*W1R
+        P2R=AR*W2R-AI*W2I
+        P2I=AR*W2I+AI*W2R
+        P3R=AR*W3R-AI*W3I
+        P3I=AR*W3I+AI*W3R
+        C1R=C1R+P1R
+        C1I=C1I+P1I
+        DWR=W1R*G2K(1,IG)
+        DWI=W1I*G2K(1,IG)
+        X1R=X1R+AR*DWR-AI*DWI
+        X1I=X1I+AR*DWI+AI*DWR
+        DWR=W1R*G2K(2,IG)
+        DWI=W1I*G2K(2,IG)
+        Y1R=Y1R+AR*DWR-AI*DWI
+        Y1I=Y1I+AR*DWI+AI*DWR
+        DWR=W1R*G2K(3,IG)
+        DWI=W1I*G2K(3,IG)
+        Z1R=Z1R+AR*DWR-AI*DWI
+        Z1I=Z1I+AR*DWI+AI*DWR
+        C2R=C2R+P2R
+        C2I=C2I+P2I
+        DWR=W2R*G2K(1,IG)
+        DWI=W2I*G2K(1,IG)
+        X2R=X2R+AR*DWR-AI*DWI
+        X2I=X2I+AR*DWI+AI*DWR
+        DWR=W2R*G2K(2,IG)
+        DWI=W2I*G2K(2,IG)
+        Y2R=Y2R+AR*DWR-AI*DWI
+        Y2I=Y2I+AR*DWI+AI*DWR
+        DWR=W2R*G2K(3,IG)
+        DWI=W2I*G2K(3,IG)
+        Z2R=Z2R+AR*DWR-AI*DWI
+        Z2I=Z2I+AR*DWI+AI*DWR
+        C3R=C3R+P3R
+        C3I=C3I+P3I
+        DWR=W3R*G2K(1,IG)
+        DWI=W3I*G2K(1,IG)
+        X3R=X3R+AR*DWR-AI*DWI
+        X3I=X3I+AR*DWI+AI*DWR
+        DWR=W3R*G2K(2,IG)
+        DWI=W3I*G2K(2,IG)
+        Y3R=Y3R+AR*DWR-AI*DWI
+        Y3I=Y3I+AR*DWI+AI*DWR
+        DWR=W3R*G2K(3,IG)
+        DWI=W3I*G2K(3,IG)
+        Z3R=Z3R+AR*DWR-AI*DWI
+        Z3I=Z3I+AR*DWI+AI*DWR
+       ENDDO
+       IB=NB0+IIB-1
+       EENL(IB)=EENL(IB)+(C1R*C1R+C1I*C1I+C2R*C2R+
+     &  C2I*C2I+C3R*C3R+C3I*C3I)/VPP1
+       FXNL(ITAU,IB)=FXNL(ITAU,IB)+(X1I*C1R-X1R*C1I+
+     &  X2I*C2R-X2R*C2I+X3I*C3R-X3R*C3I)/VPP1
+       FYNL(ITAU,IB)=FYNL(ITAU,IB)+(Y1I*C1R-Y1R*C1I+
+     &  Y2I*C2R-Y2R*C2I+Y3I*C3R-Y3R*C3I)/VPP1
+       FZNL(ITAU,IB)=FZNL(ITAU,IB)+(Z1I*C1R-Z1R*C1I+
+     &  Z2I*C2R-Z2R*C2I+Z3I*C3R-Z3R*C3I)/VPP1
+      ENDDO
       RETURN
       END

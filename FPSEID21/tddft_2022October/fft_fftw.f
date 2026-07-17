@@ -43,6 +43,14 @@ C
 !!!! for fftw !!!!
 C
       END
+
+C***********************************************************
+      SUBROUTINE FPSEID_ACC_BACKEND(IACC)
+C     FFTW is the CPU fallback and keeps the original host SEPPOTF path.
+      INTEGER IACC
+      IACC=0
+      RETURN
+      END
 c
 c    subroutine ENDFFT is dummy !!!
       SUBROUTINE ENDFFT_fftwASL(NRX,NRY,NRZ)
