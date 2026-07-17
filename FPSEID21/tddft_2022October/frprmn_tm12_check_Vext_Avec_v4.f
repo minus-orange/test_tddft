@@ -1384,13 +1384,12 @@ c *** for Kokubo FFT -- LY2,LZ1,LZ2 are still necessary for ROTRA
       return
       endif
 c
-c *** Keep the time-evolution coefficients resident for the complete
-c *** predictor-corrector sequence.  COEF0 is the unchanged wavefunction
-c *** used to restart every correction.  The host coefcp above remains the
-c *** CPU/FFTW path; on OpenACC the correction restart below is device-local.
+c *** COEF is already resident across the complete time-step loop.  COEF0 is
+c *** the unchanged wavefunction used to restart every correction and remains
+c *** local to this predictor-corrector sequence.  The host coefcp above is
+c *** the CPU/FFTW path; on OpenACC the correction restart is device-local.
       if (iscf.eq.1) then
-!$acc enter data copyin(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
-!$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc enter data copyin(COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
       else
 !$acc parallel loop collapse(3)
 !$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
@@ -2039,8 +2038,7 @@ C
        call prof_stop(44)
        icoef_host_current=1
       endif
-!$acc exit data delete(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
-!$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc exit data delete(COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
 c *** 
  1999 CONTINUE
 c ** temp check
