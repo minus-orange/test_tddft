@@ -73,6 +73,16 @@ A100は閉じた環境なので人間が操作します。CodexはA100を直接�
 を使う簡潔でコピー可能なbuild/profile/archive/check/compareコマンドを提示します。
 profile wallを性能baselineにしないでください。
 
+A100で人間が実行するコマンドは短く、直接コピー可能な形に限定してください。既存の
+wrapper 1コマンドを優先し、手順が長くなる場合は、長いshellコマンド列を提示せず、
+用途を限定した実行用スクリプトをGitへ登録してください。
+
+閉じたA100環境からCodexへ返せるデータは、画面の写真または人間が手打ちするテキスト
+だけです。raw trace、archive、CSV、logなどのファイル受け渡しを要求しないでください。
+profiler実行用wrapperはrevision、実行条件、correctness、主要診断値を少数の写真に
+収まる簡潔なterminal summaryとして出力し、不足時だけ対象を絞った追加表示を依頼して
+ください。
+
 再試行禁止事項:
 
 - Step 47と同形のtutorial専用SEPPOTF s/p経路

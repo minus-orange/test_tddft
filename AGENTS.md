@@ -34,6 +34,15 @@ human approval boundaries, adoption, and rollback.
 ## Permanent Rules
 
 - One commit represents one performance hypothesis.
+- Keep human-operated A100 commands short and directly copyable. Prefer one
+  existing wrapper command. If the required procedure cannot be expressed
+  concisely, add a bounded helper script to Git instead of sending a long
+  sequence of shell commands.
+- Assume that results can be returned from the closed A100 environment only as
+  photographs or manually typed text. Never require transfer of raw traces,
+  archives, reports, or other files. Make profiler helpers print a compact
+  terminal summary that can be captured in a small number of photographs, and
+  request only targeted follow-up output when necessary.
 - Never treat the newest HEAD as the performance baseline automatically.
 - Measure performance with diagnostics off.
 - Require both the normal result check and relaxed comparison.

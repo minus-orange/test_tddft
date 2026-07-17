@@ -90,7 +90,19 @@ A100 validation starts only after an acceptable review result.
 
 ## A100 Preflight
 
-The A100 environment is operated by the user. Before building, Main requests:
+The A100 environment is operated by the user. Commands must remain short and
+directly copyable. Prefer one existing wrapper command. If build, profiling,
+archiving, checking, and summarizing would otherwise require a long sequence,
+add a bounded helper script to Git and ask the user to run that script instead.
+
+The closed A100 environment returns evidence only through photographs or
+manually typed text. Do not require transfer of `.nsys-rep` files, archives,
+CSV files, logs, or other artifacts. Profiling workflows must emit a compact
+terminal report containing the revision, configuration, correctness, and top
+diagnostic rows. Design it to fit in a small number of photographs and request
+additional targeted terminal output only when that report is insufficient.
+
+Before building, Main requests:
 
 ```sh
 cd /usr/uhome/aurora/4gi/k-hanagata/work/FY2026/FPSEID21/test_tddft
