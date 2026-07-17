@@ -1388,11 +1388,9 @@ c *** Keep the time-evolution coefficients resident for the complete
 c *** predictor-corrector sequence.  COEF0 is the unchanged wavefunction
 c *** used to restart every correction.  The host coefcp above remains the
 c *** CPU/FFTW path; on OpenACC the correction restart below is device-local.
-c *** Vloc is generated once above and remains read-only through all
-c *** corrections in this FRPRMN call.
       if (iscf.eq.1) then
 !$acc enter data copyin(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
-!$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ),Vloc(1:NXYZ,1:5))
+!$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
       else
 !$acc parallel loop collapse(3)
 !$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
@@ -2042,7 +2040,7 @@ C
        icoef_host_current=1
       endif
 !$acc exit data delete(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
-!$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ),Vloc(1:NXYZ,1:5))
+!$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
 c *** 
  1999 CONTINUE
 c ** temp check
