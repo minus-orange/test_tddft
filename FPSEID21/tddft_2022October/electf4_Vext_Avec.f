@@ -778,8 +778,13 @@ c
 !$acc& EXTAU(1:NG2Q),WORK1(1:NG2Q),WORK2(1:NG2Q),
 !$acc& WORK3(1:NG2Q),WORK4(1:NG2Q),WORK5(1:NG2Q),
 !$acc& WORK6(1:NG2Q),WORK7(1:NG2Q),DCOEF(1:NG2Q,1:21))
+!$acc& copyout(IACC_PROBE)
       IACC_PROBE=NBLENG
 !$acc end serial
+      IF(IACC_PROBE.NE.NBLENG) THEN
+       WRITE(6,*)'ERROR: SEPPOTF ownership probe failed'
+       STOP
+      ENDIF
 CC      CALL CLOCK(TIM0)
 C
 c ***  temp check
