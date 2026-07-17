@@ -120,9 +120,5 @@
       if (id.eq.42) name='frprmn_sumchr'
       if (id.eq.43) name='frprmn_rhoget'
       if (id.eq.44) name='frprmn_coef_sync'
-      if (id.eq.45) name='electf_locpotf'
-      if (id.eq.46) name='electf_nonlocf'
-      if (id.eq.47) name='nonlocf_coef_kin_mpi'
-      if (id.eq.48) name='nonlocf_projector_mpi'
       return
       end

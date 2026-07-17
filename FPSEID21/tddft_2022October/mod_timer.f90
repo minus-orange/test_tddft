@@ -232,13 +232,5 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'exnlp_meta_enter'
   case (40)
     name = 'exnlp_ct1_create'
-  case (45)
-    name = 'electf_locpotf'
-  case (46)
-    name = 'electf_nonlocf'
-  case (47)
-    name = 'nonlocf_coef_kin_mpi'
-  case (48)
-    name = 'nonlocf_projector_mpi'
   end select
 end subroutine fpseid_mod_timer_name
