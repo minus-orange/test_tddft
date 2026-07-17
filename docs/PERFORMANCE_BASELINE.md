@@ -114,3 +114,11 @@ not a baseline. Of the `9.012769` sec ELECTF timer, LOCPOTF used `4.071556`
 sec and NONLOCF used `4.939849` sec. Within NONLOCF, the coefficient
 kinetic/current section used `0.846204` sec and the combined GETYLM plus
 SEPPOTF/projector section used `4.091718` sec.
+
+Step 44 was a single diagnostic run that separated GETYLM from SEPPOTF.
+Archive `nvhpc_cufft_1rank_02_STEP44_NONLOCF_TIMERS_01` passed normal check
+and relaxed compare and took `108.715013981` sec. Its diagnostic wall is not a
+baseline. Of the `4.092541` sec projector timer, GETYLM used `0.009894` sec
+and SEPPOTF used `4.068364` sec. SEPPOTF therefore accounts for `99.4092%` of
+that section and `45.6432%` of ELECTF. The official Step 41 baseline remains
+`107.754213095` sec.

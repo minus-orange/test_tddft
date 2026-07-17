@@ -1543,3 +1543,20 @@ compareにPASSし、診断wallは`107.821303844`秒でした。単発診断な�
 `NONLOCF`内では`GETYLM`＋`SEPPOTF`区間が`82.8308%`を占めました。inner timerが
 202回なのは、各`ELECTF`で2 k pointsを処理するためです。次はこの4.091718秒を
 `GETYLM`と`SEPPOTF`へ分離してから、GPU化対象を1件に絞ります。
+
+## Step 44: NONLOCF projector領域のtimer分解
+
+archive `nvhpc_cufft_1rank_02_STEP44_NONLOCF_TIMERS_01`は通常checkとrelaxed
+compareにPASSし、診断wallは`108.715013981`秒でした。timer付き単発診断のため、
+正式性能値には使用しません。
+
+| timer | count | sec | projector比 |
+|---|---:|---:|---:|
+| `nonlocf_projector_mpi` | 202 | 4.092541 | 100% |
+| `nonlocf_getylm` | 202 | 0.009894 | 0.2418% |
+| `nonlocf_seppotf` | 202 | 4.068364 | 99.4092% |
+
+`SEPPOTF`は`NONLOCF`の`84.0486%`、`ELECTF`全体の`45.6432%`を占めます。
+次の1テーマは、数式順序、MPI境界、CPU fallbackを維持した範囲でのSEPPOTFの
+限定GPU化とCOEF/data ownership確認です。正式baselineはStep 41中央値
+`107.754213095`秒のままです。

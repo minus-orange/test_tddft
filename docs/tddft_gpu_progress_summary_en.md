@@ -1681,3 +1681,20 @@ performance baseline.
 The combined GETYLM and SEPPOTF section accounts for `82.8308%` of NONLOCF.
 The 202 inner calls reflect two k points per ELECTF call. The next diagnostic
 separates GETYLM from SEPPOTF before one GPU-port hypothesis is selected.
+
+## Step 44: Decompose the NONLOCF Projector Region
+
+Archive `nvhpc_cufft_1rank_02_STEP44_NONLOCF_TIMERS_01` passed normal check
+and relaxed compare. Its diagnostic wall was `108.715013981` sec and is not a
+performance baseline.
+
+| timer | count | sec | share of projector section |
+|---|---:|---:|---:|
+| `nonlocf_projector_mpi` | 202 | 4.092541 | 100% |
+| `nonlocf_getylm` | 202 | 0.009894 | 0.2418% |
+| `nonlocf_seppotf` | 202 | 4.068364 | 99.4092% |
+
+SEPPOTF accounts for `84.0486%` of NONLOCF and `45.6432%` of ELECTF. The next
+single theme is a bounded SEPPOTF GPU port and COEF/data-ownership review that
+preserves arithmetic order, MPI boundaries, and the CPU fallback. The official
+baseline remains the Step 41 median of `107.754213095` sec.

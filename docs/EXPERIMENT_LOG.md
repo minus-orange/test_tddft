@@ -319,3 +319,21 @@ coefficient kinetic/current section is `17.1302%`, while the combined GETYLM
 and SEPPOTF/projector section is `82.8308%` and `45.3991%` of the complete
 ELECTF timer. The 202 inner calls reflect two k points per ELECTF call. The
 next diagnostic separates GETYLM from SEPPOTF before a GPU port is selected.
+
+## Step 44 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP44_NONLOCF_TIMERS_01`
+- Diagnostic wall: `108.715013981` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `electf_force`: 101 calls, `8.913402` sec
+- `electf_locpotf`: 101 calls, `4.071603` sec
+- `electf_nonlocf`: 101 calls, `4.840488` sec
+- `nonlocf_coef_kin_mpi`: 202 calls, `0.746292` sec
+- `nonlocf_projector_mpi`: 202 calls, `4.092541` sec
+- `nonlocf_getylm`: 202 calls, `0.009894` sec
+- `nonlocf_seppotf`: 202 calls, `4.068364` sec
+
+`SEPPOTF` accounts for `99.4092%` of the measured projector section,
+`84.0486%` of NONLOCF, and `45.6432%` of the complete ELECTF timer. `GETYLM`
+is only `0.2418%` of the projector section. This timer-enabled run is
+diagnostic evidence only; the official Step 41 median remains unchanged.
