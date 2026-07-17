@@ -152,6 +152,7 @@ c          DCOEF(ig,ii)=DCMPLX(0.d0,0.d0)
 c         enddo
 c       enddo
 c +++ temp check; end
+      call prof_start(45)
       CALL LOCPOTF(NXYZ,NG,NGQ,G,EXPG,RHO1,TPIBA,OMEGA,
 cc     &             DELTA,VG,RHO,RHOG,I2G,FORCE,RHO2,
      &             DELTA,DELTAd,VG,RHO,RHOG,I2G,FORCE,VGA,
@@ -176,6 +177,7 @@ c *** for Kokubo FFTW
      &                  ,plancfp,plancbp
 c
      &   ,nbegint,nendt,nbegintt,nendtt,ncpuq,ncpu )
+      call prof_stop(45)
 C
 C     CALCULATE NON-LOCAL POTENTIAL CONTRIBUTION
 c **** temp check
@@ -186,6 +188,7 @@ c      stop
 c      endif
 c **** temp check
 C
+      call prof_start(46)
       CALL NONLOCF( MXBND, MBLK, NXYZ, NG2, NG2Q,NBNDQ,NBND,
      &              NUMK, NUMKQ, NBSEQ,IOVP,
      &              RHO4, COEF, DCOEF, YLM, G2, RHO2, TPIBA,
@@ -202,6 +205,7 @@ c +++ for macroscopic current
      &   ,RHOAX,RHOAY,RHOAZ,PX,PY,PZ,PXTOT,PYTOT,PZTOT
 c
      &  ,nbegin,nend,ncpuq,ncpu  )
+      call prof_stop(46)
 C
       if ( mod(itstep,itmod).eq.0 .and. my_rank.eq.0 ) then
       CALL CLOCK(TIM)
@@ -452,6 +456,7 @@ c         IBI=MXBND*(JJB-1)
          IBI=0
 cccc         READ(71,REC=IOWF(JJB,IK)) COEF
 ccc ***           if ( my_rank.ne.0 ) then
+             call prof_start(47)
              DO 581 IG=1,NG2(IK)
 cc             RHOA(IG)=G2(4,IG,IK)*TPIBA2
              RHOA(IG)=GDUMP(IG,IK)*TPIBA2
@@ -535,10 +540,12 @@ c
      &    MPI_DOUBLE_PRECISION,icpu,tag,MPI_COMM_WORLD,status,ierr)
             enddo
            endif ! end of if my_rank.ne.0 loop
+             call prof_stop(47)
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'DO 583 loop end'
 c **** temp check : end
 C
+             call prof_start(48)
              DO 588 IG=1,NG2(IK)
   588        RHOA(IG)=SQRT(G2(4,IG,IK))*TPIBA
 c **** temp check
@@ -561,6 +568,7 @@ c     &  ,WORK2(1,1),WORK2(1,2),WORK2(1,3),
      &  ,NGcont
 c
      &  ,nbegin,nend,ncpuq,ncpu )
+             call prof_stop(48)
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'after end of SEPPOTF'
 c **** temp check : end
