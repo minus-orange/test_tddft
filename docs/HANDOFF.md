@@ -11,8 +11,9 @@ Last updated: 2026-07-17
 - Current configuration: Step 41 source with Step 37 pinned allocation mode
 - Current source implementation: Step 41 commit `4aaa33c`
 - Rejected Step 45 implementation: `da24adf`
-- Current HEAD status: Step 45 passed correctness but its three-run median was
-  slower than Step 41; rollback is the current disposition
+- Step 45 rollback: `c406a4a`
+- Current HEAD status: Step 45 was recorded and rolled back; CPU/FFTW full link
+  passed and no experimental implementation is active
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -121,8 +122,10 @@ It was intended to remove the next-step COEF H2D copyin without changing
 SEPPOTF, MPI, equations, or arithmetic order. All three runs passed both
 correctness checks, but the median was `108.782176018` sec, `0.9540%` slower
 than Step 41, with a `2.832067967` sec range. No Nsight Systems trace was
-collected. Step 45 is rejected; the next implementation must wait until its
-rollback and fallback verification are complete.
+collected. Step 45 was reverted by `c406a4a`, and the CPU/FFTW fallback full
+link passed. The next bounded implementation direction is the tutorial
+non-partitioned s/p SEPPOTF band reduction identified by Step 44; it must keep
+atom/channel order and establish a non-repeating data-ownership boundary.
 
 Step 42 kept `Vloc(:,1:5)` resident across each FRPRMN predictor-corrector
 sequence. All three runs passed both correctness checks, but the median was

@@ -1576,4 +1576,5 @@ predictor-corrector単位ownership、SEPPOTF、MPI、数式順序は変更して
 3回中央値は`108.782176018`秒、実行間の幅は`2.832067967`秒です。Step 41より
 `1.027962923`秒（`0.9540%`）遅く、性能優位がありません。想定したH2D削減は
 Nsight Systemsで未確認です。Step 45は不採用とし、正式baselineはStep 41中央値
-`107.754213095`秒を維持します。
+`107.754213095`秒を維持します。実装`da24adf`は`c406a4a`でrevertし、rollback後の
+CPU/FFTW fallback full linkはPASSしました。

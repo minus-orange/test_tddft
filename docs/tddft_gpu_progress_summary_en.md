@@ -1716,4 +1716,5 @@ The median is `108.782176018` sec with a `2.832067967` sec range. It is
 `1.027962923` sec (`0.9540%`) slower than Step 41 and has no performance
 advantage. The expected H2D reduction was not verified with Nsight Systems.
 Step 45 is rejected, and the official baseline remains the Step 41 median of
-`107.754213095` sec.
+`107.754213095` sec. Implementation `da24adf` was reverted by `c406a4a`, and
+the CPU/FFTW fallback full link passed after rollback.

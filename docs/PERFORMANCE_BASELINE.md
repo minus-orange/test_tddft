@@ -130,4 +130,5 @@ passed normal check and relaxed compare. Their wall times were
 `108.782176018` sec and a range of `2.832067967` sec. The median is
 `1.027962923` sec (`0.9540%`) slower than Step 41. No Nsight Systems trace was
 collected to verify the expected H2D reduction. Step 45 is rejected and the
-official baseline remains Step 41 at `107.754213095` sec.
+official baseline remains Step 41 at `107.754213095` sec. Implementation
+`da24adf` was reverted by `c406a4a`; the CPU/FFTW fallback full link passed.

@@ -360,4 +360,5 @@ passed.
 All three diagnostic-off runs passed both correctness checks. The intended
 transfer-count reduction was not profiled with Nsight Systems, and the median
 has no performance advantage over Step 41. Step 45 is rejected and does not
-replace the official baseline.
+replace the official baseline. Implementation `da24adf` was reverted by
+`c406a4a`, after which the CPU/FFTW fallback full link passed.
