@@ -258,7 +258,7 @@ cuFFTビルドと同様に明示します。
 3. まだ host-copy cuFFT wrapper を使っている互換 FFT 呼び出しを特定します。
 4. `TMEVL` 境界に残る `P` 転送を削減します。
 
-## Step 41以降のtime-step loop GPU化完了方針
+## Step 47 rollback後の性能方針
 
 TDDFTの主要数式に、原理的にGPU実行できない処理はありません。ただし、現在の
 実装境界のままでは完全なdevice-only化が難しい箇所があります。
@@ -286,14 +286,35 @@ MPI/force境界で必要な値、出力対象だけへ限定します。
 4. reduction順序の変更は丸め差へ影響するため、通常checkとrelaxed compareを維持し、
    数値アルゴリズム変更として別承認なしに行いません。
 
-実施順序は以下です。
+性能を出す鍵は、GPU化routine数ではなくGPUの連続稼働時間です。Step 41 run 02では
+`tmevl_total`が`51.442021 / 108.026444`秒、すなわち全体の`47.620%`を占めます。
+この領域はGPU主体ですが、Step 38 Nsight Systemsから逆算したCUDA kernel合計は
+trace wallの約`11.3%`にとどまります。明示的H2D/D2Hは合計約`1.55%`です。
+したがって現在の主な問題は、転送帯域そのものより、host準備、細粒度launch、同期、
+runtime呼び出し、低並列度launch、GPU idleによってGPU化領域が分断されていることです。
 
-1. 未検証Step 42 `Vloc(:,1:5)` FRPRMN residencyの採否を完了します。
-2. `ELECTF`内部timerを追加する診断で約9秒の内訳を確定します。
-3. `NONLOCF`のCOEF依存reductionを小さな1仮説単位でGPU化します。
-4. COEFのdevice authorityをFRPRMNからELECTF終了まで広げ、不要になった同期だけを
-   削除します。
-5. 最後にdensity/MPI/ion/output境界を再監査し、不可避な最小D2Hだけを残します。
+アルゴリズム領域として確実にGPU主体といえる比率は約`48%`で、未分解の混在処理を
+含めた実務的な推定範囲は`48-55%`です。この値をCUDA kernelの純粋な実行時間比と
+混同しません。また、Step 38はStep 41のJ2G/OCC常駐化前なので、現在の転送回数を
+確定する資料ではありません。
+
+次の作業順序は以下です。
+
+1. rollback済みの正式Step 41 sourceをNsight Systemsで再診断し、H2D/D2H、CUDA
+   kernel、CUDA/OpenACC API、同期、allocation、OS runtimeを同じtraceで取得します。
+2. Step 41 run 02で`frprmn - tmevl_total = 47.476614`秒ある未分解領域を、既存sourceと
+   traceでCPU演算、MPI、runtime/API、同期、GPU idleへ分離します。
+3. traceだけで最大成分を特定できない場合に限り、default OFFの診断timerを追加します。
+4. 診断結果から、広いdata residency区間または十分な仕事量を持つbatch/fusionとして
+   実装可能な仮説を1件だけ選びます。
+5. 大規模配列のauthorityをFRPRMN/TMEVL、必要ならELECTFまで広げ、転送をloop入口、
+   必須MPI/host consumer、出力へ集約します。
+6. 最後にdensity/MPI/ion/output境界を再監査し、不可避な最小D2Hだけを残します。
+
+Step 47のSEPPOTF専用GPU経路はcorrectness PASSでしたが、約250行の追加に対して
+中央値改善が`0.0291%`だけだったため不採用・rollback済みです。単独routineを小さい
+kernelへ移すだけの同形実装は再試行しません。Step 45のtime-step全体COEF allocation、
+Step 42のVloc常駐化も同じ形では再試行しません。
 
 細粒度section copy、Step 31型GDUMP再利用、ownership未設計のYLM/`work2_`経路、
 小band専用kernelは再試行しません。異なるhardwareや入力サイズは独立baselineで

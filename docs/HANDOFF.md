@@ -113,62 +113,62 @@ expands naturally with local band count, so shared bottlenecks should be
 validated on medium or production-sized inputs rather than inferred only from
 the tutorial occupancy.
 
-## Next Task Boundary
+## Performance Direction and Next Task Boundary
 
-Step 44 measured `ELECTF` at `8.913402` sec and the projector section at
-`4.092541` sec. Within that section, GETYLM used only `0.009894` sec while
-SEPPOTF used `4.068364` sec (`99.4092%`). The archive
-`nvhpc_cufft_1rank_02_STEP44_NONLOCF_TIMERS_01` passed normal check and relaxed
-compare. Its `108.715013981` sec wall is diagnostic-only and must not replace
-the Step 41 baseline. Step 45 extends COEF device allocation across the whole
-time-step loop while retaining the existing D2H before ELECTF host readers.
-It was intended to remove the next-step COEF H2D copyin without changing
-SEPPOTF, MPI, equations, or arithmetic order. All three runs passed both
-correctness checks, but the median was `108.782176018` sec, `0.9540%` slower
-than Step 41, with a `2.832067967` sec range. No Nsight Systems trace was
-collected. Step 45 was reverted by `c406a4a`, and the CPU/FFTW fallback full
-link passed. Step 46 is a diagnostic-only ownership scaffold for the tutorial
-non-partitioned s/p SEPPOTF band reduction. It adds a no-op device `present`
-probe for the COEF, G2, YLM, VPJ, WORK2-column, DCOEF, and EXTAU dummy sections.
-Archive `nvhpc_cufft_1rank_02_STEP46_OWNERSHIP_01` ran 100 steps in
-`107.869318008` sec, passed normal check and relaxed compare, and produced no
-present/partial-present or ownership-probe error. Its wall time is not a
-performance baseline because the diagnostic adds transfers and a serial
-probe. The next single hypothesis is to move only the tutorial
-non-partitioned s/p phase and band reductions to one-gang-per-band OpenACC
-kernels. Unsupported projector shapes must execute the complete original host
-SEPPOTF path, and output sections must return to the host before MPI.
+The governing performance objective is no longer to offload isolated routines
+one by one. It is to keep the GPU busy for longer intervals by extending bulk
+device ownership across FRPRMN, TMEVL, and only where justified ELECTF. Large
+arrays should cross the host/device boundary at the time-step-loop entrance,
+at verified MPI or host-consumer boundaries, and at required output points.
+Small convergence scalars may remain on the host. CPU/FFTW fallback code stays
+intact.
 
-Step 47 implemented that bounded GPU path and passed both correctness checks
-in all three runs. Wall times were `107.598769903`, `107.722885132`, and
-`107.848846912` sec. The `107.722885132` sec median is only `0.0291%` faster
-than Step 41 and is smaller than the `0.250077009` sec run range. The roughly
-250-line specialized path therefore has no demonstrated performance advantage
-and is rejected. Rollback `35f8542` removed Step 47 and the completed Step 46
-diagnostic source, restored the accepted Step 41 source, and passed the
-CPU/FFTW fallback full link.
+Two different utilization estimates must not be conflated:
 
-Step 42 kept `Vloc(:,1:5)` resident across each FRPRMN predictor-corrector
-sequence. All three runs passed both correctness checks, but the median was
-`107.809727907` sec, `0.0515%` slower than Step 41. The implementation is
-rejected and was reverted by `afa1678`. The CPU/FFTW fallback full link passed
-after rollback.
+- Step 41 run 02 places `51.442021` of `108.026444` sec (`47.620%`) in the
+  GPU-dominant TMEVL region. Including known accelerated density work gives a
+  conservative algorithmic GPU coverage of about `48%`; unseparated mixed
+  work makes a practical range of roughly `48-55%` reasonable.
+- Step 38 Nsight Systems measured the fused kernel at `8.311268224` sec and
+  `66.6%` of CUDA kernel time, implying about `12.48` sec of aggregate CUDA
+  kernel execution, or about `11.3%` of its `110.78916502` sec trace wall.
+  H2D and D2H took `1.272192545` and `0.440373299` sec, respectively, or
+  about `1.55%` combined. These durations may overlap and are diagnostic, not
+  an additive performance baseline.
 
-After Step 42 is accepted or rejected, the next direction is to decompose the
-roughly 9-second host-side `ELECTF` region into `LOCPOTF`, `NONLOCF`, and
-their major reductions. This first stage is diagnostic only. The expected
-implementation direction is then to port bounded `NONLOCF` coefficient
-consumers to the GPU and extend `COEF` device authority through `ELECTF`.
-Do not remove the current COEF download before every downstream host consumer,
-force reduction, MPI boundary, and output requirement has been accounted for.
+The gap between approximately 48% GPU-dominant algorithm coverage and only
+about 11% aggregate kernel duration points to host preparation, fine-grained
+launches, synchronization, runtime calls, low-parallelism launches, and GPU
+idle intervals as the primary class of bottleneck. Direct copy duration alone
+is not the dominant wall-time cost, although Step 38 still recorded 44,166 H2D
+and 5,348 D2H operations. Reducing their count can remove runtime and
+synchronization boundaries in addition to bytes.
 
-No core TDDFT equation is inherently unsuitable for a GPU. The practical
-host/device boundaries are scalar convergence decisions, non-device-aware MPI
-or host density consumers, ionic/control updates, and output/checkpoint I/O.
-The goal is therefore to leave only small scalars and required output data on
-these boundaries while keeping large arrays resident. Repeated fine-grained
-copyin, ownership-free `work2_` device generation, and previously rejected
-GDUMP/YLM mapping experiments remain prohibited.
+The next task is diagnostic only and has two ordered stages:
+
+1. Re-profile the restored accepted Step 41 source with Nsight Systems. Step 38
+   predates Step 41's J2G/OCC residency change, so it cannot establish the
+   current transfer counts. Collect CUDA kernel, H2D/D2H, CUDA/OpenACC API,
+   synchronization, allocation, and OS-runtime summaries. Do not use the
+   profiled wall time as a baseline.
+2. Decompose the `47.476614` sec FRPRMN residual outside `tmevl_total` in the
+   Step 41 run-02 profile. First use existing source and the new trace. Add
+   diagnostic-off-by-default timers only if the trace cannot identify the
+   largest components. Separate CPU computation, MPI, device runtime/API,
+   synchronization, and GPU-idle causes before choosing an implementation.
+
+Do not begin another offload implementation until both stages identify one
+evidence-backed bottleneck and Main presents one bounded hypothesis. Step 47
+proved that a correct approximately 250-line SEPPOTF special path can produce
+only a noise-level `0.0291%` median advantage; the same form must not be
+retried. Likewise, do not retry Step 45 whole-loop COEF allocation, Step 42
+Vloc residency, fine-grained section copyin, ownership-free `work2_` device
+generation, GDUMP reuse, YLM ownership, vector length 512, or a small-band-only
+kernel path in their rejected forms.
+
+Production-size scaling remains blocked because no production input or matching
+correctness reference is available. The tutorial's 32-band grid is the minimum
+operational case and must not be used to infer production occupancy.
 
 ## Validation Gate
 
