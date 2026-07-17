@@ -10,9 +10,9 @@ Last updated: 2026-07-17
 - Accepted result record: this documentation update
 - Current configuration: Step 41 source with Step 37 pinned allocation mode
 - Current source implementation: Step 41 commit `4aaa33c`
-- Current experimental HEAD: Step 44 diagnostic implementation `863995a`
-- Current HEAD status: Step 44 identified SEPPOTF as the dominant projector
-  routine; its A100 diagnostic run passed both correctness checks
+- Current experimental implementation: Step 45 commit `da24adf`
+- Current HEAD status: Step 45 keeps COEF allocated across time steps; the
+  Step 43/44 diagnostic timers have been removed for diagnostic-off validation
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -115,9 +115,11 @@ Step 44 measured `ELECTF` at `8.913402` sec and the projector section at
 SEPPOTF used `4.068364` sec (`99.4092%`). The archive
 `nvhpc_cufft_1rank_02_STEP44_NONLOCF_TIMERS_01` passed normal check and relaxed
 compare. Its `108.715013981` sec wall is diagnostic-only and must not replace
-the Step 41 baseline. The only next theme is a bounded SEPPOTF GPU-port and
-COEF/data-ownership review; preserve MPI boundaries, CPU fallback, and the
-existing arithmetic order unless equivalence is demonstrated.
+the Step 41 baseline. Step 45 extends COEF device allocation across the whole
+time-step loop while retaining the existing D2H before ELECTF host readers.
+It is intended to remove the next-step COEF H2D copyin without changing
+SEPPOTF, MPI, equations, or arithmetic order. CPU/FFTW full link and independent
+review passed; A100 validation is pending.
 
 Step 42 kept `Vloc(:,1:5)` resident across each FRPRMN predictor-corrector
 sequence. All three runs passed both correctness checks, but the median was
