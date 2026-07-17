@@ -1046,13 +1046,11 @@ c       enddo
 c      endif
 c *** temp check : end
       call prof_stop(15)
-! Keep the coefficients and static metadata allocated on the device for the
-! complete time-step loop.  FRPRMN still synchronizes COEF to the host before
-! ELECTF and output consumers, so the host and device copies agree between
-! time steps.  Retaining the device allocation avoids the next FRPRMN copyin.
+! Keep static reciprocal-grid and occupation metadata resident for the
+! complete time-step loop.  Both arrays are initialized during setup and
+! remain host-read-only until time evolution finishes.
 !$acc enter data copyin(J2G(1:NG2Q,1:NUMKQ),
-!$acc& OCC(1:NBNDQ,1:NUMKQ),
-!$acc& COEF(1:NG2Q,1:MXBND2,1:NUMKQ))
+!$acc& OCC(1:NBNDQ,1:NUMKQ))
       do 100 itstep=0,ntstep
       call prof_start(1)
       time=time0+dtfsec*itstep
@@ -1855,8 +1853,7 @@ c
       call prof_stop(1)
   100 continue
 !$acc exit data delete(J2G(1:NG2Q,1:NUMKQ),
-!$acc& OCC(1:NBNDQ,1:NUMKQ),
-!$acc& COEF(1:NG2Q,1:MXBND2,1:NUMKQ))
+!$acc& OCC(1:NBNDQ,1:NUMKQ))
 c
       if ( ntstep.ge.1 .and. my_rank.eq.0 ) then
       call clock(T01)
