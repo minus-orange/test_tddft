@@ -25,7 +25,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 38 | Re-profile the accepted pinned-allocation build | 110.78916502 (diagnostic trace) | measurement | `643e639` |
 | 40 | Specialize the fused nonlocal kernel by direction | 107.751713037 | rejected | `ea81633` / `0726e26` |
 | 41 | Keep static J2G/OCC metadata resident | 107.754213095 | accepted baseline | `4aaa33c` |
-| 42 | Keep Vloc resident across FRPRMN corrections | 107.809727907 | rejected | `d56815e` / rollback pending |
+| 42 | Keep Vloc resident across FRPRMN corrections | 107.809727907 | rejected | `d56815e` / `afa1678` |
 
 ## Other Rejected Experiments
 
@@ -299,4 +299,5 @@ All three diagnostic-off runs passed both correctness checks. The source-level
 transfer boundary is cleaner, but the three-run median has no performance
 advantage over Step 41, and no transfer profile was collected to demonstrate a
 runtime benefit. Under the project acceptance rule, Step 42 is rejected and
-does not replace the Step 41 baseline. Its source rollback is pending.
+does not replace the Step 41 baseline. Implementation `d56815e` was reverted
+by `afa1678`, after which the CPU/FFTW fallback full link passed.

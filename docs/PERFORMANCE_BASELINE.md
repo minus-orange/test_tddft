@@ -104,3 +104,5 @@ median of `107.809727907` sec and a range of `0.098668813` sec. The median is
 `0.055514812` sec (`0.0515%`) slower than Step 41. The source-level transfer
 boundary changed as intended, but it produced no measured performance
 advantage, so Step 42 is rejected and does not replace this baseline.
+Implementation `d56815e` was reverted by `afa1678`; the CPU/FFTW fallback
+full link passed afterward.

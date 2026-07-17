@@ -1656,3 +1656,5 @@ source-level transfer boundary changed as intended, but there is no measured
 performance advantage. No transfer profile was collected to demonstrate an
 additional runtime benefit. Step 42 is therefore rejected, and the official
 baseline remains Step 41 at `107.754213095` sec.
+Implementation `d56815e` was reverted by `afa1678`, and the CPU/FFTW fallback
+full link passed after the rollback.

@@ -10,9 +10,10 @@ Last updated: 2026-07-17
 - Accepted result record: this documentation update
 - Current configuration: Step 41 source with Step 37 pinned allocation mode
 - Current source implementation: Step 41 commit `4aaa33c`
-- Current experimental HEAD: Step 42 implementation `d56815e`
-- Current HEAD status: Step 42 is rejected after three correct A100 runs with
-  no median advantage; source rollback is pending
+- Current experimental HEAD: none
+- Current HEAD status: Step 42 implementation `d56815e` was rejected and
+  reverted by `afa1678`; Step 41 source is restored and the CPU/FFTW fallback
+  full link passed
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -113,7 +114,8 @@ the tutorial occupancy.
 Step 42 kept `Vloc(:,1:5)` resident across each FRPRMN predictor-corrector
 sequence. All three runs passed both correctness checks, but the median was
 `107.809727907` sec, `0.0515%` slower than Step 41. The implementation is
-rejected and must be rolled back before another hypothesis begins.
+rejected and was reverted by `afa1678`. The CPU/FFTW fallback full link passed
+after rollback.
 
 After Step 42 is accepted or rejected, the next direction is to decompose the
 roughly 9-second host-side `ELECTF` region into `LOCPOTF`, `NONLOCF`, and

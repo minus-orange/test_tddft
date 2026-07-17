@@ -1519,3 +1519,5 @@ Step 41中央値より`0.055514812`秒、`0.0515%`遅い結果でした。全run
 relaxed compareはPASSし、source上の転送境界は意図どおり変更されましたが、性能優位は
 ありません。転送profileも未取得でruntime上の追加効果を裏付けられないため、Step 42を
 不採用とし、正式baselineはStep 41中央値`107.754213095`秒を維持します。
+実装`d56815e`は`afa1678`でrevertし、rollback後のCPU/FFTW fallback full linkは
+PASSしました。
