@@ -240,9 +240,5 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'nonlocf_coef_kin_mpi'
   case (48)
     name = 'nonlocf_projector_mpi'
-  case (49)
-    name = 'nonlocf_getylm'
-  case (50)
-    name = 'nonlocf_seppotf'
   end select
 end subroutine fpseid_mod_timer_name
