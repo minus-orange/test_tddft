@@ -1521,3 +1521,25 @@ relaxed compareはPASSし、source上の転送境界は意図どおり変更さ�
 不採用とし、正式baselineはStep 41中央値`107.754213095`秒を維持します。
 実装`d56815e`は`afa1678`でrevertし、rollback後のCPU/FFTW fallback full linkは
 PASSしました。
+
+## Step 43: ELECTF host領域のtimer分解
+
+診断commit `e90c80a`では、`ELECTF`を`LOCPOTF`と`NONLOCF`へ分け、さらに
+`NONLOCF`内をhost `COEF`のkinetic/current計算と、`GETYLM`＋`SEPPOTF`の
+projector計算へ分けました。数式、loop、MPI、OpenACC同期は変更していません。
+
+archive `nvhpc_cufft_1rank_02_STEP43_ELECTF_TIMERS_01`は通常checkとrelaxed
+compareにPASSし、診断wallは`107.821303844`秒でした。単発診断なのでwallは
+正式baselineに使用しません。
+
+| timer | count | sec | ELECTF比 |
+|---|---:|---:|---:|
+| `electf_force` | 101 | 9.012769 | 100% |
+| `electf_locpotf` | 101 | 4.071556 | 45.1754% |
+| `electf_nonlocf` | 101 | 4.939849 | 54.8094% |
+| `nonlocf_coef_kin_mpi` | 202 | 0.846204 | 9.3896% |
+| `nonlocf_projector_mpi` | 202 | 4.091718 | 45.3991% |
+
+`NONLOCF`内では`GETYLM`＋`SEPPOTF`区間が`82.8308%`を占めました。inner timerが
+202回なのは、各`ELECTF`で2 k pointsを処理するためです。次はこの4.091718秒を
+`GETYLM`と`SEPPOTF`へ分離してから、GPU化対象を1件に絞ります。

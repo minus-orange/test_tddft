@@ -1658,3 +1658,26 @@ additional runtime benefit. Step 42 is therefore rejected, and the official
 baseline remains Step 41 at `107.754213095` sec.
 Implementation `d56815e` was reverted by `afa1678`, and the CPU/FFTW fallback
 full link passed after the rollback.
+
+## Step 43: Decompose the Host-Side ELECTF Region
+
+Diagnostic commit `e90c80a` separated ELECTF into LOCPOTF and NONLOCF, then
+split NONLOCF into the host-COEF kinetic/current section and the combined
+GETYLM plus SEPPOTF/projector section. It did not change equations, loops,
+MPI behavior, or OpenACC synchronization.
+
+Archive `nvhpc_cufft_1rank_02_STEP43_ELECTF_TIMERS_01` passed normal check and
+relaxed compare. Its diagnostic wall was `107.821303844` sec and is not a
+performance baseline.
+
+| timer | count | sec | share of ELECTF |
+|---|---:|---:|---:|
+| `electf_force` | 101 | 9.012769 | 100% |
+| `electf_locpotf` | 101 | 4.071556 | 45.1754% |
+| `electf_nonlocf` | 101 | 4.939849 | 54.8094% |
+| `nonlocf_coef_kin_mpi` | 202 | 0.846204 | 9.3896% |
+| `nonlocf_projector_mpi` | 202 | 4.091718 | 45.3991% |
+
+The combined GETYLM and SEPPOTF section accounts for `82.8308%` of NONLOCF.
+The 202 inner calls reflect two k points per ELECTF call. The next diagnostic
+separates GETYLM from SEPPOTF before one GPU-port hypothesis is selected.

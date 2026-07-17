@@ -106,3 +106,11 @@ boundary changed as intended, but it produced no measured performance
 advantage, so Step 42 is rejected and does not replace this baseline.
 Implementation `d56815e` was reverted by `afa1678`; the CPU/FFTW fallback
 full link passed afterward.
+
+Step 43 was a single diagnostic run that decomposed the host-side ELECTF
+region. Archive `nvhpc_cufft_1rank_02_STEP43_ELECTF_TIMERS_01` passed normal
+check and relaxed compare and took `107.821303844` sec. Its diagnostic wall is
+not a baseline. Of the `9.012769` sec ELECTF timer, LOCPOTF used `4.071556`
+sec and NONLOCF used `4.939849` sec. Within NONLOCF, the coefficient
+kinetic/current section used `0.846204` sec and the combined GETYLM plus
+SEPPOTF/projector section used `4.091718` sec.

@@ -26,6 +26,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 40 | Specialize the fused nonlocal kernel by direction | 107.751713037 | rejected | `ea81633` / `0726e26` |
 | 41 | Keep static J2G/OCC metadata resident | 107.754213095 | accepted baseline | `4aaa33c` |
 | 42 | Keep Vloc resident across FRPRMN corrections | 107.809727907 | rejected | `d56815e` / `afa1678` |
+| 43 | Decompose the host-side ELECTF region | 107.821303844 (one diagnostic run) | measurement | `e90c80a` |
 
 ## Other Rejected Experiments
 
@@ -301,3 +302,20 @@ advantage over Step 41, and no transfer profile was collected to demonstrate a
 runtime benefit. Under the project acceptance rule, Step 42 is rejected and
 does not replace the Step 41 baseline. Implementation `d56815e` was reverted
 by `afa1678`, after which the CPU/FFTW fallback full link passed.
+
+## Step 43 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP43_ELECTF_TIMERS_01`
+- Diagnostic wall: `107.821303844` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `electf_force`: 101 calls, `9.012769` sec
+- `electf_locpotf`: 101 calls, `4.071556` sec (`45.1754%` of ELECTF)
+- `electf_nonlocf`: 101 calls, `4.939849` sec (`54.8094%` of ELECTF)
+- `nonlocf_coef_kin_mpi`: 202 calls, `0.846204` sec
+- `nonlocf_projector_mpi`: 202 calls, `4.091718` sec
+
+The top-level residual is only `0.001364` sec. Within NONLOCF, the host
+coefficient kinetic/current section is `17.1302%`, while the combined GETYLM
+and SEPPOTF/projector section is `82.8308%` and `45.3991%` of the complete
+ELECTF timer. The 202 inner calls reflect two k points per ELECTF call. The
+next diagnostic separates GETYLM from SEPPOTF before a GPU port is selected.
