@@ -122,3 +122,12 @@ baseline. Of the `4.092541` sec projector timer, GETYLM used `0.009894` sec
 and SEPPOTF used `4.068364` sec. SEPPOTF therefore accounts for `99.4092%` of
 that section and `45.6432%` of ELECTF. The official Step 41 baseline remains
 `107.754213095` sec.
+
+Step 45 tested retaining COEF device allocation across the full time-step
+loop at implementation revision `da24adf`. All three diagnostic-off runs
+passed normal check and relaxed compare. Their wall times were
+`108.508744955`, `108.782176018`, and `111.340812922` sec, giving a median of
+`108.782176018` sec and a range of `2.832067967` sec. The median is
+`1.027962923` sec (`0.9540%`) slower than Step 41. No Nsight Systems trace was
+collected to verify the expected H2D reduction. Step 45 is rejected and the
+official baseline remains Step 41 at `107.754213095` sec.

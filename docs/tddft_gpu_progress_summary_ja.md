@@ -1560,3 +1560,20 @@ compareにPASSし、診断wallは`108.715013981`秒でした。timer付き単発
 次の1テーマは、数式順序、MPI境界、CPU fallbackを維持した範囲でのSEPPOTFの
 限定GPU化とCOEF/data ownership確認です。正式baselineはStep 41中央値
 `107.754213095`秒のままです。
+
+## Step 45: COEF device allocationのtime-step間維持（不採用）
+
+実装`da24adf`では、COEFのdevice allocationをtime-step loop全体へ延長し、
+次stepのFRPRMNでのCOEF H2D copyin削減を狙いました。ELECTF前のD2H、COEF0の
+predictor-corrector単位ownership、SEPPOTF、MPI、数式順序は変更していません。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP45_COEF_RESIDENT_01` | 108.508744955 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP45_COEF_RESIDENT_02` | 108.782176018 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP45_COEF_RESIDENT_03` | 111.340812922 | PASS | PASS |
+
+3回中央値は`108.782176018`秒、実行間の幅は`2.832067967`秒です。Step 41より
+`1.027962923`秒（`0.9540%`）遅く、性能優位がありません。想定したH2D削減は
+Nsight Systemsで未確認です。Step 45は不採用とし、正式baselineはStep 41中央値
+`107.754213095`秒を維持します。

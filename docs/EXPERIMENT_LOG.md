@@ -337,3 +337,27 @@ next diagnostic separates GETYLM from SEPPOTF before a GPU port is selected.
 `84.0486%` of NONLOCF, and `45.6432%` of the complete ELECTF timer. `GETYLM`
 is only `0.2418%` of the projector section. This timer-enabled run is
 diagnostic evidence only; the official Step 41 median remains unchanged.
+
+## Step 45 Detail
+
+Step 45 implementation `da24adf` retained the COEF device allocation across
+the complete time-step loop. FRPRMN continued to synchronize COEF to the host
+before ELECTF and retained per-sequence COEF0 ownership. The intended effect
+was to remove the next-step COEF H2D copyin without changing SEPPOTF, MPI,
+equations, or arithmetic order. CPU/FFTW full link and independent review
+passed.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP45_COEF_RESIDENT_01` | 108.508744955 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP45_COEF_RESIDENT_02` | 108.782176018 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP45_COEF_RESIDENT_03` | 111.340812922 | PASS | PASS |
+
+- Median: `108.782176018` sec
+- Run-to-run range: `2.832067967` sec
+- Difference from Step 41: `+1.027962923` sec (`+0.9540%`)
+
+All three diagnostic-off runs passed both correctness checks. The intended
+transfer-count reduction was not profiled with Nsight Systems, and the median
+has no performance advantage over Step 41. Step 45 is rejected and does not
+replace the official baseline.

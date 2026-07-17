@@ -1698,3 +1698,22 @@ SEPPOTF accounts for `84.0486%` of NONLOCF and `45.6432%` of ELECTF. The next
 single theme is a bounded SEPPOTF GPU port and COEF/data-ownership review that
 preserves arithmetic order, MPI boundaries, and the CPU fallback. The official
 baseline remains the Step 41 median of `107.754213095` sec.
+
+## Step 45: Retain COEF Device Allocation Across Time Steps (Rejected)
+
+Implementation `da24adf` extended the COEF device allocation across the full
+time-step loop to remove the next-step FRPRMN COEF H2D copyin. It retained the
+D2H before ELECTF, per-sequence COEF0 ownership, SEPPOTF, MPI, and arithmetic
+order.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP45_COEF_RESIDENT_01` | 108.508744955 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP45_COEF_RESIDENT_02` | 108.782176018 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP45_COEF_RESIDENT_03` | 111.340812922 | PASS | PASS |
+
+The median is `108.782176018` sec with a `2.832067967` sec range. It is
+`1.027962923` sec (`0.9540%`) slower than Step 41 and has no performance
+advantage. The expected H2D reduction was not verified with Nsight Systems.
+Step 45 is rejected, and the official baseline remains the Step 41 median of
+`107.754213095` sec.
