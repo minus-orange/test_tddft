@@ -441,6 +441,15 @@ C
       if (my_rank.eq.0 ) write(6,*)' something wrong in nonlocf'
       stop
       endif
+! Step 46 ownership diagnostic.  Map each parent object once around the k-point
+! loop so the SEPPOTF dummy sections can be checked with present semantics.
+! No arithmetic is moved to the device in this step.
+!$acc data present(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc& copyin(G2(1:4,1:NG2Q,1:NUMKQ),
+!$acc& VPJ(1:NGcont,1:3,1:4,1:NTYQ,1:NUMKQ),
+!$acc& VPP(1:3,1:4,1:NTYQ))
+!$acc& create(YLM(1:NGcont,1:16),RHO2(1:NXYZ),
+!$acc& WORK2(1:NG2Q,1:7),DCOEF(1:NG2Q,1:21))
       DO 580 IK=1,NUMK
 c         DO 910 JJB=1,MBLK
 c            IF(JJB.EQ.MBLK) THEN
@@ -546,6 +555,7 @@ c       write(6,*)'my_rank=',my_rank,'IK=',ik,'DO 588 loop end'
 c **** temp check : end
          NG26=NG2(IK)/6
          CALL GETYLM(NG2Q,NG26,G2(1,1,IK),RHOA,YLM,TPIBA,NGcont)
+!$acc update device(YLM(1:NGcont,1:16))
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'after end of GETYLM'
 c **** temp check : end
@@ -565,6 +575,7 @@ c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'after end of SEPPOTF'
 c **** temp check : end
   580 CONTINUE   ! end of IK loop
+!$acc end data
 c ***  temp check
 c      write(6,*)' After sub. SEPPOTF '
 c      write(6,*)' EENL '
@@ -758,6 +769,17 @@ c
       PI=4.D0*ATAN(1.D0)
       FPI=4.D0*PI
       FPISQ=FPI**2
+      NBLENG=NEND(MY_RANK)-NBEGIN(MY_RANK)+1
+! Validate that 2-D and column dummy sections resolve inside their mapped
+! parent objects.  This serial region intentionally changes no numerical data.
+!$acc serial present(COEF(1:NG2Q,1:NBLENG),
+!$acc& G2K(1:4,1:NG2Q),YLM(1:NGcont,1:16),
+!$acc& VPJ(1:NGcont,1:3,1:4,1:NTYQ),VPP(1:3,1:4,1:NTYQ),
+!$acc& EXTAU(1:NG2Q),WORK1(1:NG2Q),WORK2(1:NG2Q),
+!$acc& WORK3(1:NG2Q),WORK4(1:NG2Q),WORK5(1:NG2Q),
+!$acc& WORK6(1:NG2Q),WORK7(1:NG2Q),DCOEF(1:NG2Q,1:21))
+      IACC_PROBE=NBLENG
+!$acc end serial
 CC      CALL CLOCK(TIM0)
 C
 c ***  temp check
