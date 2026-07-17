@@ -1450,3 +1450,53 @@ copyinをloop外の2回へ置き換え、最大5,662回の反復H2D削減とな�
 回数は今後Nsight Systemsで再確認できます。全正式runのcorrectnessがPASSし、
 中央値も改善し、time-step loop内転送削減という最終目的へ直接寄与するため、
 Step 41を採用し、正式baselineを`107.754213095`秒へ更新します。
+
+## 2026-07-17 進捗報告用概要
+
+FPSEID21 TDDFTでは、NVHPC OpenACCとcuFFTを用いたGPU化を段階的に進めています。
+初期段階ではFFT backendをCPU FFTWからcuFFTへ移行し、その後、バンドごとに個別実行
+していたS2 local FFTをlocal band数`nbndloc`単位のBatched cuFFTへ変更しました。
+tutorialの1 MPI rank実行では`nbndloc=32`なので、32 bandsを1 batchとして処理します。
+さらに、TMEVL後のcharge-density再構築もlocal bandsをまとめたBatched cuFFTとdevice上の
+密度加算へ変更しました。
+
+FFT以外では、nonlocal projector、運動エネルギー、密度再構築などの主要演算をGPUへ移し、
+`COEF`、作業配列、`J2G`、`OCC`などのdevice residencyを延長してきました。現在は、
+time-step loop内で繰り返される大規模配列転送をloop外の最小回数へ移す方針で、Step 42の
+`Vloc` residencyをA100で検証待ちです。Step 42は未検証実装であり、以下の正式baselineは
+Step 41のままです。
+
+### GPU化の代表的な性能推移
+
+Si111-H、100 TDDFT time steps、1 MPI rankの代表値です。
+
+| 構成・段階 | 100-step時間 (sec) | 位置付け |
+|---|---:|---|
+| NVHPC CPU FFT | 567.725 | 初期CPU FFT比較値 |
+| 初期cuFFT backend | 496.290 | CPU FFT比12.6%短縮 |
+| Step 21: S2 local FFT Batched化 | 146.540076017 | 正式採用値 |
+| Step 33: charge-density FFT Batched化 | 116.124675989 | 正式採用値 |
+| Step 37: pinned dynamic allocation | 108.096301079 | 正式採用値 |
+| Step 41: static metadata residency | **107.754213095** | 現在のA100正式baseline |
+
+Step 41はA100-PCIE-40GB、1 GPU / 1 MPI rank、diagnostic OFFでの3回中央値で、
+全runが通常checkとrelaxed compareにPASSしています。初期cuFFT値からは約78.3%、
+初期NVHPC CPU FFT値からは約81.0%短縮しました。
+
+### Intel、GPU、NEC VE3の参考比較
+
+| 環境 | 100-step時間 (sec) | Intel 8592+比 | 扱い |
+|---|---:|---:|---|
+| Intel Xeon Platinum 8592+ | 378.317744 | 1.00x | CPU版の記録値 |
+| NVIDIA A100-PCIE-40GB | 107.754213095 | 3.51x | 正式3回中央値 |
+| NVIDIA H100 | 59.0654609203 | 6.41x | 単発参考値、check・relaxed compare PASS |
+| NEC VE3 | 21.83691485 | 17.32x | 信頼済みVE向けコードの単発参考値 |
+
+VE3はA100正式baselineに対して単純時間比で約4.93倍高速でした。VE3値は、信頼済みの
+VE向けコードと実行方法による参考性能として記録します。GPU版用のGNU referenceと
+検査toolをそのまま適用すると、`FPSEID_PROFILE` block欠落に加えてforceとpositionsが
+既定toleranceを超えるため、GPU版のcorrectness baselineや正式性能baselineには使用しません。
+
+Intel、A100、H100、VE3はhardware、compiler、最適化経路、測定系列が異なります。
+この表は異種architecture間の傾向を示す参考比較であり、A100内の採否判断には引き続き
+同一条件のdiagnostic OFF 3回中央値だけを使用します。
