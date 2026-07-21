@@ -17,9 +17,9 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: accepted Step 41 source restored; Step 50 reconfirms
-  host-only `Part1to5` near `36.31` sec but its initial VPJ_GEN sub-timers mix
-  TMEVL calls; a caller-scoped diagnostic correction is being prepared
+- Current HEAD status: accepted Step 41 remains the official baseline; Step 51
+  attributes `36.132464` sec to the `Part1to5` VPJ_GEN CPU integral, and the
+  bounded Step 52 implementation is awaiting its first A100 correctness run
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -143,6 +143,24 @@ value was only `0.075660` sec and remains a valid upper bound. Step 51 changes
 only diagnostic scoping so TMEVL calls do not enter the internal timers; normal
 builds retain the original argument list after preprocessing.
 
+Step 51 archive `nvhpc_cufft_1rank_02_STEP51_PART1TO5_SCOPED_01` passed normal
+check and relaxed compare at revision `c880d0c`. Its `108.201426983` sec wall
+is diagnostic only. The corrected `Part1to5` scope measured `36.132464` sec in
+the VPJ_GEN CPU radial integral, `0.037303` sec in MPI all-reduction, and
+`0.060445` sec in host post-reduction. The children account for `36.284148` of
+the `36.306091` sec parent. CPU computation therefore explains `99.52%` of
+`Part1to5` and `75.99%` of the `47.546135` sec FRPRMN residual, with matching
+GPU idle; MPI is negligible.
+
+Step 52 is one bounded optimization hypothesis: only `Part1to5` VPJ_GEN radial
+integration is parallelized across G vectors on the GPU. Each G vector retains
+the original sequential radial accumulation order, the host MPI boundary is
+unchanged, and TMEVL retains the original CPU path. Static pseudopotential
+tables remain resident across the time-step loop; five phase G arrays share a
+single data region per `Part1to5` call; the contiguous VPJWORK result returns
+to the host immediately before MPI. Diagnostics are off for performance runs.
+Run 01 is the correctness gate; runs 02 and 03 are allowed only after it passes.
+
 The 32-band tutorial is the smallest operational case expected. A dedicated
 smaller-band multi-gang path is out of scope. The current one-gang-per-band path
 expands naturally with local band count, so shared bottlenecks should be
@@ -180,15 +198,13 @@ is not the dominant wall-time cost, although Step 48 still recorded 37,560 H2D
 and 5,348 D2H operations. Reducing their count can remove runtime and
 synchronization boundaries in addition to bytes.
 
-Step 48 completed the current-source trace. The next task remains diagnostic
-only: run one default-off-by-design timer build that divides the FRPRMN host
-preparation into COEF setup, GDUMP preparation, `Part1to5`, and EXTAU
-preparation. Use the result with Step 48 to narrow the remaining CPU,
-runtime/API, synchronization, and GPU-idle components. Do not use the
-timer-enabled wall as a baseline and do not begin an optimization.
+Steps 49 through 51 completed the FRPRMN decomposition. The immediate task is
+to run the Step 52 implementation once on A100 with diagnostics off. Require
+normal check and relaxed compare to pass before collecting runs 02 and 03.
+Adopt only if their median has a supported advantage over Step 41; otherwise
+revert Step 52 and retain the official baseline.
 
-Do not begin another offload implementation until the diagnostic identifies one
-evidence-backed bottleneck and Main presents one bounded hypothesis. Step 47
+Do not begin a second offload implementation until Step 52 is decided. Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce
 only a noise-level `0.0291%` median advantage; the same form must not be
 retried. Likewise, do not retry Step 45 whole-loop COEF allocation, Step 42

@@ -34,6 +34,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 48 | Re-profile the restored Step 41 source with Nsight Systems | 110.223116875 (diagnostic trace) | measurement | `adf4d5b` |
 | 49 | Decompose FRPRMN host preparation | 107.879790783 (one diagnostic run) | measurement | `dcb686e` |
 | 50 | Split Part1to5 and VPJ_GEN timing | 107.682908058 (diagnostic; VPJ_GEN scope mixed) | measurement | `6bc6770` |
+| 51 | Scope VPJ_GEN timing to Part1to5 | 108.201426983 (one diagnostic run) | measurement | `c880d0c` |
 
 ## Other Rejected Experiments
 
@@ -504,3 +505,39 @@ Step 51 corrects measurement scope only. In diagnostic builds, the caller
 marks `Part1to5` calls for timing and TMEVL calls as excluded. Preprocessing
 removes the selector argument and all timers from normal builds. No arithmetic,
 loop order, MPI boundary, or OpenACC region changes.
+
+## Step 51 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP51_PART1TO5_SCOPED_01`
+- Tested revision: `c880d0c2e3fb04b9ad1605ad3e1fc98809caf8c9`
+- Diagnostic wall: `108.201426983` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- FRPRMN residual outside TMEVL: `47.546135` sec
+- `frprmn_part1to5`: 200 calls, `36.306091` sec (`76.36%` of residual)
+- `part1to5_getylm`: 1,000 calls, `0.053936` sec
+- Scoped `vpjgen_cpu_integral`: 2,000 calls, `36.132464` sec
+- Scoped `vpjgen_mpi_allreduce`: 2,000 calls, `0.037303` sec
+- Scoped `vpjgen_postreduce`: 2,000 calls, `0.060445` sec
+
+The scoped children total `36.284148` sec, leaving only `0.021943` sec of
+`Part1to5` overhead. The CPU radial integral accounts for `99.52%` of
+`Part1to5` and `75.99%` of the FRPRMN residual; MPI accounts for only `0.10%`
+of `Part1to5`. Together with Step 48, this completes the requested
+classification: the dominant component is CPU computation with corresponding
+GPU idle, while MPI, runtime/API setup, explicit synchronization, and
+allocation are secondary.
+
+## Step 52 Hypothesis
+
+Offload only the scoped `VPJ_GEN` radial integration called by `Part1to5`.
+Parallelize independent G vectors on the GPU while preserving the radial-mesh
+accumulation order within each G vector and retaining the existing host
+`MPI_Allreduce` boundary. Keep TMEVL on the original CPU path. Keep the static
+pseudopotential tables resident across the time-step loop, map all five phase
+G arrays once per `Part1to5` call, and download the contiguous `VPJWORK` result
+immediately before MPI. This is one bounded implementation hypothesis.
+
+The first A100 run is a correctness gate with diagnostics off. If check and
+relaxed compare pass, collect runs 02 and 03 and compare their median against
+the official Step 41 baseline `107.754213095` sec. Reject and revert Step 52 if
+the three-run result has no supported performance advantage.

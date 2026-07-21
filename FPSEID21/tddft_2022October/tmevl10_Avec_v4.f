@@ -194,9 +194,9 @@ c         CALL GETYLM(NG2Q,NG2,G2,RHO3,YLM,TPIBA)
      &    TPIBA,NTYQ,ntype,GMHF,MXOFL
      &    ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-     &    ,mshbegin,mshend,ncpuq,0 )
+     &    ,mshbegin,mshend,ncpuq,0,0 )
 #else
-     &    ,mshbegin,mshend,ncpuq )
+     &    ,mshbegin,mshend,ncpuq,0 )
 #endif
          endif
 c *** temp check

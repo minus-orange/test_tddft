@@ -2735,6 +2735,13 @@ c  temp check : end
 c *** for P-A
 c  note TIMEV calls GG2, YLM, VPJ, VPP2
 c
+!$acc data copyin(G21(1:4,1:NGcont),G22(1:4,1:NGcont),
+!$acc& G23(1:4,1:NGcont),G24(1:4,1:NGcont),G25(1:4,1:NGcont))
+!$acc& present(RAD(1:MESHQ,1:NTYQ),
+!$acc& PSPOT(1:MESHQ,1:ISPD,1:NTYQ),
+!$acc& PSPOT2(1:MESHQ,1:ISPD,1:NTYQ),
+!$acc& PHIL(1:MESHQ,1:4,1:NTYQ))
+!$acc& create(VPJWORK(1:NGcont,1:3))
 c     *** part 1 ***
       do ig=1,NGcont
        GX=G21(1,IG)
@@ -2755,9 +2762,9 @@ c     *** part 1 ***
      & ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-     & ,mshbegin,mshend,ncpuq,1 )
+     & ,mshbegin,mshend,ncpuq,1,1 )
 #else
-     & ,mshbegin,mshend,ncpuq )
+     & ,mshbegin,mshend,ncpuq,1 )
 #endif
 c
 c     *** part 2 ***
@@ -2780,9 +2787,9 @@ c     *** part 2 ***
      & ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-     & ,mshbegin,mshend,ncpuq,1 )
+     & ,mshbegin,mshend,ncpuq,1,1 )
 #else
-     & ,mshbegin,mshend,ncpuq )
+     & ,mshbegin,mshend,ncpuq,1 )
 #endif
 c
 c     *** part 3 ***
@@ -2805,9 +2812,9 @@ c     *** part 3 ***
      & ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-     & ,mshbegin,mshend,ncpuq,1 )
+     & ,mshbegin,mshend,ncpuq,1,1 )
 #else
-     & ,mshbegin,mshend,ncpuq )
+     & ,mshbegin,mshend,ncpuq,1 )
 #endif
 c
 c     *** part 4 ***
@@ -2830,9 +2837,9 @@ c     *** part 4 ***
      & ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-     & ,mshbegin,mshend,ncpuq,1 )
+     & ,mshbegin,mshend,ncpuq,1,1 )
 #else
-     & ,mshbegin,mshend,ncpuq )
+     & ,mshbegin,mshend,ncpuq,1 )
 #endif
 c
 c     *** part 5 ***
@@ -2855,10 +2862,11 @@ c     *** part 5 ***
      & ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-     & ,mshbegin,mshend,ncpuq,1 )
+     & ,mshbegin,mshend,ncpuq,1,1 )
 #else
-     & ,mshbegin,mshend,ncpuq )
+     & ,mshbegin,mshend,ncpuq,1 )
 #endif
 c
+!$acc end data
       return
       end

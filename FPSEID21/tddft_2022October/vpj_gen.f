@@ -4,9 +4,9 @@ c
      &    ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-     &    ,mshbegin,mshend,ncpuq,IPROF )
+     &    ,mshbegin,mshend,ncpuq,IACC,IPROF )
 #else
-     &    ,mshbegin,mshend,ncpuq )
+     &    ,mshbegin,mshend,ncpuq,IACC )
 #endif
       implicit double precision(a-h,o-z)
       include 'mpif.h'
@@ -129,6 +129,14 @@ c
         endif
        enddo
 c
+#ifdef _OPENACC
+      if (IACC.eq.1) then
+       call VPJ_GEN_ACC_INTEGRAL(G2,VPJWORK,TPIBA,FPI,ITY,LI,
+     &  RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NTYQ,NGNL(ITY),NGcont,
+     &  mshbegin(my_rank),mshend(my_rank))
+!$acc update self(VPJWORK(1:NGcont,1:3))
+      else
+#endif
 C*****LOOP OVER MESH
       SUM=0.D0
 c      DO 50 I=1,MESH
@@ -236,6 +244,9 @@ c      endif
 c *** temp check
 c
    50 CONTINUE
+#ifdef _OPENACC
+      endif
+#endif
 c      
 c +++ 2020 begin insert
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
@@ -381,5 +392,72 @@ c *** attention end:
       endif
       enddo  ! end of ity loop
 c      
+      return
+      end
+c
+      subroutine VPJ_GEN_ACC_INTEGRAL(G2,VPJWORK,TPIBA,FPI,ITY,LI,
+     & RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NTYQ,NGNL0,NGcont,
+     & IBEGIN,IEND)
+      implicit double precision(a-h,o-z)
+      dimension G2(4,NGcont),VPJWORK(NGcont,3)
+      dimension RAD(MESHQ,NTYQ),PSPOT(MESHQ,ISPD,NTYQ),
+     & PSPOT2(MESHQ,ISPD,NTYQ),PHIL(MESHQ,4,NTYQ)
+c
+!$acc parallel loop gang vector vector_length(256)
+!$acc& present(G2(1:4,1:NGcont),VPJWORK(1:NGcont,1:3),
+!$acc& RAD(1:MESHQ,1:NTYQ),PSPOT(1:MESHQ,1:ISPD,1:NTYQ),
+!$acc& PSPOT2(1:MESHQ,1:ISPD,1:NTYQ),
+!$acc& PHIL(1:MESHQ,1:4,1:NTYQ))
+!$acc& private(I,TEMP,TEMP2,TEMP3,TEMP4,SPBV,S1,S2,S3)
+      do IG=1,NGcont
+       S1=0.D0
+       S2=0.D0
+       S3=0.D0
+       if (IG.le.NGNL0) then
+!$acc loop seq
+       do I=IBEGIN,IEND
+        TEMP=DSQRT(G2(4,IG))*RAD(I,ITY)*TPIBA
+        if (LI.eq.1) then
+         if (IG.eq.1 .and. TEMP.le.1.D-7) then
+          SPBV=1.D0
+         else
+          SPBV=DSIN(TEMP)/TEMP
+         endif
+        elseif (LI.eq.2) then
+         if (IG.eq.1 .and. G2(4,1).eq.0.D0) then
+          SPBV=0.D0
+         else
+          SPBV=(DSIN(TEMP)-TEMP*DCOS(TEMP))/TEMP**2
+         endif
+        elseif (LI.eq.3) then
+         if (IG.eq.1 .and. G2(4,1).eq.0.D0) then
+          SPBV=0.D0
+         else
+          SPBV=((3.D0-TEMP**2)*DSIN(TEMP)
+     &         -3.D0*TEMP*DCOS(TEMP))/TEMP**3
+         endif
+        else
+         if (IG.eq.1 .and. G2(4,1).eq.0.D0) then
+          SPBV=0.D0
+         else
+          TEMP2=TEMP*TEMP
+          TEMP3=TEMP*TEMP2
+          TEMP4=TEMP2*TEMP2
+          SPBV=((15.D0-6.D0*TEMP2)*DSIN(TEMP)
+     &         +(TEMP3-15.D0*TEMP)*DCOS(TEMP))/TEMP4
+         endif
+        endif
+        S1=S1+FPI*PSPOT(I,LI,ITY)*PHIL(I,LI,ITY)
+     &        *RAD(I,ITY)*SPBV
+        S2=S2+FPI*PSPOT2(I,LI*2-1,ITY)*PHIL(I,LI,ITY)
+     &        *RAD(I,ITY)*SPBV
+        S3=S3+FPI*PSPOT2(I,LI*2,ITY)*PHIL(I,LI,ITY)
+     &        *RAD(I,ITY)*SPBV
+       enddo
+       endif
+       VPJWORK(IG,1)=S1
+       VPJWORK(IG,2)=S2
+       VPJWORK(IG,3)=S3
+      enddo
       return
       end
