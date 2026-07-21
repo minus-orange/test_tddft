@@ -5,11 +5,11 @@ Last updated: 2026-07-21
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `4aaa33c` (`Keep static TDDFT metadata resident`)
+- Accepted source baseline: `22aad92` (`Offload Part1to5 VPJ radial integration`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: Step 52 candidate with Step 37 pinned allocation mode
+- Current configuration: accepted Step 52 with Step 37 pinned allocation mode
 - Current source implementation: Step 52 commit `22aad92`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
@@ -17,11 +17,10 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 52 run 01 passed both correctness checks at
-  `72.9733359814` sec; runs 02 and 03 are required before adoption
+- Current HEAD status: Step 52 accepted after three correctness-passing runs
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 41 median `107.754213095` sec
+- Performance baseline: Step 52 median `73.4374880791` sec
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
@@ -160,13 +159,12 @@ single data region per `Part1to5` call; the contiguous VPJWORK result returns
 to the host immediately before MPI. Diagnostics are off for performance runs.
 Run 01 is the correctness gate; runs 02 and 03 are allowed only after it passes.
 
-Step 52 run 01 archive `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_01` passed
-normal check and relaxed compare at revision `22aad92`. Its wall was
-`72.9733359814` sec, `32.2780%` faster than the official Step 41 median.
-`frprmn` fell to `64.260935` sec while `tmevl_total` remained `51.283649` sec,
-leaving a `12.977286` sec residual outside TMEVL. This is consistent with the
-targeted CPU integral being removed from the host critical path. The result is
-preliminary until runs 02 and 03 complete the controlled series.
+Step 52 runs 01 through 03 all passed normal check and relaxed compare at
+revision `22aad92`. Their walls were `72.9733359814`, `73.4374880791`, and
+`73.4901540279` sec. The median is `73.4374880791` sec with a
+`0.5168180465` sec range, `31.8472%` faster than Step 41. In the median run,
+`frprmn` was `64.618912` sec and `tmevl_total` was `51.468926` sec, leaving a
+`13.149986` sec residual. Step 52 is the official baseline.
 
 The 32-band tutorial is the smallest operational case expected. A dedicated
 smaller-band multi-gang path is out of scope. The current one-gang-per-band path
@@ -205,13 +203,13 @@ is not the dominant wall-time cost, although Step 48 still recorded 37,560 H2D
 and 5,348 D2H operations. Reducing their count can remove runtime and
 synchronization boundaries in addition to bytes.
 
-Steps 49 through 51 completed the FRPRMN decomposition. The immediate task is
-to run the Step 52 implementation once on A100 with diagnostics off. Require
-normal check and relaxed compare to pass before collecting runs 02 and 03.
-Adopt only if their median has a supported advantage over Step 41; otherwise
-revert Step 52 and retain the official baseline.
+Steps 49 through 51 completed the FRPRMN decomposition and Step 52 removed its
+dominant CPU integral from the host critical path. The immediate task is a
+diagnostic-only Nsight Systems trace of the accepted Step 52 source. Recompute
+kernel, transfer, runtime/API, synchronization, MPI, and GPU-idle shares before
+selecting another optimization. Do not use trace wall as a baseline.
 
-Do not begin a second offload implementation until Step 52 is decided. Step 47
+Do not begin another offload implementation until Step 52 is re-profiled. Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce
 only a noise-level `0.0291%` median advantage; the same form must not be
 retried. Likewise, do not retry Step 45 whole-loop COEF allocation, Step 42
@@ -233,7 +231,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `107.754213095` sec.
+6. Compare the three-run median with `73.4374880791` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

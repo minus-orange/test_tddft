@@ -1758,3 +1758,32 @@ Step 47 is rejected, and the official baseline remains the Step 41 median of
 Rollback `35f8542` removed Step 47 and the completed Step 46 diagnostic source,
 restored the affected source files to the accepted Step 41 state, and passed
 the CPU/FFTW fallback full link.
+
+## Steps 48-51: Re-profile Step 41 and Decompose FRPRMN
+
+The Step 48 Nsight Systems trace bounded all MPI collectives at
+`0.260338098` sec and found negligible allocation activity. Default-off timer
+decomposition in Steps 49-51 measured `Part1to5` at `36.306091` sec, including
+`36.132464` sec in the VPJ_GEN CPU radial integral and only `0.037303` sec in
+MPI. Host computation with corresponding GPU idle was the dominant class.
+
+## Step 52: Offload Part1to5 VPJ Radial Integration (Accepted)
+
+Implementation `22aad92` parallelizes only the VPJ_GEN radial integration
+called by `Part1to5` across G vectors. It preserves radial accumulation order
+within each G vector, the host MPI boundary, and the original TMEVL CPU path,
+while keeping static pseudopotential tables resident across the time-step loop.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_01` | 72.9733359814 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_02` | 73.4374880791 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_03` | 73.4901540279 | PASS | PASS |
+
+The median is `73.4374880791` sec with a `0.5168180465` sec range. It is
+`34.3167250159` sec (`31.8472%`) faster than the Step 41 median, consistent
+with the large reduction in the targeted FRPRMN residual. Step 52 is accepted
+as the official baseline. The next task is diagnostic only: re-profile the
+accepted Step 52 source with Nsight Systems and reclassify remaining kernel,
+transfer, runtime/API, synchronization, MPI, and GPU-idle time. Trace wall is
+not a performance baseline.

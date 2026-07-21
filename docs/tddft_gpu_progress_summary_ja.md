@@ -1613,3 +1613,28 @@ Step 41中央値`107.754213095`秒を維持します。
 
 rollback `35f8542`でStep 47と完了済みStep 46診断sourceを除去し、対象sourceを
 正式Step 41状態へ戻しました。rollback後のCPU/FFTW fallback full linkはPASSしました。
+
+## Step 48-51: 正式Step 41再診断とFRPRMN分解
+
+Step 48のNsight Systems再診断では、全MPI collectiveは`0.260338098`秒で、allocationも
+無視できる量でした。Step 49-51のdefault-OFF timer分解により、`Part1to5`は
+`36.306091`秒、そのうち`VPJ_GEN`のCPU動径積分が`36.132464`秒、MPIが
+`0.037303`秒と確定しました。CPU演算と対応するGPU idleが支配要因です。
+
+## Step 52: Part1to5 VPJ動径積分GPU化（採用）
+
+実装`22aad92`は、`Part1to5`から呼ばれる`VPJ_GEN`動径積分だけをGベクトル間で
+GPU並列化しました。各G内の動径積分順序、host MPI境界、TMEVLのCPU経路を維持し、
+static pseudopotential表をtime-step loop全体でresident化しています。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_01` | 72.9733359814 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_02` | 73.4374880791 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_03` | 73.4901540279 | PASS | PASS |
+
+中央値は`73.4374880791`秒、実行幅は`0.5168180465`秒です。Step 41中央値より
+`34.3167250159`秒（`31.8472%`）高速で、対象FRPRMN残差の大幅減少とも整合します。
+Step 52を正式baselineとして採用します。次は追加最適化ではなく、正式Step 52 sourceを
+Nsight Systemsで再計測し、残るkernel、転送、runtime/API、同期、MPI、GPU idleを
+再分類します。trace wallは性能baselineに使用しません。

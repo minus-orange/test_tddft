@@ -341,3 +341,17 @@ The planned order is:
 Do not retry fine-grained section copies, Step-31-style GDUMP reuse,
 ownership-free YLM/`work2_` paths, or small-band-only kernels. Different
 hardware and input sizes retain independent performance baselines.
+
+## Post-Step-52 Update
+
+Steps 48-51 completed the FRPRMN diagnosis described above and identified the
+`36.132464` sec VPJ_GEN CPU radial integral inside `Part1to5` as the dominant
+component. Step 52 implementation `22aad92` offloaded only that integral and
+achieved a three-run median of `73.4374880791` sec, `31.8472%` faster than
+Step 41. Step 52 is now the official baseline.
+
+The earlier planned-order sections are completed history. The current next
+theme is diagnostic only: re-profile the accepted Step 52 source with Nsight
+Systems, including its remaining `13.149986` sec FRPRMN residual, and reclassify
+CUDA kernels, H2D/D2H, runtime/API, synchronization, MPI, and GPU idle before
+selecting one new bounded hypothesis. Trace wall is not a performance baseline.

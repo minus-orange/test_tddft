@@ -25,46 +25,46 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 41です。
+正式baselineは論理Step 52です。
 
-- source implementation: `4aaa33c`
+- source implementation: `22aad92`
 - pinned build mode: `9cbb6bc`
 - A100-PCIE-40GB、1 GPU / 1 MPI rank
 - NVHPC + OpenACC + cuFFT
 - `-gpu=mem:separate:pinnedalloc`
 - Si111-H、100 steps
-- diagnostic OFF 3回中央値: `107.754213095 sec`
+- diagnostic OFF 3回中央値: `73.4374880791 sec`
+- 実行幅: `0.5168180465 sec`
 - 全runでnormal checkとrelaxed compare PASS
 
-現在HEADはStep 47結果記録とrollback後です。rollback `35f8542`によりStep 47実装と
-Step 46診断sourceは除去され、影響sourceは正式Step 41へ戻っています。CPU/FFTW
-fallback full linkはrollback後にPASSしています。最新HEADを自動的にbaseline扱い
-しないでください。
+Step 52は`Part1to5`から呼ばれる`VPJ_GEN`動径積分だけをGベクトル間でGPU並列化し、
+各G内の動径積分順序、host MPI境界、TMEVLのCPU経路を維持しています。Step 41中央値
+より`34.3167250159 sec`（`31.8472%`）高速で、3回のcorrectnessと性能採否gateを
+満たしたため正式採用済みです。最新HEADを自動的にbaseline扱いしない原則は維持します。
 
 最終ゴールは、タイムステップループ内を可能な限りGPU化し、大規模配列のhost/device
 転送をloop入口、必須MPI/host consumer、出力へ集約して最小化することです。ただし、
 性能を出す鍵はGPU化routine数ではなくGPUの連続稼働時間です。
 
-現時点の概算:
+現時点の確定値:
 
-- Step 41 run 02 `time_step_total`: `108.026444 sec`
-- `tmevl_total`: `51.442021 sec`、全体の`47.620%`、GPU主体
-- `electf_force`: `9.055956 sec`、現在ほぼhost
-- `frprmn - tmevl_total`: `47.476614 sec`、CPU/GPU/同期等が未分解
-- アルゴリズム上のGPU主体coverage: 約`48%`
-- 混在領域を含む実務的推定: `48-55%`
-- Step 38のCUDA kernel合計逆算: 約`12.48 sec`、trace wallの約`11.3%`
-- Step 38 H2D/D2H: `1.272192545 / 0.440373299 sec`、合計約`1.55%`
-- Step 38 copy回数: H2D 44,166、D2H 5,348
+- Step 52 run 02 `time_step_total`: `73.680412 sec`
+- `frprmn`: `64.618912 sec`
+- `tmevl_total`: `51.468926 sec`
+- `frprmn - tmevl_total`: `13.149986 sec`
+- `s2_nonlocal`: `11.536198 sec`
+- `exnlp_gemm_dot`: `8.450867 sec`
+- Step 51で判明した旧`VPJ_GEN` CPU積分: `36.132464 sec`
 
-Step 38はStep 41 J2G/OCC residencyより前なので、現在の転送回数ではありません。
+Step 48のNsight値はStep 52 VPJ GPU化より前なので、現在のkernel時間・転送回数・
+同期構造ではありません。
 
-次の1テーマは、追加最適化ではなく正式Step 41 sourceの実行構造再診断です。
+次の1テーマは、追加最適化ではなく正式Step 52 sourceの実行構造再診断です。
 
-1. Step 41をNsight Systemsで再計測する計画と、A100で人間が実行する簡潔なコマンドを
+1. Step 52をNsight Systemsで再計測する計画と、A100で人間が実行する簡潔なコマンドを
    作成する。
 2. CUDA kernel、H2D/D2H、CUDA/OpenACC API、同期、allocation、OS runtimeを収集する。
-3. `47.476614 sec`のFRPRMN未分解領域をCPU演算、MPI、runtime/API、同期、GPU idleへ
+3. `13.149986 sec`のFRPRMN残差をCPU演算、MPI、runtime/API、同期、GPU idleへ
    分類する。
 4. traceだけで不足する場合に限り、default OFFの診断timer仮説を1件提案する。
 5. 診断結果が返るまで追加最適化を実装しない。
@@ -99,7 +99,7 @@ CPU/FFTW fallback、fixed-form Fortran、correctness toleranceを維持してく
 性能採否はdiagnostic OFF、normal checkとrelaxed compare、同条件3回中央値で行います。
 production入力と対応referenceはまだ存在しないため、推測で生成しないでください。
 
-初回報告では、Git状態、正式baseline、Step 38とStep 41の差、現在確定している比率、
+初回報告では、Git状態、正式baseline、Step 48とStep 52の差、現在確定している比率、
 再診断で取得する指標、A100実行コマンド案だけを示し、追加実装へ進まず停止してください。
 
 ---

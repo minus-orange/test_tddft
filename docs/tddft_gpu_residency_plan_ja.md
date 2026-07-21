@@ -319,3 +319,15 @@ Step 42のVloc常駐化も同じ形では再試行しません。
 細粒度section copy、Step 31型GDUMP再利用、ownership未設計のYLM/`work2_`経路、
 小band専用kernelは再試行しません。異なるhardwareや入力サイズは独立baselineで
 評価します。
+
+## Step 52採用後の更新
+
+Step 48-51で上記FRPRMN未分解領域を再診断し、`Part1to5`内の`VPJ_GEN` CPU動径積分
+`36.132464`秒を主因として特定しました。Step 52実装`22aad92`でこの積分だけを
+GPU化し、3回中央値`73.4374880791`秒、Step 41比`31.8472%`高速となったため、
+Step 52を正式baselineとして採用しました。
+
+これ以前の「次の作業順序」は完了済みの履歴です。現在の次テーマは追加最適化ではなく、
+正式Step 52 sourceのNsight Systems再計測です。残る`13.149986`秒のFRPRMN残差を含め、
+CUDA kernel、H2D/D2H、runtime/API、同期、MPI、GPU idleを再分類してから、次の
+bounded hypothesisを1件だけ選びます。trace wallは性能baselineに使用しません。
