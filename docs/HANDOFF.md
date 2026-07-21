@@ -399,6 +399,11 @@ initialization is not a useful optimization target. Step 66 should split kernel
 completion from D2H at the existing synchronous update boundary, with no
 diagnostic-off change.
 
+Step 66 adds two default-off children inside the existing kernel-plus-D2H
+parent. Its explicit wait exists only in the diagnostic build and is placed at
+the already synchronous host update boundary. Use `tools/run_tddft_step66.sh`
+once and require both checks before choosing a kernel or transfer hypothesis.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

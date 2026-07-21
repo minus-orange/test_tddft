@@ -125,6 +125,8 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     （`97.5411%`）。host初期化省略は有力でない。
 31. 次は追加最適化ではなく、既存同期境界でkernel completionとD2Hを分けるStep 66。
     diagnostic buildだけに明示waitを入れ、diagnostic-off経路は変更しない。
+32. A100では`./tools/run_tddft_step66.sh`を1回だけ実行し、通常checkとrelaxed compareを
+    必須とする。diagnostic wallはbaselineに使用しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

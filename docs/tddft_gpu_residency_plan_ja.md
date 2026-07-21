@@ -396,3 +396,5 @@ Step 65はこの3区間を分けるtimer専用診断で、diagnostic-off経路�
 
 Step 65ではOpenACC kernel＋D2Hが親の`97.5411%`で、host zeroing 2区間の合計は
 `0.039393`秒でした。Step 66でkernel waitとD2Hを分けてから次の仮説を選びます。
+
+Step 66は診断専用timerと既存同期境界のwaitで分解し、production動作は変更しません。

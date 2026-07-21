@@ -1929,3 +1929,7 @@ Step 65 passed both checks. OpenACC kernel plus D2H used `1.872989` sec
 (`97.5411%` of the legacy parent), while host and VPP2 zeroing together used
 only `0.039393` sec. Step 66 will split kernel completion from D2H at the
 existing synchronous update boundary; no optimization is selected yet.
+
+Step 66 adds only default-off kernel-wait and D2H children. The diagnostic-only
+wait is placed at the already synchronous update boundary, leaving production
+behavior unchanged.

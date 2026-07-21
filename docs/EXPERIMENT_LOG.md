@@ -1086,3 +1086,12 @@ bounded diagnostic is to separate kernel completion from the required D2H
 update. Step 66 should add an explicit wait only in the diagnostic build at the
 existing synchronous update boundary, timing kernel-plus-wait and D2H
 separately while leaving the diagnostic-off path unchanged.
+
+## Step 66 Plan
+
+Add two compile-time default-off timers inside the existing Step 65 parent.
+For diagnostic builds only, wait at the already synchronous D2H boundary so
+the GPU kernel completion and D2H update can be timed separately. The
+diagnostic-off instruction stream remains unchanged. Run
+`tools/run_tddft_step66.sh` once and require both correctness checks; its wall
+is not a baseline.

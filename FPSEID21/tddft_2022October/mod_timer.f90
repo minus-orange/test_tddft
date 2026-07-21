@@ -294,5 +294,9 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'vpjgen_vpp2_zero'
   case (75)
     name = 'vpjgen_acc_kernel_d2h'
+  case (76)
+    name = 'vpjgen_acc_kernel_wait'
+  case (77)
+    name = 'vpjgen_acc_d2h'
   end select
 end subroutine fpseid_mod_timer_name

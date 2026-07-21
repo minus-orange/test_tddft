@@ -1755,3 +1755,6 @@ default-off timerだけを追加し、演算とownershipは変更しません。
 Step 65は両checkにPASSしました。legacy parentのうちOpenACC kernel＋D2Hは
 `1.872989`秒（`97.5411%`）、hostとVPP2 zeroingの合計は`0.039393`秒でした。
 host初期化省略は選ばず、Step 66で既存同期境界のkernel完了とD2Hを分けます。
+
+Step 66はdefault-offのkernel-waitとD2H子timerだけを追加します。明示waitは診断buildの
+既存同期境界だけに置き、production動作は変更しません。

@@ -143,12 +143,19 @@ c
       if (IACC.eq.1) then
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       if (IPROF.eq.1) call prof_start(75)
+      if (IPROF.eq.1) call prof_start(76)
 #endif
        call VPJ_GEN_ACC_INTEGRAL(G2,VPJWORK,TPIBA,FPI,ITY,LI,
      &  RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NTYQ,NGNL(ITY),NGcont,
      &  mshbegin(my_rank),mshend(my_rank))
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+!$acc wait
+      if (IPROF.eq.1) call prof_stop(76)
+      if (IPROF.eq.1) call prof_start(77)
+#endif
 !$acc update self(VPJWORK(1:NGcont,1:3))
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      if (IPROF.eq.1) call prof_stop(77)
       if (IPROF.eq.1) call prof_stop(75)
 #endif
       else
