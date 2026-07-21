@@ -1941,3 +1941,7 @@ performance hypothesis changes only this kernel's vector length from 256 to
 
 Step 67 implements only that parameter change and uses the standard
 diagnostic-off three-run gate against the Step 62 median.
+
+Run 01 passed both checks at `68.4441161156` sec, only `0.188650%` below the
+Step 62 median. Because that difference is smaller than the baseline run range,
+runs 02/03 are required before any decision.

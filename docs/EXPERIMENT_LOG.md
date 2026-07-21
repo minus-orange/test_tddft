@@ -1123,3 +1123,18 @@ data mappings, D2H, and MPI. Use `tools/run_tddft_step67.sh 01` as the first
 diagnostic-off correctness/performance gate. If both checks pass, collect runs
 02/03 with `tools/run_tddft_step67.sh 02-03`. Adopt only if the three-run median
 beats the Step 62 baseline `68.5734798908` sec; otherwise revert.
+
+## Step 67 Run 01
+
+- Archive: `nvhpc_cufft_1rank_02_STEP67_VPJ_VL128_01`
+- Tested revision: `39a181ea402498f9e90b73f0183df1c881905094`
+- Wall: `68.4441161156` sec
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `59.595911` sec
+- `tmevl_total`: `51.405188` sec
+- FRPRMN residual outside TMEVL: `8.190723` sec
+
+Run 01 is `0.1293637752` sec (`0.188650%`) faster than the Step 62 median, but
+the advantage is smaller than the Step 62 run range `0.17894752025` sec. This
+single run is inconclusive. Collect runs 02/03 with one command and decide only
+from the three-run median and range.

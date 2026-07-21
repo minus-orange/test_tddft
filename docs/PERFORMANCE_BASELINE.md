@@ -109,6 +109,11 @@ Step 66 separated GPU completion from D2H. Its `68.8903579712` sec diagnostic
 wall passed both checks and is not a baseline. The VPJ kernel used `1.831545`
 sec (`97.0896%` of its parent), while D2H used only `0.047825` sec.
 
+Step 67 run 01 with VPJ vector length 128 passed both checks at
+`68.4441161156` sec. It is only `0.188650%` below the official median and the
+difference is smaller than the official run range, so Step 62 remains the
+baseline until all three Step 67 runs are classified.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

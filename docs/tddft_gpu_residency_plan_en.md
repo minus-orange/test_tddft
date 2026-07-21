@@ -447,3 +447,6 @@ The next bounded performance test changes only VPJ `vector_length(256)` to
 
 Step 67 applies only this vector-length change and will be accepted or reverted
 from the standard three-run gate.
+
+Run 01 passed both checks at `68.4441161156` sec, but its `0.188650%` advantage
+is within the baseline run range. Runs 02/03 remain mandatory.

@@ -1765,3 +1765,6 @@ radial加算順とownershipを維持する単一性能仮説です。
 
 Step 67はこのparameter変更だけを実装し、Step 62中央値に対するdiagnostic OFF 3回gateで
 採否を決めます。
+
+run 01は両checkにPASSし、wallは`68.4441161156`秒でした。Step 62中央値比の改善は
+`0.188650%`でbaseline実行幅より小さいため、run 02/03取得前には採否を決めません。

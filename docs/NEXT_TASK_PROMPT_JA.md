@@ -133,6 +133,9 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     radial加算順、数式、ownership、D2H、MPIは維持し、diagnostic OFF 3回中央値で採否する。
 35. Step 67初回は`./tools/run_tddft_step67.sh 01`だけを実行し、PASS/PASSならrun 02/03を
     `./tools/run_tddft_step67.sh 02-03`の1コマンドで取得する。
+36. Step 67 run 01はcheck/compare PASS、wall `68.4441161156 sec`。Step 62中央値より
+    `0.1293637752 sec`（`0.188650%`）短いが、Step 62実行幅より小さく未確定。
+37. 同じrevisionのまま`./tools/run_tddft_step67.sh 02-03`を実行し、中央値で採否する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

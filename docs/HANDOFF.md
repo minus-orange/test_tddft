@@ -418,6 +418,12 @@ Step 67 implements exactly that one-parameter hypothesis. Run
 three-run median with `68.5734798908` sec and revert if no advantage is
 supported.
 
+Step 67 run 01 archive `nvhpc_cufft_1rank_02_STEP67_VPJ_VL128_01` passed both
+checks at revision `39a181e` and took `68.4441161156` sec. It is
+`0.1293637752` sec (`0.188650%`) below the Step 62 median, but that difference
+is smaller than the Step 62 run range. The result is inconclusive; collect runs
+02/03 without changing the tested revision and decide from the median.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
