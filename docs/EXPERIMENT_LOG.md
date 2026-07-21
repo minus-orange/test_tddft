@@ -33,6 +33,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 47 | Offload the tutorial non-partitioned s/p SEPPOTF path | 107.722885132 | rejected | `0252da9` / `35f8542` |
 | 48 | Re-profile the restored Step 41 source with Nsight Systems | 110.223116875 (diagnostic trace) | measurement | `adf4d5b` |
 | 49 | Decompose FRPRMN host preparation | 107.879790783 (one diagnostic run) | measurement | `dcb686e` |
+| 50 | Split Part1to5 and VPJ_GEN timing | 107.682908058 (diagnostic; VPJ_GEN scope mixed) | measurement | `6bc6770` |
 
 ## Other Rejected Experiments
 
@@ -478,3 +479,28 @@ GPU idle, not transfer, allocation, MPI, or GPU kernel execution.
 The next measurement remains diagnostic only. It separates `GETYLM`, the
 `VPJ_GEN` CPU integral, `MPI_Allreduce`, and post-reduction processing with
 compile-time-default-off timers. No optimization is authorized by Step 49.
+
+## Step 50 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP50_PART1TO5_TIMERS_01`
+- Tested revision: `6bc6770e7ef39429a792e4fa09d7746ea4bfb01e`
+- Diagnostic wall: `107.682908058` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- FRPRMN residual outside TMEVL: `47.367733` sec
+- `frprmn_part1to5`: 200 calls, `36.310625` sec (`76.66%` of residual)
+- `part1to5_getylm`: 1,000 calls, `0.057162` sec
+- Unscoped `vpjgen_cpu_integral`: 3,888 calls, `70.229142` sec
+- Unscoped `vpjgen_mpi_allreduce`: 3,888 calls, `0.075660` sec
+- Unscoped `vpjgen_postreduce`: 3,888 calls, `0.125680` sec
+
+The correctness result and the `Part1to5`/`GETYLM` timers are valid. The three
+`VPJ_GEN` timers are not a `Part1to5` decomposition: `VPJ_GEN` is also called
+from TMEVL, so those timers combine both call sites. This is why the reported
+CPU integral exceeds its intended parent timer. The combined MPI value remains
+useful as an upper bound and confirms that MPI is negligible, but the CPU and
+post-reduction values must not be assigned to the FRPRMN residual.
+
+Step 51 corrects measurement scope only. In diagnostic builds, the caller
+marks `Part1to5` calls for timing and TMEVL calls as excluded. Preprocessing
+removes the selector argument and all timers from normal builds. No arithmetic,
+loop order, MPI boundary, or OpenACC region changes.

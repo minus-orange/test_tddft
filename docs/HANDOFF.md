@@ -17,9 +17,9 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: accepted Step 41 source restored; Step 49 identifies
-  host-only `Part1to5` as `36.452430` sec; one bounded default-off internal
-  timer diagnostic is being prepared
+- Current HEAD status: accepted Step 41 source restored; Step 50 reconfirms
+  host-only `Part1to5` near `36.31` sec but its initial VPJ_GEN sub-timers mix
+  TMEVL calls; a caller-scoped diagnostic correction is being prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -131,6 +131,17 @@ so the dominant `Part1to5` time is host computation with corresponding GPU
 idle. The next diagnostic splits its 1,000 `GETYLM` and 1,000 `VPJ_GEN` calls
 into GETYLM, CPU radial integration, MPI all-reduction, and host post-reduction
 processing. No optimization has been selected.
+
+Step 50 archive `nvhpc_cufft_1rank_02_STEP50_PART1TO5_TIMERS_01` passed normal
+check and relaxed compare at revision `6bc6770`; its `107.682908058` sec wall
+is diagnostic only. `Part1to5` was `36.310625` sec and its 1,000 `GETYLM`
+calls totaled only `0.057162` sec. The internal `VPJ_GEN` timers accidentally
+included calls from TMEVL as well as `Part1to5`, producing an impossible
+`70.229142` sec child value against the `36.310625` sec intended parent. Those
+VPJ_GEN CPU/post values are excluded from attribution. Their combined MPI
+value was only `0.075660` sec and remains a valid upper bound. Step 51 changes
+only diagnostic scoping so TMEVL calls do not enter the internal timers; normal
+builds retain the original argument list after preprocessing.
 
 The 32-band tutorial is the smallest operational case expected. A dedicated
 smaller-band multi-gang path is out of scope. The current one-gang-per-band path

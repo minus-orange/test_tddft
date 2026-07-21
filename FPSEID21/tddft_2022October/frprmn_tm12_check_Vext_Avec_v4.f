@@ -2754,7 +2754,11 @@ c     *** part 1 ***
      &          TPIBA,NTYQ,ntype,GMHF,MXOFL
      & ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
-     & ,mshbegin,mshend,ncpuq  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+     & ,mshbegin,mshend,ncpuq,1 )
+#else
+     & ,mshbegin,mshend,ncpuq )
+#endif
 c
 c     *** part 2 ***
       do ig=1,NGcont
@@ -2775,7 +2779,11 @@ c     *** part 2 ***
      &          TPIBA,NTYQ,ntype,GMHF,MXOFL
      & ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
-     & ,mshbegin,mshend,ncpuq  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+     & ,mshbegin,mshend,ncpuq,1 )
+#else
+     & ,mshbegin,mshend,ncpuq )
+#endif
 c
 c     *** part 3 ***
       do ig=1,NGcont
@@ -2796,7 +2804,11 @@ c     *** part 3 ***
      &          TPIBA,NTYQ,ntype,GMHF,MXOFL
      & ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
-     & ,mshbegin,mshend,ncpuq  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+     & ,mshbegin,mshend,ncpuq,1 )
+#else
+     & ,mshbegin,mshend,ncpuq )
+#endif
 c
 c     *** part 4 ***
       do ig=1,NGcont
@@ -2817,7 +2829,11 @@ c     *** part 4 ***
      &          TPIBA,NTYQ,ntype,GMHF,MXOFL
      & ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
-     & ,mshbegin,mshend,ncpuq  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+     & ,mshbegin,mshend,ncpuq,1 )
+#else
+     & ,mshbegin,mshend,ncpuq )
+#endif
 c
 c     *** part 5 ***
       do ig=1,NGcont
@@ -2838,7 +2854,11 @@ c     *** part 5 ***
      &          TPIBA,NTYQ,ntype,GMHF,MXOFL
      & ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
-     & ,mshbegin,mshend,ncpuq  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+     & ,mshbegin,mshend,ncpuq,1 )
+#else
+     & ,mshbegin,mshend,ncpuq )
+#endif
 c
       return
       end

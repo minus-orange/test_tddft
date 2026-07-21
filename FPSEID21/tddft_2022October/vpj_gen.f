@@ -3,7 +3,11 @@ c
      &                 ,TPIBA,NTYQ,ntype,GMHF,MXOFL
      &    ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
 c
-     &    ,mshbegin,mshend,ncpuq  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+     &    ,mshbegin,mshend,ncpuq,IPROF )
+#else
+     &    ,mshbegin,mshend,ncpuq )
+#endif
       implicit double precision(a-h,o-z)
       include 'mpif.h'
       dimension SPB(NG2Q),G2(4,NG2Q),Gold(4,NG2Q)
@@ -84,7 +88,7 @@ c
       if (MXOFL(ity).ge.1 ) then
       do LI=1,MXOFL(ity)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(50)
+      if (IPROF.eq.1) call prof_start(50)
 #endif
       L=LI-1
 cc ** clean up VPJWORK for parallel mesh integration
@@ -235,15 +239,15 @@ c
 c      
 c +++ 2020 begin insert
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(50)
-      call prof_start(51)
+      if (IPROF.eq.1) call prof_stop(50)
+      if (IPROF.eq.1) call prof_start(51)
 #endif
       LngthDat=3*(NGcont)
       call MPI_ALLReduce(VPJWORK(1,1),VPJ(1,1,li,ity),LngthDat,
      &  MPI_DOUBLE_PRECISION,MPI_SUM, MPI_COMM_WORLD,ierr)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(51)
-      call prof_start(52)
+      if (IPROF.eq.1) call prof_stop(51)
+      if (IPROF.eq.1) call prof_start(52)
 #endif
 c +++ 2020 end insert
 c *** prepare smoothing !! Here cause of the trap!!
@@ -371,7 +375,7 @@ c *** attention end:
        enddo
        endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(52)
+      if (IPROF.eq.1) call prof_stop(52)
 #endif
       enddo  ! end of LI loop
       endif

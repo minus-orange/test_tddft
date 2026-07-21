@@ -7,7 +7,7 @@ set -eu
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_nvhpc"}
-LABEL=${LABEL:-nvhpc_cufft_1rank_02_STEP50_PART1TO5_TIMERS_01}
+LABEL=${LABEL:-nvhpc_cufft_1rank_02_STEP51_PART1TO5_SCOPED_01}
 
 cd "$ROOT_DIR"
 if [ "$(git branch --show-current)" != tddft-openacc-residency ]; then

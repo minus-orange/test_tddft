@@ -193,7 +193,11 @@ c         CALL GETYLM(NG2Q,NG2,G2,RHO3,YLM,TPIBA)
          CALL VPJ_GEN(G2,GG2,NG2Q,NG2,RHO3,VPJ,VPJWORK,VPP2,
      &    TPIBA,NTYQ,ntype,GMHF,MXOFL
      &    ,RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NGNL,OMEGA,NGcont
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+     &    ,mshbegin,mshend,ncpuq,0 )
+#else
      &    ,mshbegin,mshend,ncpuq )
+#endif
          endif
 c *** temp check
 c         if (my_rank.eq.0) then
