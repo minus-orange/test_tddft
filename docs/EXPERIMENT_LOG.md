@@ -998,3 +998,13 @@ three runs, and decide from the three-run median.
 All correctness and median-performance gates pass. The residual reduction is
 consistent with the Step 61 `2.158536` sec restore envelope, so the bounded
 hypothesis is supported and Step 62 is adopted as the official baseline.
+
+## Step 63 Plan
+
+Before selecting another optimization, re-run the existing broad default-off
+FRPRMN timers on the accepted Step 62 source. Use
+`tools/run_tddft_step63.sh` once. It builds only TDDFT, requires both
+correctness checks, archives the result, and prints the current major host
+envelopes in one compact summary. Diagnostic wall is not a baseline. Choose no
+new implementation until the current `8.386479` sec FRPRMN residual is
+reclassified.

@@ -414,3 +414,7 @@ Runs 02 and 03 passed both checks. The final median is `68.5734798908` sec,
 `3.811739%` faster than Step 57, with a `0.17894752025` sec range. Step 62 is
 accepted and becomes the new official baseline; future hypotheses must compare
 against it.
+
+Step 63 will make no source optimization. It will re-run the existing broad
+FRPRMN timers on accepted Step 62 source so the next hypothesis is selected
+from the current residual rather than stale pre-Step-57/62 timings.

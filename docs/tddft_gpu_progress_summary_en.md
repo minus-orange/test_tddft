@@ -1900,3 +1900,7 @@ Runs 02 and 03 also passed both checks at `68.4877460003` and
 `0.17894752025` sec range. Step 62 is therefore accepted as the official
 baseline. The median-wall FRPRMN residual fell by `2.103294` sec, consistent
 with the measured restore envelope.
+
+The next task is measurement-only Step 63: re-run the existing broad FRPRMN
+timers on accepted Step 62 source and reclassify the current residual before
+selecting another bounded optimization.

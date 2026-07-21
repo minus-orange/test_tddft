@@ -364,6 +364,12 @@ Step 57, so Step 62 is accepted as the official source and performance
 baseline. The median-wall run's FRPRMN residual is `8.386479` sec, down
 `2.103294` sec from Step 57 and consistent with the removed restore envelope.
 
+The next bounded task is measurement-only Step 63. Run
+`tools/run_tddft_step63.sh` once to re-measure the broad FRPRMN host envelopes
+on accepted Step 62 source before choosing another optimization. The helper
+builds TDDFT only and requires both correctness checks. Its diagnostic wall is
+not a performance baseline.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

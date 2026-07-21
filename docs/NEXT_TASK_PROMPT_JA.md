@@ -104,6 +104,8 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     check/compare PASS。中央値`68.5734798908 sec`、実行幅`0.17894752025 sec`。
 22. Step 57比`2.7174229622 sec`（`3.811739%`）高速で、median-wall runのFRPRMN残差も
     `2.103294 sec`減り、Step 61の復元計測値と整合するため正式採用した。
+23. 次は追加最適化ではなく、既存の広域timerを正式Step 62 sourceで再実行するStep 63。
+    `./tools/run_tddft_step63.sh`を1回だけ実行し、現行FRPRMN残差を再分類する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
