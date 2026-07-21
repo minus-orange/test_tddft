@@ -418,3 +418,7 @@ against it.
 Step 63 will make no source optimization. It will re-run the existing broad
 FRPRMN timers on accepted Step 62 source so the next hypothesis is selected
 from the current residual rather than stale pre-Step-57/62 timings.
+
+Step 63 classified `99.5381%` of the current `8.547452` sec residual.
+`part1to5` is now the largest exclusive envelope at `2.137278` sec. Re-run its
+existing child timers before selecting any new implementation.

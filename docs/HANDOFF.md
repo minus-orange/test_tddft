@@ -364,11 +364,14 @@ Step 57, so Step 62 is accepted as the official source and performance
 baseline. The median-wall run's FRPRMN residual is `8.386479` sec, down
 `2.103294` sec from Step 57 and consistent with the removed restore envelope.
 
-The next bounded task is measurement-only Step 63. Run
-`tools/run_tddft_step63.sh` once to re-measure the broad FRPRMN host envelopes
-on accepted Step 62 source before choosing another optimization. The helper
-builds TDDFT only and requires both correctness checks. Its diagnostic wall is
-not a performance baseline.
+Step 63 archive `nvhpc_cufft_1rank_02_STEP63_CURRENT_FRPRMN_01` passed both
+checks at revision `16cea8a`; its `68.9920969009` sec wall is diagnostic only.
+The FRPRMN residual was `8.547452` sec and the broad exclusive envelopes covered
+`99.5381%`. The largest were `part1to5=2.137278` sec (`25.0049%`),
+VRHO mix `1.801928` sec, EXTAU preparation `1.468457` sec, and energy diagnostic
+`0.933094` sec. The next bounded task is measurement-only: re-run the existing
+`part1to5` child timers on accepted Step 62 source before choosing an
+optimization.
 
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.

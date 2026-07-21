@@ -1904,3 +1904,9 @@ with the measured restore envelope.
 The next task is measurement-only Step 63: re-run the existing broad FRPRMN
 timers on accepted Step 62 source and reclassify the current residual before
 selecting another bounded optimization.
+
+Step 63 passed both checks and measured an `8.547452` sec FRPRMN residual. The
+broad exclusive timers covered `99.5381%`. `part1to5` was largest at
+`2.137278` sec (`25.0049%`), followed by VRHO mix at `1.801928` sec and EXTAU
+preparation at `1.468457` sec. The next diagnostic will re-run existing
+`part1to5` child timers on current source.

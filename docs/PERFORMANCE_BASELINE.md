@@ -91,6 +91,11 @@ Step 57 as the official baseline. The median-wall run's FRPRMN residual outside
 TMEVL is `8.386479` sec, `2.103294` sec below Step 57's median-wall run, which
 is consistent with the Step 61 restore measurement of `2.158536` sec.
 
+Step 63 re-measured the broad FRPRMN envelopes on accepted Step 62 source. Its
+`68.9920969009` sec diagnostic wall passed both checks and does not replace the
+official median. The measured FRPRMN residual was `8.547452` sec, with
+`99.5381%` coverage by the broad exclusive timers.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

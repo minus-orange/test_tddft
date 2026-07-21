@@ -1008,3 +1008,25 @@ correctness checks, archives the result, and prints the current major host
 envelopes in one compact summary. Diagnostic wall is not a baseline. Choose no
 new implementation until the current `8.386479` sec FRPRMN residual is
 reclassified.
+
+## Step 63 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP63_CURRENT_FRPRMN_01`
+- Tested revision: `16cea8a41bcaa5a9ffe234bb10a96bd2d343019c`
+- Diagnostic wall: `68.9920969009` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `60.112452` sec
+- `tmevl_total`: `51.565000` sec
+- FRPRMN residual outside TMEVL: `8.547452` sec
+- Broad-envelope sum: `8.507974` sec (`99.5381%` coverage)
+- Timer-boundary gap: `0.039478` sec
+- `frprmn_part1to5`: `2.137278` sec (`25.0049%` of residual)
+- `frprmn_vrho_mix`: `1.801928` sec (`21.0815%`)
+- `frprmn_extau_prepare`: `1.468457` sec (`17.1801%`)
+- `frprmn_energy_diag`: `0.933094` sec (`10.9166%`)
+- `frprmn_vrho_mix_control`: `0.671477` sec (child of VRHO mix)
+
+The current residual is again essentially closed. `part1to5` is the largest
+exclusive envelope, so the next diagnostic should re-run its existing GETYLM,
+VPJ integral, MPI, and post-reduction child timers on accepted Step 62 source
+before selecting an optimization.

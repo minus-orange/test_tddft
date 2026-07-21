@@ -106,6 +106,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     `2.103294 sec`減り、Step 61の復元計測値と整合するため正式採用した。
 23. 次は追加最適化ではなく、既存の広域timerを正式Step 62 sourceで再実行するStep 63。
     `./tools/run_tddft_step63.sh`を1回だけ実行し、現行FRPRMN残差を再分類する。
+24. Step 63はcheck/compare PASS。FRPRMN残差`8.547452 sec`の`99.5381%`を再分類した。
+    最大は`part1to5=2.137278 sec`（`25.0049%`）、次いでVRHO mix `1.801928 sec`、
+    EXTAU `1.468457 sec`、energy diagnostic `0.933094 sec`。
+25. 次は追加最適化ではなく、既存timerで現行`part1to5`をGETYLM、VPJ integral、MPI、
+    post-reductionへ再分解してから、単一仮説を選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
