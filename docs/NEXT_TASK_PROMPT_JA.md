@@ -25,22 +25,22 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 57です。
+正式baselineは論理Step 62です。
 
-- source implementation: `8646707`
+- source implementation: `7475ccb`
 - pinned build mode: `9cbb6bc`
 - A100-PCIE-40GB、1 GPU / 1 MPI rank
 - NVHPC + OpenACC + cuFFT
 - `-gpu=mem:separate:pinnedalloc`
 - Si111-H、100 steps
-- diagnostic OFF 3回中央値: `71.2909028530 sec`
-- 実行幅: `0.1379821301 sec`
+- diagnostic OFF 3回中央値: `68.5734798908 sec`
+- 実行幅: `0.17894752025 sec`
 - 全runでnormal checkとrelaxed compare PASS
 
-Step 57は、Step 52の`VPJ_GEN` GPU化を保持したうえで、LOCPOTだけをGベクトル間で
-GPU並列化しています。各G内のITY/K/IA加算順、G=0 host処理、host MPI境界を維持し、
-Step 52中央値より`2.1465852261 sec`（`2.9230%`）、Step 41中央値より
-`36.4633102420 sec`（`33.8393%`）高速です。3回のcorrectnessと性能採否gateを満たして
+Step 62は、採用済みStep 57のVPJ/LOCPOT GPU化を保持し、OpenACC補正失敗経路でdevice
+authorityを更新しない冗長なhost COEF0-to-COEF copyだけを省略しています。VGOLD、device
+復元、MPI、数式順序、CPU/FFTW fallbackは維持しています。Step 57中央値より
+`2.7174229622 sec`（`3.811739%`）高速で、全3 runのcorrectnessと性能採否gateを満たして
 正式採用済みです。最新HEADを自動的にbaseline扱いしない原則は維持します。
 
 最終ゴールは、タイムステップループ内を可能な限りGPU化し、大規模配列のhost/device
@@ -49,12 +49,12 @@ Step 52中央値より`2.1465852261 sec`（`2.9230%`）、Step 41中央値より
 
 現時点の確定値:
 
-- Step 57 run 02 `time_step_total`: `71.511959 sec`
-- `frprmn`: `62.501628 sec`
-- `tmevl_total`: `52.011855 sec`
-- `frprmn - tmevl_total`: `10.489773 sec`
-- `s2_nonlocal`: `11.490492 sec`
-- `exnlp_gemm_dot`: `8.453381 sec`
+- Step 62 median-wall run 03 `time_step_total`: `68.789653 sec`
+- `frprmn`: `59.785449 sec`
+- `tmevl_total`: `51.398970 sec`
+- `frprmn - tmevl_total`: `8.386479 sec`
+- `s2_nonlocal`: `11.477712 sec`
+- `exnlp_gemm_dot`: `8.449516 sec`
 - Step 51で判明した旧`VPJ_GEN` CPU積分: `36.132464 sec`
 
 Step 48のNsight値はStep 52/57 GPU化より前なので、現在のkernel時間・転送回数・
@@ -100,12 +100,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     失敗補正後のhost COEF0-to-COEF copyはdevice authorityを更新せず、CPU/FFTWだけに必要。
 20. Step 62は、このhost copyだけを`_OPENACC`時に省略する単一性能仮説。VGOLD、device復元、
     MPI、数式順序は維持している。
-21. Step 62 run 01はcheck/compare PASS、wall `68.66669352055 sec`で、正式Step 57中央値より
-    `2.62420933245 sec`（`3.6810%`）短い。ただし単発値なので未採用。
-22. 次はrun 02/03を`./tools/run_tddft_step62.sh 02-03`の1コマンドで取得し、3回中央値で
-    採否を決める。
+21. Step 62のwallは`68.66669352055`、`68.4877460003`、`68.5734798908 sec`で全run
+    check/compare PASS。中央値`68.5734798908 sec`、実行幅`0.17894752025 sec`。
+22. Step 57比`2.7174229622 sec`（`3.811739%`）高速で、median-wall runのFRPRMN残差も
+    `2.103294 sec`減り、Step 61の復元計測値と整合するため正式採用した。
 
-Step 53-61 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
+Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
 
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`

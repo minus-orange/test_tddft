@@ -5,22 +5,22 @@ Last updated: 2026-07-21
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `8646707` (`Offload LOCPOT G-vector construction`)
+- Accepted source baseline: `7475ccb` (`Skip redundant host correction restore`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 57 with Step 37 pinned allocation mode
-- Current source implementation: Step 57 commit `8646707`
+- Current configuration: accepted Step 62 with Step 37 pinned allocation mode
+- Current source implementation: Step 62 commit `7475ccb`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 62 run 01 PASS/PASS; runs 02/03 pending
+- Current HEAD status: Step 62 accepted after three PASS/PASS runs
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 57 median `71.2909028530` sec
+- Performance baseline: Step 62 median `68.5734798908` sec
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
@@ -357,6 +357,13 @@ passed both correctness checks at revision `7475ccb`. Its wall was
 Step 57 median. This is promising but not yet accepted; collect runs 02 and 03
 with `tools/run_tddft_step62.sh 02-03` and decide from the three-run median.
 
+Runs 02 and 03 also passed both correctness checks at `68.4877460003` and
+`68.5734798908` sec. The three-run median is `68.5734798908` sec with a
+`0.17894752025` sec range. This is `2.7174229622` sec (`3.811739%`) faster than
+Step 57, so Step 62 is accepted as the official source and performance
+baseline. The median-wall run's FRPRMN residual is `8.386479` sec, down
+`2.103294` sec from Step 57 and consistent with the removed restore envelope.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
@@ -381,7 +388,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `71.2909028530` sec.
+6. Compare the three-run median with `68.5734798908` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

@@ -978,3 +978,23 @@ Run 01 is `2.62420933245` sec (`3.6810%`) faster than the accepted Step 57
 median, but no adoption decision is made from one run. Collect runs 02 and 03
 with `tools/run_tddft_step62.sh 02-03`, require both correctness checks in all
 three runs, and decide from the three-run median.
+
+## Step 62 Runs 02/03 and Adoption
+
+| run | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| 01 | `68.66669352055` | PASS | PASS |
+| 02 | `68.4877460003` | PASS | PASS |
+| 03 | `68.5734798908` | PASS | PASS |
+
+- Three-run median: `68.5734798908` sec
+- Run-to-run range: `0.17894752025` sec
+- Improvement from Step 57 median: `2.7174229622` sec (`3.811739%`)
+- Median-wall run `frprmn`: `59.785449` sec
+- Median-wall run `tmevl_total`: `51.398970` sec
+- Median-wall run FRPRMN residual: `8.386479` sec
+- Residual reduction from Step 57 median-wall run: `2.103294` sec
+
+All correctness and median-performance gates pass. The residual reduction is
+consistent with the Step 61 `2.158536` sec restore envelope, so the bounded
+hypothesis is supported and Step 62 is adopted as the official baseline.

@@ -375,3 +375,7 @@ Step 62はこのcopyだけを`_OPENACC`時に省略し、VGOLD、device復元、
 Step 62 run 01は両correctness checkにPASSし、wallは`68.66669352055`秒で正式
 Step 57中央値より`3.6810%`短い値でした。run 02/03と3回中央値の確認まではStep 57を
 正式baselineとして維持します。
+
+run 02/03も両checkにPASSしました。3回中央値は`68.5734798908`秒、実行幅は
+`0.17894752025`秒で、Step 57より`3.811739%`高速です。Step 62を正式採用し、以後の
+性能仮説はこのbaselineと比較します。

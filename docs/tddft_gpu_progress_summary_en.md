@@ -1893,3 +1893,10 @@ Run 01 at revision `7475ccb` passed normal check and relaxed compare. Its
 `68.66669352055` sec wall is `2.62420933245` sec (`3.6810%`) below the accepted
 Step 57 median. This is preliminary evidence only; runs 02 and 03 are still
 required, and adoption will be decided from the three-run median.
+
+Runs 02 and 03 also passed both checks at `68.4877460003` and
+`68.5734798908` sec. The three-run median is `68.5734798908` sec, a
+`2.7174229622` sec (`3.811739%`) improvement over Step 57, with a
+`0.17894752025` sec range. Step 62 is therefore accepted as the official
+baseline. The median-wall FRPRMN residual fell by `2.103294` sec, consistent
+with the measured restore envelope.

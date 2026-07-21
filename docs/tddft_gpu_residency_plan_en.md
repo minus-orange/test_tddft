@@ -409,3 +409,8 @@ Step 62 run 01 passed both correctness checks at `68.66669352055` sec,
 `3.6810%` below the accepted Step 57 median. Keep Step 57 as the official
 baseline until runs 02 and 03 confirm the result and the three-run median is
 classified.
+
+Runs 02 and 03 passed both checks. The final median is `68.5734798908` sec,
+`3.811739%` faster than Step 57, with a `0.17894752025` sec range. Step 62 is
+accepted and becomes the new official baseline; future hypotheses must compare
+against it.

@@ -4,8 +4,8 @@ Last updated: 2026-07-21
 
 ## Official Baseline
 
-- Logical step: Step 57
-- Source implementation commit: `8646707`
+- Logical step: Step 62
+- Source implementation commit: `7475ccb`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,24 +16,24 @@ Last updated: 2026-07-21
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_01` | 71.2373509407 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_02` | 71.2909028530 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_03` | 71.3753330708 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP62_SKIP_HOST_COEFCP_01` | 68.66669352055 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP62_SKIP_HOST_COEFCP_02` | 68.4877460003 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP62_SKIP_HOST_COEFCP_03` | 68.5734798908 | PASS | PASS |
 
-Official three-run median: `71.2909028530` sec.
-Run-to-run range: `0.1379821301` sec.
+Official three-run median: `68.5734798908` sec.
+Run-to-run range: `0.17894752025` sec.
 
-## Step 57 Run 02 Profile
+## Step 62 Run 03 Profile
 
 | timer | total_sec |
 |---|---:|
-| `time_step_total` | 71.511959 |
-| `frprmn` | 62.501628 |
-| `tmevl_total` | 52.011855 |
-| `s2_nonlocal` | 11.490492 |
-| `s2_nonlocal_make` | 1.338690 |
-| `s2_nonlocal_gemm` | 10.128886 |
-| `exnlp_gemm_dot` | 8.453381 |
+| `time_step_total` | 68.789653 |
+| `frprmn` | 59.785449 |
+| `tmevl_total` | 51.398970 |
+| `s2_nonlocal` | 11.477712 |
+| `s2_nonlocal_make` | 1.336635 |
+| `s2_nonlocal_gemm` | 10.118493 |
+| `exnlp_gemm_dot` | 8.449516 |
 
 ## Comparison Policy
 
@@ -84,10 +84,12 @@ Step 61 isolated `2.158536` sec in failed-correction COEF/VGOLD restoration,
 `96.3513%` of its corrector parent. Its `71.7462480068` sec diagnostic wall
 passed both correctness checks and does not replace the official baseline.
 
-Step 62 run 01 omitted only the redundant OpenACC-path host COEF0-to-COEF
-restore and passed both correctness checks. Its `68.66669352055` sec wall is
-`3.6810%` below the official Step 57 median. Runs 02 and 03 remain required;
-this single result does not replace the official baseline.
+Step 62 omitted only the redundant OpenACC-path host COEF0-to-COEF restore.
+All three runs passed both correctness checks. Its `68.5734798908` sec median
+is `2.7174229622` sec (`3.811739%`) faster than Step 57, so Step 62 supersedes
+Step 57 as the official baseline. The median-wall run's FRPRMN residual outside
+TMEVL is `8.386479` sec, `2.103294` sec below Step 57's median-wall run, which
+is consistent with the Step 61 restore measurement of `2.158536` sec.
 
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
