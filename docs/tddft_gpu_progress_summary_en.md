@@ -1826,3 +1826,21 @@ faster than Step 52. Median FRPRMN fell by `2.117284` sec and its residual fell
 by `2.660213` sec. Step 57 is accepted as the official baseline. The next task
 is a current-source Nsight Systems diagnosis; no additional optimization is
 selected before that trace is classified.
+
+## Step 58: Re-profile the Accepted Step 57 Source
+
+Archive `nvhpc_cufft_1rank_02_STEP58_STEP57_NSYS_01` passed normal check and
+relaxed compare. Its `74.2175440788` sec trace wall is diagnostic only.
+Aggregate CUDA kernels were about `14.29` sec, including `8.304842909` sec in
+the fused kernel and `1.793326009` sec in VPJ, essentially stable from Step 53.
+
+H2D was 45,320 calls / `31,590.245` MB / `2.749026591` sec, and D2H was 7,954
+calls / `6,127.482` MB / `0.490787616` sec. The increments from Step 53 are
+6,756 H2D and 606 D2H calls; the D2H increment matches six LOCPOT calls across
+101 FRPRMN invocations. Combined transfer duration increased by only
+`0.208290190` sec, and the MPI report was empty.
+
+The LOCPOT kernel was not separately identifiable in the photographed summary
+rows. The next task is diagnostic, not optimization: Step 59 will use the
+existing default-off timers to measure the current accepted-source LOCPOT
+envelope directly.

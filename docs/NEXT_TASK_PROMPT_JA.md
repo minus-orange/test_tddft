@@ -84,13 +84,16 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     `71.2909028530`、`71.3753330708 sec`で、中央値と実行幅は上記の通り。
 12. Step 57中央値の`frprmn`はStep 52から`2.117284 sec`減り、FRPRMN残差は
     `2.660213 sec`減ったため、LOCPOT仮説と整合して正式採用した。
-13. 次の1テーマは追加最適化ではない。正式Step 57 sourceをNsight Systemsで1回だけ
-    再診断し、LOCPOT kernel、CUDA kernel合計、H2D/D2H、runtime/API、同期、MPI、
-    GPU idleをStep 53と比較する。trace wallはbaselineにしない。
-14. Step 58の1コマンドhelperは`./tools/run_tddft_step58_nsys.sh`。初回はこの1本だけを
-    提示して停止し、写真または手打ちテキストの結果を待つ。
+13. Step 58はcheck/compare PASS。trace wallは`74.2175440788 sec`でbaselineではない。
+    CUDA kernel合計は約`14.29 sec`でStep 53とほぼ同じ。MPI reportは再び空だった。
+14. Step 53比でH2Dは6,756回・`844.619 MB`・`0.183726804 sec`、D2Hは606回・
+    `281.417 MB`・`0.024563386 sec`増えた。606 D2HはLOCPOT 6回×FRPRMN 101回と一致する。
+15. LOCPOT kernelは写真に表示されたkernel/OpenACC集計行から独立同定できなかった。
+    次は追加最適化ではなく、既存timerで現行LOCPOT全区間を直接測るStep 59だけを行う。
+16. Step 59の1コマンドhelperは`./tools/run_tddft_step59.sh`。この1本だけを提示して停止し、
+    写真または手打ちテキストの結果を待つ。diagnostic wallはbaselineにしない。
 
-Step 53-57 helperは完了済みの履歴として保持する。次の診断も長い個別コマンドへ
+Step 53-58 helperは完了済みの履歴として保持する。次の診断も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
 
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`

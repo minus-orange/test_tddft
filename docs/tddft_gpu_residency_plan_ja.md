@@ -349,3 +349,9 @@ baselineとして採用します。
 次は追加最適化ではなく、正式Step 57 sourceのNsight Systems再診断です。LOCPOT kernel、
 CUDA kernel合計、H2D/D2H、runtime/API、同期、MPI、GPU idleをStep 53と比較してから、
 新しいbounded hypothesisを1件だけ選びます。trace wallは性能baselineに使用しません。
+
+Step 58の正式Step 57 source再traceはcheck/compare PASSでした。CUDA kernel合計は
+約`14.29`秒でStep 53とほぼ同じでした。LOCPOT追加に対応してH2Dは6,756回、D2Hは
+606回増えましたが、転送時間の増加は合計`0.208290190`秒です。MPI reportは空でした。
+LOCPOT kernel時間を写真の集計行から独立同定できなかったため、次は既存timerだけを
+有効化して現在のLOCPOT全区間を測るStep 59診断とします。追加最適化は選びません。

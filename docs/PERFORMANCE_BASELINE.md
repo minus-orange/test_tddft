@@ -63,6 +63,13 @@ its `76.0769960680` sec wall is diagnostic only and did not replace the
 then-official Step 52 median of `73.4374880791` sec. The trace measured the VPJ kernel at
 `1.793293070` sec and aggregate CUDA kernel time at about `14.26` sec.
 
+Step 58 re-profiled the accepted Step 57 source. Archive
+`nvhpc_cufft_1rank_02_STEP58_STEP57_NSYS_01` passed both correctness checks;
+its `74.2175440788` sec wall is diagnostic only. Aggregate CUDA kernels remained
+about `14.29` sec. Relative to Step 53, H2D increased by 6,756 calls and D2H by
+606 calls, while combined transfer duration increased by `0.208290190` sec.
+The official Step 57 median remains `71.2909028530` sec.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

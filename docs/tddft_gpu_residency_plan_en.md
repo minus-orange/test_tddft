@@ -376,3 +376,11 @@ The next theme is diagnostic, not optimization: re-profile the accepted Step
 57 source with Nsight Systems and compare its LOCPOT kernel, aggregate CUDA
 kernels, H2D/D2H, runtime/API, synchronization, MPI, and GPU-idle structure
 with Step 53. Trace wall is not a performance baseline.
+
+The Step 58 trace of the accepted Step 57 source passed both correctness
+checks. Aggregate CUDA kernels remained about `14.29` sec. H2D increased by
+6,756 calls and D2H by 606 calls, but combined transfer duration increased by
+only `0.208290190` sec; the MPI report was empty. Because the LOCPOT kernel
+duration was not independently identifiable in the photographed summary rows,
+Step 59 will enable only existing timers to measure the current LOCPOT envelope
+directly. No additional optimization is selected yet.

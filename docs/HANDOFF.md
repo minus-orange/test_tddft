@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 57 accepted; Step 58 current-source Nsight diagnosis is next
+- Current HEAD status: Step 58 classified; Step 59 current-source LOCPOT timer is next
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 57 median `71.2909028530` sec
@@ -302,8 +302,22 @@ H2D/D2H, runtime/API, synchronization, MPI, and GPU-idle structure with Step
 53. Do not select another optimization before that classification, and do not
 use trace wall as a performance baseline.
 
-Do not add another performance implementation before the Step 58 trace is
-classified. The accepted LOCPOT hypothesis must remain bounded.
+Step 58 archive `nvhpc_cufft_1rank_02_STEP58_STEP57_NSYS_01` passed both
+correctness checks at revision `797ba4f`; its `74.2175440788` sec wall is
+diagnostic only. Aggregate CUDA kernels were about `14.29` sec, with the fused
+kernel at `8.304842909` sec and VPJ at `1.793326009` sec. Relative to Step 53,
+H2D increased by 6,756 calls / `844.619` MB / `0.183726804` sec and D2H by
+606 calls / `281.417` MB / `0.024563386` sec. The D2H count exactly matches
+six LOCPOT result downloads over 101 FRPRMN calls. MPI again had no rows.
+
+The LOCPOT kernel was not separately identifiable in the returned top summary.
+The immediate next task is one Step 59 diagnostic using
+`tools/run_tddft_step59.sh`. It enables the existing timers to measure the
+current accepted-source LOCPOT envelope directly. Do not change algorithms or
+data ownership and do not use its wall as a baseline.
+
+Do not add another performance implementation before the Step 59 timer result
+is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce
 only a noise-level `0.0291%` median advantage; the same form must not be

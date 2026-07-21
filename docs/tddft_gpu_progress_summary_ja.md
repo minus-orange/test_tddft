@@ -1671,3 +1671,18 @@ Gベクトル間でGPU並列化しました。
 高速です。FRPRMN中央値は`2.117284`秒、FRPRMN残差は`2.660213`秒減りました。
 Step 57を正式baselineとして採用します。次は正式Step 57 sourceのNsight Systems
 再診断であり、追加最適化はその分類後に選びます。
+
+## Step 58: 正式Step 57 sourceのNsight Systems再診断
+
+archive `nvhpc_cufft_1rank_02_STEP58_STEP57_NSYS_01`は通常checkとrelaxed
+compareにPASSしました。診断wallは`74.2175440788`秒でbaselineには使用しません。
+CUDA kernel合計は約`14.29`秒、fused kernelは`8.304842909`秒、VPJ kernelは
+`1.793326009`秒で、Step 53から大きく変わっていません。
+
+H2Dは45,320回・`31,590.245` MB・`2.749026591`秒、D2Hは7,954回・
+`6,127.482` MB・`0.490787616`秒でした。Step 53比の増分はH2D 6,756回、D2H
+606回で、D2H増分はLOCPOT 6回×FRPRMN 101回と一致します。転送時間増加は合計
+`0.208290190`秒に留まり、MPI reportは空でした。
+
+LOCPOT kernelは写真に表示された集計行から独立同定できませんでした。次は追加最適化
+ではなく、既存default-off timerで現行LOCPOT全区間を直接測るStep 59診断です。

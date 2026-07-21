@@ -41,6 +41,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 55 | Split VRHO preparation | 74.3233120441 (one diagnostic run) | measurement | `5d6d71b` |
 | 56 | Split Vloc preparation | 73.4618239403 (one diagnostic run) | measurement | `ea13406` |
 | 57 | Offload LOCPOT G-vector construction | 71.2909028530 | accepted baseline | `8646707` |
+| 58 | Re-profile the accepted Step 57 source | 74.2175440788 (diagnostic trace) | measurement | `797ba4f` |
 
 ## Other Rejected Experiments
 
@@ -816,3 +817,43 @@ summaries. Compare the LOCPOT kernel, aggregate kernels, transfers, CUDA/OpenACC
 API synchronization, MPI, and non-kernel wall with Step 53. Do not use trace
 wall as a baseline and do not implement another optimization before the trace
 is classified.
+
+## Step 58 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP58_STEP57_NSYS_01`
+- Tested revision: `797ba4f5db70c426308f9180d9d4334d4cfcbf4e`
+- Diagnostic wall: `74.2175440788` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `65.345528` sec
+- `tmevl_total`: `54.075784` sec
+- FRPRMN residual outside TMEVL: `11.269744` sec
+- Top fused kernel: `8.304842909` sec (`58.1%` of CUDA kernel time)
+- VPJ kernel: `1.793326009` sec over 2,000 launches
+- Estimated aggregate CUDA kernel time: about `14.29` sec
+- H2D: 45,320 copies / `31,590.245` MB / `2.749026591` sec
+- D2H: 7,954 copies / `6,127.482` MB / `0.490787616` sec
+- CUDA API `cuStreamSynchronize`: `16.039053567` sec
+- CUDA API `cudaEventSynchronize`: about `1.661177234` sec
+- OpenACC VPJ compute/wait: `1.833629702` / `1.816349445` sec
+- MPI report: no rows
+
+Compared with Step 53, H2D increased by 6,756 calls, `844.619` MB, and
+`0.183726804` sec; D2H increased by exactly 606 calls, `281.417` MB, and
+`0.024563386` sec. The 606 D2H increment matches the six LOCPOT calls across
+101 FRPRMN invocations. Combined transfer duration increased by only
+`0.208290190` sec. Aggregate kernel time and the established fused and VPJ
+kernels remain essentially stable, and MPI remains negligible.
+
+The LOCPOT kernel was not separately identifiable in the photograph-visible
+kernel/OpenACC summary rows, so Step 58 does not provide its exact duration.
+Before selecting another optimization, Step 59 should enable only the existing
+default-off FRPRMN timers and directly measure the accepted Step 57 LOCPOT and
+Vloc envelopes. No source algorithm or ownership change is required.
+
+## Step 59 Plan
+
+Run `tools/run_tddft_step59.sh` once. It rebuilds only TDDFT with the accepted
+flags and existing FRPRMN timers enabled, runs and archives the 100-step case,
+requires both correctness checks, and prints the current Vloc parent, LOCPOT,
+smoothing/FFT, and derived remainder in one photograph. Its diagnostic wall is
+not a baseline. Do not implement another optimization before this result.
