@@ -79,10 +79,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
    `0.029422 sec`だった。
 10. LOCPOTはVlocの`93.8149%`で、OpenACC/CUDA処理を含まない。既存MPI上限から、
     少なくとも約`2.504647 sec`はCPU計算・host orchestrationと分類できる。
-11. 次の1テーマは、各G内のITY/K/IA加算順とhost MPI境界を維持したまま、
-    LOCPOTだけをGベクトル間でGPU並列化する単一仮説とする。
+11. Step 57は、各G内のITY/K/IA加算順とhost MPI境界を維持したまま、
+    LOCPOTだけをGベクトル間でGPU並列化する単一仮説として実装済み。
 12. Step 42と同形のVloc residencyは再試行しない。diagnostic OFFのrun 01で
-    check/compare PASS後だけrun 02/03へ進み、3回中央値で採否する。
+    check/compare PASS後だけrun 02/03へ進み、3回中央値で採否する。A100の初回は
+    `./tools/run_tddft_step57.sh 01`だけを実行する。
 
 Step 53/54/55/56 helperは完了済みの履歴として保持する。次の性能実装も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

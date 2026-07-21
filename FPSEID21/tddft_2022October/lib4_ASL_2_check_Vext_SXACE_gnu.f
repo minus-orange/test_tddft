@@ -442,7 +442,7 @@ c      DIMENSION I2G(NGQ),VGA(NGQ)
       DIMENSION ZV(NTYQ),RC0(NCRQ,NTYQ),COR(NCRQ,NTYQ),NUMC(NTYQ)
 c      common/cputask2/nbegint(0:ncpuq),nendt(0:ncpuq),ncpu
       dimension nbegint(0:ncpuq),nendt(0:ncpuq)
-      COMPLEX*16 VG_(NGQ)
+      COMPLEX*16 VG_(NGQ),EIGTMP,VGVAL
 CC      CALL CLOCK(TIM0)
 ! ==============================================================================
 !     call ftrace_region_begin("reg001")
@@ -484,6 +484,57 @@ c *** temp check: end
       DO IG=1,NGQ
       VG_(IG)=(0.D0,0.D0)
       ENDDO
+#ifdef _OPENACC
+c *** Preserve the original ITY/K order for the G=0 contribution.
+      DO ITY=1,NTYPE
+        NUM=ABS(NUMTY(ITY))
+        DO K=1,NUM
+          ITAU=NIDN(K,ITY)
+          if ( ITAU.ge.nbegint(my_rank). and.
+     &         ITAU.le.nendt(my_rank) ) then
+            if ( K.eq.1 ) then
+              VG(1)=VG(1)+NUM*VGA(1,ITY)
+              VG_(1)=VG_(1)+NUM*VGA(1,ITY)
+            endif
+          endif
+        ENDDO
+      ENDDO
+c *** One GPU thread owns one G vector.  Its ITY/K/IA accumulation order
+c *** is identical to the original host loop; MPI remains on the host.
+!$acc parallel loop gang vector
+!$acc& copyin(G(1:4,1:NG),VGA(1:NG,1:NTYQ),
+!$acc& TAU(1:3,1:NTAUQ),NUMTY(1:NTYQ),
+!$acc& NIDN(1:NTAUQ,1:NTYQ),nbegint(0:ncpuq),
+!$acc& nendt(0:ncpuq),ZV(1:NTYQ),RC0(1:NCRQ,1:NTYQ),
+!$acc& COR(1:NCRQ,1:NTYQ),NUMC(1:NTYQ))
+!$acc& copyout(VG_(2:NG))
+!$acc& private(ITY,NUM,K,ITAU,IA,R02,Q,SUM,EIGTMP,VGVAL)
+      DO IG=2,NG
+        VGVAL=(0.D0,0.D0)
+        DO ITY=1,NTYPE
+          NUM=ABS(NUMTY(ITY))
+          DO K=1,NUM
+            ITAU=NIDN(K,ITY)
+            if ( ITAU.ge.nbegint(my_rank). and.
+     &           ITAU.le.nendt(my_rank) ) then
+              Q=TPIBA2*G(4,IG)
+              SUM=  G(1,IG)*TAU(1,ITAU)
+     &             +G(2,IG)*TAU(2,ITAU)
+     &             +G(3,IG)*TAU(3,ITAU)
+              SUM=SUM*TPIBA
+              EIGTMP=DCMPLX(COS(SUM),-SIN(SUM))
+              VGVAL=VGVAL+EIGTMP*VGA(IG,ITY)
+              DO IA=1,NUMC(ITY)
+                R02=RC0(IA,ITY)**2
+                VGVAL=VGVAL+ZV(ITY)*COR(IA,ITY)*FPI/Q
+     &                       *EIGTMP*EXP(-0.25D0*Q*R02)
+              ENDDO
+            endif
+          ENDDO
+        ENDDO
+        VG_(IG)=VGVAL
+      ENDDO
+#else
       DO 20 ITY=1,NTYPE
 c      READ(81)  VGA
         NUM=ABS(NUMTY(ITY))
@@ -531,6 +582,7 @@ C
       endif  ! if ITAU is wihtin nbegint - nendt loop: end
    22   CONTINUE
    20 CONTINUE
+#endif
       DO IG=2,NG
         JG=I2G(IG)
         VG(JG)=VG_(IG)

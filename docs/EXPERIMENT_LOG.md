@@ -759,3 +759,19 @@ only LOCPOT G vectors on the GPU while preserving each G vector's original
 ITY/K/IA accumulation order and retaining the host MPI boundary. Avoid the
 rejected Step 42 Vloc-residency form. Correctness run 01 must pass before runs
 02 and 03, and adoption still requires a diagnostic-off three-run median.
+
+## Step 57 Plan
+
+Implement one bounded performance hypothesis in LOCPOT only. Under OpenACC,
+one GPU thread owns one nonzero G vector and performs the original ITY/K/IA
+sequence serially, preserving the floating-point accumulation order within
+that G vector. The G=0 contribution remains on the host. The computed local
+potential returns to the host immediately before the unchanged MPI Allreduce;
+no cross-call Vloc residency is introduced. CPU/FFTW builds retain the original
+loop nest.
+
+Use `tools/run_tddft_step57.sh 01` for the first diagnostic-off correctness and
+performance gate. Only after normal check and relaxed compare pass may runs 02
+and 03 be executed together. Compare their three-run median with the accepted
+Step 52 baseline `73.4374880791` sec and inspect the FRPRMN reduction before
+adoption.

@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 56 complete; bounded LOCPOT GPU hypothesis next
+- Current HEAD status: Step 57 LOCPOT GPU hypothesis ready for A100 run 01
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 52 median `73.4374880791` sec
@@ -283,6 +283,12 @@ LOCPOT across G vectors while preserving the original ITY/K/IA accumulation
 order within each G vector and the host MPI boundary. This is distinct from
 the rejected Step 42 Vloc-residency form. Require diagnostic-off check and
 compare PASS followed by a three-run median before adoption.
+
+Step 57 implements that bounded hypothesis. The OpenACC path assigns one GPU
+thread to each nonzero G vector, retains its serial ITY/K/IA accumulation, and
+copies the local result back before the original host MPI Allreduce. G=0 stays
+on the host; the CPU/FFTW loop nest is unchanged; no Vloc residency is added.
+Use `tools/run_tddft_step57.sh 01` for the first gate.
 
 Do not broaden the next implementation beyond the bounded LOCPOT hypothesis.
 Step 47
