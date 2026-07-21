@@ -35,6 +35,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 49 | Decompose FRPRMN host preparation | 107.879790783 (one diagnostic run) | measurement | `dcb686e` |
 | 50 | Split Part1to5 and VPJ_GEN timing | 107.682908058 (diagnostic; VPJ_GEN scope mixed) | measurement | `6bc6770` |
 | 51 | Scope VPJ_GEN timing to Part1to5 | 108.201426983 (one diagnostic run) | measurement | `c880d0c` |
+| 52 | Offload Part1to5 VPJ radial integration | 72.9733359814 (run 01; series pending) | candidate | `22aad92` |
 
 ## Other Rejected Experiments
 
@@ -541,3 +542,23 @@ The first A100 run is a correctness gate with diagnostics off. If check and
 relaxed compare pass, collect runs 02 and 03 and compare their median against
 the official Step 41 baseline `107.754213095` sec. Reject and revert Step 52 if
 the three-run result has no supported performance advantage.
+
+## Step 52 Run 01
+
+- Archive: `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_01`
+- Tested revision: `22aad921f8ea490ac5d25d2d201ca0473e62957c`
+- Wall: `72.9733359814` sec
+- Correctness: check PASS; relaxed compare PASS
+- `time_step_total`: `73.212704` sec
+- `frprmn`: `64.260935` sec
+- `tmevl_total`: `51.283649` sec
+- `s2_nonlocal`: `11.465302` sec
+- `s2_nonlocal_make`: `1.321042` sec
+- `s2_nonlocal_gemm`: `10.121467` sec
+- `exnlp_gemm_dot`: `8.448533` sec
+
+Run 01 is `34.7808771136` sec (`32.2780%`) faster than the official Step 41
+median. Its FRPRMN residual outside TMEVL is `12.977286` sec, `34.568849` sec
+(`72.71%`) below the Step 51 diagnostic residual. The correctness gate is
+satisfied. This is preliminary until diagnostic-off runs 02 and 03 establish
+the controlled three-run median.

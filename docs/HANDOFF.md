@@ -9,17 +9,16 @@ Last updated: 2026-07-21
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: Step 41 source with Step 37 pinned allocation mode
-- Current source implementation: Step 41 commit `4aaa33c`
+- Current configuration: Step 52 candidate with Step 37 pinned allocation mode
+- Current source implementation: Step 52 commit `22aad92`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: accepted Step 41 remains the official baseline; Step 51
-  attributes `36.132464` sec to the `Part1to5` VPJ_GEN CPU integral, and the
-  bounded Step 52 implementation is awaiting its first A100 correctness run
+- Current HEAD status: Step 52 run 01 passed both correctness checks at
+  `72.9733359814` sec; runs 02 and 03 are required before adoption
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -160,6 +159,14 @@ tables remain resident across the time-step loop; five phase G arrays share a
 single data region per `Part1to5` call; the contiguous VPJWORK result returns
 to the host immediately before MPI. Diagnostics are off for performance runs.
 Run 01 is the correctness gate; runs 02 and 03 are allowed only after it passes.
+
+Step 52 run 01 archive `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_01` passed
+normal check and relaxed compare at revision `22aad92`. Its wall was
+`72.9733359814` sec, `32.2780%` faster than the official Step 41 median.
+`frprmn` fell to `64.260935` sec while `tmevl_total` remained `51.283649` sec,
+leaving a `12.977286` sec residual outside TMEVL. This is consistent with the
+targeted CPU integral being removed from the host critical path. The result is
+preliminary until runs 02 and 03 complete the controlled series.
 
 The 32-band tutorial is the smallest operational case expected. A dedicated
 smaller-band multi-gang path is out of scope. The current one-gang-per-band path
