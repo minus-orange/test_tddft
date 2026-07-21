@@ -426,7 +426,7 @@ c
       dimension RAD(MESHQ,NTYQ),PSPOT(MESHQ,ISPD,NTYQ),
      & PSPOT2(MESHQ,ISPD,NTYQ),PHIL(MESHQ,4,NTYQ)
 c
-!$acc parallel loop gang vector vector_length(128)
+!$acc parallel loop gang vector vector_length(64)
 !$acc& present(G2(1:4,1:NGcont),VPJWORK(1:NGcont,1:3),
 !$acc& RAD(1:MESHQ,1:NTYQ),PSPOT(1:MESHQ,1:ISPD,1:NTYQ),
 !$acc& PSPOT2(1:MESHQ,1:ISPD,1:NTYQ),

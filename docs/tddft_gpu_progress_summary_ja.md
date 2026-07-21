@@ -1772,3 +1772,6 @@ run 01は両checkにPASSし、wallは`68.4441161156`秒でした。Step 62中央
 run 02/03も両checkにPASSしました。3回中央値は`68.3616518974`秒、実行幅は
 `0.2041001320`秒でStep 62より`0.308907%`高速です。Step 67最遅runもStep 62最速run
 より速く、実測範囲が重ならないためStep 67を正式採用します。
+
+Step 68は同じ限定的launch-shape探索としてVPJ vector lengthだけを128から64へ変更し、
+Step 67に対する標準3回gateで採否します。

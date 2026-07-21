@@ -1158,3 +1158,12 @@ from the three-run median and range.
 All correctness and performance gates pass, and the non-overlapping observed
 ranges support the small median advantage. Step 67 is adopted as the official
 baseline.
+
+## Step 68 Plan
+
+Continue the same one-parameter VPJ launch-shape search by changing only
+`vector_length(128)` to `vector_length(64)`. Preserve all arithmetic,
+sequential radial accumulation, mappings, D2H, and MPI. Use
+`tools/run_tddft_step68.sh 01` first; if both checks pass, use
+`tools/run_tddft_step68.sh 02-03`. Compare the three-run median with the new
+Step 67 baseline `68.3616518974` sec and revert if no advantage is supported.

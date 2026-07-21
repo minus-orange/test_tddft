@@ -454,3 +454,6 @@ is within the baseline run range. Runs 02/03 remain mandatory.
 Runs 02/03 passed both checks. The `68.3616518974` sec median is `0.308907%`
 faster than Step 62, and the observed run ranges do not overlap. Step 67 is
 accepted as the new baseline.
+
+Step 68 tests only VPJ vector length 64 as the next point in the same bounded
+launch-shape search, with Step 67 retained unless the three-run gate passes.

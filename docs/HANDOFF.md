@@ -430,6 +430,11 @@ Runs 02 and 03 also passed both checks at `68.2400159836` and
 run is faster than the fastest Step 62 run, so Step 67 is accepted as the new
 official source and performance baseline.
 
+Step 68 continues the same bounded one-parameter search by changing only VPJ
+vector length 128 to 64. Run `tools/run_tddft_step68.sh 01` first, then
+`tools/run_tddft_step68.sh 02-03` only after both checks pass. Compare against
+the Step 67 median `68.3616518974` sec and revert if unsupported.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

@@ -1950,3 +1950,6 @@ Runs 02/03 also passed both checks. The three-run median is
 `68.3616518974` sec with a `0.2041001320` sec range, `0.308907%` faster than
 Step 62. Even the slowest Step 67 run is faster than the fastest Step 62 run,
 so Step 67 is accepted as the official baseline.
+
+Step 68 continues the same bounded launch-shape search by changing only VPJ
+vector length 128 to 64 and using the standard three-run gate against Step 67.

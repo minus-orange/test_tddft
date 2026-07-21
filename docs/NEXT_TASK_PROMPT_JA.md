@@ -141,6 +141,8 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     `68.3616518974 sec`、中央値`68.3616518974 sec`、実行幅`0.2041001320 sec`。
 39. Step 62比`0.2118279934 sec`（`0.308907%`）高速で、両run範囲も重ならないため
     Step 67を正式採用した。
+40. 次の単一仮説Step 68はVPJ `vector_length(128)`だけを`64`へ変更する。同じ演算順と
+    境界を維持し、初回は`./tools/run_tddft_step68.sh 01`だけを実行する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
