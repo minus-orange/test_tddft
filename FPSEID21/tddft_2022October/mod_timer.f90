@@ -266,5 +266,11 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'frprmn_density_init'
   case (61)
     name = 'frprmn_exit_cleanup'
+  case (62)
+    name = 'frprmn_vrho_vofrho'
+  case (63)
+    name = 'frprmn_vrho_smooth_fft'
+  case (64)
+    name = 'frprmn_vrho_mix_control'
   end select
 end subroutine fpseid_mod_timer_name

@@ -641,6 +641,7 @@ c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(53)
       call prof_start(54)
+      call prof_start(64)
 #endif
 C     CALL CLOCK(TIM)
 C6000 FORMAT(23X,'****  FRPRMN: AFT LOCPOT: ',F15.7,' SEC')
@@ -675,6 +676,10 @@ c ***  temp check ; end
 c
 c      call MPI_Barrier(MPI_COMM_WORLD,ierr)
 c
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(64)
+      call prof_start(62)
+#endif
       CALL VOFRHO(NRX,NRY,NRZ,NXYZ,NG,NGQ,G,TPIBA,
      & RHO1,RHO2,RHO3,RHO,RHOG,I2G,
 c *** for Sugino FFT
@@ -687,6 +692,10 @@ c     & ,DCOEF(1,1),DCOEF(1,2),DCOEF(1,3),DCOEF(1,4),DCOEF(1,5)
 c     & ,DCOEF(1,6),DCOEF(1,7),DCOEF(1,8),DCOEF(1,9),DCOEF(1,10) )
      &  ,CWORK(1,1),CWORK(1,2),CWORK(1,3),CWORK(1,4),CWORK(1,5)
      &  ,CWORK(1,6),CWORK(1,7),CWORK(1,8),CWORK(1,9),CWORK(1,10) )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(62)
+      call prof_start(63)
+#endif
 C
 c *** Smoothing of potential : rho1 as work area
 *VDIR NODEP(rho1,rho3)
@@ -707,6 +716,10 @@ c *** for Koukbo FFTW
 c      call FFT3BX_fftw(NXYZ,RHO3,plancfp,plancbp)
 c *** for Koukbo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO3,RHO1,plancfp,plancbp)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(63)
+      call prof_start(64)
+#endif
 c
 c ****  NOW RHO3 is in R-space
 c  *** and need of add Vext
@@ -893,6 +906,7 @@ c       call coefcp(coef0(1,nbgn,ik0),coef(1,nbgn,ik0),ng2q*nblng)
 c
  9799 continue
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(64)
       call prof_stop(54)
       call prof_start(55)
 #endif

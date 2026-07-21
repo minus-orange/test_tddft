@@ -70,8 +70,9 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
    `13.084581 sec`、`99.9251%`を分解できた。
 6. 最大区間は`frprmn_vrho_mix=3.923983 sec`、次点は
    `frprmn_vloc_prepare=2.940147 sec`。
-7. 次の1テーマはStep 55診断とし、`frprmn_vrho_mix`だけをVOFRHO、
-   smoothing/FFT、interpolation/convergenceへ分ける。
+7. Step 55診断は実装済みで、`frprmn_vrho_mix`だけをVOFRHO、
+   smoothing/FFT、interpolation/convergenceへ分ける。A100では
+   `./tools/run_tddft_step55.sh`だけを実行する。
 8. Step 55結果が返るまで追加最適化を実装しない。
 
 Step 53/54 helperは完了済みの履歴として保持する。Step 55も長い個別コマンドへ展開せず、

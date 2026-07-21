@@ -671,3 +671,17 @@ wall must not be classified as pure CPU time. Step 55 should remain diagnostic
 only and split the largest `frprmn_vrho_mix` row into VOFRHO,
 smoothing/FFT, and interpolation/convergence subregions. Do not change data
 ownership or equations before that classification.
+
+## Step 55 Plan
+
+Keep the Step 54 parent timer and add default-off, measurement-only child
+timers that partition `frprmn_vrho_mix` into the `VOFRHO` call, potential
+smoothing plus its cuFFT-backed transform, and all remaining
+interpolation/convergence/control work. The three child rows are exclusive;
+their sum is compared with the parent to detect missed work.
+
+Run `tools/run_tddft_step55.sh`. It builds only TDDFT with the accepted pinned
+NVHPC configuration, runs the 100-step case, archives it, requires both
+correctness checks, and prints only the parent and three child rows for a
+single photograph. Do not use diagnostic wall as a baseline or implement an
+optimization before the split is classified.

@@ -137,5 +137,8 @@
       if (id.eq.59) name='frprmn_post_tmevl'
       if (id.eq.60) name='frprmn_density_init'
       if (id.eq.61) name='frprmn_exit_cleanup'
+      if (id.eq.62) name='frprmn_vrho_vofrho'
+      if (id.eq.63) name='frprmn_vrho_smooth_fft'
+      if (id.eq.64) name='frprmn_vrho_mix_control'
       return
       end

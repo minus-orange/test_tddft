@@ -250,6 +250,10 @@ only `frprmn_vrho_mix` into VOFRHO, smoothing/FFT, and
 interpolation/convergence. VRHO contains host loops and a cuFFT-backed
 transform, so its full Step 54 wall is not a pure CPU measurement.
 
+Step 55 diagnostic code and `tools/run_tddft_step55.sh` are ready. The helper
+prints only `time_step_total`, `frprmn`, `tmevl_total`, the VRHO parent, and
+the three exclusive child rows so the complete evidence fits in one photo.
+
 Do not begin another offload implementation until Step 55 resolves the
 largest remaining host envelope. Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce
