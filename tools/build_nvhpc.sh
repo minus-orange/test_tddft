@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-# Build CG, SD, and TDDFT with NVIDIA HPC SDK compilers.
+# Build TDDFT, optionally together with CG and SD, using NVIDIA HPC SDK.
 # Load the NVIDIA HPC SDK environment before running this script so that
 # nvfortran and the intended MPI wrapper are on PATH.
 
@@ -14,6 +14,7 @@ SKIP_FFTW=${SKIP_FFTW:-0}
 ENABLE_GPU_FFT=${ENABLE_GPU_FFT:-0}
 BUILD_REPORT=${BUILD_REPORT:-0}
 ENABLE_PINNED_ALLOC=${ENABLE_PINNED_ALLOC:-0}
+TDDFT_ONLY=${TDDFT_ONLY:-0}
 
 NVFORTRAN=${NVFORTRAN:-nvfortran}
 MPI_FC=${MPI_FC:-mpifort}
@@ -25,7 +26,7 @@ FFTW_F77=${FFTW_F77:-$FFTW_FC}
 
 CG_FFLAGS=${CG_FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
 SD_FFLAGS=${SD_FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
-TDDFT_FFLAGS=${TDDFT_FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
+TDDFT_FFLAGS=${TDDFT_FFLAGS:-"-O2 -acc -gpu=cc80 -mp -Msave -Mlarge_arrays"}
 TDDFT_FFTW_LIBS=${TDDFT_FFTW_LIBS:-"-lfftw3_omp -lfftw3 -lgomp"}
 TDDFT_CUFFT_LIBS=${TDDFT_CUFFT_LIBS:-"-cudalib=cufft"}
 GPU_CFLAGS=${GPU_CFLAGS:-}
@@ -42,6 +43,14 @@ case "$ENABLE_PINNED_ALLOC" in
     ;;
   *)
     echo "ERROR: ENABLE_PINNED_ALLOC must be 0 or 1." >&2
+    exit 1
+    ;;
+esac
+
+case "$TDDFT_ONLY" in
+  0|1) ;;
+  *)
+    echo "ERROR: TDDFT_ONLY must be 0 or 1." >&2
     exit 1
     ;;
 esac
@@ -187,20 +196,25 @@ if [ "$ENABLE_GPU_FFT" != 1 ] &&
   PREFIX="$FFTW_ROOT" CC="$FFTW_CC" FC="$FFTW_FC" F77="$FFTW_F77" "$SCRIPT_DIR/build_fftw3.sh"
 fi
 
-echo "Building CG with $NVFORTRAN"
-(
-  cd "$ROOT_DIR/FPSEID21/cg_GGA_f_code"
-  FC="$NVFORTRAN" FFLAGS="$CG_FFLAGS" ./mk_ifort.sh
-)
+if [ "$TDDFT_ONLY" = 1 ]; then
+  echo "Skipping CG and SD builds (TDDFT_ONLY=1)."
+else
+  echo "Building CG with $NVFORTRAN"
+  (
+    cd "$ROOT_DIR/FPSEID21/cg_GGA_f_code"
+    FC="$NVFORTRAN" FFLAGS="$CG_FFLAGS" ./mk_ifort.sh
+  )
 
-echo "Building SD with $NVFORTRAN"
-(
-  cd "$ROOT_DIR/FPSEID21/sd_GGA_f_compact_code"
-  FC="$NVFORTRAN" FFLAGS="$SD_FFLAGS" ./mk_ifort.sh
-)
+  echo "Building SD with $NVFORTRAN"
+  (
+    cd "$ROOT_DIR/FPSEID21/sd_GGA_f_compact_code"
+    FC="$NVFORTRAN" FFLAGS="$SD_FFLAGS" ./mk_ifort.sh
+  )
+fi
 
 echo "Building TDDFT with $MPI_FC"
 echo "TDDFT pinned host allocation: $ENABLE_PINNED_ALLOC"
+echo "TDDFT requested flags: $TDDFT_FFLAGS"
 (
   cd "$ROOT_DIR/FPSEID21/tddft_2022October"
   if [ "$ENABLE_GPU_FFT" = 1 ]; then

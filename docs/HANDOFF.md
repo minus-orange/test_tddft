@@ -7,6 +7,7 @@ Last updated: 2026-07-21
 - Branch: `tddft-openacc-residency`
 - Accepted source baseline: `4aaa33c` (`Keep static TDDFT metadata resident`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
+- Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
 - Current configuration: Step 41 source with Step 37 pinned allocation mode
 - Current source implementation: Step 41 commit `4aaa33c`

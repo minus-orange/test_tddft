@@ -138,6 +138,10 @@ pinned dynamic host allocation. The standard build entry is:
 ENABLE_GPU_FFT=1 ENABLE_PINNED_ALLOC=1 ./tools/build_nvhpc.sh
 ```
 
+The current A100 TDDFT compile flags are `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`. When CG and SD are
+not part of the selected hypothesis, add `TDDFT_ONLY=1` so only TDDFT is
+built.
+
 Confirm diagnostics are off and the TDDFT executable links successfully. Do
 not run the GPU measurement after a failed CPU/FFTW or GPU build.
 
