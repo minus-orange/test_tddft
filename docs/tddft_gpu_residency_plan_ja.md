@@ -360,3 +360,8 @@ Step 59で現行LOCPOTは`0.305052`秒と測定され、Step 56比`88.9673%`削�
 しました。Vloc全体も`83.5537%`削減され、LOCPOTは現行FRPRMN残差の`2.8533%`
 です。次は残る最大既知host区間であるVRHO controlをseed、predictor、correctorの
 3排他区間へ分けるStep 60診断とし、結果前に追加最適化を選びません。
+
+Step 60ではVRHO control `2.787119`秒のうちcorrectorが`2.215861`秒
+（`79.5036%`）、seedが`0.552540`秒、predictorが`0.016408`秒でした。次は
+correctorをinterpolation計算、収束判定、COEF/VGOLD復元へ分けるStep 61診断です。
+結果前に追加最適化を選びません。

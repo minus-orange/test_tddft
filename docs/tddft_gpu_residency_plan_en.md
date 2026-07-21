@@ -391,3 +391,9 @@ Step 59 measured the accepted-source LOCPOT envelope at `0.305052` sec,
 Step 60 will diagnose the largest known remaining host region by partitioning
 VRHO control into exclusive seed, predictor, and corrector intervals. No
 additional optimization is selected before that result.
+
+Step 60 measured `2.787119` sec in VRHO control: `2.215861` sec (`79.5036%`)
+in corrector work, `0.552540` sec in seed work, and only `0.016408` sec in
+predictor work. Step 61 will split corrector work into interpolation,
+convergence, and COEF/VGOLD restoration. No optimization is selected before
+that diagnostic result.

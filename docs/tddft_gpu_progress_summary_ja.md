@@ -1698,3 +1698,15 @@ Step 56比でLOCPOTは`2.459933`秒（`88.9673%`）、Vloc全体は`2.462559`秒
 （`83.5537%`）削減されました。LOCPOTは現行FRPRMN残差の`2.8533%`に低下し、
 Step 57の改善要因を直接確認できました。次はVRHO host controlをseed、predictor、
 correctorへ分けるStep 60診断であり、追加最適化ではありません。
+
+## Step 60: VRHO host controlの分解
+
+archive `nvhpc_cufft_1rank_02_STEP60_VRHO_CONTROL_01`は通常checkとrelaxed
+compareにPASSしました。診断wallは`70.9675290585`秒でbaselineには使用しません。
+VRHO control `2.787119`秒のうち、seed/coefficient-copyは`0.552540`秒、
+predictor/extrapolationは`0.016408`秒、corrector/interpolation/convergenceは
+`2.215861`秒でした。子区間は親の`99.9171%`を説明します。
+
+correctorはVRHO controlの`79.5036%`、現行FRPRMN残差の`20.7787%`です。次は
+correctorをinterpolation、VGCONV、COEF/VGOLD復元へ分けるStep 61診断であり、
+追加最適化ではありません。

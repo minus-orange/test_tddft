@@ -91,13 +91,14 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 15. Step 59はcheck/compare PASS。現行LOCPOTは`0.305052 sec`で、Step 56比
     `2.459933 sec`（`88.9673%`）減った。Vloc全体も`83.5537%`減った。
 16. LOCPOTは現行FRPRMN残差の`2.8533%`まで低下し、Step 57仮説を直接確認できた。
-17. 次は追加最適化ではない。残る最大既知host区間`frprmn_vrho_mix_control`を、
-    seed/coefficient-copy、predictor/extrapolation、corrector/interpolation/convergenceの
-    3排他timerへ分けるStep 60だけを行う。
-18. Step 60の1コマンドhelperは`./tools/run_tddft_step60.sh`。この1本だけを提示して停止し、
+17. Step 60はcheck/compare PASS。VRHO control `2.787119 sec`のうち、correctorは
+    `2.215861 sec`（`79.5036%`）、seedは`0.552540 sec`、predictorは`0.016408 sec`。
+18. 次は追加最適化ではない。correctorをinterpolation計算、VGCONV収束判定、失敗時の
+    COEF/VGOLD復元へ分けるStep 61だけを行う。
+19. Step 61の1コマンドhelperは`./tools/run_tddft_step61.sh`。この1本だけを提示して停止し、
     写真または手打ちテキストの結果を待つ。diagnostic wallはbaselineにしない。
 
-Step 53-59 helperは完了済みの履歴として保持する。次の診断も長い個別コマンドへ
+Step 53-60 helperは完了済みの履歴として保持する。次の診断も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
 
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`

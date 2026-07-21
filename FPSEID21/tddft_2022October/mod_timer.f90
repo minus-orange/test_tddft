@@ -282,5 +282,11 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'frprmn_vrho_predict_ctrl'
   case (69)
     name = 'frprmn_vrho_correct_ctrl'
+  case (70)
+    name = 'frprmn_vrho_interp'
+  case (71)
+    name = 'frprmn_vrho_converge'
+  case (72)
+    name = 'frprmn_vrho_coef_restore'
   end select
 end subroutine fpseid_mod_timer_name

@@ -43,6 +43,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 57 | Offload LOCPOT G-vector construction | 71.2909028530 | accepted baseline | `8646707` |
 | 58 | Re-profile the accepted Step 57 source | 74.2175440788 (diagnostic trace) | measurement | `797ba4f` |
 | 59 | Measure the accepted-source LOCPOT envelope | 71.1150200367 (one diagnostic run) | measurement | `03ec9bd` |
+| 60 | Split the remaining VRHO host control | 70.9675290585 (one diagnostic run) | measurement | `fad4d11` |
 
 ## Other Rejected Experiments
 
@@ -892,3 +893,35 @@ diagnostic with `tools/run_tddft_step60.sh`. It builds only TDDFT, archives the
 100-step run, requires both correctness checks, and prints the VRHO control
 parent and its three exclusive children in one photograph. Diagnostic wall is
 not a baseline, and no optimization is selected before this result.
+
+## Step 60 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP60_VRHO_CONTROL_01`
+- Tested revision: `fad4d1135a571e54c49ed8cd4b0d5829149e64b6`
+- Diagnostic wall: `70.9675290585` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `62.197659` sec
+- `tmevl_total`: `51.533552` sec
+- FRPRMN residual outside TMEVL: `10.664107` sec
+- `frprmn_vrho_mix`: `3.909993` sec
+- `frprmn_vrho_mix_control`: `2.787119` sec
+- Seed/coefficient-copy control: `0.552540` sec
+- Predictor/extrapolation control: `0.016408` sec
+- Corrector/interpolation/convergence control: `2.215861` sec
+- Derived timer-boundary gap: `0.002310` sec
+
+The children cover `99.9171%` of the parent. Corrector control accounts for
+`79.5036%` of VRHO control and `20.7787%` of the current FRPRMN residual;
+seed control is `19.8248%`, and predictor control is only `0.5887%`.
+
+Step 61 should remain diagnostic only and divide the corrector parent into
+interpolation arithmetic, `VGCONV` convergence calculation, and post-failure
+COEF/VGOLD restoration. No equation, loop order, MPI, OpenACC ownership, or
+diagnostic-off behavior may change.
+
+## Step 61 Plan
+
+Run `tools/run_tddft_step61.sh` once. It builds only TDDFT, archives the
+100-step result, requires normal check and relaxed compare, and prints the
+corrector parent and three exclusive children in one photograph. Diagnostic
+wall is not a baseline. Select no optimization before the result is classified.

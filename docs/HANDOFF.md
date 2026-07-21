@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 59 classified; Step 60 VRHO-control split is next
+- Current HEAD status: Step 60 classified; Step 61 VRHO-corrector split is next
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 57 median `71.2909028530` sec
@@ -328,7 +328,18 @@ parent is split into exclusive seed/coefficient-copy, predictor/extrapolation,
 and corrector/interpolation/convergence timers. Use
 `tools/run_tddft_step60.sh`; do not implement an optimization before its result.
 
-Do not add another performance implementation before the Step 60 timer result
+Step 60 archive `nvhpc_cufft_1rank_02_STEP60_VRHO_CONTROL_01` passed both
+correctness checks at revision `fad4d11`; its `70.9675290585` sec wall is
+diagnostic only. Of `2.787119` sec in VRHO host control, corrector work used
+`2.215861` sec (`79.5036%`), seed/coefficient copy used `0.552540` sec, and
+predictor work used only `0.016408` sec. The three children cover `99.9171%`.
+
+The next bounded task is diagnostic Step 61. Split only corrector work into
+interpolation arithmetic, convergence calculation, and failed-correction
+COEF/VGOLD restoration. Use `tools/run_tddft_step61.sh` and do not implement
+an optimization before its result.
+
+Do not add another performance implementation before the Step 61 timer result
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce

@@ -866,7 +866,7 @@ ccc          VGPST(IG)=VG0(IG)
         endif ! if itsetp.eq.1 or ge.2 loop end:
        endif  ! if iscf.eq.1 loop end
       do ig=1,nxyz
-       VGOLD(ig)=VG3(ig) ! store 
+       VGOLD(ig)=VG3(ig) ! store
       enddo
       endif
 c  ***  interpolate VG(t+dt/2) from new and past VG's ***
@@ -875,6 +875,9 @@ c  ***  interpolate VG(t+dt/2) from new and past VG's ***
       call prof_start(69)
 #endif
       if ( iscf.ge.2 ) then
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(70)
+#endif
 cc *** 
 c
        if ( itstep.ne.0 ) then
@@ -942,7 +945,14 @@ c
          enddo
         endif
        endif
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(70)
+      call prof_start(71)
+#endif
        call vgconv(VG3,VGOLD,NXYZ,TR2,RDIF,IOK)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(71)
+#endif
 cc  ***  temp check
 c       write(6,*)' iscf = ',iscf,' Convergence = ',RDIF
 cc  ***  temp check end
@@ -960,6 +970,9 @@ c       if (IOK.eq.1) goto 9899 ! Quit the SCF loop
        endif
 c ***
 cc       if (my_rank.ne.0 ) then
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(72)
+#endif
        nblng=nend(my_rank)-nbegin(my_rank)+1
 c       nbgn=nbegin(my_rank)
        do ik0=1,numkq
@@ -967,8 +980,11 @@ c       call coefcp(coef0(1,nbgn,ik0),coef(1,nbgn,ik0),ng2q*nblng)
        call coefcp(coef0(1,1,ik0),coef(1,1,ik0),ng2q*nblng)
        enddo
        do ig=1,nxyz
-        VGOLD(ig)=VG3(ig) ! store 
+        VGOLD(ig)=VG3(ig) ! store
        enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(72)
+#endif
       endif
 c
  9799 continue

@@ -75,6 +75,11 @@ Step 59 measured the accepted-source LOCPOT envelope at `0.305052` sec, an
 `71.1150200367` sec diagnostic wall passed both correctness checks but does not
 replace the official three-run median.
 
+Step 60 partitioned the current VRHO host-control envelope. Corrector work was
+`2.215861` sec (`79.5036%` of the parent), while seed and predictor work were
+`0.552540` and `0.016408` sec. Its `70.9675290585` sec diagnostic wall passed
+both correctness checks and does not replace the official baseline.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

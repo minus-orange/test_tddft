@@ -1858,3 +1858,17 @@ Vloc envelope fell by `2.462559` sec (`83.5537%`). LOCPOT is now only
 improvement mechanism. The next task is diagnostic Step 60, which partitions
 VRHO host control into seed, predictor, and corrector intervals before any
 new optimization is selected.
+
+## Step 60: Split VRHO Host Control
+
+Archive `nvhpc_cufft_1rank_02_STEP60_VRHO_CONTROL_01` passed normal check and
+relaxed compare. Its `70.9675290585` sec wall is diagnostic only. Of
+`2.787119` sec in VRHO control, seed/coefficient-copy work used `0.552540`
+sec, predictor/extrapolation used `0.016408` sec, and
+corrector/interpolation/convergence used `2.215861` sec. The children cover
+`99.9171%` of the parent.
+
+Corrector work is `79.5036%` of VRHO control and `20.7787%` of the current
+FRPRMN residual. The next task is diagnostic Step 61, splitting it into
+interpolation, VGCONV, and COEF/VGOLD restoration before any optimization is
+selected.

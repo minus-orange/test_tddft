@@ -145,5 +145,8 @@
       if (id.eq.67) name='frprmn_vrho_seed_ctrl'
       if (id.eq.68) name='frprmn_vrho_predict_ctrl'
       if (id.eq.69) name='frprmn_vrho_correct_ctrl'
+      if (id.eq.70) name='frprmn_vrho_interp'
+      if (id.eq.71) name='frprmn_vrho_converge'
+      if (id.eq.72) name='frprmn_vrho_coef_restore'
       return
       end
