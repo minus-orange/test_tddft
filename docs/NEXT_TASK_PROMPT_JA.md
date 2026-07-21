@@ -59,18 +59,19 @@ Step 52は`Part1to5`から呼ばれる`VPJ_GEN`動径積分だけをGベクト�
 Step 48のNsight値はStep 52 VPJ GPU化より前なので、現在のkernel時間・転送回数・
 同期構造ではありません。
 
-次の1テーマは、追加最適化ではなく正式Step 52 sourceの実行構造再診断です。
+Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みです。
 
-1. Step 52をNsight Systemsで再計測する計画と、A100で人間が実行する簡潔なコマンドを
-   作成する。
-2. CUDA kernel、H2D/D2H、CUDA/OpenACC API、同期、allocation、OS runtimeを収集する。
-3. `13.149986 sec`のFRPRMN残差をCPU演算、MPI、runtime/API、同期、GPU idleへ
-   分類する。
-4. traceだけで不足する場合に限り、default OFFの診断timer仮説を1件提案する。
-5. 診断結果が返るまで追加最適化を実装しない。
+1. Step 53 trace wallは`76.0769960680 sec`で、check/compareはPASS。
+2. CUDA kernel合計は約`14.26 sec`、新VPJ kernelは`1.793293070 sec`。
+3. FRPRMN残差`13.608745 sec`からVPJ kernelを除いた`11.815452 sec`に、CPU/host処理と
+   未分解waitが残る。
+4. MPIはStep 48全run上限`0.260338098 sec`、Step 51 scoped値`0.037303 sec`で主因ではない。
+5. 次の1テーマはStep 54 default-OFF timer診断とし、既存timer外の
+   predictor/corrector制御、energy/reduction、density、updateを分解する。
+6. Step 54結果が返るまで追加最適化を実装しない。
 
-Step 53の実行には、TDDFTのみのbuild、profile、check、compare、要約をまとめた
-`tools/run_tddft_step53_nsys.sh`を使用する。長い個別コマンドへ展開しない。
+Step 53 helperは完了済みの履歴として保持する。Step 54も長い個別コマンドへ展開せず、
+TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使用する。
 
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`
 を使う簡潔でコピー可能なbuild/profile/archive/check/compareコマンドを提示します。

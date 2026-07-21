@@ -355,3 +355,10 @@ theme is diagnostic only: re-profile the accepted Step 52 source with Nsight
 Systems, including its remaining `13.149986` sec FRPRMN residual, and reclassify
 CUDA kernels, H2D/D2H, runtime/API, synchronization, MPI, and GPU idle before
 selecting one new bounded hypothesis. Trace wall is not a performance baseline.
+
+Step 53 completed that trace. CUDA kernels occupied about `18.7%` of trace
+wall, and the new VPJ kernel used `1.793293070` sec. The next diagnostic target
+is the `11.815452` sec host/wait envelope remaining after subtracting that
+kernel from the `13.608745` sec FRPRMN residual. Step 54 should add default-off
+timers around uncovered predictor/corrector control, energy/reduction, density,
+and update blocks. Do not select another optimization before its result.

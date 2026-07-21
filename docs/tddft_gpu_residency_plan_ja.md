@@ -331,3 +331,9 @@ Step 52を正式baselineとして採用しました。
 正式Step 52 sourceのNsight Systems再計測です。残る`13.149986`秒のFRPRMN残差を含め、
 CUDA kernel、H2D/D2H、runtime/API、同期、MPI、GPU idleを再分類してから、次の
 bounded hypothesisを1件だけ選びます。trace wallは性能baselineに使用しません。
+
+Step 53で再計測は完了しました。CUDA kernelはtrace wallの約`18.7%`、新VPJ kernelは
+`1.793293070`秒でした。FRPRMN残差`13.608745`秒からVPJ kernelを除いた
+`11.815452`秒のhost/wait envelopeが次の診断対象です。Step 54では既存timer外の
+predictor/corrector制御、energy/reduction、density、updateをdefault-off timerで
+分け、結果が返るまで追加最適化を選びません。

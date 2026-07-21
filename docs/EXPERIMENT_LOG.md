@@ -574,3 +574,54 @@ diagnostics off, traces CUDA, OpenACC, OS runtime, and MPI, runs both correctnes
 checks, archives locally, and prints bounded terminal summaries. The returned
 evidence is photographs or manually typed text only. Do not use trace wall as
 a baseline and do not implement another optimization before classification.
+
+## Step 53 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP53_STEP52_NSYS_01`
+- Tested revision: `84a7af8a5529eb33fb08adfcc8eaea6061ab0bb584`
+- Diagnostic wall: `76.0769960680` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `67.152672` sec
+- `tmevl_total`: `53.543927` sec
+- FRPRMN residual outside TMEVL: `13.608745` sec
+- Top fused kernel: `8.297507928` sec (`58.2%` of CUDA kernel time)
+- `vpj_gen_acc_integral_406_gpu`: `1.793293070` sec over 2,000 launches
+- Estimated aggregate CUDA kernel time: about `14.26` sec (`18.7%` of trace wall)
+- H2D: 38,564 copies / `30,745.626` MB / `2.565299787` sec
+- D2H: 7,348 copies / `5,846.065` MB / `0.466224230` sec
+- CUDA API `cuStreamSynchronize`: `15.940432501` sec
+- CUDA API `cudaEventSynchronize`: `1.672755884` sec
+- OpenACC VPJ compute/wait: `1.837147688` / `1.816791731` sec
+
+Relative to Step 48, Step 52 adds exactly 1,004 H2D calls and 2,000 D2H calls.
+The H2D increment matches five phase arrays per 200 `Part1to5` calls plus four
+static tables; the D2H increment matches one VPJ result download per 2,000
+calls. Transfer duration remains only `3.031524017` sec in aggregate and may
+overlap. Allocation/free is setup-scale; the largest row is one
+`cuMemHostAlloc` of `0.275726650` sec.
+
+The Step 53 `mpi_sum` report contained no rows, so it supplies no new MPI
+number. Existing evidence remains authoritative: Step 48 bounded all in-run
+MPI collectives at `0.260338098` sec, and Step 51 measured scoped VPJ MPI at
+`0.037303` sec. MPI is not a principal residual component.
+
+Classification of the `13.608745` sec trace residual is therefore:
+
+- GPU computation: `1.793293070` sec in the new VPJ kernel.
+- CPU computation/host orchestration plus unresolved waits: at most about
+  `11.815452` sec after subtracting that kernel; this is the dominant remaining
+  envelope but is not yet a pure CPU timer.
+- MPI: negligible under the prior `0.260338098` sec whole-run bound.
+- Runtime/API and synchronization: significant but overlapping; stream plus
+  event synchronization totals `17.613188385` sec across the complete trace,
+  while the VPJ-specific OpenACC wait is `1.816791731` sec.
+- GPU idle/non-kernel wall: aggregate kernels occupy only about `18.7%` of the
+  trace wall, leaving about `61.82` sec outside CUDA kernels. This is not an
+  additive idle timer, but confirms that host work and synchronous boundaries
+  still dominate utilization.
+
+Step 53 completes the current-source trace but does not isolate the remaining
+host envelope inside FRPRMN. Step 54 should be diagnostic only: use default-off
+coarse timers to split predictor/corrector control, energy/reduction, density,
+and update blocks not covered by the existing COEF/GDUMP/Part1to5/EXTAU timers.
+Do not select another optimization before that result.

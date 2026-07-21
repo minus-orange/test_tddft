@@ -51,6 +51,12 @@ original TMEVL CPU path. The median run's FRPRMN residual outside TMEVL is
 Step 41 remains the historical comparison baseline, and Step 37 remains the
 underlying pinned-allocation build mode.
 
+Step 53 re-profiled the accepted Step 52 source with Nsight Systems. Archive
+`nvhpc_cufft_1rank_02_STEP53_STEP52_NSYS_01` passed both correctness checks;
+its `76.0769960680` sec wall is diagnostic only and does not replace the
+official `73.4374880791` sec median. The trace measured the VPJ kernel at
+`1.793293070` sec and aggregate CUDA kernel time at about `14.26` sec.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

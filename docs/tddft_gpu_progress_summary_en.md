@@ -1787,3 +1787,22 @@ as the official baseline. The next task is diagnostic only: re-profile the
 accepted Step 52 source with Nsight Systems and reclassify remaining kernel,
 transfer, runtime/API, synchronization, MPI, and GPU-idle time. Trace wall is
 not a performance baseline.
+
+## Step 53: Re-profile the Accepted Step 52 Source
+
+Archive `nvhpc_cufft_1rank_02_STEP53_STEP52_NSYS_01` passed normal check and
+relaxed compare. Its `76.0769960680` sec trace wall is diagnostic only. The
+2,000 VPJ kernels totaled `1.793293070` sec; aggregate CUDA kernels were about
+`14.26` sec, or `18.7%` of trace wall. H2D was 38,564 calls /
+`30,745.626` MB / `2.565299787` sec, and D2H was 7,348 calls /
+`5,846.065` MB / `0.466224230` sec.
+
+The FRPRMN residual was `13.608745` sec, leaving an approximately `11.815452`
+sec CPU/host-orchestration and unresolved-wait envelope after subtracting the
+VPJ kernel. The MPI report was empty, but the Step 48 `0.260338098` sec
+whole-run bound and Step 51 `0.037303` sec scoped value rule out MPI as the
+principal cause. Whole-trace stream/event synchronization totaled
+`17.613188385` sec, while VPJ-specific OpenACC wait was `1.816791731` sec.
+The next task is not optimization: Step 54 should use default-off timers to
+divide the remaining FRPRMN host envelope into uncovered control,
+energy/reduction, density, and update blocks.

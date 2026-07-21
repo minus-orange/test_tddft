@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 52 accepted after three correctness-passing runs
+- Current HEAD status: Step 53 trace complete; Step 54 host-envelope timers next
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 52 median `73.4374880791` sec
@@ -211,7 +211,29 @@ selecting another optimization. Do not use trace wall as a baseline.
 Use the committed one-command helper `tools/run_tddft_step53_nsys.sh`; it emits
 the bounded terminal evidence required for photograph-only return.
 
-Do not begin another offload implementation until Step 52 is re-profiled. Step 47
+Step 53 archive `nvhpc_cufft_1rank_02_STEP53_STEP52_NSYS_01` passed both
+correctness checks at revision `84a7af8`; its `76.0769960680` sec wall is
+diagnostic only. The trace measured the new VPJ kernel at `1.793293070` sec
+over 2,000 launches and aggregate CUDA kernels at about `14.26` sec. H2D was
+38,564 calls / `30,745.626` MB / `2.565299787` sec; D2H was 7,348 calls /
+`5,846.065` MB / `0.466224230` sec. The exact +1,004 H2D and +2,000 D2H call
+increments from Step 48 match the Step 52 mappings and VPJ result downloads.
+
+The trace FRPRMN residual was `13.608745` sec. Subtracting the VPJ kernel leaves
+an `11.815452` sec envelope containing CPU/host orchestration and unresolved
+waits. MPI remains negligible by the Step 48 whole-run `0.260338098` sec bound
+and Step 51 scoped `0.037303` sec value; Step 53's MPI report was empty. CUDA
+API synchronization is large but overlaps the complete trace: stream and event
+synchronization total `17.613188385` sec, and VPJ OpenACC wait is
+`1.816791731` sec. Aggregate kernel share is only about `18.7%` of trace wall.
+
+The immediate next task is Step 54 diagnostic timing, not optimization. Split
+the remaining FRPRMN host envelope into predictor/corrector control,
+energy/reduction, density, and update blocks not already covered by the
+COEF/GDUMP/Part1to5/EXTAU timers.
+
+Do not begin another offload implementation until Step 54 resolves the
+remaining host envelope. Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce
 only a noise-level `0.0291%` median advantage; the same form must not be
 retried. Likewise, do not retry Step 45 whole-loop COEF allocation, Step 42

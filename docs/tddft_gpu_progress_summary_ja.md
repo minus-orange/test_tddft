@@ -1638,3 +1638,18 @@ static pseudopotential表をtime-step loop全体でresident化しています。
 Step 52を正式baselineとして採用します。次は追加最適化ではなく、正式Step 52 sourceを
 Nsight Systemsで再計測し、残るkernel、転送、runtime/API、同期、MPI、GPU idleを
 再分類します。trace wallは性能baselineに使用しません。
+
+## Step 53: 正式Step 52 sourceのNsight Systems再計測
+
+archive `nvhpc_cufft_1rank_02_STEP53_STEP52_NSYS_01`は通常checkとrelaxed
+compareにPASSしました。診断wallは`76.0769960680`秒でbaselineには使用しません。
+VPJ kernelは2,000回で`1.793293070`秒、CUDA kernel合計は約`14.26`秒、trace wall比
+約`18.7%`でした。H2Dは38,564回・`30,745.626` MB・`2.565299787`秒、D2Hは
+7,348回・`5,846.065` MB・`0.466224230`秒です。
+
+FRPRMN残差は`13.608745`秒で、VPJ kernelを除く約`11.815452`秒にCPU/host処理と
+未分解waitが残ります。MPI reportは空でしたが、Step 48全MPI上限`0.260338098`秒と
+Step 51 VPJ MPI `0.037303`秒から主因ではありません。stream/event同期の全trace合計は
+`17.613188385`秒、VPJ固有OpenACC waitは`1.816791731`秒です。次は最適化ではなく、
+残るFRPRMN host envelopeを既存timer外の制御、energy/reduction、density、updateへ
+分けるStep 54 default-off診断です。
