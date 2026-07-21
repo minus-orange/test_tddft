@@ -412,6 +412,12 @@ hypothesis changes only the VPJ kernel vector length from 256 to 128, preserving
 radial accumulation order, equations, ownership, D2H, and MPI. Use the normal
 diagnostic-off three-run adoption gate against Step 62.
 
+Step 67 implements exactly that one-parameter hypothesis. Run
+`tools/run_tddft_step67.sh 01` first. If both checks pass, use
+`tools/run_tddft_step67.sh 02-03` for the remaining two runs. Compare the
+three-run median with `68.5734798908` sec and revert if no advantage is
+supported.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

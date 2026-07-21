@@ -1938,3 +1938,6 @@ Step 66 passed both checks. GPU kernel completion used `1.831545` sec
 (`97.0896%` of the parent), while D2H used only `0.047825` sec. The next bounded
 performance hypothesis changes only this kernel's vector length from 256 to
 128 and keeps radial accumulation order and all ownership boundaries.
+
+Step 67 implements only that parameter change and uses the standard
+diagnostic-off three-run gate against the Step 62 median.

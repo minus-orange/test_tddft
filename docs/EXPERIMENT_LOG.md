@@ -1114,3 +1114,12 @@ kernel's vector length from 256 to 128. The sequential radial accumulation,
 equations, data ownership, D2H, and MPI boundary remain unchanged. Evaluate it
 with diagnostics off and the standard three-run gate; reject and revert if the
 median does not beat the Step 62 baseline.
+
+## Step 67 Plan
+
+Change only `VPJ_GEN_ACC_INTEGRAL` from `vector_length(256)` to
+`vector_length(128)`. Preserve all equations, the sequential radial reduction,
+data mappings, D2H, and MPI. Use `tools/run_tddft_step67.sh 01` as the first
+diagnostic-off correctness/performance gate. If both checks pass, collect runs
+02/03 with `tools/run_tddft_step67.sh 02-03`. Adopt only if the three-run median
+beats the Step 62 baseline `68.5734798908` sec; otherwise revert.

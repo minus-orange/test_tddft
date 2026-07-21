@@ -1762,3 +1762,6 @@ Step 66はdefault-offのkernel-waitとD2H子timerだけを追加します。明�
 Step 66は両checkにPASSしました。GPU kernel完了は`1.831545`秒（親の`97.0896%`）、
 D2Hは`0.047825`秒でした。次はこのkernelだけのvector lengthを256から128へ変え、
 radial加算順とownershipを維持する単一性能仮説です。
+
+Step 67はこのparameter変更だけを実装し、Step 62中央値に対するdiagnostic OFF 3回gateで
+採否を決めます。

@@ -401,3 +401,5 @@ Step 66は診断専用timerと既存同期境界のwaitで分解し、production
 
 Step 66ではGPU完了が`1.831545`秒、D2Hは`0.047825`秒でした。次の単一性能試験はVPJの
 `vector_length(256)`だけを`128`へ変更し、radial逐次加算と全境界を維持します。
+
+Step 67はこのvector-length変更だけを適用し、標準3回gateで採用またはrevertします。

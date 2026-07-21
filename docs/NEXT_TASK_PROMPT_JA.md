@@ -131,6 +131,8 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     `1.831545 sec`（`97.0896%`）、D2H `0.047825 sec`（`2.5352%`）。
 34. 次の単一性能仮説はVPJ kernelだけの`vector_length(256)`を`128`へ変更すること。
     radial加算順、数式、ownership、D2H、MPIは維持し、diagnostic OFF 3回中央値で採否する。
+35. Step 67初回は`./tools/run_tddft_step67.sh 01`だけを実行し、PASS/PASSならrun 02/03を
+    `./tools/run_tddft_step67.sh 02-03`の1コマンドで取得する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

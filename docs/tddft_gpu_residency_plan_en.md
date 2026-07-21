@@ -444,3 +444,6 @@ existing synchronous update boundary. Production behavior is unchanged.
 Step 66 found `1.831545` sec in GPU completion and only `0.047825` sec in D2H.
 The next bounded performance test changes only VPJ `vector_length(256)` to
 `128`, preserving sequential radial accumulation and all boundaries.
+
+Step 67 applies only this vector-length change and will be accepted or reverted
+from the standard three-run gate.
