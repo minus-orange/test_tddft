@@ -1167,3 +1167,18 @@ sequential radial accumulation, mappings, D2H, and MPI. Use
 `tools/run_tddft_step68.sh 01` first; if both checks pass, use
 `tools/run_tddft_step68.sh 02-03`. Compare the three-run median with the new
 Step 67 baseline `68.3616518974` sec and revert if no advantage is supported.
+
+## Step 68 Result and Rejection
+
+- Archive: `nvhpc_cufft_1rank_02_STEP68_VPJ_VL64_01`
+- Tested revision: `c7028e0e18c8bb999d92da9b7a7e649152bc3afc75`
+- Wall: `68.7983009815` sec
+- Correctness: check PASS; relaxed compare PASS
+- Regression from Step 67 median: `0.4366490841` sec (`0.638734%`)
+- Regression / Step 67 run range: `2.1394x`
+- FRPRMN residual outside TMEVL: `8.173828` sec
+
+The first run is slower by more than twice the accepted run range, so spending
+two more A100 runs is not justified. Step 68 is rejected and the VPJ vector
+length is restored to the accepted value 128. Keep the helper and result as
+history; do not retry vector length 64 in the same form.

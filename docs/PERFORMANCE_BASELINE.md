@@ -120,6 +120,11 @@ All three Step 67 runs passed both checks. The `68.3616518974` sec median is
 faster than the fastest Step 62 run, so the observed distributions do not
 overlap. Step 67 supersedes Step 62 as the official baseline.
 
+Step 68 tested VPJ vector length 64. Run 01 passed both checks but took
+`68.7983009815` sec, a `0.638734%` regression from Step 67 and more than twice
+the accepted run range. The remaining runs were skipped, the change was
+rejected, and vector length 128 was restored.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

@@ -1953,3 +1953,7 @@ so Step 67 is accepted as the official baseline.
 
 Step 68 continues the same bounded launch-shape search by changing only VPJ
 vector length 128 to 64 and using the standard three-run gate against Step 67.
+
+Run 01 passed both checks but regressed to `68.7983009815` sec, `0.638734%`
+slower than Step 67 and over twice its run range. Runs 02/03 were skipped,
+Step 68 was rejected, and vector length 128 was restored.

@@ -457,3 +457,7 @@ accepted as the new baseline.
 
 Step 68 tests only VPJ vector length 64 as the next point in the same bounded
 launch-shape search, with Step 67 retained unless the three-run gate passes.
+
+Run 01 regressed by `0.638734%`, over twice the Step 67 run range. Step 68 is
+rejected without runs 02/03, and vector length 128 is restored. Do not retry
+the same vector-length-64 form.

@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 67 accepted after three PASS/PASS runs
+- Current HEAD status: Step 68 rejected; VPJ vector length restored to Step 67 value 128
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 67 median `68.3616518974` sec
@@ -434,6 +434,12 @@ Step 68 continues the same bounded one-parameter search by changing only VPJ
 vector length 128 to 64. Run `tools/run_tddft_step68.sh 01` first, then
 `tools/run_tddft_step68.sh 02-03` only after both checks pass. Compare against
 the Step 67 median `68.3616518974` sec and revert if unsupported.
+
+Step 68 run 01 archive `nvhpc_cufft_1rank_02_STEP68_VPJ_VL64_01` passed both
+checks but took `68.7983009815` sec, `0.4366490841` sec (`0.638734%`) slower
+than Step 67 and `2.1394x` the accepted run range. Runs 02/03 were intentionally
+skipped. Step 68 is rejected and VPJ vector length is restored to 128; Step 67
+remains the official baseline.
 
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.

@@ -143,6 +143,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     Step 67を正式採用した。
 40. 次の単一仮説Step 68はVPJ `vector_length(128)`だけを`64`へ変更する。同じ演算順と
     境界を維持し、初回は`./tools/run_tddft_step68.sh 01`だけを実行する。
+41. Step 68 run 01はcheck/compare PASSだが`68.7983009815 sec`で、Step 67比
+    `0.4366490841 sec`（`0.638734%`）遅く、実行幅の`2.1394x`回帰した。
+42. run 02/03は省略しStep 68を不採用、VPJ vector lengthは128へ復元した。同形の64を
+    再試行しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
