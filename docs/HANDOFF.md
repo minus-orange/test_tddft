@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 68 rejected; VPJ vector length restored to Step 67 value 128
+- Current HEAD status: Step 69 EXTAU OpenACC run 01 pending on A100
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 67 median `68.3616518974` sec
@@ -440,6 +440,15 @@ checks but took `68.7983009815` sec, `0.4366490841` sec (`0.638734%`) slower
 than Step 67 and `2.1394x` the accepted run range. Runs 02/03 were intentionally
 skipped. Step 68 is rejected and VPJ vector length is restored to 128; Step 67
 remains the official baseline.
+
+Step 69 is a bounded EXTAU preparation hypothesis selected from the current
+Step 63 residual classification. Under OpenACC only, it computes the five
+independent phase tables on the GPU inside one grouped data region. G21..G25
+and TAU1..TAU5 are copied in once per preparation and EXTAU is copied out once
+for the unchanged host TMEVL consumer. It does not extend device ownership to
+`work2_`, alter MPI, or change the CPU/FFTW loops. Run
+`tools/run_tddft_step69.sh 01` first and stop after a clear regression;
+otherwise collect 02/03 with the combined helper command.
 
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.

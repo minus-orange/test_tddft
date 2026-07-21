@@ -1182,3 +1182,15 @@ The first run is slower by more than twice the accepted run range, so spending
 two more A100 runs is not justified. Step 68 is rejected and the VPJ vector
 length is restored to the accepted value 128. Keep the helper and result as
 history; do not retry vector length 64 in the same form.
+
+## Step 69 Plan
+
+Test one bounded implementation hypothesis for the current `1.468457` sec
+EXTAU preparation scope. Under `_OPENACC`, compute its five independent phase
+tables on the GPU in one data region, grouping the G21..G25 and TAU1..TAU5
+inputs and retaining one EXTAU copyout for the existing host consumer. Preserve
+the original CPU/FFTW loops, TMEVL ownership, equations, MPI, and VPJ vector
+length 128. Run `tools/run_tddft_step69.sh 01` first. If correctness passes and
+there is no clear regression, obtain runs 02/03 with
+`tools/run_tddft_step69.sh 02-03` and compare the median with
+`68.3616518974` sec.

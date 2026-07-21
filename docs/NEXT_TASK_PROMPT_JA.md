@@ -147,6 +147,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     `0.4366490841 sec`（`0.638734%`）遅く、実行幅の`2.1394x`回帰した。
 42. run 02/03は省略しStep 68を不採用、VPJ vector lengthは128へ復元した。同形の64を
     再試行しない。
+43. 次の単一仮説Step 69は現行`EXTAU`準備`1.468457 sec`だけを対象とする。OpenACC時に
+    5個の独立な位相表を1個のdata領域でGPU生成し、入力転送をまとめる。
+44. 現行host consumer用のEXTAU copyout、MPI、数式、CPU/FFTW loop、VPJ vector length
+    128を維持し、ownershipなしの`work2_` GPU生成へ広げない。
+45. 初回は`./tools/run_tddft_step69.sh 01`だけを実行する。PASS/PASSで明確な回帰が
+    なければ、run 02/03を`./tools/run_tddft_step69.sh 02-03`の1コマンドで取得する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
@@ -181,7 +187,7 @@ CPU/FFTW fallback、fixed-form Fortran、correctness toleranceを維持してく
 性能採否はdiagnostic OFF、normal checkとrelaxed compare、同条件3回中央値で行います。
 production入力と対応referenceはまだ存在しないため、推測で生成しないでください。
 
-初回報告では、Git状態、正式Step 57 baseline、Step 52からの改善、現在確定している比率、
+初回報告では、Git状態、正式Step 67 baseline、Step 52からの改善、現在確定している比率、
 再診断で取得する指標、簡潔なA100実行コマンド案だけを示し、追加実装へ進まず停止してください。
 
 ---

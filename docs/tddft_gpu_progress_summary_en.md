@@ -1957,3 +1957,10 @@ vector length 128 to 64 and using the standard three-run gate against Step 67.
 Run 01 passed both checks but regressed to `68.7983009815` sec, `0.638734%`
 slower than Step 67 and over twice its run range. Runs 02/03 were skipped,
 Step 68 was rejected, and vector length 128 was restored.
+
+Step 69 targets only the current `1.468457` sec EXTAU preparation scope. Under
+OpenACC, it builds the five independent phase tables on the GPU in one data
+region and groups the G21..G25 and TAU1..TAU5 input transfers. The EXTAU
+copyout for the current host consumer, MPI, equations, CPU/FFTW loops, and VPJ
+vector length 128 remain unchanged. Run only
+`tools/run_tddft_step69.sh 01` first.

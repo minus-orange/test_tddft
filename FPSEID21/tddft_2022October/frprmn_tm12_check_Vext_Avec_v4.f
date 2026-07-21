@@ -1724,6 +1724,11 @@ c *** prepare EXTAU !!!
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_start(48)
 #endif
+#ifdef _OPENACC
+      call PREPARE_EXTAU_ACC(NGcont,NTAUQ,G21(1,1,IK),
+     & G22(1,1,IK),G23(1,1,IK),G24(1,1,IK),G25(1,1,IK),
+     & TAU1,TAU2,TAU3,TAU4,TAU5,EXTAU,TPIBA)
+#else
 c ****** part 1 ********
 ! ==============================================================================
 !     ITBF=0
@@ -1925,6 +1930,7 @@ c      call MPI_Bcast(EXTAU(1,nbegint(icpu),5),ntleng*(nxyz/6)
 c     & ,MPI_DOUBLE_COMPLEX, icpu,MPI_COMM_WORLD,ierr)
 c      enddo
 c **
+#endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(48)
       call prof_start(58)
@@ -3021,6 +3027,72 @@ c
      & ,mshbegin,mshend,ncpuq,1 )
 #endif
 c
+!$acc end data
+      return
+      end
+
+c ======================================================================
+c     Build the five EXTAU phase tables on the device.  The surrounding
+c     data region intentionally groups all five inputs and the one host
+c     result transfer; the current TMEVL consumer remains
+c     host-authoritative.
+c ======================================================================
+      subroutine PREPARE_EXTAU_ACC(NGcont,NTAUQ,G21,G22,G23,G24,G25,
+     & TAU1,TAU2,TAU3,TAU4,TAU5,EXTAU,TPIBA)
+      implicit real*8 (a-h,o-z)
+      dimension G21(4,NGcont),G22(4,NGcont),G23(4,NGcont),
+     & G24(4,NGcont),G25(4,NGcont)
+      dimension TAU1(3,NTAUQ),TAU2(3,NTAUQ),TAU3(3,NTAUQ),
+     & TAU4(3,NTAUQ),TAU5(3,NTAUQ)
+      complex*16 EXTAU(NGcont,5,NTAUQ)
+
+!$acc data copyin(G21,G22,G23,G24,G25,TAU1,TAU2,TAU3,TAU4,TAU5)
+!$acc& copyout(EXTAU)
+!$acc parallel loop collapse(2) vector_length(128)
+      do itseq=1,NTAUQ
+       do ig=1,NGcont
+        temp=TPIBA*(G21(1,ig)*TAU1(1,itseq)
+     &             +G21(2,ig)*TAU1(2,itseq)
+     &             +G21(3,ig)*TAU1(3,itseq))
+        EXTAU(ig,1,itseq)=DCMPLX(COS(temp),SIN(temp))
+       enddo
+      enddo
+!$acc parallel loop collapse(2) vector_length(128)
+      do itseq=1,NTAUQ
+       do ig=1,NGcont
+        temp=TPIBA*(G22(1,ig)*TAU2(1,itseq)
+     &             +G22(2,ig)*TAU2(2,itseq)
+     &             +G22(3,ig)*TAU2(3,itseq))
+        EXTAU(ig,2,itseq)=DCMPLX(COS(temp),SIN(temp))
+       enddo
+      enddo
+!$acc parallel loop collapse(2) vector_length(128)
+      do itseq=1,NTAUQ
+       do ig=1,NGcont
+        temp=TPIBA*(G23(1,ig)*TAU3(1,itseq)
+     &             +G23(2,ig)*TAU3(2,itseq)
+     &             +G23(3,ig)*TAU3(3,itseq))
+        EXTAU(ig,3,itseq)=DCMPLX(COS(temp),SIN(temp))
+       enddo
+      enddo
+!$acc parallel loop collapse(2) vector_length(128)
+      do itseq=1,NTAUQ
+       do ig=1,NGcont
+        temp=TPIBA*(G24(1,ig)*TAU4(1,itseq)
+     &             +G24(2,ig)*TAU4(2,itseq)
+     &             +G24(3,ig)*TAU4(3,itseq))
+        EXTAU(ig,4,itseq)=DCMPLX(COS(temp),SIN(temp))
+       enddo
+      enddo
+!$acc parallel loop collapse(2) vector_length(128)
+      do itseq=1,NTAUQ
+       do ig=1,NGcont
+        temp=TPIBA*(G25(1,ig)*TAU5(1,itseq)
+     &             +G25(2,ig)*TAU5(2,itseq)
+     &             +G25(3,ig)*TAU5(3,itseq))
+        EXTAU(ig,5,itseq)=DCMPLX(COS(temp),SIN(temp))
+       enddo
+      enddo
 !$acc end data
       return
       end

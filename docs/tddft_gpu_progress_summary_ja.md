@@ -1778,3 +1778,8 @@ Step 67に対する標準3回gateで採否します。
 
 run 01は両checkにPASSしましたが`68.7983009815`秒で、Step 67より`0.638734%`遅く
 実行幅の2倍を超えて回帰しました。run 02/03は省略しStep 68を不採用、128へ戻します。
+
+Step 69は現行EXTAU準備`1.468457`秒だけを対象とします。OpenACC時に5個の独立な位相表を
+1個のdata領域内でGPU生成し、G21..G25とTAU1..TAU5の入力転送をまとめます。現行host
+consumer用のEXTAU copyout、MPI、数式、CPU/FFTW loop、VPJ vector length 128は維持します。
+初回は`tools/run_tddft_step69.sh 01`だけを実行します。
