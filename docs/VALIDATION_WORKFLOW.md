@@ -250,7 +250,8 @@ Explicit human approval is required before:
 
 - authorizing implementation of a selected hypothesis;
 - starting source or document edits for an experiment;
-- pushing an implementation or result commit;
+- pushing an implementation or result commit, unless the standing approval
+  below applies;
 - starting A100 performance or profiler execution;
 - changing GPU count, MPI ranks, compiler flags, inputs, references, or
   tolerances;
@@ -261,6 +262,13 @@ Explicit human approval is required before:
 Read-only investigation and result analysis may proceed without changing
 external state. When approval is required, Main presents the exact action,
 evidence, risks, and rollback before stopping for the human decision.
+
+As of 2026-07-21, the user has granted standing approval to push each newly
+created commit on `tddft-openacc-residency` to the same branch on `origin`
+immediately after committing. This standing approval is limited to normal
+fast-forward pushes of the intended project commit. Force-pushes, another
+branch, and commits containing unrelated user changes still require explicit
+approval.
 
 ## Main Result Report
 

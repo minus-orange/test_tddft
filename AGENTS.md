@@ -34,6 +34,10 @@ human approval boundaries, adoption, and rollback.
 ## Permanent Rules
 
 - One commit represents one performance hypothesis.
+- The user granted standing approval on 2026-07-21 to push each new commit on
+  `tddft-openacc-residency` to `origin` immediately after it is created. This
+  does not authorize force-pushes, pushing a different branch, or including
+  unrelated user changes.
 - Keep human-operated A100 commands short and directly copyable. Prefer one
   existing wrapper command. If the required procedure cannot be expressed
   concisely, add a bounded helper script to Git instead of sending a long
