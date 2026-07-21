@@ -713,3 +713,17 @@ region. The next largest unresolved mixed envelope is the Step 54
 `frprmn_vloc_prepare` value of `2.940147` sec, slightly larger than VRHO host
 control. Step 56 should remain diagnostic only and split Vloc preparation into
 LOCPOT, smoothing/FFT, and remaining interpolation/Vloc-generation work.
+
+## Step 56 Plan
+
+Keep the Step 54 `frprmn_vloc_prepare` parent and add default-off aggregate
+timers around the six LOCPOT calls and the six smoothing/cuFFT blocks. Derive
+interpolation, Vloc generation, and other control as parent minus those two
+measured children. No equations, ordering, data ownership, or performance path
+changes are allowed in this diagnostic.
+
+Run `tools/run_tddft_step56.sh`. It builds only TDDFT with the accepted pinned
+NVHPC configuration, runs and archives the 100-step case, requires normal
+check and relaxed compare, and prints the parent, two measured children, and
+derived remainder in one photograph-sized summary. Diagnostic wall is not a
+performance baseline.

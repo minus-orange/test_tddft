@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 55 complete; Step 56 Vloc split diagnostic next
+- Current HEAD status: Step 56 Vloc split diagnostic ready for A100
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 52 median `73.4374880791` sec
@@ -265,6 +265,10 @@ VRHO, while smoothing/FFT is only `4.0964%`; VRHO is host-dominated.
 The next bounded task is Step 56 diagnostic timing, not optimization. Split
 the Step 54 `frprmn_vloc_prepare=2.940147` sec envelope into LOCPOT,
 smoothing/FFT, and remaining interpolation/Vloc-generation work.
+
+Step 56 diagnostic code and `tools/run_tddft_step56.sh` are ready. It directly
+times aggregate LOCPOT and smoothing/cuFFT work and prints the remaining Vloc
+work as the parent minus those two children.
 
 Do not begin another offload implementation until Step 56 resolves the
 largest remaining mixed envelope. Step 47

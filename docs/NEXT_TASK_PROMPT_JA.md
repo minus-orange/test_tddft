@@ -74,8 +74,9 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
    VOFRHOは`0.937779 sec`、smoothing/FFTは`0.161545 sec`、
    interpolation/convergence/controlは`2.841719 sec`だった。
 8. VRHOの`72.0600%`はhost controlで、smoothing/FFTは`4.0964%`にすぎない。
-9. 次の1テーマはStep 56診断とし、`frprmn_vloc_prepare=2.940147 sec`を
-   LOCPOT、smoothing/FFT、interpolation/Vloc生成へ分ける。
+9. Step 56診断は実装済みで、`frprmn_vloc_prepare=2.940147 sec`を
+   LOCPOT、smoothing/FFT、interpolation/Vloc生成へ分ける。A100では
+   `./tools/run_tddft_step56.sh`だけを実行する。
 10. Step 56結果が返るまで追加最適化を実装しない。
 
 Step 53/54/55 helperは完了済みの履歴として保持する。Step 56も長い個別コマンドへ展開せず、

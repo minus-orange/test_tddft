@@ -272,5 +272,9 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'frprmn_vrho_smooth_fft'
   case (64)
     name = 'frprmn_vrho_mix_control'
+  case (65)
+    name = 'frprmn_vloc_locpot'
+  case (66)
+    name = 'frprmn_vloc_smooth_fft'
   end select
 end subroutine fpseid_mod_timer_name

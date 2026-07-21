@@ -448,6 +448,9 @@ c        write(6,*)' NUMC=',NUMC(ITY),' MXOFL=',MXOFL(ITY)
 c       enddo
 c      endif
 c *** temp check end
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(65)
+#endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
      & I2G,VGA,OMEGA,
@@ -455,6 +458,10 @@ c     & I2G,RHO2,OMEGA,
      & ,NCRQ,ZV,RC0,COR,NUMC,itstep
 c
      & ,nbegint,nendt,ncpuq )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(65)
+      call prof_start(66)
+#endif
 c *** Make Vloc(*,1) in real space !!!!
 c *** potential smoothing !!
 *VDIR NODEP(rho1,rho4)
@@ -476,8 +483,14 @@ c      call FFT3BX_fftw(NXYZ,RHO4,plancfp,plancbp)
 c *** for Kokubo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      & ,plancfp,plancbp)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(66)
+#endif
       call vlocgen(Vloc(1,1),rho4,nxyz,VEXT,ft1)
 c  ***** part 2 **********
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(65)
+#endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
      & I2G,VGA,OMEGA,
@@ -485,6 +498,10 @@ c     & I2G,RHO2,OMEGA,
      & ,NCRQ,ZV,RC0,COR,NUMC,itstep
 c
      & ,nbegint,nendt,ncpuq )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(65)
+      call prof_start(66)
+#endif
 c *** Make Vloc(*,2) in real space !!!!
 c *** potential smoothing !!
 *VDIR NODEP(rho1,rho4)
@@ -506,8 +523,14 @@ c      call FFT3BX_fftw(NXYZ,RHO4,plancfp,plancbp)
 c **** for Kokubo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      & ,plancfp,plancbp)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(66)
+#endif
       call vlocgen(Vloc(1,2),rho4,nxyz,VEXT,ft2)
 c  ***** part 3 **********
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(65)
+#endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
      & I2G,VGA,OMEGA,
@@ -515,6 +538,10 @@ c     & I2G,RHO2,OMEGA,
      & ,NCRQ,ZV,RC0,COR,NUMC,itstep
 c
      & ,nbegint,nendt,ncpuq )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(65)
+      call prof_start(66)
+#endif
 c *** Make Vloc(*,3) in real space !!!!
 c *** potential smoothing !!
 *VDIR NODEP(rho1,rho4)
@@ -536,8 +563,14 @@ c      call FFT3BX_fftw(NXYZ,RHO4,plancfp,plancbp)
 c *** for Kokubo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      & ,plancfp,plancbp)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(66)
+#endif
       call vlocgen(Vloc(1,3),rho4,nxyz,VEXT,ft3)
 c  ***** part 4 **********
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(65)
+#endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
      & I2G,VGA,OMEGA,
@@ -545,6 +578,10 @@ c     & I2G,RHO2,OMEGA,
      & ,NCRQ,ZV,RC0,COR,NUMC,itstep
 c
      & ,nbegint,nendt,ncpuq )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(65)
+      call prof_start(66)
+#endif
 c *** Make Vloc(*,4) in real space !!!!
 c *** potential smoothing !!
 *VDIR NODEP(rho1,rho4)
@@ -566,8 +603,14 @@ c      call FFT3BX_fftw(NXYZ,RHO4,plancfp,plancbp)
 c **** for Kokubo fftw ASL compativle
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      &  ,plancfp,plancbp)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(66)
+#endif
       call vlocgen(Vloc(1,4),rho4,nxyz,VEXT,ft4)
 c  ***** part 5 **********
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(65)
+#endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
      & I2G,VGA,OMEGA,
@@ -575,6 +618,10 @@ c     & I2G,RHO2,OMEGA,
      & ,NCRQ,ZV,RC0,COR,NUMC,itstep
 c
      & ,nbegint,nendt,ncpuq )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(65)
+      call prof_start(66)
+#endif
 c *** Make Vloc(*,5) in real space !!!!
 c *** potential smoothing !!
 *VDIR NODEP(rho1,rho4)
@@ -596,9 +643,15 @@ c      call FFT3BX_fftw(NXYZ,RHO4,plancfp,plancbp)
 c *** for Kokubo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      &   ,plancfp,plancbp)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(66)
+#endif
       call vlocgen(Vloc(1,5),rho4,nxyz,VEXT,ft5)
 c
 c  ***** part 6!! **********
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(65)
+#endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
      & I2G,VGA,OMEGA,
@@ -606,6 +659,10 @@ c     & I2G,RHO2,OMEGA,
      & ,NCRQ,ZV,RC0,COR,NUMC,itstep
 c
      & ,nbegint,nendt,ncpuq )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(65)
+      call prof_start(66)
+#endif
 c *** Make rho4 for advanced step in real space !!!!
 c *** potential smoothing !!
 *VDIR NODEP(rho1,rho4)
@@ -627,6 +684,9 @@ c      call FFT3BX_fftw(NXYZ,RHO4,plancfp,plancbp)
 c *** for Kokubo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      &  ,plancfp,plancbp)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(66)
+#endif
 c ***  RHO4 at t+dt on real space
 c  ***
 c **** temp check
