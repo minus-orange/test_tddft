@@ -210,7 +210,9 @@ for report in \
   cuda_gpu_mem_time_sum \
   cuda_gpu_mem_size_sum \
   cuda_api_sum \
-  openacc_sum
+  openacc_sum \
+  osrt_sum \
+  mpi_sum
 do
   csv=$ARCHIVE_DIR/$report.csv
   if ! "$NSYS" stats --report "$report" --format csv "$REPORT_FILE" \
@@ -222,7 +224,7 @@ done
 
 SUMMARY=$ARCHIVE_DIR/nsys-summary.txt
 {
-  echo "FPSEID21 Step27 Nsight Systems summary"
+  echo "FPSEID21 Nsight Systems summary"
   echo "label=$LABEL"
   echo "git_revision=$git_revision"
   echo "Diagnostic trace only; do not use its wall time as a baseline."
@@ -231,7 +233,9 @@ SUMMARY=$ARCHIVE_DIR/nsys-summary.txt
     cuda_gpu_mem_time_sum \
     cuda_gpu_mem_size_sum \
     cuda_api_sum \
-    openacc_sum
+    openacc_sum \
+    osrt_sum \
+    mpi_sum
   do
     csv=$ARCHIVE_DIR/$report.csv
     if [ -f "$csv" ]; then

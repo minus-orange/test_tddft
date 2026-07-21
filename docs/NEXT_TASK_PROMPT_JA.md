@@ -69,6 +69,9 @@ Step 48のNsight値はStep 52 VPJ GPU化より前なので、現在のkernel時�
 4. traceだけで不足する場合に限り、default OFFの診断timer仮説を1件提案する。
 5. 診断結果が返るまで追加最適化を実装しない。
 
+Step 53の実行には、TDDFTのみのbuild、profile、check、compare、要約をまとめた
+`tools/run_tddft_step53_nsys.sh`を使用する。長い個別コマンドへ展開しない。
+
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`
 を使う簡潔でコピー可能なbuild/profile/archive/check/compareコマンドを提示します。
 profile wallを性能baselineにしないでください。

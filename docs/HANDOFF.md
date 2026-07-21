@@ -208,6 +208,8 @@ dominant CPU integral from the host critical path. The immediate task is a
 diagnostic-only Nsight Systems trace of the accepted Step 52 source. Recompute
 kernel, transfer, runtime/API, synchronization, MPI, and GPU-idle shares before
 selecting another optimization. Do not use trace wall as a baseline.
+Use the committed one-command helper `tools/run_tddft_step53_nsys.sh`; it emits
+the bounded terminal evidence required for photograph-only return.
 
 Do not begin another offload implementation until Step 52 is re-profiled. Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce

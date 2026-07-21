@@ -565,3 +565,12 @@ is large relative to the run range and is supported by the targeted FRPRMN
 residual reduction. Step 52 is accepted as the official performance baseline.
 The next bounded task is a current-source Nsight Systems trace of Step 52; do
 not begin another optimization before that trace is classified.
+
+## Step 53 Plan
+
+Run one diagnostic-only Nsight Systems trace of the accepted Step 52 source
+with `tools/run_tddft_step53_nsys.sh`. The helper rebuilds only TDDFT with
+diagnostics off, traces CUDA, OpenACC, OS runtime, and MPI, runs both correctness
+checks, archives locally, and prints bounded terminal summaries. The returned
+evidence is photographs or manually typed text only. Do not use trace wall as
+a baseline and do not implement another optimization before classification.
