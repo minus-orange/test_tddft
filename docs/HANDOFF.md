@@ -391,6 +391,14 @@ VPP2 zeroing, and OpenACC integral-kernel-plus-D2H time. Use
 `tools/run_tddft_step65.sh` once, require both checks, and do not use its wall
 as a performance baseline.
 
+Step 65 archive `nvhpc_cufft_1rank_02_STEP65_VPJ_INTEGRAL_SPLIT_01` passed both
+checks at revision `2c6227f`; its `70.3901228905` sec wall is diagnostic only.
+Of the `1.920204` sec parent, host zeroing used `0.037640` sec, VPP2 zeroing
+`0.001753` sec, and OpenACC kernel plus D2H `1.872989` sec (`97.5411%`). Host
+initialization is not a useful optimization target. Step 66 should split kernel
+completion from D2H at the existing synchronous update boundary, with no
+diagnostic-off change.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

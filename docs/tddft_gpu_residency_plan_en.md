@@ -433,3 +433,7 @@ hypothesis.
 
 Step 65 is a timer-only split of those three regions. The diagnostic-off path
 and all computation remain unchanged.
+
+Step 65 found `97.5411%` of the parent in OpenACC kernel plus D2H and only
+`0.039393` sec in both host-zero regions. Step 66 will separate kernel wait
+from D2H before a kernel or transfer hypothesis is chosen.

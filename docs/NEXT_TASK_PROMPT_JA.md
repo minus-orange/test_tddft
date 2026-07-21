@@ -120,6 +120,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     次は追加最適化ではなく、この内訳を分けるStep 65診断。
 29. Step 65はdefault-off timerだけを追加し、`./tools/run_tddft_step65.sh`を1回実行する。
     loop、数式、MPI、ownership、diagnostic-off経路は変更しない。
+30. Step 65はcheck/compare PASS。legacy parent `1.920204 sec`のうちhost zeroing
+    `0.037640`、VPP2 zeroing `0.001753`、OpenACC kernel＋D2H `1.872989 sec`
+    （`97.5411%`）。host初期化省略は有力でない。
+31. 次は追加最適化ではなく、既存同期境界でkernel completionとD2Hを分けるStep 66。
+    diagnostic buildだけに明示waitを入れ、diagnostic-off経路は変更しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

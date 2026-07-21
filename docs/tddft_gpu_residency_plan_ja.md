@@ -393,3 +393,6 @@ Step 64ではlegacy VPJ integral区間が`1.910793`秒、MPIは`0.039413`秒で�
 legacy区間をhost zeroing、VPP2 setup、GPU kernel＋D2H同期へ分けてから仮説を選びます。
 
 Step 65はこの3区間を分けるtimer専用診断で、diagnostic-off経路と演算は変更しません。
+
+Step 65ではOpenACC kernel＋D2Hが親の`97.5411%`で、host zeroing 2区間の合計は
+`0.039393`秒でした。Step 66でkernel waitとD2Hを分けてから次の仮説を選びます。

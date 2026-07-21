@@ -1924,3 +1924,8 @@ an optimization.
 Step 65 adds only default-off timers around host VPJWORK/VPJ zeroing, VPP2
 zeroing, and the OpenACC kernel plus required D2H update. No computation or
 ownership change is included.
+
+Step 65 passed both checks. OpenACC kernel plus D2H used `1.872989` sec
+(`97.5411%` of the legacy parent), while host and VPP2 zeroing together used
+only `0.039393` sec. Step 66 will split kernel completion from D2H at the
+existing synchronous update boundary; no optimization is selected yet.

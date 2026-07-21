@@ -1751,3 +1751,7 @@ legacy区間はhost zeroing、VPP2 setup、GPU integral、D2H同期を含むた�
 
 Step 65はhost VPJWORK/VPJ zeroing、VPP2 zeroing、OpenACC kernel＋必須D2Hの
 default-off timerだけを追加し、演算とownershipは変更しません。
+
+Step 65は両checkにPASSしました。legacy parentのうちOpenACC kernel＋D2Hは
+`1.872989`秒（`97.5411%`）、hostとVPP2 zeroingの合計は`0.039393`秒でした。
+host初期化省略は選ばず、Step 66で既存同期境界のkernel完了とD2Hを分けます。

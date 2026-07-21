@@ -101,6 +101,10 @@ Step 64 measured the current `part1to5` parent at `2.140208` sec. Its
 MPI used only `0.039413` sec; the legacy-named VPJ integral scope dominated at
 `1.910793` sec but still includes host preparation and GPU/D2H work.
 
+Step 65 split that legacy scope. Its `70.3901228905` sec diagnostic wall passed
+both checks and is not a baseline. OpenACC kernel plus D2H used `1.872989` sec
+(`97.5411%`), while host and VPP2 zeroing together used only `0.039393` sec.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

@@ -1067,3 +1067,22 @@ scope into host VPJWORK/VPJ zeroing, VPP2 zeroing, and the OpenACC integral
 kernel plus required D2H update. Preserve every loop, equation, MPI boundary,
 and diagnostic-off path. Run `tools/run_tddft_step65.sh` once and require both
 correctness checks. Diagnostic wall is not a baseline.
+
+## Step 65 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP65_VPJ_INTEGRAL_SPLIT_01`
+- Tested revision: `2c6227ffb3f20eb12f6b49013c7958b733379215`
+- Diagnostic wall: `70.3901228905` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- Legacy VPJ integral parent: `1.920204` sec
+- Host VPJWORK/VPJ zeroing: `0.037640` sec (`1.9602%`)
+- VPP2 zeroing: `0.001753` sec (`0.0913%`)
+- OpenACC kernel plus D2H: `1.872989` sec (`97.5411%`)
+- Derived gap: `0.007822` sec (`0.4074%`)
+- Child coverage: `99.5926%`
+
+Host initialization is too small to justify an optimization. The remaining
+bounded diagnostic is to separate kernel completion from the required D2H
+update. Step 66 should add an explicit wait only in the diagnostic build at the
+existing synchronous update boundary, timing kernel-plus-wait and D2H
+separately while leaving the diagnostic-off path unchanged.
