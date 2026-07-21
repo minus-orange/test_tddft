@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 53 trace complete; Step 54 host-envelope timers next
+- Current HEAD status: Step 54 host-envelope diagnostic ready for A100
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 52 median `73.4374880791` sec
@@ -227,10 +227,14 @@ API synchronization is large but overlaps the complete trace: stream and event
 synchronization total `17.613188385` sec, and VPJ OpenACC wait is
 `1.816791731` sec. Aggregate kernel share is only about `18.7%` of trace wall.
 
-The immediate next task is Step 54 diagnostic timing, not optimization. Split
-the remaining FRPRMN host envelope into predictor/corrector control,
-energy/reduction, density, and update blocks not already covered by the
-COEF/GDUMP/Part1to5/EXTAU timers.
+The immediate next task is the single Step 54 diagnostic run, not optimization.
+Use `tools/run_tddft_step54.sh`; it builds only TDDFT, runs the 100-step case,
+archives it, checks correctness, and prints the complete photograph-sized
+timer summary. The added timers are compile-time off unless explicitly enabled
+by this helper. They split Vloc preparation, density/potential mixing,
+energy/expectation work, initial density, iteration initialization, pre/post
+TMEVL work, density initialization, and exit-data cleanup. Predictor/corrector
+control is the remaining unaccounted residual.
 
 Do not begin another offload implementation until Step 54 resolves the
 remaining host envelope. Step 47

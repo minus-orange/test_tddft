@@ -128,5 +128,14 @@
       if (id.eq.50) name='vpjgen_cpu_integral'
       if (id.eq.51) name='vpjgen_mpi_allreduce'
       if (id.eq.52) name='vpjgen_postreduce'
+      if (id.eq.53) name='frprmn_vloc_prepare'
+      if (id.eq.54) name='frprmn_vrho_mix'
+      if (id.eq.55) name='frprmn_energy_diag'
+      if (id.eq.56) name='frprmn_initial_density'
+      if (id.eq.57) name='frprmn_iter_init'
+      if (id.eq.58) name='frprmn_pre_tmevl'
+      if (id.eq.59) name='frprmn_post_tmevl'
+      if (id.eq.60) name='frprmn_density_init'
+      if (id.eq.61) name='frprmn_exit_cleanup'
       return
       end

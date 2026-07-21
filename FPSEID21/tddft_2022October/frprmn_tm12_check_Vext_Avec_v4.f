@@ -372,6 +372,9 @@ c      nscf=10  ! but not 10, actually.
       icoef_host_current=1
 c
       do 9898 iscf=1,nscf  ! start Predictor Corrector loop
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(53)
+#endif
 c ***
       if ( iscf.eq.1 ) then 
 c ***
@@ -635,6 +638,10 @@ c      endif
 c **** temp check : end
       endif
 c
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(53)
+      call prof_start(54)
+#endif
 C     CALL CLOCK(TIM)
 C6000 FORMAT(23X,'****  FRPRMN: AFT LOCPOT: ',F15.7,' SEC')
 C     WRITE(6,6000) TIM
@@ -885,6 +892,10 @@ c       call coefcp(coef0(1,nbgn,ik0),coef(1,nbgn,ik0),ng2q*nblng)
       endif
 c
  9799 continue
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(54)
+      call prof_start(55)
+#endif
 C
 C#################################################################
 C
@@ -925,9 +936,15 @@ c
 c *** The final-step expectation path below reads COEF on the host for
 c *** every correction, including corrections that have not converged.
       if (itstep.eq.ntstep .and. icoef_host_current.eq.0) then
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+       call prof_stop(55)
+#endif
        call prof_start(44)
 !$acc update self(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
        call prof_stop(44)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+       call prof_start(55)
+#endif
        icoef_host_current=1
       endif
 c
@@ -1321,8 +1338,14 @@ c ********************
 C
       endif
 c
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(55)
+#endif
       if (IOK.eq.1 ) goto 9899  ! quit the Predictor-correcter loop
       if ( itstep.eq.0 ) then
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(56)
+#endif
 c  **** for accuracy of inital EH ELOCAL energies
 c *** temp check
 cd      if (my_rank.eq.0 ) then
@@ -1381,6 +1404,9 @@ c *** for Kokubo FFT -- LY2,LZ1,LZ2 are still necessary for ROTRA
 c     &    WSAVE_XYZ, IFAC_XYZ,LY2, LZ1, LZ2,fdump,itstep,itmod   )
 c *** for Kokubo FFT -- LY2,LZ1,LZ2 are still necessary for ROTRA
      &    plancfp,plancbp, LY2, LZ1, LZ2,fdump,itstep,itmod   )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(56)
+#endif
       return
       endif
 c
@@ -1409,6 +1435,7 @@ c *** CPU/FFTW path; on OpenACC the correction restart below is device-local.
       endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(45)
+      call prof_start(57)
 #endif
 c
       DO 600 I=1,NXYZ
@@ -1417,6 +1444,9 @@ C
 C
       ENL=0.D0
       EKINE=0.D0
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(57)
+#endif
       DO 2000 IK=1,NUMK
 c *****
       if (iscf.eq.1 ) then
@@ -1795,6 +1825,7 @@ c      enddo
 c **
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(48)
+      call prof_start(58)
 #endif
 c *** temp check
 c      miya=13
@@ -1881,6 +1912,9 @@ c ** temp check
       endif
 C ** temp check  : end
 c **
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(58)
+#endif
       CALL TMEVL(itstep,RDIF0,ITCF,NRX,NRY,NRZ,NXYZ,NG2(IK),NG2Q,
 c     &             NBNDQ, NBSEQ,NBND, COEF(1,1,ik), DCOEF(1,1), CWK1,
      &          NBNDQ, NBSEQ(ik),NBND, COEF(1,1,ik), DCOEF(1,1), 
@@ -1925,6 +1959,9 @@ c
      &   ,NGcont
 c
      &   ,nbegin,nend,mshbegin,mshend,ncpuq,ncpu  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(59)
+#endif
       icoef_host_current=0
 c **** temp check
 c       miya=13
@@ -1945,7 +1982,13 @@ C     CALL CLOCK(TIM)
 C6004 FORMAT(23X,'****  FRPRMN: AFT CGDIAG: ',F15.7,' SEC')
 C     WRITE(6,6004) TIM
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(59)
+#endif
  2000 CONTINUE  ! end of IK loop
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(60)
+#endif
 c
 c      call MPI_Barrier(MPI_COMM_WORLD,ierr)
 c
@@ -1972,6 +2015,9 @@ c      enddo
 c 1911 format(4f20.12)
 c ****  temp check end
 cccc      NBND1 = NFL + 1
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(60)
+#endif
       call prof_start(41)
       DO 630 IK=1,NUMK
 c *** temp check
@@ -2061,8 +2107,14 @@ C
        call prof_stop(44)
        icoef_host_current=1
       endif
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(61)
+#endif
 !$acc exit data delete(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
 !$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(61)
+#endif
 c *** 
  1999 CONTINUE
 c ** temp check

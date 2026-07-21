@@ -625,3 +625,20 @@ host envelope inside FRPRMN. Step 54 should be diagnostic only: use default-off
 coarse timers to split predictor/corrector control, energy/reduction, density,
 and update blocks not covered by the existing COEF/GDUMP/Part1to5/EXTAU timers.
 Do not select another optimization before that result.
+
+## Step 54 Plan
+
+Add compile-time, default-off coarse timers for the remaining FRPRMN host
+envelope. The new rows split Vloc preparation, density/potential mixing,
+energy/expectation work, initial density, iteration initialization, work before
+and after TMEVL, density initialization, and exit-data cleanup. Remaining
+predictor/corrector control is obtained as the unaccounted residual.
+Existing COEF synchronization is excluded from the new energy timer so the
+reported components can be summed without that known overlap.
+
+Run the single diagnostic with `tools/run_tddft_step54.sh`. The helper builds
+only TDDFT with the required pinned NVHPC flags, runs Si111-H for 100 steps,
+archives the result, requires normal check and relaxed compare to pass, and
+prints the complete bounded timer summary for photograph-only return. This is
+measurement code only; its wall time is not a performance baseline. Do not
+implement another optimization before classifying the Step 54 result.

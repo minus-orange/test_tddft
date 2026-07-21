@@ -248,5 +248,23 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'vpjgen_mpi_allreduce'
   case (52)
     name = 'vpjgen_postreduce'
+  case (53)
+    name = 'frprmn_vloc_prepare'
+  case (54)
+    name = 'frprmn_vrho_mix'
+  case (55)
+    name = 'frprmn_energy_diag'
+  case (56)
+    name = 'frprmn_initial_density'
+  case (57)
+    name = 'frprmn_iter_init'
+  case (58)
+    name = 'frprmn_pre_tmevl'
+  case (59)
+    name = 'frprmn_post_tmevl'
+  case (60)
+    name = 'frprmn_density_init'
+  case (61)
+    name = 'frprmn_exit_cleanup'
   end select
 end subroutine fpseid_mod_timer_name
