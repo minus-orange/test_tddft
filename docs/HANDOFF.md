@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 60 classified; Step 61 VRHO-corrector split is next
+- Current HEAD status: Step 61 classified; Step 62 host-copy hypothesis awaits run 01
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 57 median `71.2909028530` sec
@@ -339,7 +339,19 @@ interpolation arithmetic, convergence calculation, and failed-correction
 COEF/VGOLD restoration. Use `tools/run_tddft_step61.sh` and do not implement
 an optimization before its result.
 
-Do not add another performance implementation before the Step 61 timer result
+Step 61 archive `nvhpc_cufft_1rank_02_STEP61_VRHO_CORRECTOR_01` passed both
+correctness checks at revision `817b955`; its `71.7462480068` sec wall is
+diagnostic only. Of the `2.240276` sec corrector parent, COEF/VGOLD restoration
+used `2.158536` sec (`96.3513%`), interpolation used `0.057358` sec, and
+VGCONV used `0.014480` sec. The children cover `99.5580%`.
+
+Source ownership shows that the large host COEF0-to-COEF copy is dead on the
+OpenACC failed-correction path: device `COEF0` remains authoritative and the
+next correction already restores device `COEF` locally. Step 62 omits only
+that host copy under `_OPENACC`; CPU/FFTW, VGOLD, device restart, MPI, and
+arithmetic order remain unchanged. Use `tools/run_tddft_step62.sh 01` first.
+
+Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce

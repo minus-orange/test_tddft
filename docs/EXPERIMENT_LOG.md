@@ -44,6 +44,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 58 | Re-profile the accepted Step 57 source | 74.2175440788 (diagnostic trace) | measurement | `797ba4f` |
 | 59 | Measure the accepted-source LOCPOT envelope | 71.1150200367 (one diagnostic run) | measurement | `03ec9bd` |
 | 60 | Split the remaining VRHO host control | 70.9675290585 (one diagnostic run) | measurement | `fad4d11` |
+| 61 | Split the VRHO corrector region | 71.7462480068 (one diagnostic run) | measurement | `817b955` |
 
 ## Other Rejected Experiments
 
@@ -925,3 +926,39 @@ Run `tools/run_tddft_step61.sh` once. It builds only TDDFT, archives the
 100-step result, requires normal check and relaxed compare, and prints the
 corrector parent and three exclusive children in one photograph. Diagnostic
 wall is not a baseline. Select no optimization before the result is classified.
+
+## Step 61 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP61_VRHO_CORRECTOR_01`
+- Tested revision: `817b95583bc3eb2efd8c7853b08b6facadc52eb4`
+- Diagnostic wall: `71.7462480068` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `62.968263` sec
+- `tmevl_total`: `52.336084` sec
+- FRPRMN residual outside TMEVL: `10.632179` sec
+- VRHO control: `2.815006` sec
+- Corrector parent: `2.240276` sec
+- Interpolation arithmetic: `0.057358` sec over 472 calls
+- `VGCONV`: `0.014480` sec over 472 calls
+- COEF/VGOLD restoration: `2.158536` sec over 372 calls
+- Derived timer-boundary gap: `0.009902` sec
+
+The children cover `99.5580%` of the corrector parent. Restoration accounts
+for `96.3513%` of the corrector and `20.3019%` of the current FRPRMN residual;
+interpolation and convergence are only `2.5603%` and `0.6463%` of the parent.
+
+Source ownership confirms that `COEF` and unchanged restart state `COEF0`
+remain resident for the complete predictor-corrector sequence. On OpenACC, the
+next correction already restores `COEF` from device `COEF0` with a present
+kernel. The measured host `coefcp` updates only host state and is not consumed
+on a failed correction; CPU/FFTW still requires it. Step 62 therefore tests one
+bounded hypothesis: compile that host copy only outside `_OPENACC`, while
+retaining VGOLD restoration, device restart, MPI, and all arithmetic order.
+
+## Step 62 Plan
+
+Use `tools/run_tddft_step62.sh 01` as the diagnostic-off correctness gate. If
+normal check and relaxed compare pass, collect both remaining runs with one
+command: `tools/run_tddft_step62.sh 02-03`. Adoption requires all three checks
+and a median advantage over the Step 57 baseline `71.2909028530` sec. Reject
+and revert if the target reduction is not supported.

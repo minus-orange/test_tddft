@@ -93,12 +93,17 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 16. LOCPOTは現行FRPRMN残差の`2.8533%`まで低下し、Step 57仮説を直接確認できた。
 17. Step 60はcheck/compare PASS。VRHO control `2.787119 sec`のうち、correctorは
     `2.215861 sec`（`79.5036%`）、seedは`0.552540 sec`、predictorは`0.016408 sec`。
-18. 次は追加最適化ではない。correctorをinterpolation計算、VGCONV収束判定、失敗時の
-    COEF/VGOLD復元へ分けるStep 61だけを行う。
-19. Step 61の1コマンドhelperは`./tools/run_tddft_step61.sh`。この1本だけを提示して停止し、
-    写真または手打ちテキストの結果を待つ。diagnostic wallはbaselineにしない。
+18. Step 61はcheck/compare PASS。corrector `2.240276 sec`のうち、host COEF0-to-COEF
+    とVGOLD復元は`2.158536 sec`（`96.3513%`）、interpolationは`0.057358 sec`、
+    VGCONVは`0.014480 sec`だった。
+19. OpenACCではCOEF/COEF0が補正列全体でdevice常駐し、次補正のCOEF復元も既にdevice-local。
+    失敗補正後のhost COEF0-to-COEF copyはdevice authorityを更新せず、CPU/FFTWだけに必要。
+20. Step 62は、このhost copyだけを`_OPENACC`時に省略する単一性能仮説。VGOLD、device復元、
+    MPI、数式順序は維持する。初回は`./tools/run_tddft_step62.sh 01`だけを実行する。
+21. run 01がcheck/compare PASSした場合、run 02/03は
+    `./tools/run_tddft_step62.sh 02-03`の1コマンドで続ける。
 
-Step 53-60 helperは完了済みの履歴として保持する。次の診断も長い個別コマンドへ
+Step 53-61 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
 
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`

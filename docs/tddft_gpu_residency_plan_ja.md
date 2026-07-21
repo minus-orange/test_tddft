@@ -365,3 +365,9 @@ Step 60ではVRHO control `2.787119`秒のうちcorrectorが`2.215861`秒
 （`79.5036%`）、seedが`0.552540`秒、predictorが`0.016408`秒でした。次は
 correctorをinterpolation計算、収束判定、COEF/VGOLD復元へ分けるStep 61診断です。
 結果前に追加最適化を選びません。
+
+Step 61ではcorrector `2.240276`秒のうち、失敗補正後のCOEF/VGOLD復元が
+`2.158536`秒（`96.3513%`）でした。OpenACCのCOEF/COEF0はdevice常駐し、次補正の
+復元もdevice-localなので、このhost COEF0-to-COEF copyはGPU経路では不要です。
+Step 62はこのcopyだけを`_OPENACC`時に省略し、VGOLD、device復元、MPI、CPU fallbackを
+維持する単一性能仮説とします。

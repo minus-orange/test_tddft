@@ -973,12 +973,16 @@ cc       if (my_rank.ne.0 ) then
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_start(72)
 #endif
+#ifndef _OPENACC
+c *** CPU/FFTW restart state.  On OpenACC, COEF0 remains authoritative on
+c *** the device and the next correction restores COEF there (below).
        nblng=nend(my_rank)-nbegin(my_rank)+1
 c       nbgn=nbegin(my_rank)
        do ik0=1,numkq
 c       call coefcp(coef0(1,nbgn,ik0),coef(1,nbgn,ik0),ng2q*nblng)
        call coefcp(coef0(1,1,ik0),coef(1,1,ik0),ng2q*nblng)
        enddo
+#endif
        do ig=1,nxyz
         VGOLD(ig)=VG3(ig) ! store
        enddo

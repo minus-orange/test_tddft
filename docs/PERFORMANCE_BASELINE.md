@@ -80,6 +80,10 @@ Step 60 partitioned the current VRHO host-control envelope. Corrector work was
 `0.552540` and `0.016408` sec. Its `70.9675290585` sec diagnostic wall passed
 both correctness checks and does not replace the official baseline.
 
+Step 61 isolated `2.158536` sec in failed-correction COEF/VGOLD restoration,
+`96.3513%` of its corrector parent. Its `71.7462480068` sec diagnostic wall
+passed both correctness checks and does not replace the official baseline.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

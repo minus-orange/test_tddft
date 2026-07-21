@@ -397,3 +397,10 @@ in corrector work, `0.552540` sec in seed work, and only `0.016408` sec in
 predictor work. Step 61 will split corrector work into interpolation,
 convergence, and COEF/VGOLD restoration. No optimization is selected before
 that diagnostic result.
+
+Step 61 found `2.158536` sec (`96.3513%` of the corrector parent) in failed-
+correction COEF/VGOLD restoration. OpenACC keeps COEF/COEF0 resident and
+already restores COEF from device COEF0 at the next correction, so the host
+COEF0-to-COEF copy does not update device authority. Step 62 removes only that
+host copy under `_OPENACC`, retaining VGOLD, device restoration, MPI, and the
+CPU fallback.

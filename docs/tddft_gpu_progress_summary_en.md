@@ -1872,3 +1872,17 @@ Corrector work is `79.5036%` of VRHO control and `20.7787%` of the current
 FRPRMN residual. The next task is diagnostic Step 61, splitting it into
 interpolation, VGCONV, and COEF/VGOLD restoration before any optimization is
 selected.
+
+## Step 61: Split the VRHO Corrector
+
+Archive `nvhpc_cufft_1rank_02_STEP61_VRHO_CORRECTOR_01` passed normal check
+and relaxed compare. Its `71.7462480068` sec wall is diagnostic only. Of the
+`2.240276` sec corrector parent, interpolation used `0.057358` sec, VGCONV
+used `0.014480` sec, and failed-correction COEF/VGOLD restoration used
+`2.158536` sec. The children cover `99.5580%`; restoration is `96.3513%`.
+
+OpenACC keeps COEF/COEF0 resident across the correction sequence and already
+restores COEF from device COEF0 at the next correction. Step 62 tests one
+bounded performance hypothesis: omit only the redundant host COEF0-to-COEF
+copy on the GPU path while preserving VGOLD, device restoration, MPI, and CPU
+fallback behavior.

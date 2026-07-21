@@ -1710,3 +1710,15 @@ predictor/extrapolationは`0.016408`秒、corrector/interpolation/convergenceは
 correctorはVRHO controlの`79.5036%`、現行FRPRMN残差の`20.7787%`です。次は
 correctorをinterpolation、VGCONV、COEF/VGOLD復元へ分けるStep 61診断であり、
 追加最適化ではありません。
+
+## Step 61: VRHO correctorの分解
+
+archive `nvhpc_cufft_1rank_02_STEP61_VRHO_CORRECTOR_01`は通常checkとrelaxed
+compareにPASSしました。診断wallは`71.7462480068`秒でbaselineには使用しません。
+corrector parent `2.240276`秒のうち、interpolationは`0.057358`秒、VGCONVは
+`0.014480`秒、失敗補正後のCOEF/VGOLD復元は`2.158536`秒でした。子区間は親の
+`99.5580%`を説明し、復元は`96.3513%`を占めます。
+
+OpenACCではCOEF/COEF0が補正列全体でdevice常駐し、次補正のCOEF復元もdevice-local
+です。Step 62はGPU経路で不要なhost COEF0-to-COEF copyだけを省略し、VGOLD復元、
+device復元、MPI、CPU fallbackを維持する単一性能仮説です。
