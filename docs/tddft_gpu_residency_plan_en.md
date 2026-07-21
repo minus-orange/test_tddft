@@ -362,3 +362,17 @@ is the `11.815452` sec host/wait envelope remaining after subtracting that
 kernel from the `13.608745` sec FRPRMN residual. Step 54 should add default-off
 timers around uncovered predictor/corrector control, energy/reduction, density,
 and update blocks. Do not select another optimization before its result.
+
+## Post-Step-57 Update
+
+Steps 54-56 isolated LOCPOT as a leading CPU-dominated region. Step 57
+implementation `8646707` offloaded only its independent G vectors. All three
+diagnostic-off runs passed check and relaxed compare, with a median of
+`71.2909028530` sec and a `0.1379821301` sec range. The median is `2.9230%`
+faster than Step 52, and median FRPRMN fell by `2.117284` sec. Step 57 is the
+new official baseline.
+
+The next theme is diagnostic, not optimization: re-profile the accepted Step
+57 source with Nsight Systems and compare its LOCPOT kernel, aggregate CUDA
+kernels, H2D/D2H, runtime/API, synchronization, MPI, and GPU-idle structure
+with Step 53. Trace wall is not a performance baseline.

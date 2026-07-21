@@ -5,22 +5,22 @@ Last updated: 2026-07-21
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `22aad92` (`Offload Part1to5 VPJ radial integration`)
+- Accepted source baseline: `8646707` (`Offload LOCPOT G-vector construction`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 52 with Step 37 pinned allocation mode
-- Current source implementation: Step 52 commit `22aad92`
+- Current configuration: accepted Step 57 with Step 37 pinned allocation mode
+- Current source implementation: Step 57 commit `8646707`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 57 LOCPOT GPU hypothesis ready for A100 run 01
+- Current HEAD status: Step 57 accepted; Step 58 current-source Nsight diagnosis is next
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 52 median `73.4374880791` sec
+- Performance baseline: Step 57 median `71.2909028530` sec
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
@@ -288,9 +288,22 @@ Step 57 implements that bounded hypothesis. The OpenACC path assigns one GPU
 thread to each nonzero G vector, retains its serial ITY/K/IA accumulation, and
 copies the local result back before the original host MPI Allreduce. G=0 stays
 on the host; the CPU/FFTW loop nest is unchanged; no Vloc residency is added.
-Use `tools/run_tddft_step57.sh 01` for the first gate.
+All three Step 57 runs passed both correctness checks. Their walls were
+`71.2373509407`, `71.2909028530`, and `71.3753330708` sec. The median is
+`71.2909028530` sec with a `0.1379821301` sec range, `2.9230%` faster than
+Step 52. Median `frprmn` fell by `2.117284` sec and its residual outside TMEVL
+fell by `2.660213` sec, while `exnlp_gemm_dot` remained stable. Step 57 is the
+official baseline.
 
-Do not broaden the next implementation beyond the bounded LOCPOT hypothesis.
+The immediate next task is diagnostic only: use the committed one-command
+helper `tools/run_tddft_step58_nsys.sh` to collect one Nsight Systems trace
+of the accepted Step 57 source and compare its LOCPOT kernel, kernel total,
+H2D/D2H, runtime/API, synchronization, MPI, and GPU-idle structure with Step
+53. Do not select another optimization before that classification, and do not
+use trace wall as a performance baseline.
+
+Do not add another performance implementation before the Step 58 trace is
+classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce
 only a noise-level `0.0291%` median advantage; the same form must not be
@@ -313,7 +326,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `73.4374880791` sec.
+6. Compare the three-run median with `71.2909028530` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

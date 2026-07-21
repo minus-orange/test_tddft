@@ -36,6 +36,11 @@ implementation and timer notes are in the bilingual progress summaries.
 | 50 | Split Part1to5 and VPJ_GEN timing | 107.682908058 (diagnostic; VPJ_GEN scope mixed) | measurement | `6bc6770` |
 | 51 | Scope VPJ_GEN timing to Part1to5 | 108.201426983 (one diagnostic run) | measurement | `c880d0c` |
 | 52 | Offload Part1to5 VPJ radial integration | 73.4374880791 | accepted baseline | `22aad92` |
+| 53 | Re-profile the accepted Step 52 source | 76.0769960680 (diagnostic trace) | measurement | `84a7af8` |
+| 54 | Decompose the remaining FRPRMN host envelope | 74.2483499050 (one diagnostic run) | measurement | `e44a602` |
+| 55 | Split VRHO preparation | 74.3233120441 (one diagnostic run) | measurement | `5d6d71b` |
+| 56 | Split Vloc preparation | 73.4618239403 (one diagnostic run) | measurement | `ea13406` |
+| 57 | Offload LOCPOT G-vector construction | 71.2909028530 | accepted baseline | `8646707` |
 
 ## Other Rejected Experiments
 
@@ -775,3 +780,39 @@ performance gate. Only after normal check and relaxed compare pass may runs 02
 and 03 be executed together. Compare their three-run median with the accepted
 Step 52 baseline `73.4374880791` sec and inspect the FRPRMN reduction before
 adoption.
+
+## Step 57 Detail
+
+- Tested revision: `864670794698786a36a217d88a64c5ee3967cbfc`
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_01` | 71.2373509407 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_02` | 71.2909028530 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_03` | 71.3753330708 | PASS | PASS |
+
+- Median: `71.2909028530` sec
+- Run-to-run range: `0.1379821301` sec
+- Improvement from Step 52: `2.1465852261` sec (`2.9230%`)
+- Improvement from Step 41: `36.4633102420` sec (`33.8393%`)
+- Median-run `frprmn`: `62.501628` sec
+- Median-run `tmevl_total`: `52.011855` sec
+- Median-run FRPRMN residual outside TMEVL: `10.489773` sec
+
+All three diagnostic-off runs passed both correctness gates, the wall range is
+small, and the `2.117284` sec median FRPRMN reduction supports the targeted
+LOCPOT hypothesis. Step 57 is accepted as the official performance baseline.
+The next bounded task is a diagnostic-only Nsight Systems trace of the accepted
+Step 57 source; no further optimization is selected before that trace is
+classified.
+
+## Step 58 Plan
+
+Run one diagnostic-only Nsight Systems trace of the accepted Step 57 source
+with `tools/run_tddft_step58_nsys.sh`. The helper rebuilds only TDDFT with
+diagnostics off, traces CUDA, OpenACC, OS runtime, and MPI, archives the trace,
+requires normal check and relaxed compare, and prints photograph-sized report
+summaries. Compare the LOCPOT kernel, aggregate kernels, transfers, CUDA/OpenACC
+API synchronization, MPI, and non-kernel wall with Step 53. Do not use trace
+wall as a baseline and do not implement another optimization before the trace
+is classified.

@@ -1653,3 +1653,21 @@ Step 51 VPJ MPI `0.037303`秒から主因ではありません。stream/event同
 `17.613188385`秒、VPJ固有OpenACC waitは`1.816791731`秒です。次は最適化ではなく、
 残るFRPRMN host envelopeを既存timer外の制御、energy/reduction、density、updateへ
 分けるStep 54 default-off診断です。
+
+## Step 54-57: FRPRMN残差診断とLOCPOT GPU化（採用）
+
+Step 54はFRPRMN残差の`99.9251%`を粗粒度timerで説明し、Step 55はVRHOの
+`72.0600%`をhost control、Step 56はVlocの`93.8149%`をLOCPOTと特定しました。
+Step 57実装`8646707`は、各G内のITY/K/IA順とhost MPI境界を維持してLOCPOTだけを
+Gベクトル間でGPU並列化しました。
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_01` | 71.2373509407 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_02` | 71.2909028530 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_03` | 71.3753330708 | PASS | PASS |
+
+中央値は`71.2909028530`秒、実行幅は`0.1379821301`秒で、Step 52より`2.9230%`
+高速です。FRPRMN中央値は`2.117284`秒、FRPRMN残差は`2.660213`秒減りました。
+Step 57を正式baselineとして採用します。次は正式Step 57 sourceのNsight Systems
+再診断であり、追加最適化はその分類後に選びます。

@@ -337,3 +337,15 @@ Step 53で再計測は完了しました。CUDA kernelはtrace wallの約`18.7%`
 `11.815452`秒のhost/wait envelopeが次の診断対象です。Step 54では既存timer外の
 predictor/corrector制御、energy/reduction、density、updateをdefault-off timerで
 分け、結果が返るまで追加最適化を選びません。
+
+## Step 57採用後の更新
+
+Step 54-56の診断でLOCPOTを主要なCPU支配区間として分離し、Step 57実装
+`8646707`でLOCPOTだけをGベクトル間でGPU並列化しました。3回のdiagnostic-OFF runは
+すべてcheck/compare PASS、中央値`71.2909028530`秒、実行幅`0.1379821301`秒でした。
+Step 52比`2.9230%`高速で、FRPRMN中央値も`2.117284`秒短縮したため、Step 57を正式
+baselineとして採用します。
+
+次は追加最適化ではなく、正式Step 57 sourceのNsight Systems再診断です。LOCPOT kernel、
+CUDA kernel合計、H2D/D2H、runtime/API、同期、MPI、GPU idleをStep 53と比較してから、
+新しいbounded hypothesisを1件だけ選びます。trace wallは性能baselineに使用しません。

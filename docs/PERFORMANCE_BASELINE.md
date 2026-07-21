@@ -4,8 +4,8 @@ Last updated: 2026-07-21
 
 ## Official Baseline
 
-- Logical step: Step 52
-- Source implementation commit: `22aad92`
+- Logical step: Step 57
+- Source implementation commit: `8646707`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,24 +16,24 @@ Last updated: 2026-07-21
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_01` | 72.9733359814 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_02` | 73.4374880791 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP52_VPJGEN_ACC_03` | 73.4901540279 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_01` | 71.2373509407 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_02` | 71.2909028530 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_03` | 71.3753330708 | PASS | PASS |
 
-Official three-run median: `73.4374880791` sec.
-Run-to-run range: `0.5168180465` sec.
+Official three-run median: `71.2909028530` sec.
+Run-to-run range: `0.1379821301` sec.
 
-## Step 52 Run 02 Profile
+## Step 57 Run 02 Profile
 
 | timer | total_sec |
 |---|---:|
-| `time_step_total` | 73.680412 |
-| `frprmn` | 64.618912 |
-| `tmevl_total` | 51.468926 |
-| `s2_nonlocal` | 11.536198 |
-| `s2_nonlocal_make` | 1.392082 |
-| `s2_nonlocal_gemm` | 10.121523 |
-| `exnlp_gemm_dot` | 8.450867 |
+| `time_step_total` | 71.511959 |
+| `frprmn` | 62.501628 |
+| `tmevl_total` | 52.011855 |
+| `s2_nonlocal` | 11.490492 |
+| `s2_nonlocal_make` | 1.338690 |
+| `s2_nonlocal_gemm` | 10.128886 |
+| `exnlp_gemm_dot` | 8.453381 |
 
 ## Comparison Policy
 
@@ -43,18 +43,24 @@ Run-to-run range: `0.5168180465` sec.
 - Correctness requires both `check` and relaxed `compare` to pass for every run.
 - An implementation without a median advantage is recorded and rolled back.
 
-Step 52 is `34.3167250159` sec (`31.8472%`) faster than the Step 41 median.
-It offloads only the `Part1to5` VPJ radial integration, preserves each G
-vector's radial accumulation order and the host MPI boundary, and retains the
-original TMEVL CPU path. The median run's FRPRMN residual outside TMEVL is
-`13.149986` sec, down from the Step 51 diagnostic value of `47.546135` sec.
+Step 57 is `36.4633102420` sec (`33.8393%`) faster than the Step 41 median and
+`2.1465852261` sec (`2.9230%`) faster than the Step 52 median. It retains the
+accepted Step 52 VPJ radial-integration offload and additionally parallelizes
+only LOCPOT across G vectors. Each G vector preserves its ITY/K/IA accumulation
+order, G=0 remains on the host, and the original host MPI boundary is retained.
+The median run's FRPRMN residual outside TMEVL is `10.489773` sec, down by
+`2.660213` sec from the Step 52 median run.
 Step 41 remains the historical comparison baseline, and Step 37 remains the
 underlying pinned-allocation build mode.
 
+Step 52 is the immediate predecessor baseline. Its three-run median was
+`73.4374880791` sec with a `0.5168180465` sec range. It remains accepted
+history, but Step 57 supersedes it as the official performance baseline.
+
 Step 53 re-profiled the accepted Step 52 source with Nsight Systems. Archive
 `nvhpc_cufft_1rank_02_STEP53_STEP52_NSYS_01` passed both correctness checks;
-its `76.0769960680` sec wall is diagnostic only and does not replace the
-official `73.4374880791` sec median. The trace measured the VPJ kernel at
+its `76.0769960680` sec wall is diagnostic only and did not replace the
+then-official Step 52 median of `73.4374880791` sec. The trace measured the VPJ kernel at
 `1.793293070` sec and aggregate CUDA kernel time at about `14.26` sec.
 
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed

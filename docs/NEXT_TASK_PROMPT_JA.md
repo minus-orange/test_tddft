@@ -25,22 +25,23 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 52です。
+正式baselineは論理Step 57です。
 
-- source implementation: `22aad92`
+- source implementation: `8646707`
 - pinned build mode: `9cbb6bc`
 - A100-PCIE-40GB、1 GPU / 1 MPI rank
 - NVHPC + OpenACC + cuFFT
 - `-gpu=mem:separate:pinnedalloc`
 - Si111-H、100 steps
-- diagnostic OFF 3回中央値: `73.4374880791 sec`
-- 実行幅: `0.5168180465 sec`
+- diagnostic OFF 3回中央値: `71.2909028530 sec`
+- 実行幅: `0.1379821301 sec`
 - 全runでnormal checkとrelaxed compare PASS
 
-Step 52は`Part1to5`から呼ばれる`VPJ_GEN`動径積分だけをGベクトル間でGPU並列化し、
-各G内の動径積分順序、host MPI境界、TMEVLのCPU経路を維持しています。Step 41中央値
-より`34.3167250159 sec`（`31.8472%`）高速で、3回のcorrectnessと性能採否gateを
-満たしたため正式採用済みです。最新HEADを自動的にbaseline扱いしない原則は維持します。
+Step 57は、Step 52の`VPJ_GEN` GPU化を保持したうえで、LOCPOTだけをGベクトル間で
+GPU並列化しています。各G内のITY/K/IA加算順、G=0 host処理、host MPI境界を維持し、
+Step 52中央値より`2.1465852261 sec`（`2.9230%`）、Step 41中央値より
+`36.4633102420 sec`（`33.8393%`）高速です。3回のcorrectnessと性能採否gateを満たして
+正式採用済みです。最新HEADを自動的にbaseline扱いしない原則は維持します。
 
 最終ゴールは、タイムステップループ内を可能な限りGPU化し、大規模配列のhost/device
 転送をloop入口、必須MPI/host consumer、出力へ集約して最小化することです。ただし、
@@ -48,15 +49,15 @@ Step 52は`Part1to5`から呼ばれる`VPJ_GEN`動径積分だけをGベクト�
 
 現時点の確定値:
 
-- Step 52 run 02 `time_step_total`: `73.680412 sec`
-- `frprmn`: `64.618912 sec`
-- `tmevl_total`: `51.468926 sec`
-- `frprmn - tmevl_total`: `13.149986 sec`
-- `s2_nonlocal`: `11.536198 sec`
-- `exnlp_gemm_dot`: `8.450867 sec`
+- Step 57 run 02 `time_step_total`: `71.511959 sec`
+- `frprmn`: `62.501628 sec`
+- `tmevl_total`: `52.011855 sec`
+- `frprmn - tmevl_total`: `10.489773 sec`
+- `s2_nonlocal`: `11.490492 sec`
+- `exnlp_gemm_dot`: `8.453381 sec`
 - Step 51で判明した旧`VPJ_GEN` CPU積分: `36.132464 sec`
 
-Step 48のNsight値はStep 52 VPJ GPU化より前なので、現在のkernel時間・転送回数・
+Step 48のNsight値はStep 52/57 GPU化より前なので、現在のkernel時間・転送回数・
 同期構造ではありません。
 
 Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みです。
@@ -79,13 +80,17 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
    `0.029422 sec`だった。
 10. LOCPOTはVlocの`93.8149%`で、OpenACC/CUDA処理を含まない。既存MPI上限から、
     少なくとも約`2.504647 sec`はCPU計算・host orchestrationと分類できる。
-11. Step 57は、各G内のITY/K/IA加算順とhost MPI境界を維持したまま、
-    LOCPOTだけをGベクトル間でGPU並列化する単一仮説として実装済み。
-12. Step 42と同形のVloc residencyは再試行しない。diagnostic OFFのrun 01で
-    check/compare PASS後だけrun 02/03へ進み、3回中央値で採否する。A100の初回は
-    `./tools/run_tddft_step57.sh 01`だけを実行する。
+11. Step 57の3 runはすべてcheck/compare PASS。wallは`71.2373509407`、
+    `71.2909028530`、`71.3753330708 sec`で、中央値と実行幅は上記の通り。
+12. Step 57中央値の`frprmn`はStep 52から`2.117284 sec`減り、FRPRMN残差は
+    `2.660213 sec`減ったため、LOCPOT仮説と整合して正式採用した。
+13. 次の1テーマは追加最適化ではない。正式Step 57 sourceをNsight Systemsで1回だけ
+    再診断し、LOCPOT kernel、CUDA kernel合計、H2D/D2H、runtime/API、同期、MPI、
+    GPU idleをStep 53と比較する。trace wallはbaselineにしない。
+14. Step 58の1コマンドhelperは`./tools/run_tddft_step58_nsys.sh`。初回はこの1本だけを
+    提示して停止し、写真または手打ちテキストの結果を待つ。
 
-Step 53/54/55/56 helperは完了済みの履歴として保持する。次の性能実装も長い個別コマンドへ
+Step 53-57 helperは完了済みの履歴として保持する。次の診断も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
 
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`
@@ -118,7 +123,7 @@ CPU/FFTW fallback、fixed-form Fortran、correctness toleranceを維持してく
 性能採否はdiagnostic OFF、normal checkとrelaxed compare、同条件3回中央値で行います。
 production入力と対応referenceはまだ存在しないため、推測で生成しないでください。
 
-初回報告では、Git状態、正式baseline、Step 48とStep 52の差、現在確定している比率、
-再診断で取得する指標、A100実行コマンド案だけを示し、追加実装へ進まず停止してください。
+初回報告では、Git状態、正式Step 57 baseline、Step 52からの改善、現在確定している比率、
+再診断で取得する指標、簡潔なA100実行コマンド案だけを示し、追加実装へ進まず停止してください。
 
 ---

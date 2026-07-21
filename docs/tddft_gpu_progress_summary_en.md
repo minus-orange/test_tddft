@@ -1806,3 +1806,23 @@ principal cause. Whole-trace stream/event synchronization totaled
 The next task is not optimization: Step 54 should use default-off timers to
 divide the remaining FRPRMN host envelope into uncovered control,
 energy/reduction, density, and update blocks.
+
+## Steps 54-57: Diagnose FRPRMN and Offload LOCPOT (Accepted)
+
+Step 54 accounted for `99.9251%` of the FRPRMN residual with coarse timers,
+Step 55 classified `72.0600%` of VRHO as host control, and Step 56 identified
+LOCPOT as `93.8149%` of Vloc preparation. Step 57 implementation `8646707`
+parallelized only LOCPOT G vectors while preserving the ITY/K/IA order within
+each G and the host MPI boundary.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_01` | 71.2373509407 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_02` | 71.2909028530 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP57_LOCPOT_ACC_03` | 71.3753330708 | PASS | PASS |
+
+The median is `71.2909028530` sec with a `0.1379821301` sec range, `2.9230%`
+faster than Step 52. Median FRPRMN fell by `2.117284` sec and its residual fell
+by `2.660213` sec. Step 57 is accepted as the official baseline. The next task
+is a current-source Nsight Systems diagnosis; no additional optimization is
+selected before that trace is classified.
