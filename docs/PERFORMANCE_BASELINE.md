@@ -84,6 +84,11 @@ Step 61 isolated `2.158536` sec in failed-correction COEF/VGOLD restoration,
 `96.3513%` of its corrector parent. Its `71.7462480068` sec diagnostic wall
 passed both correctness checks and does not replace the official baseline.
 
+Step 62 run 01 omitted only the redundant OpenACC-path host COEF0-to-COEF
+restore and passed both correctness checks. Its `68.66669352055` sec wall is
+`3.6810%` below the official Step 57 median. Runs 02 and 03 remain required;
+this single result does not replace the official baseline.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

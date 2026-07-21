@@ -371,3 +371,7 @@ Step 61ではcorrector `2.240276`秒のうち、失敗補正後のCOEF/VGOLD復�
 復元もdevice-localなので、このhost COEF0-to-COEF copyはGPU経路では不要です。
 Step 62はこのcopyだけを`_OPENACC`時に省略し、VGOLD、device復元、MPI、CPU fallbackを
 維持する単一性能仮説とします。
+
+Step 62 run 01は両correctness checkにPASSし、wallは`68.66669352055`秒で正式
+Step 57中央値より`3.6810%`短い値でした。run 02/03と3回中央値の確認まではStep 57を
+正式baselineとして維持します。

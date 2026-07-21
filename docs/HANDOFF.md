@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 61 classified; Step 62 host-copy hypothesis awaits run 01
+- Current HEAD status: Step 62 run 01 PASS/PASS; runs 02/03 pending
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 57 median `71.2909028530` sec
@@ -350,6 +350,12 @@ OpenACC failed-correction path: device `COEF0` remains authoritative and the
 next correction already restores device `COEF` locally. Step 62 omits only
 that host copy under `_OPENACC`; CPU/FFTW, VGOLD, device restart, MPI, and
 arithmetic order remain unchanged. Use `tools/run_tddft_step62.sh 01` first.
+
+Step 62 run 01 archive `nvhpc_cufft_1rank_02_STEP62_SKIP_HOST_COEFCP_01`
+passed both correctness checks at revision `7475ccb`. Its wall was
+`68.66669352055` sec, `2.62420933245` sec (`3.6810%`) below the accepted
+Step 57 median. This is promising but not yet accepted; collect runs 02 and 03
+with `tools/run_tddft_step62.sh 02-03` and decide from the three-run median.
 
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.

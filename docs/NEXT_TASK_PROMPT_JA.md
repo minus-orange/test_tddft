@@ -99,9 +99,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 19. OpenACCではCOEF/COEF0が補正列全体でdevice常駐し、次補正のCOEF復元も既にdevice-local。
     失敗補正後のhost COEF0-to-COEF copyはdevice authorityを更新せず、CPU/FFTWだけに必要。
 20. Step 62は、このhost copyだけを`_OPENACC`時に省略する単一性能仮説。VGOLD、device復元、
-    MPI、数式順序は維持する。初回は`./tools/run_tddft_step62.sh 01`だけを実行する。
-21. run 01がcheck/compare PASSした場合、run 02/03は
-    `./tools/run_tddft_step62.sh 02-03`の1コマンドで続ける。
+    MPI、数式順序は維持している。
+21. Step 62 run 01はcheck/compare PASS、wall `68.66669352055 sec`で、正式Step 57中央値より
+    `2.62420933245 sec`（`3.6810%`）短い。ただし単発値なので未採用。
+22. 次はrun 02/03を`./tools/run_tddft_step62.sh 02-03`の1コマンドで取得し、3回中央値で
+    採否を決める。
 
 Step 53-61 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

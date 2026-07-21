@@ -404,3 +404,8 @@ already restores COEF from device COEF0 at the next correction, so the host
 COEF0-to-COEF copy does not update device authority. Step 62 removes only that
 host copy under `_OPENACC`, retaining VGOLD, device restoration, MPI, and the
 CPU fallback.
+
+Step 62 run 01 passed both correctness checks at `68.66669352055` sec,
+`3.6810%` below the accepted Step 57 median. Keep Step 57 as the official
+baseline until runs 02 and 03 confirm the result and the three-run median is
+classified.

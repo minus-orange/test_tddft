@@ -962,3 +962,19 @@ normal check and relaxed compare pass, collect both remaining runs with one
 command: `tools/run_tddft_step62.sh 02-03`. Adoption requires all three checks
 and a median advantage over the Step 57 baseline `71.2909028530` sec. Reject
 and revert if the target reduction is not supported.
+
+## Step 62 Run 01
+
+- Archive: `nvhpc_cufft_1rank_02_STEP62_SKIP_HOST_COEFCP_01`
+- Tested revision: `7475ccb858b23d3aabe257483d617c2eaeb7ed8e`
+- Wall: `68.66669352055` sec
+- Correctness: check PASS; relaxed compare PASS
+- `time_step_total`: `68.884401` sec
+- `frprmn`: `59.829844` sec
+- `tmevl_total`: `51.392415` sec
+- FRPRMN residual outside TMEVL: `8.437429` sec
+
+Run 01 is `2.62420933245` sec (`3.6810%`) faster than the accepted Step 57
+median, but no adoption decision is made from one run. Collect runs 02 and 03
+with `tools/run_tddft_step62.sh 02-03`, require both correctness checks in all
+three runs, and decide from the three-run median.

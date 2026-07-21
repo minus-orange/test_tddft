@@ -1886,3 +1886,10 @@ restores COEF from device COEF0 at the next correction. Step 62 tests one
 bounded performance hypothesis: omit only the redundant host COEF0-to-COEF
 copy on the GPU path while preserving VGOLD, device restoration, MPI, and CPU
 fallback behavior.
+
+## Step 62: Skip the Redundant Host Correction Restore
+
+Run 01 at revision `7475ccb` passed normal check and relaxed compare. Its
+`68.66669352055` sec wall is `2.62420933245` sec (`3.6810%`) below the accepted
+Step 57 median. This is preliminary evidence only; runs 02 and 03 are still
+required, and adoption will be decided from the three-run median.

@@ -1722,3 +1722,9 @@ corrector parent `2.240276`秒のうち、interpolationは`0.057358`秒、VGCONV
 OpenACCではCOEF/COEF0が補正列全体でdevice常駐し、次補正のCOEF復元もdevice-local
 です。Step 62はGPU経路で不要なhost COEF0-to-COEF copyだけを省略し、VGOLD復元、
 device復元、MPI、CPU fallbackを維持する単一性能仮説です。
+
+## Step 62: 冗長なhost補正復元の省略
+
+revision `7475ccb`のrun 01は通常checkとrelaxed compareにPASSしました。wallは
+`68.66669352055`秒で、正式Step 57中央値より`2.62420933245`秒（`3.6810%`）短い値です。
+ただし単発の予備結果であり、run 02/03を取得して3回中央値で採否を決めます。
