@@ -70,12 +70,15 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
    `13.084581 sec`、`99.9251%`を分解できた。
 6. 最大区間は`frprmn_vrho_mix=3.923983 sec`、次点は
    `frprmn_vloc_prepare=2.940147 sec`。
-7. Step 55診断は実装済みで、`frprmn_vrho_mix`だけをVOFRHO、
-   smoothing/FFT、interpolation/convergenceへ分ける。A100では
-   `./tools/run_tddft_step55.sh`だけを実行する。
-8. Step 55結果が返るまで追加最適化を実装しない。
+7. Step 55診断は完了し、`frprmn_vrho_mix=3.943543 sec`のうち、
+   VOFRHOは`0.937779 sec`、smoothing/FFTは`0.161545 sec`、
+   interpolation/convergence/controlは`2.841719 sec`だった。
+8. VRHOの`72.0600%`はhost controlで、smoothing/FFTは`4.0964%`にすぎない。
+9. 次の1テーマはStep 56診断とし、`frprmn_vloc_prepare=2.940147 sec`を
+   LOCPOT、smoothing/FFT、interpolation/Vloc生成へ分ける。
+10. Step 56結果が返るまで追加最適化を実装しない。
 
-Step 53/54 helperは完了済みの履歴として保持する。Step 55も長い個別コマンドへ展開せず、
+Step 53/54/55 helperは完了済みの履歴として保持する。Step 56も長い個別コマンドへ展開せず、
 TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使用する。
 
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`

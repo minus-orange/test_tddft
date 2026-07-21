@@ -685,3 +685,31 @@ NVHPC configuration, runs the 100-step case, archives it, requires both
 correctness checks, and prints only the parent and three child rows for a
 single photograph. Do not use diagnostic wall as a baseline or implement an
 optimization before the split is classified.
+
+## Step 55 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP55_VRHO_TIMERS_01`
+- Tested revision: `5d6d71ba57f5336ffaa8cbe31ce8d47468c0cf7e`
+- Diagnostic wall: `74.3233120441` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `65.549690` sec
+- `tmevl_total`: `52.372085` sec
+- FRPRMN residual outside TMEVL: `13.177605` sec
+- `frprmn_vrho_mix`: `3.943543` sec
+- `frprmn_vrho_vofrho`: `0.937779` sec
+- `frprmn_vrho_smooth_fft`: `0.161545` sec
+- `frprmn_vrho_mix_control`: `2.841719` sec
+
+The three children total `3.941043` sec, covering `99.9366%` of the parent
+with a `0.002500` sec timer-boundary gap. Interpolation, convergence, coefficient
+copy, and related host control account for `72.0600%` of VRHO and `21.5648%`
+of the full FRPRMN residual. VOFRHO accounts for `23.7801%` of VRHO. The
+smoothing loops plus cuFFT-backed transform account for only `4.0964%`, so
+that transform is not the principal VRHO cost.
+
+Step 55 classifies VRHO as predominantly host computation/orchestration with
+corresponding GPU idle, not FFT execution. MPI is absent from this scoped
+region. The next largest unresolved mixed envelope is the Step 54
+`frprmn_vloc_prepare` value of `2.940147` sec, slightly larger than VRHO host
+control. Step 56 should remain diagnostic only and split Vloc preparation into
+LOCPOT, smoothing/FFT, and remaining interpolation/Vloc-generation work.

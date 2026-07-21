@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 54 complete; Step 55 VRHO split diagnostic next
+- Current HEAD status: Step 55 complete; Step 56 Vloc split diagnostic next
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 52 median `73.4374880791` sec
@@ -254,8 +254,20 @@ Step 55 diagnostic code and `tools/run_tddft_step55.sh` are ready. The helper
 prints only `time_step_total`, `frprmn`, `tmevl_total`, the VRHO parent, and
 the three exclusive child rows so the complete evidence fits in one photo.
 
-Do not begin another offload implementation until Step 55 resolves the
-largest remaining host envelope. Step 47
+Step 55 archive `nvhpc_cufft_1rank_02_STEP55_VRHO_TIMERS_01` passed both
+correctness checks at revision `5d6d71b`; its `74.3233120441` sec wall is
+diagnostic only. The VRHO parent was `3.943543` sec. Its exclusive children
+were VOFRHO `0.937779` sec, smoothing/FFT `0.161545` sec, and host
+interpolation/convergence/control `2.841719` sec. The children cover
+`99.9366%` of the parent. Host control therefore accounts for `72.0600%` of
+VRHO, while smoothing/FFT is only `4.0964%`; VRHO is host-dominated.
+
+The next bounded task is Step 56 diagnostic timing, not optimization. Split
+the Step 54 `frprmn_vloc_prepare=2.940147` sec envelope into LOCPOT,
+smoothing/FFT, and remaining interpolation/Vloc-generation work.
+
+Do not begin another offload implementation until Step 56 resolves the
+largest remaining mixed envelope. Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce
 only a noise-level `0.0291%` median advantage; the same form must not be
 retried. Likewise, do not retry Step 45 whole-loop COEF allocation, Step 42
