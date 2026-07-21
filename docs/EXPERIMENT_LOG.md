@@ -727,3 +727,35 @@ NVHPC configuration, runs and archives the 100-step case, requires normal
 check and relaxed compare, and prints the parent, two measured children, and
 derived remainder in one photograph-sized summary. Diagnostic wall is not a
 performance baseline.
+
+## Step 56 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP56_VLOC_TIMERS_01`
+- Tested revision: `ea1340602aaf7bcf8082cf1613c7543cf49ec201`
+- Diagnostic wall: `73.4618239403` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `64.658469` sec
+- `tmevl_total`: `51.537011` sec
+- FRPRMN residual outside TMEVL: `13.121458` sec
+- `frprmn_vloc_prepare`: `2.947276` sec
+- `frprmn_vloc_locpot`: `2.764985` sec
+- `frprmn_vloc_smooth_fft`: `0.152869` sec
+- Derived remaining Vloc work: `0.029422` sec
+
+The children exactly reproduce the parent at six-decimal report precision.
+LOCPOT accounts for `93.8149%` of Vloc preparation and `21.0722%` of the
+FRPRMN residual. Smoothing/cuFFT is only `5.1868%` of Vloc, and interpolation,
+Vloc generation, and other control are `0.9983%`.
+
+LOCPOT has no OpenACC or CUDA work. Its body consists of host G-vector loops,
+one MPI communicator query, and one MPI Allreduce followed by a host scaling
+loop. The Step 48 whole-run MPI bound of `0.260338098` sec bounds even the
+entire LOCPOT MPI contribution, leaving at least about `2.504647` sec of the
+Step 56 LOCPOT envelope as host computation/orchestration. LOCPOT is therefore
+CPU-dominant with corresponding GPU idle.
+
+The next bounded hypothesis may be a performance implementation: parallelize
+only LOCPOT G vectors on the GPU while preserving each G vector's original
+ITY/K/IA accumulation order and retaining the host MPI boundary. Avoid the
+rejected Step 42 Vloc-residency form. Correctness run 01 must pass before runs
+02 and 03, and adoption still requires a diagnostic-off three-run median.

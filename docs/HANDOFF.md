@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 56 Vloc split diagnostic ready for A100
+- Current HEAD status: Step 56 complete; bounded LOCPOT GPU hypothesis next
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 52 median `73.4374880791` sec
@@ -270,8 +270,22 @@ Step 56 diagnostic code and `tools/run_tddft_step56.sh` are ready. It directly
 times aggregate LOCPOT and smoothing/cuFFT work and prints the remaining Vloc
 work as the parent minus those two children.
 
-Do not begin another offload implementation until Step 56 resolves the
-largest remaining mixed envelope. Step 47
+Step 56 archive `nvhpc_cufft_1rank_02_STEP56_VLOC_TIMERS_01` passed both
+correctness checks at revision `ea13406`; its `73.4618239403` sec wall is
+diagnostic only. Vloc preparation was `2.947276` sec: LOCPOT `2.764985` sec
+(`93.8149%`), smoothing/cuFFT `0.152869` sec (`5.1868%`), and all remaining
+Vloc work `0.029422` sec (`0.9983%`). LOCPOT contains no GPU work. The Step 48
+whole-run MPI bound leaves at least about `2.504647` sec attributable to host
+computation/orchestration, with corresponding GPU idle.
+
+The next bounded hypothesis is allowed to be an optimization: parallelize only
+LOCPOT across G vectors while preserving the original ITY/K/IA accumulation
+order within each G vector and the host MPI boundary. This is distinct from
+the rejected Step 42 Vloc-residency form. Require diagnostic-off check and
+compare PASS followed by a three-run median before adoption.
+
+Do not broaden the next implementation beyond the bounded LOCPOT hypothesis.
+Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce
 only a noise-level `0.0291%` median advantage; the same form must not be
 retried. Likewise, do not retry Step 45 whole-loop COEF allocation, Step 42

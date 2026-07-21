@@ -74,13 +74,18 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
    VOFRHOは`0.937779 sec`、smoothing/FFTは`0.161545 sec`、
    interpolation/convergence/controlは`2.841719 sec`だった。
 8. VRHOの`72.0600%`はhost controlで、smoothing/FFTは`4.0964%`にすぎない。
-9. Step 56診断は実装済みで、`frprmn_vloc_prepare=2.940147 sec`を
-   LOCPOT、smoothing/FFT、interpolation/Vloc生成へ分ける。A100では
-   `./tools/run_tddft_step56.sh`だけを実行する。
-10. Step 56結果が返るまで追加最適化を実装しない。
+9. Step 56診断は完了し、`frprmn_vloc_prepare=2.947276 sec`のうち、
+   LOCPOTは`2.764985 sec`、smoothing/FFTは`0.152869 sec`、その他は
+   `0.029422 sec`だった。
+10. LOCPOTはVlocの`93.8149%`で、OpenACC/CUDA処理を含まない。既存MPI上限から、
+    少なくとも約`2.504647 sec`はCPU計算・host orchestrationと分類できる。
+11. 次の1テーマは、各G内のITY/K/IA加算順とhost MPI境界を維持したまま、
+    LOCPOTだけをGベクトル間でGPU並列化する単一仮説とする。
+12. Step 42と同形のVloc residencyは再試行しない。diagnostic OFFのrun 01で
+    check/compare PASS後だけrun 02/03へ進み、3回中央値で採否する。
 
-Step 53/54/55 helperは完了済みの履歴として保持する。Step 56も長い個別コマンドへ展開せず、
-TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使用する。
+Step 53/54/55/56 helperは完了済みの履歴として保持する。次の性能実装も長い個別コマンドへ
+展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
 
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`
 を使う簡潔でコピー可能なbuild/profile/archive/check/compareコマンドを提示します。
