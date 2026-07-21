@@ -1095,3 +1095,22 @@ the GPU kernel completion and D2H update can be timed separately. The
 diagnostic-off instruction stream remains unchanged. Run
 `tools/run_tddft_step66.sh` once and require both correctness checks; its wall
 is not a baseline.
+
+## Step 66 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP66_VPJ_KERNEL_D2H_01`
+- Tested revision: `25ede22579bdc97bbbba4a9ad4bef273e4b315c8`
+- Diagnostic wall: `68.8903579712` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- Kernel-plus-D2H parent: `1.886449` sec
+- GPU kernel completion: `1.831545` sec (`97.0896%`)
+- D2H update: `0.047825` sec (`2.5352%`)
+- Derived gap: `0.007079` sec (`0.3753%`)
+- Child coverage: `99.6247%`
+
+The required D2H transfer is not the limiting component; the VPJ kernel itself
+dominates. A bounded next performance hypothesis is to reduce only this
+kernel's vector length from 256 to 128. The sequential radial accumulation,
+equations, data ownership, D2H, and MPI boundary remain unchanged. Evaluate it
+with diagnostics off and the standard three-run gate; reject and revert if the
+median does not beat the Step 62 baseline.

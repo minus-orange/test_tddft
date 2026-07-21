@@ -1933,3 +1933,8 @@ existing synchronous update boundary; no optimization is selected yet.
 Step 66 adds only default-off kernel-wait and D2H children. The diagnostic-only
 wait is placed at the already synchronous update boundary, leaving production
 behavior unchanged.
+
+Step 66 passed both checks. GPU kernel completion used `1.831545` sec
+(`97.0896%` of the parent), while D2H used only `0.047825` sec. The next bounded
+performance hypothesis changes only this kernel's vector length from 256 to
+128 and keeps radial accumulation order and all ownership boundaries.

@@ -127,6 +127,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     diagnostic buildだけに明示waitを入れ、diagnostic-off経路は変更しない。
 32. A100では`./tools/run_tddft_step66.sh`を1回だけ実行し、通常checkとrelaxed compareを
     必須とする。diagnostic wallはbaselineに使用しない。
+33. Step 66はcheck/compare PASS。kernel＋D2H parent `1.886449 sec`のうちkernel完了
+    `1.831545 sec`（`97.0896%`）、D2H `0.047825 sec`（`2.5352%`）。
+34. 次の単一性能仮説はVPJ kernelだけの`vector_length(256)`を`128`へ変更すること。
+    radial加算順、数式、ownership、D2H、MPIは維持し、diagnostic OFF 3回中央値で採否する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

@@ -1758,3 +1758,7 @@ host初期化省略は選ばず、Step 66で既存同期境界のkernel完了と
 
 Step 66はdefault-offのkernel-waitとD2H子timerだけを追加します。明示waitは診断buildの
 既存同期境界だけに置き、production動作は変更しません。
+
+Step 66は両checkにPASSしました。GPU kernel完了は`1.831545`秒（親の`97.0896%`）、
+D2Hは`0.047825`秒でした。次はこのkernelだけのvector lengthを256から128へ変え、
+radial加算順とownershipを維持する単一性能仮説です。

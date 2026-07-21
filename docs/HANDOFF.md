@@ -404,6 +404,14 @@ parent. Its explicit wait exists only in the diagnostic build and is placed at
 the already synchronous host update boundary. Use `tools/run_tddft_step66.sh`
 once and require both checks before choosing a kernel or transfer hypothesis.
 
+Step 66 archive `nvhpc_cufft_1rank_02_STEP66_VPJ_KERNEL_D2H_01` passed both
+checks at revision `25ede22`; its `68.8903579712` sec wall is diagnostic only.
+Of the `1.886449` sec parent, GPU kernel completion used `1.831545` sec
+(`97.0896%`) and D2H only `0.047825` sec. The next bounded performance
+hypothesis changes only the VPJ kernel vector length from 256 to 128, preserving
+radial accumulation order, equations, ownership, D2H, and MPI. Use the normal
+diagnostic-off three-run adoption gate against Step 62.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

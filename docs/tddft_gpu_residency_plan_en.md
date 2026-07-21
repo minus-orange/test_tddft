@@ -440,3 +440,7 @@ from D2H before a kernel or transfer hypothesis is chosen.
 
 Step 66 performs that split with diagnostic-only timers and a wait at the
 existing synchronous update boundary. Production behavior is unchanged.
+
+Step 66 found `1.831545` sec in GPU completion and only `0.047825` sec in D2H.
+The next bounded performance test changes only VPJ `vector_length(256)` to
+`128`, preserving sequential radial accumulation and all boundaries.

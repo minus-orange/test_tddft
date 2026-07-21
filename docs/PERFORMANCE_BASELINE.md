@@ -105,6 +105,10 @@ Step 65 split that legacy scope. Its `70.3901228905` sec diagnostic wall passed
 both checks and is not a baseline. OpenACC kernel plus D2H used `1.872989` sec
 (`97.5411%`), while host and VPP2 zeroing together used only `0.039393` sec.
 
+Step 66 separated GPU completion from D2H. Its `68.8903579712` sec diagnostic
+wall passed both checks and is not a baseline. The VPJ kernel used `1.831545`
+sec (`97.0896%` of its parent), while D2H used only `0.047825` sec.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

@@ -398,3 +398,6 @@ Step 65ではOpenACC kernel＋D2Hが親の`97.5411%`で、host zeroing 2区間�
 `0.039393`秒でした。Step 66でkernel waitとD2Hを分けてから次の仮説を選びます。
 
 Step 66は診断専用timerと既存同期境界のwaitで分解し、production動作は変更しません。
+
+Step 66ではGPU完了が`1.831545`秒、D2Hは`0.047825`秒でした。次の単一性能試験はVPJの
+`vector_length(256)`だけを`128`へ変更し、radial逐次加算と全境界を維持します。
