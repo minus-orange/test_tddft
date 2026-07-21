@@ -702,6 +702,7 @@ c
       call prof_stop(53)
       call prof_start(54)
       call prof_start(64)
+      call prof_start(67)
 #endif
 C     CALL CLOCK(TIM)
 C6000 FORMAT(23X,'****  FRPRMN: AFT LOCPOT: ',F15.7,' SEC')
@@ -737,6 +738,7 @@ c
 c      call MPI_Barrier(MPI_COMM_WORLD,ierr)
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(67)
       call prof_stop(64)
       call prof_start(62)
 #endif
@@ -779,6 +781,7 @@ c *** for Koukbo fftw ASL compatible
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(63)
       call prof_start(64)
+      call prof_start(68)
 #endif
 c
 c ****  NOW RHO3 is in R-space
@@ -867,6 +870,10 @@ ccc          VGPST(IG)=VG0(IG)
       enddo
       endif
 c  ***  interpolate VG(t+dt/2) from new and past VG's ***
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(68)
+      call prof_start(69)
+#endif
       if ( iscf.ge.2 ) then
 cc *** 
 c
@@ -966,6 +973,7 @@ c       call coefcp(coef0(1,nbgn,ik0),coef(1,nbgn,ik0),ng2q*nblng)
 c
  9799 continue
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(69)
       call prof_stop(64)
       call prof_stop(54)
       call prof_start(55)

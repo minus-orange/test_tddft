@@ -42,6 +42,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 56 | Split Vloc preparation | 73.4618239403 (one diagnostic run) | measurement | `ea13406` |
 | 57 | Offload LOCPOT G-vector construction | 71.2909028530 | accepted baseline | `8646707` |
 | 58 | Re-profile the accepted Step 57 source | 74.2175440788 (diagnostic trace) | measurement | `797ba4f` |
+| 59 | Measure the accepted-source LOCPOT envelope | 71.1150200367 (one diagnostic run) | measurement | `03ec9bd` |
 
 ## Other Rejected Experiments
 
@@ -857,3 +858,37 @@ flags and existing FRPRMN timers enabled, runs and archives the 100-step case,
 requires both correctness checks, and prints the current Vloc parent, LOCPOT,
 smoothing/FFT, and derived remainder in one photograph. Its diagnostic wall is
 not a baseline. Do not implement another optimization before this result.
+
+## Step 59 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP59_LOCPOT_TIMERS_01`
+- Tested revision: `03ec9bdba15c51fa4e9b11b70468f3e30640ee08`
+- Diagnostic wall: `71.1150200367` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `62.280906` sec
+- `tmevl_total`: `51.589839` sec
+- FRPRMN residual outside TMEVL: `10.691067` sec
+- `frprmn_vloc_prepare`: `0.484717` sec
+- `frprmn_vloc_locpot`: `0.305052` sec
+- `frprmn_vloc_smooth_fft`: `0.151038` sec
+- Derived remaining Vloc work: `0.028627` sec
+
+Relative to Step 56, accepted-source LOCPOT fell by `2.459933` sec
+(`88.9673%`) and the complete Vloc envelope fell by `2.462559` sec
+(`83.5537%`). LOCPOT now accounts for `62.9340%` of Vloc but only `2.8533%`
+of the current FRPRMN residual. This directly confirms that the Step 57
+performance improvement came from the bounded LOCPOT offload.
+
+The largest known remaining host envelope is the Step 55
+`frprmn_vrho_mix_control` value of `2.841719` sec. Step 60 should remain
+diagnostic only and partition it into exclusive seed/coefficient-copy,
+predictor/extrapolation, and corrector/interpolation/convergence regions.
+
+## Step 60 Plan
+
+Use compile-time default-off timers only; do not change equations, loops, MPI,
+OpenACC ownership, or the diagnostic-off performance path. Run the single
+diagnostic with `tools/run_tddft_step60.sh`. It builds only TDDFT, archives the
+100-step run, requires both correctness checks, and prints the VRHO control
+parent and its three exclusive children in one photograph. Diagnostic wall is
+not a baseline, and no optimization is selected before this result.

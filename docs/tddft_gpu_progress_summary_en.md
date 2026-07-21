@@ -1844,3 +1844,17 @@ The LOCPOT kernel was not separately identifiable in the photographed summary
 rows. The next task is diagnostic, not optimization: Step 59 will use the
 existing default-off timers to measure the current accepted-source LOCPOT
 envelope directly.
+
+## Step 59: Measure the Current LOCPOT Envelope
+
+Archive `nvhpc_cufft_1rank_02_STEP59_LOCPOT_TIMERS_01` passed normal check and
+relaxed compare. Its `71.1150200367` sec wall is diagnostic only. Vloc
+preparation was `0.484717` sec: LOCPOT `0.305052` sec, smoothing/FFT
+`0.151038` sec, and remaining work `0.028627` sec.
+
+Relative to Step 56, LOCPOT fell by `2.459933` sec (`88.9673%`) and the full
+Vloc envelope fell by `2.462559` sec (`83.5537%`). LOCPOT is now only
+`2.8533%` of the current FRPRMN residual, directly confirming the Step 57
+improvement mechanism. The next task is diagnostic Step 60, which partitions
+VRHO host control into seed, predictor, and corrector intervals before any
+new optimization is selected.

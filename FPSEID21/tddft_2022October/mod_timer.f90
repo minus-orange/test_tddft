@@ -276,5 +276,11 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'frprmn_vloc_locpot'
   case (66)
     name = 'frprmn_vloc_smooth_fft'
+  case (67)
+    name = 'frprmn_vrho_seed_ctrl'
+  case (68)
+    name = 'frprmn_vrho_predict_ctrl'
+  case (69)
+    name = 'frprmn_vrho_correct_ctrl'
   end select
 end subroutine fpseid_mod_timer_name

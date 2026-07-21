@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 58 classified; Step 59 current-source LOCPOT timer is next
+- Current HEAD status: Step 59 classified; Step 60 VRHO-control split is next
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 57 median `71.2909028530` sec
@@ -316,7 +316,19 @@ The immediate next task is one Step 59 diagnostic using
 current accepted-source LOCPOT envelope directly. Do not change algorithms or
 data ownership and do not use its wall as a baseline.
 
-Do not add another performance implementation before the Step 59 timer result
+Step 59 archive `nvhpc_cufft_1rank_02_STEP59_LOCPOT_TIMERS_01` passed both
+correctness checks at revision `03ec9bd`; its `71.1150200367` sec wall is
+diagnostic only. Current-source LOCPOT was `0.305052` sec, down `2.459933` sec
+(`88.9673%`) from Step 56. Vloc preparation fell from `2.947276` to
+`0.484717` sec. LOCPOT is now only `2.8533%` of the current FRPRMN residual,
+directly confirming the Step 57 hypothesis.
+
+The next bounded task is diagnostic Step 60. The existing VRHO host-control
+parent is split into exclusive seed/coefficient-copy, predictor/extrapolation,
+and corrector/interpolation/convergence timers. Use
+`tools/run_tddft_step60.sh`; do not implement an optimization before its result.
+
+Do not add another performance implementation before the Step 60 timer result
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce

@@ -142,5 +142,8 @@
       if (id.eq.64) name='frprmn_vrho_mix_control'
       if (id.eq.65) name='frprmn_vloc_locpot'
       if (id.eq.66) name='frprmn_vloc_smooth_fft'
+      if (id.eq.67) name='frprmn_vrho_seed_ctrl'
+      if (id.eq.68) name='frprmn_vrho_predict_ctrl'
+      if (id.eq.69) name='frprmn_vrho_correct_ctrl'
       return
       end

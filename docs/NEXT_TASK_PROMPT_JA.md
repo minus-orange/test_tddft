@@ -88,12 +88,16 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     CUDA kernel合計は約`14.29 sec`でStep 53とほぼ同じ。MPI reportは再び空だった。
 14. Step 53比でH2Dは6,756回・`844.619 MB`・`0.183726804 sec`、D2Hは606回・
     `281.417 MB`・`0.024563386 sec`増えた。606 D2HはLOCPOT 6回×FRPRMN 101回と一致する。
-15. LOCPOT kernelは写真に表示されたkernel/OpenACC集計行から独立同定できなかった。
-    次は追加最適化ではなく、既存timerで現行LOCPOT全区間を直接測るStep 59だけを行う。
-16. Step 59の1コマンドhelperは`./tools/run_tddft_step59.sh`。この1本だけを提示して停止し、
+15. Step 59はcheck/compare PASS。現行LOCPOTは`0.305052 sec`で、Step 56比
+    `2.459933 sec`（`88.9673%`）減った。Vloc全体も`83.5537%`減った。
+16. LOCPOTは現行FRPRMN残差の`2.8533%`まで低下し、Step 57仮説を直接確認できた。
+17. 次は追加最適化ではない。残る最大既知host区間`frprmn_vrho_mix_control`を、
+    seed/coefficient-copy、predictor/extrapolation、corrector/interpolation/convergenceの
+    3排他timerへ分けるStep 60だけを行う。
+18. Step 60の1コマンドhelperは`./tools/run_tddft_step60.sh`。この1本だけを提示して停止し、
     写真または手打ちテキストの結果を待つ。diagnostic wallはbaselineにしない。
 
-Step 53-58 helperは完了済みの履歴として保持する。次の診断も長い個別コマンドへ
+Step 53-59 helperは完了済みの履歴として保持する。次の診断も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
 
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`

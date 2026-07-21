@@ -70,6 +70,11 @@ about `14.29` sec. Relative to Step 53, H2D increased by 6,756 calls and D2H by
 606 calls, while combined transfer duration increased by `0.208290190` sec.
 The official Step 57 median remains `71.2909028530` sec.
 
+Step 59 measured the accepted-source LOCPOT envelope at `0.305052` sec, an
+`88.9673%` reduction from its Step 56 pre-offload value. Its
+`71.1150200367` sec diagnostic wall passed both correctness checks but does not
+replace the official three-run median.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

@@ -384,3 +384,10 @@ only `0.208290190` sec; the MPI report was empty. Because the LOCPOT kernel
 duration was not independently identifiable in the photographed summary rows,
 Step 59 will enable only existing timers to measure the current LOCPOT envelope
 directly. No additional optimization is selected yet.
+
+Step 59 measured the accepted-source LOCPOT envelope at `0.305052` sec,
+`88.9673%` below its Step 56 pre-offload value. The full Vloc envelope fell by
+`83.5537%`, and LOCPOT is now only `2.8533%` of the current FRPRMN residual.
+Step 60 will diagnose the largest known remaining host region by partitioning
+VRHO control into exclusive seed, predictor, and corrector intervals. No
+additional optimization is selected before that result.

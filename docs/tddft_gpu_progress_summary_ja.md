@@ -1686,3 +1686,15 @@ H2Dは45,320回・`31,590.245` MB・`2.749026591`秒、D2Hは7,954回・
 
 LOCPOT kernelは写真に表示された集計行から独立同定できませんでした。次は追加最適化
 ではなく、既存default-off timerで現行LOCPOT全区間を直接測るStep 59診断です。
+
+## Step 59: 現行LOCPOT全区間の直接計測
+
+archive `nvhpc_cufft_1rank_02_STEP59_LOCPOT_TIMERS_01`は通常checkとrelaxed
+compareにPASSしました。診断wallは`71.1150200367`秒でbaselineには使用しません。
+Vloc parentは`0.484717`秒、LOCPOTは`0.305052`秒、smoothing/FFTは`0.151038`秒、
+その他は`0.028627`秒でした。
+
+Step 56比でLOCPOTは`2.459933`秒（`88.9673%`）、Vloc全体は`2.462559`秒
+（`83.5537%`）削減されました。LOCPOTは現行FRPRMN残差の`2.8533%`に低下し、
+Step 57の改善要因を直接確認できました。次はVRHO host controlをseed、predictor、
+correctorへ分けるStep 60診断であり、追加最適化ではありません。
