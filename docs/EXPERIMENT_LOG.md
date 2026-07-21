@@ -1138,3 +1138,23 @@ Run 01 is `0.1293637752` sec (`0.188650%`) faster than the Step 62 median, but
 the advantage is smaller than the Step 62 run range `0.17894752025` sec. This
 single run is inconclusive. Collect runs 02/03 with one command and decide only
 from the three-run median and range.
+
+## Step 67 Runs 02/03 and Adoption
+
+| run | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| 01 | `68.4441161156` | PASS | PASS |
+| 02 | `68.2400159836` | PASS | PASS |
+| 03 | `68.3616518974` | PASS | PASS |
+
+- Three-run median: `68.3616518974` sec
+- Run-to-run range: `0.2041001320` sec
+- Improvement from Step 62: `0.2118279934` sec (`0.308907%`)
+- Separation from Step 62 ranges: slowest Step 67 is `0.0436298847` sec faster
+  than fastest Step 62
+- Median-wall run FRPRMN residual: `8.168622` sec
+- Residual reduction from Step 62 median-wall run: `0.217857` sec
+
+All correctness and performance gates pass, and the non-overlapping observed
+ranges support the small median advantage. Step 67 is adopted as the official
+baseline.

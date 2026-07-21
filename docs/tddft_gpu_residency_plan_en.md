@@ -450,3 +450,7 @@ from the standard three-run gate.
 
 Run 01 passed both checks at `68.4441161156` sec, but its `0.188650%` advantage
 is within the baseline run range. Runs 02/03 remain mandatory.
+
+Runs 02/03 passed both checks. The `68.3616518974` sec median is `0.308907%`
+faster than Step 62, and the observed run ranges do not overlap. Step 67 is
+accepted as the new baseline.

@@ -4,8 +4,8 @@ Last updated: 2026-07-21
 
 ## Official Baseline
 
-- Logical step: Step 62
-- Source implementation commit: `7475ccb`
+- Logical step: Step 67
+- Source implementation commit: `39a181e`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,24 +16,24 @@ Last updated: 2026-07-21
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP62_SKIP_HOST_COEFCP_01` | 68.66669352055 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP62_SKIP_HOST_COEFCP_02` | 68.4877460003 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP62_SKIP_HOST_COEFCP_03` | 68.5734798908 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP67_VPJ_VL128_01` | 68.4441161156 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP67_VPJ_VL128_02` | 68.2400159836 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP67_VPJ_VL128_03` | 68.3616518974 | PASS | PASS |
 
-Official three-run median: `68.5734798908` sec.
-Run-to-run range: `0.17894752025` sec.
+Official three-run median: `68.3616518974` sec.
+Run-to-run range: `0.2041001320` sec.
 
-## Step 62 Run 03 Profile
+## Step 67 Run 03 Profile
 
 | timer | total_sec |
 |---|---:|
-| `time_step_total` | 68.789653 |
-| `frprmn` | 59.785449 |
-| `tmevl_total` | 51.398970 |
-| `s2_nonlocal` | 11.477712 |
-| `s2_nonlocal_make` | 1.336635 |
-| `s2_nonlocal_gemm` | 10.118493 |
-| `exnlp_gemm_dot` | 8.449516 |
+| `time_step_total` | 68.578084 |
+| `frprmn` | 59.581569 |
+| `tmevl_total` | 51.412947 |
+| `s2_nonlocal` | 11.469054 |
+| `s2_nonlocal_make` | 1.320984 |
+| `s2_nonlocal_gemm` | 10.125199 |
+| `exnlp_gemm_dot` | 8.453116 |
 
 ## Comparison Policy
 
@@ -113,6 +113,12 @@ Step 67 run 01 with VPJ vector length 128 passed both checks at
 `68.4441161156` sec. It is only `0.188650%` below the official median and the
 difference is smaller than the official run range, so Step 62 remains the
 baseline until all three Step 67 runs are classified.
+
+All three Step 67 runs passed both checks. The `68.3616518974` sec median is
+`0.2118279934` sec (`0.308907%`) faster than Step 62 with a
+`0.2041001320` sec range. The slowest Step 67 run is still `0.0436298847` sec
+faster than the fastest Step 62 run, so the observed distributions do not
+overlap. Step 67 supersedes Step 62 as the official baseline.
 
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit

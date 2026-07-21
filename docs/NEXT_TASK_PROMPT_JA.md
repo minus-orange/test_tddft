@@ -25,22 +25,23 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 62です。
+正式baselineは論理Step 67です。
 
-- source implementation: `7475ccb`
+- source implementation: `39a181e`
 - pinned build mode: `9cbb6bc`
 - A100-PCIE-40GB、1 GPU / 1 MPI rank
 - NVHPC + OpenACC + cuFFT
 - `-gpu=mem:separate:pinnedalloc`
 - Si111-H、100 steps
-- diagnostic OFF 3回中央値: `68.5734798908 sec`
-- 実行幅: `0.17894752025 sec`
+- diagnostic OFF 3回中央値: `68.3616518974 sec`
+- 実行幅: `0.2041001320 sec`
 - 全runでnormal checkとrelaxed compare PASS
 
-Step 62は、採用済みStep 57のVPJ/LOCPOT GPU化を保持し、OpenACC補正失敗経路でdevice
+Step 67は、採用済みStep 57のVPJ/LOCPOT GPU化とStep 62のhost copy省略を保持し、VPJ
+kernelだけのvector lengthを256から128へ変更しています。OpenACC補正失敗経路でdevice
 authorityを更新しない冗長なhost COEF0-to-COEF copyだけを省略しています。VGOLD、device
-復元、MPI、数式順序、CPU/FFTW fallbackは維持しています。Step 57中央値より
-`2.7174229622 sec`（`3.811739%`）高速で、全3 runのcorrectnessと性能採否gateを満たして
+復元、MPI、数式順序、CPU/FFTW fallbackは維持しています。Step 62中央値より
+`0.2118279934 sec`（`0.308907%`）高速で、全3 runのcorrectnessと性能採否gateを満たして
 正式採用済みです。最新HEADを自動的にbaseline扱いしない原則は維持します。
 
 最終ゴールは、タイムステップループ内を可能な限りGPU化し、大規模配列のhost/device
@@ -49,12 +50,12 @@ authorityを更新しない冗長なhost COEF0-to-COEF copyだけを省略して
 
 現時点の確定値:
 
-- Step 62 median-wall run 03 `time_step_total`: `68.789653 sec`
-- `frprmn`: `59.785449 sec`
-- `tmevl_total`: `51.398970 sec`
-- `frprmn - tmevl_total`: `8.386479 sec`
-- `s2_nonlocal`: `11.477712 sec`
-- `exnlp_gemm_dot`: `8.449516 sec`
+- Step 67 median-wall run 03 `time_step_total`: `68.578084 sec`
+- `frprmn`: `59.581569 sec`
+- `tmevl_total`: `51.412947 sec`
+- `frprmn - tmevl_total`: `8.168622 sec`
+- `s2_nonlocal`: `11.469054 sec`
+- `exnlp_gemm_dot`: `8.453116 sec`
 - Step 51で判明した旧`VPJ_GEN` CPU積分: `36.132464 sec`
 
 Step 48のNsight値はStep 52/57 GPU化より前なので、現在のkernel時間・転送回数・
@@ -136,6 +137,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 36. Step 67 run 01はcheck/compare PASS、wall `68.4441161156 sec`。Step 62中央値より
     `0.1293637752 sec`（`0.188650%`）短いが、Step 62実行幅より小さく未確定。
 37. 同じrevisionのまま`./tools/run_tddft_step67.sh 02-03`を実行し、中央値で採否する。
+38. Step 67の3 runは全てPASS/PASS。wallは`68.4441161156`、`68.2400159836`、
+    `68.3616518974 sec`、中央値`68.3616518974 sec`、実行幅`0.2041001320 sec`。
+39. Step 62比`0.2118279934 sec`（`0.308907%`）高速で、両run範囲も重ならないため
+    Step 67を正式採用した。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

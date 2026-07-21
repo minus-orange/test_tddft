@@ -5,22 +5,22 @@ Last updated: 2026-07-21
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `7475ccb` (`Skip redundant host correction restore`)
+- Accepted source baseline: `39a181e` (`Test VPJ vector length 128`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 62 with Step 37 pinned allocation mode
-- Current source implementation: Step 62 commit `7475ccb`
+- Current configuration: accepted Step 67 with Step 37 pinned allocation mode
+- Current source implementation: Step 67 commit `39a181e`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 63 classified; Step 64 current-part1to5 diagnostic pending
+- Current HEAD status: Step 67 accepted after three PASS/PASS runs
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 62 median `68.5734798908` sec
+- Performance baseline: Step 67 median `68.3616518974` sec
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
@@ -424,6 +424,12 @@ checks at revision `39a181e` and took `68.4441161156` sec. It is
 is smaller than the Step 62 run range. The result is inconclusive; collect runs
 02/03 without changing the tested revision and decide from the median.
 
+Runs 02 and 03 also passed both checks at `68.2400159836` and
+`68.3616518974` sec. The three-run median is `68.3616518974` sec with a
+`0.2041001320` sec range, `0.308907%` faster than Step 62. The slowest Step 67
+run is faster than the fastest Step 62 run, so Step 67 is accepted as the new
+official source and performance baseline.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
@@ -448,7 +454,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `68.5734798908` sec.
+6. Compare the three-run median with `68.3616518974` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

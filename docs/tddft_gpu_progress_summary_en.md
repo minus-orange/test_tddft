@@ -1945,3 +1945,8 @@ diagnostic-off three-run gate against the Step 62 median.
 Run 01 passed both checks at `68.4441161156` sec, only `0.188650%` below the
 Step 62 median. Because that difference is smaller than the baseline run range,
 runs 02/03 are required before any decision.
+
+Runs 02/03 also passed both checks. The three-run median is
+`68.3616518974` sec with a `0.2041001320` sec range, `0.308907%` faster than
+Step 62. Even the slowest Step 67 run is faster than the fastest Step 62 run,
+so Step 67 is accepted as the official baseline.
