@@ -42,6 +42,9 @@ human approval boundaries, adoption, and rollback.
   existing wrapper command. If the required procedure cannot be expressed
   concisely, add a bounded helper script to Git instead of sending a long
   sequence of shell commands.
+- Always include the exact execution command and the result-check/return
+  instructions in the chat response, even when the workflow is implemented by
+  a committed helper or documented elsewhere.
 - Assume that results can be returned from the closed A100 environment only as
   photographs or manually typed text. Never require transfer of raw traces,
   archives, reports, or other files. Make profiler helpers print a compact

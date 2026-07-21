@@ -270,6 +270,11 @@ fast-forward pushes of the intended project commit. Force-pushes, another
 branch, and commits containing unrelated user changes still require explicit
 approval.
 
+For every human-operated A100 action, Main must also place the exact execution
+command and the result-check/return instructions directly in the chat. A
+helper script or repository document may shorten the procedure but does not
+replace the chat instructions.
+
 ## Main Result Report
 
 Main reports each completed validation using:
