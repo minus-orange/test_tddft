@@ -113,7 +113,8 @@ find_cuda_include_dir() {
     cc_path=$(command -v "$GPU_CC")
     nvhpc_root=$(CDPATH= cd -- "$(dirname -- "$cc_path")/../.." 2>/dev/null && pwd || true)
     if [ -n "$nvhpc_root" ]; then
-      for dir in "$nvhpc_root"/cuda "$nvhpc_root"/cuda/*; do
+      for dir in "$nvhpc_root"/cuda "$nvhpc_root"/cuda/* \
+                 "$nvhpc_root"/math_libs "$nvhpc_root"/math_libs/*; do
         if [ -f "$dir/include/$header" ]; then
           dirname -- "$dir/include/$header"
           return 0
