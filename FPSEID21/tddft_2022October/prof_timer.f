@@ -120,5 +120,9 @@
       if (id.eq.42) name='frprmn_sumchr'
       if (id.eq.43) name='frprmn_rhoget'
       if (id.eq.44) name='frprmn_coef_sync'
+      if (id.eq.45) name='frprmn_coef_setup'
+      if (id.eq.46) name='frprmn_gdump_prepare'
+      if (id.eq.47) name='frprmn_part1to5'
+      if (id.eq.48) name='frprmn_extau_prepare'
       return
       end

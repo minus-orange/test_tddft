@@ -1,6 +1,6 @@
 # TDDFT GPU Experiment Log
 
-Last updated: 2026-07-17
+Last updated: 2026-07-21
 
 The performance baseline is defined in `PERFORMANCE_BASELINE.md`. Detailed
 implementation and timer notes are in the bilingual progress summaries.
@@ -27,6 +27,11 @@ implementation and timer notes are in the bilingual progress summaries.
 | 41 | Keep static J2G/OCC metadata resident | 107.754213095 | accepted baseline | `4aaa33c` |
 | 42 | Keep Vloc resident across FRPRMN corrections | 107.809727907 | rejected | `d56815e` / `afa1678` |
 | 43 | Decompose the host-side ELECTF region | 107.821303844 (one diagnostic run) | measurement | `e90c80a` |
+| 44 | Split NONLOCF projector preparation | 108.715013981 (one diagnostic run) | measurement | diagnostic |
+| 45 | Keep COEF resident across the complete time-step loop | 108.782176018 | rejected | `da24adf` / `c406a4a` |
+| 46 | Validate SEPPOTF device ownership | 107.869318008 (one diagnostic run) | measurement | `edfafed` / `3e2c630` |
+| 47 | Offload the tutorial non-partitioned s/p SEPPOTF path | 107.722885132 | rejected | `0252da9` / `35f8542` |
+| 48 | Re-profile the restored Step 41 source with Nsight Systems | 110.223116875 (diagnostic trace) | measurement | `adf4d5b` |
 
 ## Other Rejected Experiments
 
@@ -413,3 +418,32 @@ diagnostic scaffold are to be rolled back before another hypothesis begins.
 Rollback commit `35f8542` removes both the Step 47 implementation and the
 completed Step 46 diagnostic source, restoring the accepted Step 41 source
 for the affected files. The CPU/FFTW fallback full link passed afterward.
+
+## Step 48 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP48_STEP41_NSYS_01`
+- Tested revision: `adf4d5b128e0a4a502304f033f7b9edae18a8d3f`
+- Diagnostic wall: `110.223116875` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- H2D: 37,560 copies, `30,576.426` MB, `2.637303759` sec
+- D2H: 5,348 copies, `5,592.769` MB, `0.440437627` sec
+- CUDA kernels: about `12.48` sec total
+- CUDA API: about `17.56` sec total; synchronization calls account for about
+  `15.72` sec (`89.5%`)
+- In-run MPI collectives: `0.260338098` sec
+
+Relative to Step 38, H2D fell by 6,606 calls (`14.96%`) and `657.599` MB
+(`2.105%`); D2H count and bytes were unchanged. The count difference is
+consistent with Step 41 reducing repeated metadata transfers, but summary data
+alone cannot assign every removed call site. The fused nonlocal kernel remained
+effectively unchanged at `8.312052815` sec over 9,440 calls.
+
+The MPI collective total is only about `0.55%` of the official `47.476614` sec
+FRPRMN residual. CUDA synchronization is substantial, but the summary includes
+TMEVL and cannot be exclusively charged to the residual. OS-runtime waits are
+also process-tree and helper-thread totals with overlap. The trace therefore
+rules out MPI and allocation as the main residual cause but does not separate
+host preparation from device-runtime waiting. The next measurement is a
+default-off diagnostic that times only COEF setup, GDUMP preparation,
+`Part1to5`, and EXTAU preparation inside FRPRMN. No optimization is authorized
+by this result.

@@ -1388,6 +1388,9 @@ c *** Keep the time-evolution coefficients resident for the complete
 c *** predictor-corrector sequence.  COEF0 is the unchanged wavefunction
 c *** used to restart every correction.  The host coefcp above remains the
 c *** CPU/FFTW path; on OpenACC the correction restart below is device-local.
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(45)
+#endif
       if (iscf.eq.1) then
 !$acc enter data copyin(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
 !$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
@@ -1404,6 +1407,9 @@ c *** CPU/FFTW path; on OpenACC the correction restart below is device-local.
        enddo
        icoef_host_current=0
       endif
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(45)
+#endif
 c
       DO 600 I=1,NXYZ
   600 RHO(I)=0.D0
@@ -1414,6 +1420,9 @@ C
       DO 2000 IK=1,NUMK
 c *****
       if (iscf.eq.1 ) then
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(46)
+#endif
 c *****
       GFAC=GMHF*2
 c **** G21 for YLM1 and GDUMP1
@@ -1540,6 +1549,10 @@ c      endif
 c *** temp check : end
 c ** for P-A: nonlocal part 
 c +++++++++
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(46)
+      call prof_start(47)
+#endif
          NGNLMX=1
          do ity=1,NTYPE
           NGNLMX=MAX(NGNL(ity,IK),NGNLMX)
@@ -1569,10 +1582,16 @@ c
          endif
 c
 c **** 
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(47)
+#endif
       endif
 c **** iscf=1 loop end
 c
 c *** prepare EXTAU !!!
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(48)
+#endif
 c ****** part 1 ********
 ! ==============================================================================
 !     ITBF=0
@@ -1774,6 +1793,9 @@ c      call MPI_Bcast(EXTAU(1,nbegint(icpu),5),ntleng*(nxyz/6)
 c     & ,MPI_DOUBLE_COMPLEX, icpu,MPI_COMM_WORLD,ierr)
 c      enddo
 c **
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(48)
+#endif
 c *** temp check
 c      miya=13
 c      if ( miya.eq.13 ) then

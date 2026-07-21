@@ -14,6 +14,8 @@ set -eu
 #   LDFLAGS    Additional linker flags.
 #   BUILD_REPORT  Set to 1 to print more build details and add compiler reports.
 #   REPORT_FLAGS   Extra compiler report flags when BUILD_REPORT=1.
+#   FPSEID_FRPRMN_DIAGNOSTIC  Set to 1 to enable the bounded FRPRMN host
+#                              preparation timers. Default: 0.
 #   FFTW_LIBS  FFTW libraries. Default: -lfftw3_omp -lfftw3
 #   FFT_BACKEND FFT implementation. Default: fftw. Set to cufft for GPU FFT.
 #   CUFFT_LIBS  cuFFT libraries when FFT_BACKEND=cufft.
@@ -28,6 +30,7 @@ CC=${CC:-mpicc}
 FFTW_ROOT=${FFTW_ROOT:-}
 FFT_BACKEND=${FFT_BACKEND:-fftw}
 BUILD_REPORT=${BUILD_REPORT:-0}
+FPSEID_FRPRMN_DIAGNOSTIC=${FPSEID_FRPRMN_DIAGNOSTIC:-0}
 
 FC_PROBE="$FC
 $("$FC" --version 2>/dev/null || true)
@@ -37,6 +40,7 @@ $("$FC" --showme:command 2>/dev/null || true)"
 if printf '%s\n' "$FC_PROBE" | grep -Eiq 'nvfortran|pgfortran'; then
     FFLAGS=${FFLAGS:-"-O2 -mp -Msave -Mlarge_arrays"}
     REPORT_FLAGS=${REPORT_FLAGS:-"-Minfo=accel -Minfo=mp"}
+    PREPROCESS_FLAG=-Mpreprocess
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE.f}
     RARR3_SRC=${RARR3_SRC:-rarr3.f}
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs.f}
@@ -44,6 +48,7 @@ if printf '%s\n' "$FC_PROBE" | grep -Eiq 'nvfortran|pgfortran'; then
 elif printf '%s\n' "$FC_PROBE" | grep -Eiq 'gfortran|GNU Fortran'; then
     FFLAGS=${FFLAGS:-"-O2 -fopenmp -fno-automatic -fallow-argument-mismatch -fallow-invalid-boz"}
     REPORT_FLAGS=${REPORT_FLAGS:-"-fopt-info-optimized -fopt-info-vec"}
+    PREPROCESS_FLAG=-cpp
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE_gnu.f}
     RARR3_SRC=${RARR3_SRC:-rarr3_gnu.f}
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs_gnu.f}
@@ -51,11 +56,23 @@ elif printf '%s\n' "$FC_PROBE" | grep -Eiq 'gfortran|GNU Fortran'; then
 else
     FFLAGS=${FFLAGS:-"-O3 -traceback -qopenmp"}
     REPORT_FLAGS=${REPORT_FLAGS:-"-qopt-report=2"}
+    PREPROCESS_FLAG=-fpp
     LIB4_SRC=${LIB4_SRC:-lib4_ASL_2_check_Vext_SXACE.f}
     RARR3_SRC=${RARR3_SRC:-rarr3.f}
     TM_INPUTS_SRC=${TM_INPUTS_SRC:-tm_inputs.f}
     PSPW_SRC=${PSPW_SRC:-pspw_tm11_Vext_Avec_v4_alloc.f}
 fi
+FFLAGS="$FFLAGS $PREPROCESS_FLAG"
+case "$FPSEID_FRPRMN_DIAGNOSTIC" in
+  0) ;;
+  1)
+    FFLAGS="$FFLAGS -DFPSEID_FRPRMN_DIAGNOSTIC=1"
+    ;;
+  *)
+    echo "ERROR: FPSEID_FRPRMN_DIAGNOSTIC must be 0 or 1." >&2
+    exit 1
+    ;;
+esac
 if [ "$BUILD_REPORT" = 1 ]; then
     FFLAGS="$FFLAGS $REPORT_FLAGS"
 fi
@@ -153,6 +170,7 @@ echo "  FFT_BACKEND=$FFT_BACKEND"
 echo "  FC=$FC"
 echo "  CC=$CC"
 echo "  FFLAGS=$FFLAGS"
+echo "  FPSEID_FRPRMN_DIAGNOSTIC=$FPSEID_FRPRMN_DIAGNOSTIC"
 echo "  CFLAGS=$CFLAGS"
 echo "  LDFLAGS=$LDFLAGS"
 echo "  FFT_INCLUDE=$FFT_INCLUDE"

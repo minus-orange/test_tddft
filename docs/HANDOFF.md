@@ -1,6 +1,6 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-07-17
+Last updated: 2026-07-21
 
 ## Current State
 
@@ -17,7 +17,8 @@ Last updated: 2026-07-17
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - Current HEAD status: accepted Step 41 source restored; CPU/FFTW fallback
-  full link passed after rollback
+  full link passed after rollback; Step 48 trace classified and one bounded
+  default-off FRPRMN timer diagnostic is being prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -107,6 +108,18 @@ passed. After an explicit diagnostic-off rebuild, three A100 runs (`_02` to
 recorded as a pre-rebuild provenance anomaly and is not part of the controlled
 three-run series.
 
+Step 48 re-profiled the restored Step 41 source at revision `adf4d5b`. The
+diagnostic archive `nvhpc_cufft_1rank_02_STEP48_STEP41_NSYS_01` passed normal
+check and relaxed compare; its `110.223116875` sec wall is not a baseline. H2D
+fell from Step 38's 44,166 calls / `31,234.025` MB to 37,560 calls /
+`30,576.426` MB, while D2H remained 5,348 calls / `5,592.769` MB. CUDA API
+time was dominated by synchronization, but the summaries do not isolate the
+FRPRMN residual from TMEVL. In-run MPI collectives totaled only `0.260338098`
+sec, about `0.55%` of the `47.476614` sec residual; allocation/free activity
+was negligible. The next bounded diagnostic times COEF setup, GDUMP
+preparation, `Part1to5`, and EXTAU preparation. It is compile-time off by
+default and is measurement only.
+
 The 32-band tutorial is the smallest operational case expected. A dedicated
 smaller-band multi-gang path is out of scope. The current one-gang-per-band path
 expands naturally with local band count, so shared bottlenecks should be
@@ -129,35 +142,29 @@ Two different utilization estimates must not be conflated:
   GPU-dominant TMEVL region. Including known accelerated density work gives a
   conservative algorithmic GPU coverage of about `48%`; unseparated mixed
   work makes a practical range of roughly `48-55%` reasonable.
-- Step 38 Nsight Systems measured the fused kernel at `8.311268224` sec and
+- Step 48 Nsight Systems measured the fused kernel at `8.312052815` sec and
   `66.6%` of CUDA kernel time, implying about `12.48` sec of aggregate CUDA
-  kernel execution, or about `11.3%` of its `110.78916502` sec trace wall.
-  H2D and D2H took `1.272192545` and `0.440373299` sec, respectively, or
-  about `1.55%` combined. These durations may overlap and are diagnostic, not
-  an additive performance baseline.
+  kernel execution, or about `11.3%` of its `110.223116875` sec trace wall.
+  H2D and D2H took `2.637303759` and `0.440437627` sec, respectively. These
+  durations may overlap and are diagnostic, not an additive performance
+  baseline.
 
 The gap between approximately 48% GPU-dominant algorithm coverage and only
 about 11% aggregate kernel duration points to host preparation, fine-grained
 launches, synchronization, runtime calls, low-parallelism launches, and GPU
 idle intervals as the primary class of bottleneck. Direct copy duration alone
-is not the dominant wall-time cost, although Step 38 still recorded 44,166 H2D
+is not the dominant wall-time cost, although Step 48 still recorded 37,560 H2D
 and 5,348 D2H operations. Reducing their count can remove runtime and
 synchronization boundaries in addition to bytes.
 
-The next task is diagnostic only and has two ordered stages:
+Step 48 completed the current-source trace. The next task remains diagnostic
+only: run one default-off-by-design timer build that divides the FRPRMN host
+preparation into COEF setup, GDUMP preparation, `Part1to5`, and EXTAU
+preparation. Use the result with Step 48 to narrow the remaining CPU,
+runtime/API, synchronization, and GPU-idle components. Do not use the
+timer-enabled wall as a baseline and do not begin an optimization.
 
-1. Re-profile the restored accepted Step 41 source with Nsight Systems. Step 38
-   predates Step 41's J2G/OCC residency change, so it cannot establish the
-   current transfer counts. Collect CUDA kernel, H2D/D2H, CUDA/OpenACC API,
-   synchronization, allocation, and OS-runtime summaries. Do not use the
-   profiled wall time as a baseline.
-2. Decompose the `47.476614` sec FRPRMN residual outside `tmevl_total` in the
-   Step 41 run-02 profile. First use existing source and the new trace. Add
-   diagnostic-off-by-default timers only if the trace cannot identify the
-   largest components. Separate CPU computation, MPI, device runtime/API,
-   synchronization, and GPU-idle causes before choosing an implementation.
-
-Do not begin another offload implementation until both stages identify one
+Do not begin another offload implementation until the diagnostic identifies one
 evidence-backed bottleneck and Main presents one bounded hypothesis. Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce
 only a noise-level `0.0291%` median advantage; the same form must not be

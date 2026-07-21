@@ -232,5 +232,13 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'exnlp_meta_enter'
   case (40)
     name = 'exnlp_ct1_create'
+  case (45)
+    name = 'frprmn_coef_setup'
+  case (46)
+    name = 'frprmn_gdump_prepare'
+  case (47)
+    name = 'frprmn_part1to5'
+  case (48)
+    name = 'frprmn_extau_prepare'
   end select
 end subroutine fpseid_mod_timer_name
