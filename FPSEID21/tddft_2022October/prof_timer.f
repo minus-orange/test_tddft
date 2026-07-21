@@ -124,5 +124,9 @@
       if (id.eq.46) name='frprmn_gdump_prepare'
       if (id.eq.47) name='frprmn_part1to5'
       if (id.eq.48) name='frprmn_extau_prepare'
+      if (id.eq.49) name='part1to5_getylm'
+      if (id.eq.50) name='vpjgen_cpu_integral'
+      if (id.eq.51) name='vpjgen_mpi_allreduce'
+      if (id.eq.52) name='vpjgen_postreduce'
       return
       end

@@ -240,5 +240,13 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'frprmn_part1to5'
   case (48)
     name = 'frprmn_extau_prepare'
+  case (49)
+    name = 'part1to5_getylm'
+  case (50)
+    name = 'vpjgen_cpu_integral'
+  case (51)
+    name = 'vpjgen_mpi_allreduce'
+  case (52)
+    name = 'vpjgen_postreduce'
   end select
 end subroutine fpseid_mod_timer_name

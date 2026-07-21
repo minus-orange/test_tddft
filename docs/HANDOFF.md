@@ -17,9 +17,9 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: accepted Step 41 source restored; CPU/FFTW fallback
-  full link passed after rollback; Step 48 trace classified and one bounded
-  default-off FRPRMN timer diagnostic is being prepared
+- Current HEAD status: accepted Step 41 source restored; Step 49 identifies
+  host-only `Part1to5` as `36.452430` sec; one bounded default-off internal
+  timer diagnostic is being prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 41 median `107.754213095` sec
@@ -120,6 +120,17 @@ sec, about `0.55%` of the `47.476614` sec residual; allocation/free activity
 was negligible. The next bounded diagnostic times COEF setup, GDUMP
 preparation, `Part1to5`, and EXTAU preparation. It is compile-time off by
 default and is measurement only.
+
+Step 49 measured the FRPRMN host preparation at tested revision `fe7cbd1`.
+Archive `nvhpc_cufft_1rank_02_STEP49_FRPRMN_TIMERS_01` passed normal check and
+relaxed compare; its `107.879790783` sec wall is diagnostic only. The FRPRMN
+residual outside TMEVL was `47.519384` sec, of which `frprmn_part1to5` consumed
+`36.452430` sec (`76.71%`). The measured components account for `83.34%` of
+the residual. Step 48 limits all in-run MPI collectives to `0.260338098` sec,
+so the dominant `Part1to5` time is host computation with corresponding GPU
+idle. The next diagnostic splits its 1,000 `GETYLM` and 1,000 `VPJ_GEN` calls
+into GETYLM, CPU radial integration, MPI all-reduction, and host post-reduction
+processing. No optimization has been selected.
 
 The 32-band tutorial is the smallest operational case expected. A dedicated
 smaller-band multi-gang path is out of scope. The current one-gang-per-band path

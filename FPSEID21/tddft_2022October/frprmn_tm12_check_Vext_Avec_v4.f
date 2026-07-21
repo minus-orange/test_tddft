@@ -2742,7 +2742,13 @@ c     *** part 1 ***
        GZ=G21(3,IG)
        RHO3(IG)=DSQRT(G21(4,IG))*TPIBA
       enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(49)
+#endif
       CALL GETYLM(NG2Q,NGNLMX,G21,RHO3,YLM1,TPIBA,NGcont)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(49)
+#endif
       CALL VPJ_GEN(G2,G21,NG2Q,NG2,RHO3,VPJ1
      &         ,VPJWORK,VPP21,
      &          TPIBA,NTYQ,ntype,GMHF,MXOFL
@@ -2757,7 +2763,13 @@ c     *** part 2 ***
        GZ=G22(3,IG)
        RHO3(IG)=DSQRT(G22(4,IG))*TPIBA
       enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(49)
+#endif
       CALL GETYLM(NG2Q,NGNLMX,G22,RHO3,YLM2,TPIBA,NGcont)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(49)
+#endif
       CALL VPJ_GEN(G2,G22,NG2Q,NG2,RHO3,VPJ2
      &         ,VPJWORK,VPP22,
      &          TPIBA,NTYQ,ntype,GMHF,MXOFL
@@ -2772,7 +2784,13 @@ c     *** part 3 ***
        GZ=G23(3,IG)
        RHO3(IG)=DSQRT(G23(4,IG))*TPIBA
       enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(49)
+#endif
       CALL GETYLM(NG2Q,NGNLMX,G23,RHO3,YLM3,TPIBA,NGcont)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(49)
+#endif
       CALL VPJ_GEN(G2,G23,NG2Q,NG2,RHO3,VPJ3
      &         ,VPJWORK,VPP23,
      &          TPIBA,NTYQ,ntype,GMHF,MXOFL
@@ -2787,7 +2805,13 @@ c     *** part 4 ***
        GZ=G24(3,IG)
        RHO3(IG)=DSQRT(G24(4,IG))*TPIBA
       enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(49)
+#endif
       CALL GETYLM(NG2Q,NGNLMX,G24,RHO3,YLM4,TPIBA,NGcont)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(49)
+#endif
       CALL VPJ_GEN(G2,G24,NG2Q,NG2,RHO3,VPJ4
      &         ,VPJWORK,VPP24,
      &          TPIBA,NTYQ,ntype,GMHF,MXOFL
@@ -2802,7 +2826,13 @@ c     *** part 5 ***
        GZ=G25(3,IG)
        RHO3(IG)=DSQRT(G25(4,IG))*TPIBA
       enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(49)
+#endif
       CALL GETYLM(NG2Q,NGNLMX,G25,RHO3,YLM5,TPIBA,NGcont)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(49)
+#endif
       CALL VPJ_GEN(G2,G25,NG2Q,NG2,RHO3,VPJ5
      &         ,VPJWORK,VPP25,
      &          TPIBA,NTYQ,ntype,GMHF,MXOFL

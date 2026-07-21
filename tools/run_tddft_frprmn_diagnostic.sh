@@ -7,7 +7,7 @@ set -eu
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_nvhpc"}
-LABEL=${LABEL:-nvhpc_cufft_1rank_02_STEP49_FRPRMN_TIMERS_01}
+LABEL=${LABEL:-nvhpc_cufft_1rank_02_STEP50_PART1TO5_TIMERS_01}
 
 cd "$ROOT_DIR"
 if [ "$(git branch --show-current)" != tddft-openacc-residency ]; then
@@ -67,6 +67,6 @@ grep 'steps took' "$ARCHIVE_DIR/tddft.out" | tail -n 1
 awk '
   /FPSEID_PROFILE_BEGIN/ { active=1; next }
   /FPSEID_PROFILE_END/ { active=0 }
-  active && ($0 ~ /time_step_total|frprmn[[:space:]]|tmevl_total|frprmn_rhoofk|frprmn_rhoget|frprmn_coef_sync|frprmn_coef_setup|frprmn_gdump_prepare|frprmn_part1to5|frprmn_extau_prepare/) { print }
+  active && ($0 ~ /time_step_total|frprmn[[:space:]]|tmevl_total|frprmn_rhoofk|frprmn_rhoget|frprmn_coef_sync|frprmn_coef_setup|frprmn_gdump_prepare|frprmn_part1to5|frprmn_extau_prepare|part1to5_getylm|vpjgen_cpu_integral|vpjgen_mpi_allreduce|vpjgen_postreduce/) { print }
 ' "$ARCHIVE_DIR/tddft.out"
 echo "Diagnostic wall only; do not use it as a performance baseline."

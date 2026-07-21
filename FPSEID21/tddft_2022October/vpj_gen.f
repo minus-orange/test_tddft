@@ -83,6 +83,9 @@ c *** temp check end
 c
       if (MXOFL(ity).ge.1 ) then
       do LI=1,MXOFL(ity)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(50)
+#endif
       L=LI-1
 cc ** clean up VPJWORK for parallel mesh integration
       DO IG=1,NGNL(ity)
@@ -231,9 +234,17 @@ c
    50 CONTINUE
 c      
 c +++ 2020 begin insert
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(50)
+      call prof_start(51)
+#endif
       LngthDat=3*(NGcont)
       call MPI_ALLReduce(VPJWORK(1,1),VPJ(1,1,li,ity),LngthDat,
      &  MPI_DOUBLE_PRECISION,MPI_SUM, MPI_COMM_WORLD,ierr)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(51)
+      call prof_start(52)
+#endif
 c +++ 2020 end insert
 c *** prepare smoothing !! Here cause of the trap!!
 c       if (my_rank.eq.0 ) then
@@ -359,6 +370,9 @@ c *** attention end:
          VPP2(li+12,ip,ity)=VPP2(li+12,ip,ity)* 21.d0/pi32/OMEGA
        enddo
        endif
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(52)
+#endif
       enddo  ! end of LI loop
       endif
       enddo  ! end of ity loop

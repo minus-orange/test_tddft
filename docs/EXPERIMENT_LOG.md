@@ -32,6 +32,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 46 | Validate SEPPOTF device ownership | 107.869318008 (one diagnostic run) | measurement | `edfafed` / `3e2c630` |
 | 47 | Offload the tutorial non-partitioned s/p SEPPOTF path | 107.722885132 | rejected | `0252da9` / `35f8542` |
 | 48 | Re-profile the restored Step 41 source with Nsight Systems | 110.223116875 (diagnostic trace) | measurement | `adf4d5b` |
+| 49 | Decompose FRPRMN host preparation | 107.879790783 (one diagnostic run) | measurement | `dcb686e` |
 
 ## Other Rejected Experiments
 
@@ -447,3 +448,33 @@ host preparation from device-runtime waiting. The next measurement is a
 default-off diagnostic that times only COEF setup, GDUMP preparation,
 `Part1to5`, and EXTAU preparation inside FRPRMN. No optimization is authorized
 by this result.
+
+## Step 49 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP49_FRPRMN_TIMERS_01`
+- Tested revision: `fe7cbd176821b87c0345bbb356ef61ef51d486fa`
+- Diagnostic wall: `107.879790783` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `99.052600` sec
+- `tmevl_total`: `51.533216` sec
+- FRPRMN residual outside TMEVL: `47.519384` sec
+- `frprmn_part1to5`: 200 calls, `36.452430` sec (`76.71%` of residual)
+- `frprmn_extau_prepare`: 944 calls, `1.475016` sec
+- `frprmn_coef_setup`: 472 calls, `0.527652` sec
+- `frprmn_gdump_prepare`: 200 calls, `0.134014` sec
+- Previously available residual timers: `frprmn_rhoofk=0.527746`,
+  `frprmn_rhoget=0.242919`, and `frprmn_coef_sync=0.241847` sec
+
+The measured non-TMEVL components total `39.601624` sec, leaving `7.917760`
+sec (`16.66%`) unclassified. `Part1to5` alone accounts for `76.71%` of the
+residual and calls five `GETYLM` plus five `VPJ_GEN` operations per invocation.
+Across this run that is 1,000 calls to each routine. `VPJ_GEN` performs a
+host-only radial-mesh integration, one `MPI_Allreduce` per active orbital/type,
+and host post-reduction smoothing. Step 48 bounded all in-run MPI collectives
+at only `0.260338098` sec, so MPI cannot explain the `36.452430` sec timer.
+The dominant classification is therefore CPU computation with corresponding
+GPU idle, not transfer, allocation, MPI, or GPU kernel execution.
+
+The next measurement remains diagnostic only. It separates `GETYLM`, the
+`VPJ_GEN` CPU integral, `MPI_Allreduce`, and post-reduction processing with
+compile-time-default-off timers. No optimization is authorized by Step 49.
