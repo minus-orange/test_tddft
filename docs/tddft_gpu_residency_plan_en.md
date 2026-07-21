@@ -422,3 +422,6 @@ from the current residual rather than stale pre-Step-57/62 timings.
 Step 63 classified `99.5381%` of the current `8.547452` sec residual.
 `part1to5` is now the largest exclusive envelope at `2.137278` sec. Re-run its
 existing child timers before selecting any new implementation.
+
+Step 64 will reuse those default-off child timers through a one-command helper.
+No source optimization is included in this diagnostic.

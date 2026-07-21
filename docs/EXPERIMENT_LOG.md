@@ -1030,3 +1030,11 @@ The current residual is again essentially closed. `part1to5` is the largest
 exclusive envelope, so the next diagnostic should re-run its existing GETYLM,
 VPJ integral, MPI, and post-reduction child timers on accepted Step 62 source
 before selecting an optimization.
+
+## Step 64 Plan
+
+Run `tools/run_tddft_step64.sh` once. It reuses the existing compile-time
+default-off `part1to5` child timers and changes no equations, OpenACC ownership,
+or diagnostic-off behavior. Require normal check and relaxed compare, and
+classify GETYLM, VPJ integral, MPI all-reduce, post-reduction work, and the
+remaining parent gap before selecting one bounded optimization.

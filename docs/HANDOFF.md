@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 62 accepted after three PASS/PASS runs
+- Current HEAD status: Step 63 classified; Step 64 current-part1to5 diagnostic pending
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 62 median `68.5734798908` sec
@@ -372,6 +372,11 @@ VRHO mix `1.801928` sec, EXTAU preparation `1.468457` sec, and energy diagnostic
 `0.933094` sec. The next bounded task is measurement-only: re-run the existing
 `part1to5` child timers on accepted Step 62 source before choosing an
 optimization.
+
+Use `tools/run_tddft_step64.sh` once for that measurement. It is a thin wrapper
+over the already validated default-off diagnostic and prints the parent plus
+GETYLM, VPJ integral, MPI all-reduce, and post-reduction rows. Do not implement
+an optimization before this result is classified.
 
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.

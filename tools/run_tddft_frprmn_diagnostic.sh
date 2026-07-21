@@ -59,7 +59,7 @@ python3 "$SCRIPT_DIR/check_tddft_result.py" compare \
   "$ARCHIVE_DIR/tddft.out" --test-err "$ARCHIVE_DIR/tddft.err" >/dev/null
 
 echo
-echo "FPSEID21 FRPRMN DIAGNOSTIC SUMMARY"
+echo "${SUMMARY_TITLE:-FPSEID21 FRPRMN DIAGNOSTIC SUMMARY}"
 echo "revision=$(git rev-parse HEAD)"
 echo "label=$LABEL"
 echo "check=PASS compare=PASS"

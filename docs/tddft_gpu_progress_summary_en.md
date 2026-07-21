@@ -1910,3 +1910,7 @@ broad exclusive timers covered `99.5381%`. `part1to5` was largest at
 `2.137278` sec (`25.0049%`), followed by VRHO mix at `1.801928` sec and EXTAU
 preparation at `1.468457` sec. The next diagnostic will re-run existing
 `part1to5` child timers on current source.
+
+Step 64 is measurement only. Its one-command wrapper reuses the existing child
+timers and will classify GETYLM, VPJ integral, MPI all-reduce, post-reduction,
+and the remaining parent gap before any implementation is selected.

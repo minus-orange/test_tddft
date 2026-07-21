@@ -111,6 +111,8 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     EXTAU `1.468457 sec`、energy diagnostic `0.933094 sec`。
 25. 次は追加最適化ではなく、既存timerで現行`part1to5`をGETYLM、VPJ integral、MPI、
     post-reductionへ再分解してから、単一仮説を選ぶ。
+26. A100では`./tools/run_tddft_step64.sh`を1回だけ実行する。diagnostic wallはbaselineに
+    使用せず、通常checkとrelaxed compareを必須とする。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

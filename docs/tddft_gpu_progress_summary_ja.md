@@ -1740,3 +1740,6 @@ run 02/03も両checkにPASSし、wallは`68.4877460003`秒と`68.5734798908`秒�
 Step 63は両checkにPASSし、FRPRMN残差`8.547452`秒の`99.5381%`を再分類しました。
 最大は`part1to5=2.137278`秒（`25.0049%`）、次いでVRHO mix `1.801928`秒、
 EXTAU準備`1.468457`秒です。次は既存timerで現行`part1to5`の子区間を再計測します。
+
+Step 64は測定専用で、既存timerを使ってGETYLM、VPJ integral、MPI all-reduce、
+post-reduction、親との差を分類してから実装を選びます。
