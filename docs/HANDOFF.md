@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 54 host-envelope diagnostic ready for A100
+- Current HEAD status: Step 54 complete; Step 55 VRHO split diagnostic next
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 52 median `73.4374880791` sec
@@ -236,8 +236,22 @@ energy/expectation work, initial density, iteration initialization, pre/post
 TMEVL work, density initialization, and exit-data cleanup. Predictor/corrector
 control is the remaining unaccounted residual.
 
-Do not begin another offload implementation until Step 54 resolves the
-remaining host envelope. Step 47
+Step 54 archive `nvhpc_cufft_1rank_02_STEP54_FRPRMN_HOST_TIMERS_01` passed
+normal check and relaxed compare at revision `e44a602`; its `74.2483499050`
+sec wall is diagnostic only. The FRPRMN residual outside TMEVL was
+`13.094395` sec. Its components total `13.084581` sec (`99.9251%`), leaving
+only `0.009814` sec unaccounted. The leading envelopes are
+`frprmn_vrho_mix` `3.923983` sec, `frprmn_vloc_prepare` `2.940147` sec,
+`frprmn_part1to5` `2.135653` sec, `frprmn_extau_prepare` `1.452314` sec,
+and `frprmn_energy_diag` `0.902628` sec.
+
+The next bounded task is Step 55 diagnostic timing, not optimization. Split
+only `frprmn_vrho_mix` into VOFRHO, smoothing/FFT, and
+interpolation/convergence. VRHO contains host loops and a cuFFT-backed
+transform, so its full Step 54 wall is not a pure CPU measurement.
+
+Do not begin another offload implementation until Step 55 resolves the
+largest remaining host envelope. Step 47
 proved that a correct approximately 250-line SEPPOTF special path can produce
 only a noise-level `0.0291%` median advantage; the same form must not be
 retried. Likewise, do not retry Step 45 whole-loop COEF allocation, Step 42

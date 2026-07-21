@@ -642,3 +642,32 @@ archives the result, requires normal check and relaxed compare to pass, and
 prints the complete bounded timer summary for photograph-only return. This is
 measurement code only; its wall time is not a performance baseline. Do not
 implement another optimization before classifying the Step 54 result.
+
+## Step 54 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP54_FRPRMN_HOST_TIMERS_01`
+- Tested revision: `e44a602d57e7f5155ac5c83ab44977fc28963f02`
+- Diagnostic wall: `74.2483499050` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `65.464335` sec
+- `tmevl_total`: `52.369940` sec
+- FRPRMN residual outside TMEVL: `13.094395` sec
+
+The non-TMEVL component timers sum to `13.084581` sec. Only `0.009814` sec
+is unaccounted, so the decomposition covers `99.9251%` of the FRPRMN residual.
+Predictor/corrector control outside the measured blocks is negligible here.
+
+The largest measured blocks are `frprmn_vrho_mix` at `3.923983` sec
+(`29.9669%` of the residual), `frprmn_vloc_prepare` at `2.940147` sec
+(`22.4535%`), `frprmn_part1to5` at `2.135653` sec (`16.3097%`),
+`frprmn_extau_prepare` at `1.452314` sec (`11.0911%`), and
+`frprmn_energy_diag` at `0.902628` sec (`6.8932%`). Every other individual
+row is below `0.562` sec. Iteration initialization, pre/post-TMEVL work,
+density initialization, and exit cleanup are negligible.
+
+The VRHO and Vloc rows are mixed host/GPU-runtime envelopes because they
+contain host array loops and cuFFT-backed potential transforms; their complete
+wall must not be classified as pure CPU time. Step 55 should remain diagnostic
+only and split the largest `frprmn_vrho_mix` row into VOFRHO,
+smoothing/FFT, and interpolation/convergence subregions. Do not change data
+ownership or equations before that classification.

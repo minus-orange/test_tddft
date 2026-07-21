@@ -66,14 +66,16 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 3. FRPRMN残差`13.608745 sec`からVPJ kernelを除いた`11.815452 sec`に、CPU/host処理と
    未分解waitが残る。
 4. MPIはStep 48全run上限`0.260338098 sec`、Step 51 scoped値`0.037303 sec`で主因ではない。
-5. Step 54 default-OFF timer診断は実装済みで、既存timer外の
-   predictor/corrector制御、energy/reduction、density、updateを分解する。
-6. A100では`./tools/run_tddft_step54.sh`だけを実行する。
-7. Step 54結果が返るまで追加最適化を実装しない。
+5. Step 54 default-OFF timer診断は完了し、FRPRMN残差`13.094395 sec`のうち
+   `13.084581 sec`、`99.9251%`を分解できた。
+6. 最大区間は`frprmn_vrho_mix=3.923983 sec`、次点は
+   `frprmn_vloc_prepare=2.940147 sec`。
+7. 次の1テーマはStep 55診断とし、`frprmn_vrho_mix`だけをVOFRHO、
+   smoothing/FFT、interpolation/convergenceへ分ける。
+8. Step 55結果が返るまで追加最適化を実装しない。
 
-Step 53 helperは完了済みの履歴として保持する。Step 54は長い個別コマンドへ展開せず、
-TDDFTのみのbuild、run、check、compare、要約をまとめた
-`tools/run_tddft_step54.sh`を使用する。
+Step 53/54 helperは完了済みの履歴として保持する。Step 55も長い個別コマンドへ展開せず、
+TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使用する。
 
 A100は閉じた環境なので人間が操作します。CodexはA100を直接実行せず、`mk_ifort.sh`
 を使う簡潔でコピー可能なbuild/profile/archive/check/compareコマンドを提示します。
