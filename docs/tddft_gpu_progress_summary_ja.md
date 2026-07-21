@@ -1748,3 +1748,6 @@ Step 64は両checkにPASSしました。`part1to5=2.140208`秒の`97.8140%`を�
 legacy名VPJ integral区間が`1.910793`秒、MPIは`0.039413`秒でした。OpenACC時の
 legacy区間はhost zeroing、VPP2 setup、GPU integral、D2H同期を含むため、Step 65で
 追加最適化なしに分解します。
+
+Step 65はhost VPJWORK/VPJ zeroing、VPP2 zeroing、OpenACC kernel＋必須D2Hの
+default-off timerだけを追加し、演算とownershipは変更しません。

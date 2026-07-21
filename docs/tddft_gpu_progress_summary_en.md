@@ -1920,3 +1920,7 @@ the legacy-named VPJ integral scope dominated at `1.910793` sec, while MPI was
 only `0.039413` sec. On OpenACC that legacy scope includes host zeroing, VPP2
 setup, GPU integral, and D2H synchronization, which Step 65 will split without
 an optimization.
+
+Step 65 adds only default-off timers around host VPJWORK/VPJ zeroing, VPP2
+zeroing, and the OpenACC kernel plus required D2H update. No computation or
+ownership change is included.

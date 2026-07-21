@@ -1059,3 +1059,11 @@ zeroing, VPP2 initialization, the GPU integral kernel, and the required D2H
 update before MPI. MPI is not dominant. Step 65 should remain measurement-only
 and split that scope into host zeroing, VPP2 initialization, and GPU
 kernel-plus-D2H synchronization before any optimization is selected.
+
+## Step 65 Plan
+
+Add compile-time default-off timers only. Partition the legacy VPJ integral
+scope into host VPJWORK/VPJ zeroing, VPP2 zeroing, and the OpenACC integral
+kernel plus required D2H update. Preserve every loop, equation, MPI boundary,
+and diagnostic-off path. Run `tools/run_tddft_step65.sh` once and require both
+correctness checks. Diagnostic wall is not a baseline.

@@ -386,6 +386,11 @@ post-reduction `0.088664` sec. The `1.910793` sec scope includes host zeroing,
 VPP2 setup, GPU integral, and D2H synchronization. Split those components with
 measurement-only Step 65 before selecting an optimization.
 
+Step 65 adds only compile-time default-off timers for host VPJWORK/VPJ zeroing,
+VPP2 zeroing, and OpenACC integral-kernel-plus-D2H time. Use
+`tools/run_tddft_step65.sh` once, require both checks, and do not use its wall
+as a performance baseline.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

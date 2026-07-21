@@ -430,3 +430,6 @@ Step 64 found `1.910793` sec in the legacy VPJ integral scope and only
 `0.039413` sec in MPI. Step 65 will split the legacy scope into host zeroing,
 VPP2 setup, and GPU-kernel-plus-D2H synchronization before choosing a bounded
 hypothesis.
+
+Step 65 is a timer-only split of those three regions. The diagnostic-off path
+and all computation remain unchanged.

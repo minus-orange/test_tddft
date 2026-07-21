@@ -118,6 +118,8 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     `0.088664 sec`で、子coverageは`97.8140%`。
 28. OpenACC時のlegacy timerはhost zeroing、VPP2 setup、GPU integral、必須D2Hを含む。
     次は追加最適化ではなく、この内訳を分けるStep 65診断。
+29. Step 65はdefault-off timerだけを追加し、`./tools/run_tddft_step65.sh`を1回実行する。
+    loop、数式、MPI、ownership、diagnostic-off経路は変更しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

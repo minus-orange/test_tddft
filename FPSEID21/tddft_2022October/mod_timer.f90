@@ -288,5 +288,11 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'frprmn_vrho_converge'
   case (72)
     name = 'frprmn_vrho_coef_restore'
+  case (73)
+    name = 'vpjgen_host_zero'
+  case (74)
+    name = 'vpjgen_vpp2_zero'
+  case (75)
+    name = 'vpjgen_acc_kernel_d2h'
   end select
 end subroutine fpseid_mod_timer_name

@@ -391,3 +391,5 @@ Step 64は既存のdefault-off子timerを1コマンドhelperから再利用す�
 
 Step 64ではlegacy VPJ integral区間が`1.910793`秒、MPIは`0.039413`秒でした。Step 65で
 legacy区間をhost zeroing、VPP2 setup、GPU kernel＋D2H同期へ分けてから仮説を選びます。
+
+Step 65はこの3区間を分けるtimer専用診断で、diagnostic-off経路と演算は変更しません。

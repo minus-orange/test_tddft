@@ -91,6 +91,9 @@ c
       if (IPROF.eq.1) call prof_start(50)
 #endif
       L=LI-1
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      if (IPROF.eq.1) call prof_start(73)
+#endif
 cc ** clean up VPJWORK for parallel mesh integration
       DO IG=1,NGNL(ity)
        VPJWORK(IG,1)=0
@@ -102,8 +105,12 @@ c *** clean up VPJ for mesh integration
        do ig=1,NGNL(ity)
         VPJ(ig,1,li,ity)=0.d0
         VPJ(ig,2,li,ity)=0.d0
-        VPJ(ig,3,li,ity)=0.d0
+       VPJ(ig,3,li,ity)=0.d0
        enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      if (IPROF.eq.1) call prof_stop(73)
+      if (IPROF.eq.1) call prof_start(74)
+#endif
 c
        do j=1,3
         if ( LI.eq.1 ) then
@@ -126,15 +133,24 @@ c
         VPP2(LI+10,J,ity)=0.D0
         VPP2(LI+11,J,ity)=0.D0
         VPP2(LI+12,J,ity)=0.D0
-        endif
+       endif
        enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      if (IPROF.eq.1) call prof_stop(74)
+#endif
 c
 #ifdef _OPENACC
       if (IACC.eq.1) then
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      if (IPROF.eq.1) call prof_start(75)
+#endif
        call VPJ_GEN_ACC_INTEGRAL(G2,VPJWORK,TPIBA,FPI,ITY,LI,
      &  RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NTYQ,NGNL(ITY),NGcont,
      &  mshbegin(my_rank),mshend(my_rank))
 !$acc update self(VPJWORK(1:NGcont,1:3))
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      if (IPROF.eq.1) call prof_stop(75)
+#endif
       else
 #endif
 C*****LOOP OVER MESH

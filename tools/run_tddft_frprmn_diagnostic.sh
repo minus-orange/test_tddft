@@ -67,6 +67,6 @@ grep 'steps took' "$ARCHIVE_DIR/tddft.out" | tail -n 1
 awk '
   /FPSEID_PROFILE_BEGIN/ { active=1; next }
   /FPSEID_PROFILE_END/ { active=0 }
-  active && ($0 ~ /time_step_total|frprmn[[:space:]]|tmevl_total|frprmn_rhoofk|frprmn_rhoget|frprmn_coef_sync|frprmn_coef_setup|frprmn_gdump_prepare|frprmn_part1to5|frprmn_extau_prepare|part1to5_getylm|vpjgen_cpu_integral|vpjgen_mpi_allreduce|vpjgen_postreduce/) { print }
+  active && ($0 ~ /time_step_total|frprmn[[:space:]]|tmevl_total|frprmn_rhoofk|frprmn_rhoget|frprmn_coef_sync|frprmn_coef_setup|frprmn_gdump_prepare|frprmn_part1to5|frprmn_extau_prepare|part1to5_getylm|vpjgen_cpu_integral|vpjgen_mpi_allreduce|vpjgen_postreduce|vpjgen_host_zero|vpjgen_vpp2_zero|vpjgen_acc_kernel_d2h/) { print }
 ' "$ARCHIVE_DIR/tddft.out"
 echo "Diagnostic wall only; do not use it as a performance baseline."
