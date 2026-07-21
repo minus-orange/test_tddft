@@ -113,6 +113,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     post-reductionへ再分解してから、単一仮説を選ぶ。
 26. A100では`./tools/run_tddft_step64.sh`を1回だけ実行する。diagnostic wallはbaselineに
     使用せず、通常checkとrelaxed compareを必須とする。
+27. Step 64はcheck/compare PASS。`part1to5=2.140208 sec`のうち、GETYLM `0.054554`、
+    legacy名`vpjgen_cpu_integral` `1.910793`、MPI `0.039413`、post-reduction
+    `0.088664 sec`で、子coverageは`97.8140%`。
+28. OpenACC時のlegacy timerはhost zeroing、VPP2 setup、GPU integral、必須D2Hを含む。
+    次は追加最適化ではなく、この内訳を分けるStep 65診断。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

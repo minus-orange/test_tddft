@@ -378,6 +378,14 @@ over the already validated default-off diagnostic and prints the parent plus
 GETYLM, VPJ integral, MPI all-reduce, and post-reduction rows. Do not implement
 an optimization before this result is classified.
 
+Step 64 archive `nvhpc_cufft_1rank_02_STEP64_CURRENT_PART1TO5_01` passed both
+checks at revision `f69aeac`; its `68.8858208656` sec wall is diagnostic only.
+The `2.140208` sec parent was `97.8140%` covered: GETYLM `0.054554` sec, the
+legacy-named VPJ integral scope `1.910793` sec, MPI `0.039413` sec, and
+post-reduction `0.088664` sec. The `1.910793` sec scope includes host zeroing,
+VPP2 setup, GPU integral, and D2H synchronization. Split those components with
+measurement-only Step 65 before selecting an optimization.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

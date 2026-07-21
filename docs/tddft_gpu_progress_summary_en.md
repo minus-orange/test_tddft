@@ -1914,3 +1914,9 @@ preparation at `1.468457` sec. The next diagnostic will re-run existing
 Step 64 is measurement only. Its one-command wrapper reuses the existing child
 timers and will classify GETYLM, VPJ integral, MPI all-reduce, post-reduction,
 and the remaining parent gap before any implementation is selected.
+
+Step 64 passed both checks. The `2.140208` sec parent was `97.8140%` covered;
+the legacy-named VPJ integral scope dominated at `1.910793` sec, while MPI was
+only `0.039413` sec. On OpenACC that legacy scope includes host zeroing, VPP2
+setup, GPU integral, and D2H synchronization, which Step 65 will split without
+an optimization.

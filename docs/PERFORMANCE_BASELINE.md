@@ -96,6 +96,11 @@ Step 63 re-measured the broad FRPRMN envelopes on accepted Step 62 source. Its
 official median. The measured FRPRMN residual was `8.547452` sec, with
 `99.5381%` coverage by the broad exclusive timers.
 
+Step 64 measured the current `part1to5` parent at `2.140208` sec. Its
+`68.8858208656` sec diagnostic wall passed both checks and is not a baseline.
+MPI used only `0.039413` sec; the legacy-named VPJ integral scope dominated at
+`1.910793` sec but still includes host preparation and GPU/D2H work.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

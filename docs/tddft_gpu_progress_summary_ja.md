@@ -1743,3 +1743,8 @@ EXTAU準備`1.468457`秒です。次は既存timerで現行`part1to5`の子区�
 
 Step 64は測定専用で、既存timerを使ってGETYLM、VPJ integral、MPI all-reduce、
 post-reduction、親との差を分類してから実装を選びます。
+
+Step 64は両checkにPASSしました。`part1to5=2.140208`秒の`97.8140%`を説明し、
+legacy名VPJ integral区間が`1.910793`秒、MPIは`0.039413`秒でした。OpenACC時の
+legacy区間はhost zeroing、VPP2 setup、GPU integral、D2H同期を含むため、Step 65で
+追加最適化なしに分解します。

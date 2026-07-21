@@ -1038,3 +1038,24 @@ default-off `part1to5` child timers and changes no equations, OpenACC ownership,
 or diagnostic-off behavior. Require normal check and relaxed compare, and
 classify GETYLM, VPJ integral, MPI all-reduce, post-reduction work, and the
 remaining parent gap before selecting one bounded optimization.
+
+## Step 64 Detail
+
+- Archive: `nvhpc_cufft_1rank_02_STEP64_CURRENT_PART1TO5_01`
+- Tested revision: `f69aeac4d71759d1ce0d823d344706e3b75a21c3`
+- Diagnostic wall: `68.8858208656` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- FRPRMN residual outside TMEVL: `8.449381` sec
+- `frprmn_part1to5`: `2.140208` sec
+- `part1to5_getylm`: `0.054554` sec (`2.5490%` of parent)
+- Legacy-named `vpjgen_cpu_integral`: `1.910793` sec (`89.2807%`)
+- `vpjgen_mpi_allreduce`: `0.039413` sec (`1.8415%`)
+- `vpjgen_postreduce`: `0.088664` sec (`4.1428%`)
+- Derived parent gap: `0.046784` sec (`2.1860%`)
+- Child coverage: `97.8140%`
+
+The legacy timer name is stale on OpenACC: its scope contains host VPJWORK/VPJ
+zeroing, VPP2 initialization, the GPU integral kernel, and the required D2H
+update before MPI. MPI is not dominant. Step 65 should remain measurement-only
+and split that scope into host zeroing, VPP2 initialization, and GPU
+kernel-plus-D2H synchronization before any optimization is selected.

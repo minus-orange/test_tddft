@@ -388,3 +388,6 @@ Step 63で現行残差`8.547452`秒の`99.5381%`を分類し、最大排他区�
 
 Step 64は既存のdefault-off子timerを1コマンドhelperから再利用する測定専用診断です。
 ソース最適化は含みません。
+
+Step 64ではlegacy VPJ integral区間が`1.910793`秒、MPIは`0.039413`秒でした。Step 65で
+legacy区間をhost zeroing、VPP2 setup、GPU kernel＋D2H同期へ分けてから仮説を選びます。
