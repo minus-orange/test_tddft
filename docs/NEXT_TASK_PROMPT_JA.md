@@ -193,6 +193,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     Step 67比`0.2935330163 sec`（`0.429383%`）高速なので正式採用した。
 63. 次は追加実装ではなく、正式Step 74 sourceの広域FRPRMN timerをStep 75で再実行し、
     現行残差と未分類量を更新する。`./tools/run_tddft_step75.sh`を1回だけ実行する。
+64. Step 75はPASS/PASS。FRPRMN残差`8.203100 sec`のうち`8.163520 sec`
+    （`99.5175%`）を分類し、未分類は`0.039580 sec`。上位はPart1to5`1.939650 sec`、
+    VRHO`1.799974 sec`、EXTAU`1.438920 sec`。
+65. Part1to5とEXTAUには既知の不採用形がある。Step 60/61はStep 62前なので、
+    次は現在sourceで既存VRHO子timerを再実行してから仮説を選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

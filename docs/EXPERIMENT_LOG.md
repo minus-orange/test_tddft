@@ -1386,3 +1386,22 @@ classified children, and unclassified gap. This updates the target selection
 after YLM reuse without changing equations, MPI, OpenACC ownership, or the
 diagnostic-off path. Run `tools/run_tddft_step75.sh` once. Its wall is
 diagnostic and cannot replace the Step 74 baseline.
+
+## Step 75 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP75_STEP74_FRPRMN_01`
+- Tested revision: `30c8623cdd89fd2661f758432265db5ce6fbd809`
+- Diagnostic wall: `68.4886379242` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- FRPRMN residual outside TMEVL: `8.203100` sec
+- Classified children: `8.163520` sec (`99.5175%`)
+- Unclassified gap: `0.039580` sec
+- `frprmn_part1to5`: `1.939650` sec
+- `frprmn_vrho_mix`: `1.799974` sec
+- `frprmn_extau_prepare`: `1.438920` sec
+- `frprmn_energy_diag`: `0.842511` sec
+
+Part1to5 is already GPU-kernel dominated and the tested VPJ vector-length-64
+alternative was rejected. The grouped EXTAU form was also rejected. Re-split
+current VRHO next: the old Step 60/61 children include the host COEF restore
+removed by Step 62 and cannot be attributed to current source unchanged.

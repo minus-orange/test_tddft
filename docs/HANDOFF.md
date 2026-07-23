@@ -521,6 +521,13 @@ Step 75 performs no optimization. It re-runs the broad FRPRMN timers on the
 accepted Step 74 source and reports both residual and unclassified time in one
 summary. Use `tools/run_tddft_step75.sh` once; its wall is diagnostic.
 
+Step 75 passed both checks at revision `30c8623`. The current FRPRMN residual
+was `8.203100` sec with only `0.039580` sec unclassified. The largest children
+were Part1to5 `1.939650` sec, VRHO `1.799974` sec, and EXTAU preparation
+`1.438920` sec. Part1to5 and EXTAU have rejected alternatives already. Re-run
+the existing VRHO child timers on current accepted source before selecting
+another implementation; Step 60/61 predate the Step 62 restore removal.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
