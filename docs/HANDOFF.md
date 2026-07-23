@@ -21,6 +21,8 @@ Last updated: 2026-07-23
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 74 median `68.0681188811` sec
+- PowerPoint-ready GPU implementation summary:
+  `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
