@@ -1405,3 +1405,12 @@ Part1to5 is already GPU-kernel dominated and the tested VPJ vector-length-64
 alternative was rejected. The grouped EXTAU form was also rejected. Re-split
 current VRHO next: the old Step 60/61 children include the host COEF restore
 removed by Step 62 and cannot be attributed to current source unchanged.
+
+## Step 76 Plan
+
+Re-run the existing VRHO child timers on the accepted Step 74 source. This is a
+diagnostic-only build and changes no equations, loop order, MPI, or OpenACC
+ownership. The summary reports the parent, VOFRHO, smoothing/FFT, control,
+seed, predictor, corrector, interpolation, convergence, coefficient restore,
+and their three nesting gaps. Run `tools/run_tddft_step76.sh` once. Its wall is
+diagnostic and cannot replace the Step 74 baseline.

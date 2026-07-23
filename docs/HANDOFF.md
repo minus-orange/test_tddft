@@ -528,6 +528,11 @@ were Part1to5 `1.939650` sec, VRHO `1.799974` sec, and EXTAU preparation
 the existing VRHO child timers on current accepted source before selecting
 another implementation; Step 60/61 predate the Step 62 restore removal.
 
+Step 76 performs that diagnostic-only current-source VRHO split. It reports
+the existing timer rows 54, 62-64, and 67-72 plus parent, control, and
+corrector nesting gaps. Use `tools/run_tddft_step76.sh` once; its wall is not a
+performance baseline.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
