@@ -1107,6 +1107,9 @@ c *** temp check : end
       do ib=nbegin(my_rank),nend(my_rank)
       iib=ib-nbegin(my_rank)+1
       call zero(dcoef,ng2q )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(81)
+#endif
       CALL HLOCAL( NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q, mxbnd,
 c     & COEF(1,ib,ik),DCOEF(1,1),
      & COEF(1,iib,ik),DCOEF(1,1),
@@ -1117,6 +1120,10 @@ c *** for Kokubo ASL FFT
 c     & RHO1, RHO2, VG, J2G(1,ik), WSAVE_XYZ,   IFAC_XYZ  )
 c *** for Kokubo FFTW
      & RHO1, RHO2, VG, J2G(1,ik), plancfp,plancbp  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(81)
+      call prof_start(82)
+#endif
 C
       CALL NONLOC( NXYZ, NG2(IK), NG2Q, mxbnd,
 c     & COEF(1,ib,ik), DCOEF(1,1),
@@ -1126,12 +1133,19 @@ c     & YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &             VPP, OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU, NUMTY,
      &             NIDN, IOVP(1,1,ik), MXOFL,GDUMP(1,IK),NGNL(1,IK)
      &     ,NGcont )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(82)
+      call prof_start(83)
+#endif
        temp=0
         do ig=1,ng2(ik)
 c        temp=temp + dble( dconjg( coef(ig,ib,ik) )*dcoef(ig,1) )
         temp=temp + dble( dconjg( coef(ig,iib,ik) )*dcoef(ig,1) )
         enddo
        EE(ib,ik)=temp
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(83)
+#endif
        enddo  ! end of ib loop
 c *** temp check
       if ( my_rank.eq.0 ) then
@@ -1149,6 +1163,9 @@ c *** temp check : end
 !     call MPI_Barrier(MPI_COMM_WORLD,ierr)
 !     call ftrace_region_begin("sendrecv01")
 ! ==============================================================================
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(84)
+#endif
       if ( my_rank.ne.0 ) then
       nbleng=nend(my_rank)-nbegin(my_rank)+1
       nbgn=nbegin(my_rank)
@@ -1193,6 +1210,9 @@ cc       stop
 c       endif
 c **** temp check
       endif   ! if my_rank.ne.0 loop end!
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(84)
+#endif
 ! ==============================================================================
 !     call MPI_Barrier(MPI_COMM_WORLD,ierr)
 !     call ftrace_region_end("sendrecv01")
@@ -1220,6 +1240,9 @@ c
 c       if ( itstep.eq.ntstep .and. ib.lt.nbseq(ik) ) then
 cc 9799 continue
        if ( itstep.eq.ntstep .and. IOK.eq.1 ) then
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(85)
+#endif
 c *** temp check
         if ( my_rank.eq.0 ) then
          write(6,*)' call HLOCAL and NONLOC for Off-diagonal'
@@ -1430,6 +1453,9 @@ c ** Gather end
            enddo    ! end of ib2 loop
        endif ! end of if my_rank.eq.0
 c **************
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(85)
+#endif
        endif  ! end of if  itstep.eq.ntstep .and... loop
       enddo   ! end of ik loop
  1212 format( '<',i4,'| H |',i4,'>=',2F24.16,' HR ')

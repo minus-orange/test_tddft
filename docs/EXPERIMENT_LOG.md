@@ -1259,3 +1259,29 @@ the parent timer. Equations, loops, OpenACC ownership, MPI, and the
 diagnostic-off instruction path are unchanged. Run `tools/run_tddft_step71.sh`
 once, require both correctness checks, and classify the three children plus
 the parent gap before selecting an implementation. Its wall is diagnostic.
+
+## Step 71 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP71_ENERGY_SPLIT_01`
+- Tested revision: `b379f698eeaa3807a5b6629f31cfb5c940980e18`
+- Diagnostic wall: `68.9183897972` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn_energy_diag`: `0.871809` sec
+- VG assembly: `0.054056` sec
+- Conditional E-field: `0.004286` sec
+- Expectation plus off-diagonal: `0.809350` sec
+- Parent gap: `0.004117` sec
+
+Expectation plus off-diagonal work accounts for `92.84%` of the measured
+energy envelope. VG assembly and E-field are too small to justify an
+implementation experiment. Split the `0.809350` sec expectation envelope
+before selecting another optimization.
+
+## Step 72 Plan
+
+Add default-off timers only around diagonal HLOCAL, diagonal NONLOC, diagonal
+dot products, EE communication, and the complete off-diagonal conditional
+path. Preserve equations, loops, OpenACC ownership, MPI, and the
+diagnostic-off instruction path. Run `tools/run_tddft_step72.sh` once and use
+the five children plus parent gap to select the next single implementation
+hypothesis. Its wall is diagnostic.

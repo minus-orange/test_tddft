@@ -479,6 +479,14 @@ initial/final expectation plus off-diagonal work. Use
 100-step case, requires both checks, and prints the parent, children, and gap
 in one photograph-sized summary. Do not use its wall as a baseline.
 
+Step 71 passed both checks at revision `b379f69`. Of the `0.871809` sec
+`frprmn_energy_diag` envelope, expectation plus off-diagonal work consumed
+`0.809350` sec (`92.84%`), VG assembly `0.054056` sec, E-field `0.004286` sec,
+and the gap `0.004117` sec. Do not optimize the two small children. Step 72
+adds default-off timers only to split the dominant expectation envelope into
+diagonal HLOCAL, diagonal NONLOC, dot products, EE communication, and the
+complete off-diagonal path. Run `tools/run_tddft_step72.sh` once.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

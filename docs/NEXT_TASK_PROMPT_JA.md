@@ -172,6 +172,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     expectation/off-diagonalへ分解してから単一仮説を選ぶ。
 54. Step 71はdefault-off timerだけを追加する。演算、loop、ownership、MPI、通常buildを
     変更せず、`./tools/run_tddft_step71.sh`を1回だけ実行する。
+55. Step 71はPASS/PASS。`frprmn_energy_diag=0.871809 sec`のうちexpectation/off-diagonalが
+    `0.809350 sec`（`92.84%`）。VG組立`0.054056 sec`とE-field`0.004286 sec`は最適化しない。
+56. Step 72はこの`0.809350 sec`を対角HLOCAL、対角NONLOC、内積、EE通信、
+    off-diagonal全体へdefault-off timerだけで分解する。`./tools/run_tddft_step72.sh`を1回実行する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

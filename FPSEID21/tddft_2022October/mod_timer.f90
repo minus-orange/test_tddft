@@ -304,5 +304,15 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'frprmn_energy_efield'
   case (80)
     name = 'frprmn_energy_expect'
+  case (81)
+    name = 'energy_diag_hlocal'
+  case (82)
+    name = 'energy_diag_nonloc'
+  case (83)
+    name = 'energy_diag_dot'
+  case (84)
+    name = 'energy_diag_ee_comm'
+  case (85)
+    name = 'energy_offdiag_total'
   end select
 end subroutine fpseid_mod_timer_name
