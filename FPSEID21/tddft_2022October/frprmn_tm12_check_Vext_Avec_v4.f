@@ -1104,6 +1104,7 @@ c *** temp check
          write(6,*)' Now calling HLOCAL and NONLOC'
        endif
 c *** temp check : end
+      iylm_reuse=0
       do ib=nbegin(my_rank),nend(my_rank)
       iib=ib-nbegin(my_rank)+1
       call zero(dcoef,ng2q )
@@ -1132,7 +1133,8 @@ c     & YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      & YLM, GG2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &             VPP, OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU, NUMTY,
      &             NIDN, IOVP(1,1,ik), MXOFL,GDUMP(1,IK),NGNL(1,IK)
-     &     ,NGcont )
+     &     ,NGcont,iylm_reuse )
+      iylm_reuse=1
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(82)
       call prof_start(83)
@@ -1281,7 +1283,7 @@ c     &   YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &   YLM, GG2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &             VPP, OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU, NUMTY,
      &             NIDN, IOVP(1,1,ik), MXOFL,GDUMP(1,IK),NGNL(1,IK)
-     &  ,NGcont )
+     &  ,NGcont,iylm_reuse )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(87)
       call prof_start(88)
@@ -1396,7 +1398,7 @@ c     &   YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &   YLM,GG2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &             VPP, OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU, NUMTY,
      &             NIDN, IOVP(1,1,ik), MXOFL,GDUMP(1,IK),NGNL(1,IK)
-     &   ,NGcont )
+     &   ,NGcont,iylm_reuse )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(87)
       call prof_start(88)

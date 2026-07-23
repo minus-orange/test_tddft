@@ -741,6 +741,7 @@ c
         tag=11
 ccc ***        if ( my_rank.ne.0 ) then
 c         do ib=1,nbseq
+         iylm_reuse=0
          do ib=nbegin(my_rank),nend(my_rank)
           iib=ib-nbegin(my_rank)+1
           CALL HLOCAL( NRX, NRY, NRZ, NXYZ, NG2, NG2Q, NJ,
@@ -756,7 +757,8 @@ C
 c     &     P(1,ib), HP(1,1), YLM, G2, RHO2, RHO3, TPIBA, WORK2, VPJ,
      &    P(1,iib), HP(1,1), YLM, GG2, RHO2, RHO3, TPIBA, WORK2, VPJ,
      &             VPP, OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU, NUMTY,
-     &             NIDN, IOVP, MXOFL,GDUMP,NGNL,NGcont )
+     &             NIDN, IOVP, MXOFL,GDUMP,NGNL,NGcont,iylm_reuse )
+          iylm_reuse=1
           temp=0
           do ig=1,ng2
 c           temp=temp + dble( dconjg( P(ig,ib) )*HP(ig,1)  ) 
@@ -2570,7 +2572,8 @@ C*****************************************************************
       SUBROUTINE NONLOC( NXYZ, NG2, NG2Q, NBND,
      &                   COEF, DCOEF, YLM, G2, RHO2, RHOA, TPIBA,
      &                   WORK2, VPJ, VPP, OMEGA, NTAUQ, NTYQ,
-     &     NTYPE, LREQ, TAU, NUMTY, NIDN, IOVP, MXOFL,GDUMP,NGNL,NGcont)
+     &     NTYPE, LREQ, TAU, NUMTY, NIDN, IOVP, MXOFL,GDUMP,NGNL,
+     &     NGcont,IYLM_REUSE)
 C
 C                                   (1990-04-12) OSAMU SUGINO
 C        INPUT  COEF
@@ -2612,10 +2615,12 @@ c      write(6,*) ( G2(4,ig),ig=1,1500,100 )
 c      stop ' check end '
 c      endif
 c **  temp check : end 
-         DO 588 IG=1,NG2
-  588    RHOA(IG)=SQRT(G2(4,IG))*TPIBA
-         NG26=NGcont
-         CALL GETYLM(NG2Q,NG26,G2,RHOA,YLM,TPIBA,NGcont)
+         IF (IYLM_REUSE.EQ.0) THEN
+          DO 588 IG=1,NG2
+  588     RHOA(IG)=SQRT(G2(4,IG))*TPIBA
+          NG26=NGcont
+          CALL GETYLM(NG2Q,NG26,G2,RHOA,YLM,TPIBA,NGcont)
+         ENDIF
 c  ************************************
          CALL SEPPOT( NG2Q, NG2, NBND, G2,
      &   VPJ, VPP, YLM, RHO2, WORK2(1,1), WORK2(1,2),WORK2(1,3),

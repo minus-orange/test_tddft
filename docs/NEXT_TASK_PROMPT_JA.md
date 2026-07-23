@@ -186,6 +186,9 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     集約/output`0.002409 sec`。通信とoutputは最適化しない。
 60. 対角とoff-diagonalを合わせたNONLOCは約`0.399673 sec`。次は係数に依存しない
     YLM準備を各bandから各k-point 1回へまとめる単一仮説を検証する。
+61. Step 74はNONLOCへ明示的reuse flagを追加し、各k-point/eventの最初のbandだけYLMを
+    再構築する。係数依存のkinetic DCOEFとSEPPOTは毎回維持する。まず
+    `./tools/run_tddft_step74.sh 01`、健全なら`./tools/run_tddft_step74.sh 02-03`を実行する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

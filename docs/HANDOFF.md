@@ -504,6 +504,13 @@ communication or output. Diagonal plus off-diagonal NONLOC is about
 The next bounded implementation should prepare YLM once per k-point while
 preserving all coefficient-dependent NONLOC work.
 
+Step 74 implements only that reuse hypothesis. NONLOC accepts an explicit
+reuse flag; the first band at each k-point/event computes YLM and later bands
+reuse it. All coefficient-dependent kinetic and SEPPOT work remains
+unchanged. Use `tools/run_tddft_step74.sh 01` first, then `02-03` only after a
+healthy first run. Require both checks and compare the three-run median with
+the official Step 67 median `68.3616518974` sec.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

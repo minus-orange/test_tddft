@@ -1334,3 +1334,15 @@ and the NONLOC ceiling about `0.399673` sec. NONLOC redundantly rebuilds YLM
 for every band even though G2 is unchanged within a k-point. Test reuse of
 that band-independent preparation next; preserve the first preparation for
 each k-point and all coefficient-dependent work.
+
+## Step 74 Plan
+
+Add an explicit NONLOC reuse argument. In each TDDFT expectation loop, the
+first local band still rebuilds YLM from the current k-point G2; subsequent
+bands and off-diagonal calls reuse it. Kinetic DCOEF construction and SEPPOT
+remain executed for every coefficient. Reset reuse at every k-point and every
+TMEVL expectation event. Preserve MPI, equations, output, OpenACC ownership,
+and CPU/FFTW behavior. Run `tools/run_tddft_step74.sh 01` first. If both
+checks pass and the result is not a clear regression, collect runs 02/03 with
+`tools/run_tddft_step74.sh 02-03` and compare the median with the official
+Step 67 median `68.3616518974` sec.
