@@ -125,6 +125,11 @@ Step 68 tested VPJ vector length 64. Run 01 passed both checks but took
 the accepted run range. The remaining runs were skipped, the change was
 rejected, and vector length 128 was restored.
 
+Step 69 tested grouped OpenACC EXTAU preparation. Run 01 passed both checks but
+took `69.0177049637` sec, `0.959680%` slower than Step 67 and `3.2144x` the
+accepted run range. Runs 02/03 were skipped and the host EXTAU source was
+restored. Step 67 remains the official baseline.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

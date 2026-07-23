@@ -153,6 +153,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     128を維持し、ownershipなしの`work2_` GPU生成へ広げない。
 45. 初回は`./tools/run_tddft_step69.sh 01`だけを実行する。PASS/PASSで明確な回帰が
     なければ、run 02/03を`./tools/run_tddft_step69.sh 02-03`の1コマンドで取得する。
+46. Step 69 run 01はPASS/PASSだが`69.0177049637 sec`で、Step 67比
+    `0.6560530663 sec`（`0.959680%`）、正式実行幅の`3.2144x`回帰した。
+47. FRPRMN残差は`0.546599 sec`減ったが全体wallは悪化したためrun 02/03を省略し、
+    Step 69を不採用としてhost EXTAU経路へ復元した。同じ grouped-copy 形を再試行しない。
+48. 次は追加実装ではなく、復元した現行Step 67 sourceをNsight Systemsで再診断し、
+    kernel、転送、runtime/API、同期、MPI、GPU idleを更新する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

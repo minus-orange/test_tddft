@@ -1964,3 +1964,9 @@ region and groups the G21..G25 and TAU1..TAU5 input transfers. The EXTAU
 copyout for the current host consumer, MPI, equations, CPU/FFTW loops, and VPJ
 vector length 128 remain unchanged. Run only
 `tools/run_tddft_step69.sh 01` first.
+
+Run 01 passed both checks but took `69.0177049637` sec, a `0.6560530663` sec
+(`0.959680%`) regression from Step 67 and `3.2144x` its accepted run range.
+The FRPRMN residual decreased by `0.546599` sec but complete wall regressed, so
+runs 02/03 were skipped, Step 69 was rejected, and the host EXTAU path was
+restored. Re-profile the restored current source with Nsight Systems next.

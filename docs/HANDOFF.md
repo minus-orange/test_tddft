@@ -17,7 +17,7 @@ Last updated: 2026-07-21
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 69 EXTAU OpenACC run 01 pending on A100
+- Current HEAD status: Step 69 rejected; accepted host EXTAU path restored
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 67 median `68.3616518974` sec
@@ -449,6 +449,14 @@ for the unchanged host TMEVL consumer. It does not extend device ownership to
 `work2_`, alter MPI, or change the CPU/FFTW loops. Run
 `tools/run_tddft_step69.sh 01` first and stop after a clear regression;
 otherwise collect 02/03 with the combined helper command.
+
+Step 69 run 01 passed both checks at revision `d5e76b7` but took
+`69.0177049637` sec. This is `0.6560530663` sec (`0.959680%`) slower than the
+Step 67 median and `3.2144x` its run range. Although the FRPRMN residual was
+`0.546599` sec lower, the complete wall regressed, so runs 02/03 were skipped
+and the accepted host EXTAU source was restored. Step 67 remains the baseline.
+Next, re-profile the restored current source with Nsight Systems before another
+optimization.
 
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.

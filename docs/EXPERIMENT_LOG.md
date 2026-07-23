@@ -1194,3 +1194,20 @@ length 128. Run `tools/run_tddft_step69.sh 01` first. If correctness passes and
 there is no clear regression, obtain runs 02/03 with
 `tools/run_tddft_step69.sh 02-03` and compare the median with
 `68.3616518974` sec.
+
+## Step 69 Result and Rejection
+
+- Archive: `nvhpc_cufft_1rank_02_STEP69_EXTAU_ACC_01`
+- Tested revision: `d5e76b752c2fd4034f9e7fe215eb048928ebcfccb`
+- Wall: `69.0177049637` sec
+- Correctness: check PASS; relaxed compare PASS
+- Regression from Step 67 median: `0.6560530663` sec (`0.959680%`)
+- Regression / Step 67 run range: `3.2144x`
+- FRPRMN residual outside TMEVL: `7.622023` sec
+
+The residual was `0.546599` sec below the Step 67 median-wall residual, but
+TMEVL and the complete wall regressed. The whole-program regression is over
+three accepted run ranges, so runs 02/03 are intentionally skipped. Restore
+the accepted host EXTAU preparation and retain this grouped-transfer form only
+as rejected history. The next task is a current Step 67 source Nsight Systems
+trace before choosing another implementation.

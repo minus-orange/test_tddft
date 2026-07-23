@@ -1783,3 +1783,9 @@ Step 69は現行EXTAU準備`1.468457`秒だけを対象とします。OpenACC時
 1個のdata領域内でGPU生成し、G21..G25とTAU1..TAU5の入力転送をまとめます。現行host
 consumer用のEXTAU copyout、MPI、数式、CPU/FFTW loop、VPJ vector length 128は維持します。
 初回は`tools/run_tddft_step69.sh 01`だけを実行します。
+
+run 01は両checkにPASSしましたが`69.0177049637`秒で、Step 67中央値より
+`0.6560530663`秒（`0.959680%`）遅く、正式実行幅の`3.2144`倍回帰しました。
+FRPRMN残差は`0.546599`秒減りましたが全体wallは悪化したため、run 02/03は省略して
+Step 69を不採用とし、host EXTAU経路へ戻します。次は復元後の現行sourceをNsight
+Systemsで再診断します。
