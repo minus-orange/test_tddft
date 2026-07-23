@@ -176,6 +176,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     `0.809350 sec`（`92.84%`）。VG組立`0.054056 sec`とE-field`0.004286 sec`は最適化しない。
 56. Step 72はこの`0.809350 sec`を対角HLOCAL、対角NONLOC、内積、EE通信、
     off-diagonal全体へdefault-off timerだけで分解する。`./tools/run_tddft_step72.sh`を1回実行する。
+57. Step 72はPASS/PASS。expectation`0.816429 sec`の内訳は対角HLOCAL`0.239888 sec`、
+    対角NONLOC`0.299706 sec`、内積`0.012768 sec`、EE通信`0.000014 sec`、
+    off-diagonal`0.258875 sec`。内積と通信は最適化しない。
+58. Step 73はoff-diagonalをHLOCAL、NONLOC、行列内積、通信/copy、集約/outputへ
+    default-off timerだけで分ける。`./tools/run_tddft_step73.sh`を1回実行する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

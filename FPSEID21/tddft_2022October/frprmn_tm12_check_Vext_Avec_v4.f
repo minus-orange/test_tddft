@@ -1258,6 +1258,9 @@ c        enddo
         do ib2=nbegin(my_rank),nend(my_rank)
          iib2=ib2-nbegin(my_rank)+1
           call zero(dcoef,ng2q )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(86)
+#endif
           CALL HLOCAL( NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q, mxbnd,
      &    COEF(1,iib2,ik),DCOEF(1,1),
 c *** for Sugino FFT
@@ -1267,6 +1270,10 @@ c *** for Kokubo ASL FFT
 c     &   RHO1, RHO2, VG, J2G(1,ik), WSAVE_XYZ,   IFAC_XYZ  )
 c *** for Kokubo FFTW
      &   RHO1, RHO2, VG, J2G(1,ik), plancfp,plancbp  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(86)
+      call prof_start(87)
+#endif
 C
          CALL NONLOC( NXYZ, NG2(IK), NG2Q, mxbnd,
      &   COEF(1,iib2,ik), DCOEF(1,1),
@@ -1275,6 +1282,10 @@ c     &   YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &             VPP, OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU, NUMTY,
      &             NIDN, IOVP(1,1,ik), MXOFL,GDUMP(1,IK),NGNL(1,IK)
      &  ,NGcont )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(87)
+      call prof_start(88)
+#endif
 c
 c          do ib1=nbegin(my_rank),nend(my_rank)
           do ib1=ib2+1,nend(my_rank)
@@ -1289,6 +1300,9 @@ c          write(6,*)'my_rank',my_rank,'ik',ik,'<',ib1,'|H|'
 c     &      ,ib2,'>=',cmat(ib1,ib2)
 c *** temp check : end
           enddo ! end of ib1 loop
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(88)
+#endif
         enddo  ! end of ib2 loop
 c *** temp check
         if ( my_rank.eq.0 ) then
@@ -1336,6 +1350,9 @@ c *** temp check : end
 !     call ftrace_region_begin("sendrecv02")
 ! ==============================================================================
          do 2200 icpu2=0,ncpu
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(89)
+#endif
          if ( my_rank.gt.icpu2 ) then
           nbleng=nend(my_rank)-nbegin(my_rank)+1
           do ib=1,nbleng
@@ -1350,9 +1367,15 @@ c *** temp check : end
           call MPI_Recv(coef0(1,1,ik),nxyz*nbleng,
      &    MPI_DOUBLE_COMPLEX,icpu2,tag+1,MPI_COMM_WORLD,status,ierr)
          endif
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(89)
+#endif
         do ib2=nbegin(icpu2),nend(icpu2)
          iib2=ib2-nbegin(icpu2)+1
          call zero(dcoef,ng2q )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(86)
+#endif
          CALL HLOCAL( NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q, mxbnd,
      &   COEF0(1,iib2,ik),DCOEF(1,1),
 c *** for Sugino FFT
@@ -1362,6 +1385,10 @@ c *** for Kokubo ASL FFT
 c     &   RHO1, RHO2, VG, J2G(1,ik), WSAVE_XYZ, IFAC_XYZ  )
 c *** for Kokubo FFTW
      &   RHO1, RHO2, VG, J2G(1,ik), plancfp,plancbp  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(86)
+      call prof_start(87)
+#endif
 C
          CALL NONLOC( NXYZ, NG2(IK), NG2Q, mxbnd,
      &   COEF0(1,iib2,ik), DCOEF(1,1),
@@ -1370,6 +1397,10 @@ c     &   YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &             VPP, OMEGA, NTAUQ, NTYQ, NTYPE, LREQ, TAU, NUMTY,
      &             NIDN, IOVP(1,1,ik), MXOFL,GDUMP(1,IK),NGNL(1,IK)
      &   ,NGcont )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(87)
+      call prof_start(88)
+#endif
 c
 c ** temp check
 c         miya=13
@@ -1394,6 +1425,9 @@ c          write(6,*)'my_rank',my_rank,'ik',ik,'<',ib2,'|H|'
 c     &      ,ib1,'>=',cmat(ib2,ib1)
 c *** temp check : end
          enddo ! end of ib1 loop
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(88)
+#endif
        enddo ! end of ib2 loop
  2200   continue   ! end of icpu2 loop
 ! ==============================================================================
@@ -1420,6 +1454,9 @@ c *** Gather cmat on my_rank=0
 !     call MPI_Barrier(MPI_COMM_WORLD,ierr)
 !     call ftrace_region_begin("sendrecv03")
 ! ==============================================================================
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(90)
+#endif
         if ( my_rank.eq.0 ) then
          do icpu=1,ncpu
           ib1=nbegin(icpu)
@@ -1452,6 +1489,9 @@ c ** Gather end
             enddo   ! end of ib1 loop
            enddo    ! end of ib2 loop
        endif ! end of if my_rank.eq.0
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(90)
+#endif
 c **************
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(85)

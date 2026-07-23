@@ -1285,3 +1285,31 @@ path. Preserve equations, loops, OpenACC ownership, MPI, and the
 diagnostic-off instruction path. Run `tools/run_tddft_step72.sh` once and use
 the five children plus parent gap to select the next single implementation
 hypothesis. Its wall is diagnostic.
+
+## Step 72 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP72_EXPECT_SPLIT_01`
+- Tested revision: `10a1d50485fc1cfdd757b3ba6ea483f704dce68e`
+- Diagnostic wall: `68.6513030529` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- Expectation parent: `0.816429` sec
+- Diagonal HLOCAL: `0.239888` sec (`29.38%`)
+- Diagonal NONLOC: `0.299706` sec (`36.71%`)
+- Diagonal dot products: `0.012768` sec (`1.56%`)
+- EE communication: `0.000014` sec
+- Off-diagonal total: `0.258875` sec (`31.71%`)
+- Parent gap: `0.005178` sec
+
+Dot products and EE communication are not worthwhile targets. HLOCAL, NONLOC,
+and off-diagonal work have similar weights. Split the off-diagonal envelope
+once to determine whether its HLOCAL/NONLOC calls form one combined
+optimization target with the diagonal calls.
+
+## Step 73 Plan
+
+Add default-off timers only around all HLOCAL calls, all NONLOC calls, matrix
+dot products, communication/copy, and gather/output within the current
+off-diagonal conditional path. Preserve equations, loops, output, MPI,
+OpenACC ownership, and the diagnostic-off instruction path. Run
+`tools/run_tddft_step73.sh` once. Use the combined diagonal plus off-diagonal
+HLOCAL/NONLOC ceilings to decide whether to optimize this branch or stop it.

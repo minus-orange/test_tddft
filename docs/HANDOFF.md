@@ -487,6 +487,14 @@ adds default-off timers only to split the dominant expectation envelope into
 diagonal HLOCAL, diagonal NONLOC, dot products, EE communication, and the
 complete off-diagonal path. Run `tools/run_tddft_step72.sh` once.
 
+Step 72 passed both checks at revision `10a1d50`. The `0.816429` sec
+expectation envelope split into diagonal HLOCAL `0.239888` sec, diagonal
+NONLOC `0.299706` sec, dot products `0.012768` sec, EE communication
+`0.000014` sec, off-diagonal work `0.258875` sec, and a `0.005178` sec gap.
+Do not optimize the dot or communication children. Step 73 adds default-off
+timers only inside off-diagonal work for HLOCAL, NONLOC, matrix dots,
+communication/copy, and gather/output. Run `tools/run_tddft_step73.sh` once.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

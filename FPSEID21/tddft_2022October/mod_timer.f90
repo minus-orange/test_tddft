@@ -314,5 +314,15 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'energy_diag_ee_comm'
   case (85)
     name = 'energy_offdiag_total'
+  case (86)
+    name = 'offdiag_hlocal'
+  case (87)
+    name = 'offdiag_nonloc'
+  case (88)
+    name = 'offdiag_dot'
+  case (89)
+    name = 'offdiag_comm_copy'
+  case (90)
+    name = 'offdiag_gather_output'
   end select
 end subroutine fpseid_mod_timer_name
