@@ -400,3 +400,245 @@ Step 76で再分類したVRHO:
 - A100 3回中央値: `68.0681188811 sec`
 - Step 75以降はStep 74 sourceを対象とした診断・分類作業である。
 - PowerPointでは診断wallと正式baselineを混在させない。
+
+# 任意付録: 変更前／変更後の実コード
+
+以下はGit履歴に残る実コードから抜粋した。PowerPointで読みやすくするため、
+宣言や変更のない処理は `...` で省略している。本編は前述の12枚のままとし、
+説明が必要な方式だけを付録として追加する。
+
+## 付録A1: cuFFTをhost copy版からdevice pointer版へ変更
+
+対象:
+
+- `FPSEID21/tddft_2022October/fft_cufft.f`
+- `FPSEID21/tddft_2022October/fpseid_cufft_wrap.c`
+
+変更前:
+
+```fortran
+      SUBROUTINE FFT3BX_fftwASL(...)
+      ...
+      call fpseid_cufft_exec(plancbp,RHOG,NG,1,ierr)
+```
+
+変更後:
+
+```fortran
+      SUBROUTINE FFT3BX_fftwASL_ACC(...)
+      ...
+!$acc host_data use_device(RHOG)
+      call fpseid_cufft_exec_device(plancbp,RHOG,NG,1,ierr)
+!$acc end host_data
+```
+
+要点:
+
+- 変更前はwrapper内でhost/deviceコピーを伴う実行経路だった。
+- 変更後はOpenACC配列のdevice pointerをcuFFTへ直接渡す。
+- 同じ方式でforward FFTとbatch FFTも実装した。
+
+## 付録A2: 単純OpenACC化でscatter loopを平坦化
+
+対象:
+
+- `FPSEID21/tddft_2022October/tmevl10_Avec_v4.f`
+- `S2_`
+
+変更前:
+
+```fortran
+!$acc parallel loop present(P(...),RHO1_(...),J2G(...))
+      do ib=nbegin,nend
+       iib=ib-nbegin+1
+         DO 100 IG=1,NXYZ
+         JG=J2G(IG)
+  100    RHO1_(JG,iib)=P(IG,iib)
+      enddo
+```
+
+変更後:
+
+```fortran
+!$acc parallel loop present(P(...),RHO1_(...),J2G(...))
+      do idx=1,NXYZ*nbndloc
+         IG=mod(idx-1,NXYZ)+1
+         iib=(idx-1)/NXYZ+1
+         JG=J2G(IG)
+         RHO1_(JG,iib)=P(IG,iib)
+      enddo
+```
+
+要点:
+
+- bandと格子点の二重loopを1本のGPU loopへ平坦化した。
+- 小さい外側loopごとのkernel分割を避け、GPU並列度を増やした。
+- 同種の単純OpenACC化は密度生成、LOCPOT、VOFRHO、VPJにも適用した。
+
+## 付録A3: bandごとのFFTをbatch FFTへ集約
+
+対象:
+
+- `FPSEID21/tddft_2022October/tmevl10_Avec_v4.f`
+- `FPSEID21/tddft_2022October/fft_cufft.f`
+
+変更前:
+
+```fortran
+      do ib=nbegin,nend
+       iib=ib-nbegin+1
+       CALL FFT3BX_fftwASL_ACC(NRX,NRY,NRZ,NXYZ,
+     & RHO1_(1,iib),RHO2_(1,iib),plancfp,plancbp)
+      enddo
+```
+
+変更後:
+
+```fortran
+      CALL FFT3BX_fftwASL_ACC_BATCH(NRX,NRY,NRZ,NXYZ,
+     & nbndloc,RHO1_,RHO2_,plancfp,plancbp)
+```
+
+要点:
+
+- 変更前はband数だけcuFFTを呼び出していた。
+- 変更後は複数bandを1回のbatch cuFFTで処理する。
+- forward FFTにも同じ変更を適用し、呼出し回数と同期を削減した。
+
+## 付録A4: nonlocal kernelを原子単位からband単位へ融合
+
+対象:
+
+- `FPSEID21/tddft_2022October/tmevl10_Avec_v4.f`
+- `exnlp_gemm_body_fused`
+
+変更前:
+
+```fortran
+      do ia = 1, loopcnt
+         ja = ia
+         if (reverse_order) ja = loopcnt-ia+1
+!$acc parallel loop gang present(...)
+         do iib = 1, nbndloc
+            ...
+!$acc loop vector reduction(+:sr,si)
+            do ig = 1, ngnl(ja)
+               ...
+            end do
+         end do
+      end do
+```
+
+変更後:
+
+```fortran
+!$acc parallel loop gang vector_length(256) present(...)
+      do iib = 1, nbndloc
+!$acc loop seq
+         do ia = 1, loopcnt
+            ja = ia
+            if (reverse_order) ja = loopcnt-ia+1
+            ...
+!$acc loop vector reduction(+:sr,si)
+            do ig = 1, ngnl(ja)
+               ...
+            end do
+         end do
+      end do
+```
+
+要点:
+
+- 変更前は原子loopごとにGPU kernelを起動していた。
+- 変更後はbandを外側のGPU並列loopとし、原子処理を1 kernel内に融合した。
+- kernel起動回数を減らし、band方向の並列性を利用した。
+
+## 付録A5: OpenACC時の不要なhost COEF復元を除去
+
+対象:
+
+- `FPSEID21/tddft_2022October/frprmn_tm12_check_Vext_Avec_v4.f`
+
+変更前:
+
+```fortran
+       nblng=nend(my_rank)-nbegin(my_rank)+1
+       do ik0=1,numkq
+       call coefcp(coef0(1,1,ik0),coef(1,1,ik0),
+     &             ng2q*nblng)
+       enddo
+```
+
+変更後:
+
+```fortran
+#ifndef _OPENACC
+c *** CPU/FFTW restart state.
+       nblng=nend(my_rank)-nbegin(my_rank)+1
+       do ik0=1,numkq
+       call coefcp(coef0(1,1,ik0),coef(1,1,ik0),
+     &             ng2q*nblng)
+       enddo
+#endif
+```
+
+要点:
+
+- OpenACC経路ではdevice上の `COEF0` が正本であり、host側 `COEF` への復元は不要だった。
+- CPU/FFTW経路の処理はプリプロセッサ条件で維持した。
+- 正しさを保ったまま、反復ごとのhostコピー処理を省いた。
+
+## 付録A6: band間で不変なYLMを再利用
+
+対象:
+
+- `FPSEID21/tddft_2022October/frprmn_tm12_check_Vext_Avec_v4.f`
+- `FPSEID21/tddft_2022October/tmevl10_Avec_v4.f`
+- `NONLOC`
+
+変更前:
+
+```fortran
+      do ib=nbegin(my_rank),nend(my_rank)
+         ...
+         CALL NONLOC(...,NGcont)
+      enddo
+
+c --- NONLOC内
+      DO 588 IG=1,NG2
+  588 RHOA(IG)=SQRT(G2(4,IG))*TPIBA
+      CALL GETYLM(NG2Q,NGcont,G2,RHOA,YLM,TPIBA,NGcont)
+      CALL SEPPOT(...)
+```
+
+変更後:
+
+```fortran
+      iylm_reuse=0
+      do ib=nbegin(my_rank),nend(my_rank)
+         ...
+         CALL NONLOC(...,NGcont,iylm_reuse)
+         iylm_reuse=1
+      enddo
+
+c --- NONLOC内
+      IF (IYLM_REUSE.EQ.0) THEN
+         ...
+         CALL GETYLM(NG2Q,NGcont,G2,RHOA,YLM,TPIBA,NGcont)
+      ENDIF
+      CALL SEPPOT(...)
+```
+
+要点:
+
+- `YLM` は同一k点のband間で不変である。
+- 最初のbandだけ計算し、以後のbandでは結果を再利用する。
+- 数値計算の内容を変えず、重複計算を削減した。
+
+## 付録コードを載せる場合の推奨構成
+
+- 本編では変更を「単純OpenACC化」「データ常駐」「FFT集約」
+  「kernel融合」「重複処理削減」の5種類に集約する。
+- 発表時間が短い場合は、付録A2、A3、A5だけを使用する。
+- 技術説明を重視する場合は、A1からA6までを末尾へ追加する。
+- PowerPointでは変更前を灰色、変更後の追加行とOpenACC指示行を青色で示す。
