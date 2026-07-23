@@ -1211,3 +1211,14 @@ three accepted run ranges, so runs 02/03 are intentionally skipped. Restore
 the accepted host EXTAU preparation and retain this grouped-transfer form only
 as rejected history. The next task is a current Step 67 source Nsight Systems
 trace before choosing another implementation.
+
+## Step 70 Plan
+
+Run one diagnostic-only Nsight Systems trace of the restored current Step 67
+source. Build TDDFT only with diagnostics off and the accepted pinned NVHPC
+flags. Collect CUDA kernels, H2D/D2H time and size, CUDA API, OpenACC, OS
+runtime, and MPI summaries. Require both correctness checks, print only the
+bounded photograph-return summary, and do not use trace wall as a baseline.
+Use `tools/run_tddft_step70_nsys.sh` once; select no implementation before its
+kernel, synchronization, runtime/API, transfer, MPI, and non-kernel envelopes
+are classified.

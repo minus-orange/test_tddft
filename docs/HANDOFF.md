@@ -458,6 +458,12 @@ and the accepted host EXTAU source was restored. Step 67 remains the baseline.
 Next, re-profile the restored current source with Nsight Systems before another
 optimization.
 
+Step 70 is that measurement-only current-source trace. Run
+`tools/run_tddft_step70_nsys.sh` once. It builds only TDDFT with source timers
+off, profiles CUDA/OpenACC/NVTX/OSRT/MPI, archives and checks the result, and
+prints the first ten rows of each summary for photograph-only return. Its wall
+is diagnostic and must not replace the Step 67 baseline.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

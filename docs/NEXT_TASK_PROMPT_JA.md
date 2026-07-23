@@ -159,6 +159,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     Step 69を不採用としてhost EXTAU経路へ復元した。同じ grouped-copy 形を再試行しない。
 48. 次は追加実装ではなく、復元した現行Step 67 sourceをNsight Systemsで再診断し、
     kernel、転送、runtime/API、同期、MPI、GPU idleを更新する。
+49. Step 70は`./tools/run_tddft_step70_nsys.sh`を1回だけ実行する。TDDFTのみを
+    diagnostic OFFでbuildし、check/compareを必須とし、trace wallをbaselineにしない。
+50. terminalに出るkernel、H2D/D2H、CUDA API、OpenACC、OSRT、MPI要約の写真だけを
+    受け取り、次の実装は分類完了後に選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
