@@ -201,6 +201,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 66. Step 76は追加実装をせず、現行source上で既存VRHO子timerと3階層の未分類gapを
     まとめて再計測する。`./tools/run_tddft_step76.sh`を1回だけ実行し、diagnostic wallは
     baselineに使用しない。
+67. Step 76はPASS/PASS。VRHO`1.762396 sec`の内訳はVOFRHO`0.956957`、
+    smoothing/FFT`0.156599`、control`0.646548 sec`。controlの`0.549649 sec`はseedで、
+    correctorは`0.078602 sec`、Step 62後の係数復元は`0.002889 sec`まで低下した。
+68. 次は追加最適化ではなく、最大のVOFRHOをexchange-correlation、FFT、Hartree準備・
+    加算へ分解してから単一仮説を選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

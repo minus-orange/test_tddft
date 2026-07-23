@@ -1387,6 +1387,26 @@ after YLM reuse without changing equations, MPI, OpenACC ownership, or the
 diagnostic-off path. Run `tools/run_tddft_step75.sh` once. Its wall is
 diagnostic and cannot replace the Step 74 baseline.
 
+## Step 76 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP76_STEP74_VRHO_01`
+- Tested revision: `5a4b9c75acf59b9a11575e239a1e62d1171d2bc07`
+- Diagnostic wall: `68.4871740341` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- VRHO parent: `1.762396` sec
+- VOFRHO: `0.956957` sec (`54.2986%` of parent)
+- smoothing/FFT: `0.156599` sec (`8.8856%`)
+- mix control: `0.646548` sec (`36.6857%`)
+- control seed: `0.549649` sec (`85.0129%` of control)
+- predictor: `0.016261` sec
+- corrector: `0.078602` sec
+- coefficient restore: `0.002889` sec
+- parent/control/corrector gaps: `0.002292`, `0.002036`, `0.009319` sec
+
+The Step 62 OpenACC host-copy removal remains effective: the old Step 61
+coefficient-restore measurement of `2.158536` sec is now only `0.002889` sec.
+The next diagnostic target is VOFRHO, not the already small restore path.
+
 ## Step 75 Result
 
 - Archive: `nvhpc_cufft_1rank_02_STEP75_STEP74_FRPRMN_01`

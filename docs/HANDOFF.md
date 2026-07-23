@@ -533,6 +533,12 @@ the existing timer rows 54, 62-64, and 67-72 plus parent, control, and
 corrector nesting gaps. Use `tools/run_tddft_step76.sh` once; its wall is not a
 performance baseline.
 
+Step 76 passed both checks at revision `5a4b9c7`. Current VRHO was `1.762396`
+sec: VOFRHO `0.956957`, smoothing/FFT `0.156599`, and control `0.646548` sec.
+Control was dominated by seed `0.549649` sec; corrector was only `0.078602`
+sec and coefficient restore only `0.002889` sec. Re-split VOFRHO before
+selecting another implementation.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
