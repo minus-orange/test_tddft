@@ -415,3 +415,9 @@ Step 67を維持します。
 
 run 01はStep 67より`0.638734%`遅く、実行幅の2倍を超えて回帰しました。run 02/03は
 省略してStep 68を不採用とし、vector length 128へ戻します。同形の64は再試行しません。
+
+Step 71-73でFRPRMN energy/expectation/off-diagonalを段階的に分解し、通信ではなく
+HLOCAL/NONLOCと行列内積が主要部であることを確認しました。Step 74ではNONLOCの
+band非依存YLM準備だけを各k-point/event 1回へ集約しました。3 runは全て両checkに
+PASSし、中央値`68.0681188811`秒、実行幅`0.0546169281`秒でした。Step 67より
+`0.429383%`高速なため、Step 74を新しい正式baselineとして採用します。

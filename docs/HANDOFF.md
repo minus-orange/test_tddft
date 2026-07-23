@@ -1,26 +1,26 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-07-21
+Last updated: 2026-07-23
 
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `39a181e` (`Test VPJ vector length 128`)
+- Accepted source baseline: `3687243` (`Reuse NONLOC YLM preparation by k-point`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 67 with Step 37 pinned allocation mode
-- Current source implementation: Step 67 commit `39a181e`
+- Current configuration: accepted Step 74 with Step 37 pinned allocation mode
+- Current source implementation: Step 74 commit `3687243`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 69 rejected; accepted host EXTAU path restored
+- Current HEAD status: Step 74 accepted
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 67 median `68.3616518974` sec
+- Performance baseline: Step 74 median `68.0681188811` sec
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
@@ -511,6 +511,12 @@ unchanged. Use `tools/run_tddft_step74.sh 01` first, then `02-03` only after a
 healthy first run. Require both checks and compare the three-run median with
 the official Step 67 median `68.3616518974` sec.
 
+All three Step 74 runs passed both checks at `68.1138920784`,
+`68.0681188811`, and `68.0592751503` sec. The median is
+`68.0681188811` sec with a `0.0546169281` sec range, improving on Step 67 by
+`0.2935330163` sec (`0.429383%`). Every candidate run is faster than the
+fastest Step 67 run, so Step 74 is the accepted source and official baseline.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
@@ -535,7 +541,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `68.3616518974` sec.
+6. Compare the three-run median with `68.0681188811` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

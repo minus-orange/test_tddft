@@ -1,11 +1,11 @@
 # TDDFT GPU Performance Baseline
 
-Last updated: 2026-07-21
+Last updated: 2026-07-23
 
 ## Official Baseline
 
-- Logical step: Step 67
-- Source implementation commit: `39a181e`
+- Logical step: Step 74
+- Source implementation commit: `3687243`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,24 +16,24 @@ Last updated: 2026-07-21
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP67_VPJ_VL128_01` | 68.4441161156 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP67_VPJ_VL128_02` | 68.2400159836 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP67_VPJ_VL128_03` | 68.3616518974 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP74_YLM_REUSE_01` | 68.1138920784 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP74_YLM_REUSE_02` | 68.0681188811 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP74_YLM_REUSE_03` | 68.0592751503 | PASS | PASS |
 
-Official three-run median: `68.3616518974` sec.
-Run-to-run range: `0.2041001320` sec.
+Official three-run median: `68.0681188811` sec.
+Run-to-run range: `0.0546169281` sec.
 
-## Step 67 Run 03 Profile
+## Step 74 Median-Wall Run 02 Profile
 
 | timer | total_sec |
 |---|---:|
-| `time_step_total` | 68.578084 |
-| `frprmn` | 59.581569 |
-| `tmevl_total` | 51.412947 |
-| `s2_nonlocal` | 11.469054 |
-| `s2_nonlocal_make` | 1.320984 |
-| `s2_nonlocal_gemm` | 10.125199 |
-| `exnlp_gemm_dot` | 8.453116 |
+| `time_step_total` | 68.274443 |
+| `frprmn` | 59.215289 |
+| `tmevl_total` | 51.121951 |
+| `s2_nonlocal` | 11.363897 |
+| `s2_nonlocal_make` | 1.321259 |
+| `s2_nonlocal_gemm` | 10.019893 |
+| `exnlp_gemm_dot` | 8.348194 |
 
 ## Comparison Policy
 
@@ -135,6 +135,13 @@ wall passed both checks but is not a baseline. Aggregate CUDA kernels were
 about `13.96` sec (`19.65%`), H2D plus D2H device time was `3.230806864` sec,
 CUDA stream plus event synchronization was `17.372092065` sec, and MPI had no
 rows. Step 67 remains the official baseline.
+
+Step 74 reuses band-independent YLM preparation within each k-point while
+preserving the first preparation and all coefficient-dependent NONLOC work.
+All three runs passed both checks. Its `68.0681188811` sec median is
+`0.2935330163` sec (`0.429383%`) faster than Step 67, with a
+`0.0546169281` sec range. Every Step 74 run is faster than the fastest Step 67
+run, so Step 74 supersedes Step 67 as the official baseline.
 
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit

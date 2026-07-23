@@ -1979,3 +1979,20 @@ kernel time) and VPJ at `1.574436754` sec (`11.3%`). H2D plus D2H used
 `17.372092065` sec, and MPI had no rows. Step 39 already diagnosed the fused
 kernel's 32-block tutorial constraint, so split current `frprmn_energy_diag`
 instead of repeating the same NCU form.
+
+## Steps 71-74: energy diagnostics and NONLOC YLM reuse
+
+The default-off Step 71-73 timer diagnostics all passed both checks.
+Expectation/off-diagonal work accounted for `0.809350` sec of the
+`0.871809` sec energy envelope. It split into diagonal HLOCAL at `0.239888`
+sec, diagonal NONLOC at `0.299706` sec, and off-diagonal work at `0.258875`
+sec. Within off-diagonal work, communication/copy was only `0.000005` sec;
+HLOCAL, NONLOC, and matrix dots used `0.080938`, `0.099967`, and `0.079395`
+sec.
+
+Step 74 rebuilds band-independent YLM only for the first band of each
+k-point/event while preserving coefficient-dependent kinetic DCOEF and SEPPOT
+work on every call. All three runs passed both checks at `68.1138920784`,
+`68.0681188811`, and `68.0592751503` sec. The `68.0681188811` sec median is
+`0.2935330163` sec (`0.429383%`) faster than Step 67, with a
+`0.0546169281` sec range. Step 74 is accepted as the new official baseline.

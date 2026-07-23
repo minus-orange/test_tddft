@@ -1796,3 +1796,18 @@ CUDA kernel合計は約`13.96`秒（trace wallの`19.65%`）で、nonlocal fused
 H2D+D2Hは`3.230806864`秒、stream+event同期APIは重複を含む`17.372092065`秒、MPIは
 空でした。最大kernelはStep 39で32-block制約を診断済みなので同形NCUは繰り返さず、
 次は現行`frprmn_energy_diag`を分解します。
+
+## Step 71-74: energy診断とNONLOC YLM再利用
+
+Step 71-73のdefault-off timer診断は全て両checkにPASSしました。
+`frprmn_energy_diag=0.871809`秒のうちexpectation/off-diagonalが
+`0.809350`秒でした。さらに、対角HLOCAL `0.239888`秒、対角NONLOC
+`0.299706`秒、off-diagonal `0.258875`秒へ分解しました。off-diagonal内の
+通信/copyは`0.000005`秒で、主要部はHLOCAL `0.080938`秒、NONLOC
+`0.099967`秒、行列内積`0.079395`秒でした。
+
+Step 74はNONLOCのband非依存YLM準備を各k-point/eventの最初のbandだけへ集約し、
+係数依存のkinetic DCOEFとSEPPOTは毎回維持します。3 runは全て両checkにPASSし、
+wallは`68.1138920784`、`68.0681188811`、`68.0592751503`秒でした。中央値
+`68.0681188811`秒はStep 67より`0.2935330163`秒（`0.429383%`）高速で、
+実行幅は`0.0546169281`秒です。Step 74を新しい正式baselineとして採用します。

@@ -25,23 +25,22 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 67です。
+正式baselineは論理Step 74です。
 
-- source implementation: `39a181e`
+- source implementation: `3687243`
 - pinned build mode: `9cbb6bc`
 - A100-PCIE-40GB、1 GPU / 1 MPI rank
 - NVHPC + OpenACC + cuFFT
 - `-gpu=mem:separate:pinnedalloc`
 - Si111-H、100 steps
-- diagnostic OFF 3回中央値: `68.3616518974 sec`
-- 実行幅: `0.2041001320 sec`
+- diagnostic OFF 3回中央値: `68.0681188811 sec`
+- 実行幅: `0.0546169281 sec`
 - 全runでnormal checkとrelaxed compare PASS
 
-Step 67は、採用済みStep 57のVPJ/LOCPOT GPU化とStep 62のhost copy省略を保持し、VPJ
-kernelだけのvector lengthを256から128へ変更しています。OpenACC補正失敗経路でdevice
-authorityを更新しない冗長なhost COEF0-to-COEF copyだけを省略しています。VGOLD、device
-復元、MPI、数式順序、CPU/FFTW fallbackは維持しています。Step 62中央値より
-`0.2118279934 sec`（`0.308907%`）高速で、全3 runのcorrectnessと性能採否gateを満たして
+Step 74はStep 67までの採用済みGPU化を保持し、NONLOCでband非依存のYLM準備だけを
+各k-point/eventの最初のbandへ集約しています。係数依存のkinetic DCOEFとSEPPOT、
+MPI、数式順序、CPU/FFTW fallbackは維持しています。Step 67中央値より
+`0.2935330163 sec`（`0.429383%`）高速で、全3 runのcorrectnessと性能採否gateを満たして
 正式採用済みです。最新HEADを自動的にbaseline扱いしない原則は維持します。
 
 最終ゴールは、タイムステップループ内を可能な限りGPU化し、大規模配列のhost/device
@@ -50,12 +49,12 @@ authorityを更新しない冗長なhost COEF0-to-COEF copyだけを省略して
 
 現時点の確定値:
 
-- Step 67 median-wall run 03 `time_step_total`: `68.578084 sec`
-- `frprmn`: `59.581569 sec`
-- `tmevl_total`: `51.412947 sec`
-- `frprmn - tmevl_total`: `8.168622 sec`
-- `s2_nonlocal`: `11.469054 sec`
-- `exnlp_gemm_dot`: `8.453116 sec`
+- Step 74 median-wall run 02 `time_step_total`: `68.274443 sec`
+- `frprmn`: `59.215289 sec`
+- `tmevl_total`: `51.121951 sec`
+- `frprmn - tmevl_total`: `8.093338 sec`
+- `s2_nonlocal`: `11.363897 sec`
+- `exnlp_gemm_dot`: `8.348194 sec`
 - Step 51で判明した旧`VPJ_GEN` CPU積分: `36.132464 sec`
 
 Step 48のNsight値はStep 52/57 GPU化より前なので、現在のkernel時間・転送回数・
@@ -189,6 +188,9 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 61. Step 74はNONLOCへ明示的reuse flagを追加し、各k-point/eventの最初のbandだけYLMを
     再構築する。係数依存のkinetic DCOEFとSEPPOTは毎回維持する。まず
     `./tools/run_tddft_step74.sh 01`、健全なら`./tools/run_tddft_step74.sh 02-03`を実行する。
+62. Step 74の3 runは全てPASS/PASS。wallは`68.1138920784`、`68.0681188811`、
+    `68.0592751503 sec`、中央値`68.0681188811 sec`、実行幅`0.0546169281 sec`。
+    Step 67比`0.2935330163 sec`（`0.429383%`）高速なので正式採用した。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
@@ -223,7 +225,7 @@ CPU/FFTW fallback、fixed-form Fortran、correctness toleranceを維持してく
 性能採否はdiagnostic OFF、normal checkとrelaxed compare、同条件3回中央値で行います。
 production入力と対応referenceはまだ存在しないため、推測で生成しないでください。
 
-初回報告では、Git状態、正式Step 67 baseline、Step 52からの改善、現在確定している比率、
+初回報告では、Git状態、正式Step 74 baseline、Step 52からの改善、現在確定している比率、
 再診断で取得する指標、簡潔なA100実行コマンド案だけを示し、追加実装へ進まず停止してください。
 
 ---

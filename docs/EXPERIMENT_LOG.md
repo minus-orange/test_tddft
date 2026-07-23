@@ -1,6 +1,6 @@
 # TDDFT GPU Experiment Log
 
-Last updated: 2026-07-21
+Last updated: 2026-07-23
 
 The performance baseline is defined in `PERFORMANCE_BASELINE.md`. Detailed
 implementation and timer notes are in the bilingual progress summaries.
@@ -45,6 +45,19 @@ implementation and timer notes are in the bilingual progress summaries.
 | 59 | Measure the accepted-source LOCPOT envelope | 71.1150200367 (one diagnostic run) | measurement | `03ec9bd` |
 | 60 | Split the remaining VRHO host control | 70.9675290585 (one diagnostic run) | measurement | `fad4d11` |
 | 61 | Split the VRHO corrector region | 71.7462480068 (one diagnostic run) | measurement | `817b955` |
+| 62 | Skip redundant failed-correction host COEF restore | 68.5734798908 | accepted baseline | `7475ccb` |
+| 63 | Re-measure current FRPRMN envelopes | 68.9920969009 (one diagnostic run) | measurement | `16cea8a` |
+| 64 | Re-measure current Part1to5 children | 68.8858208656 (one diagnostic run) | measurement | `f69aeac` |
+| 65 | Split VPJ integral scope | 70.3901228905 (one diagnostic run) | measurement | `2c6227f` |
+| 66 | Split VPJ kernel wait and D2H | 68.8903579712 (one diagnostic run) | measurement | `25ede22` |
+| 67 | Use VPJ vector length 128 | 68.3616518974 | accepted baseline | `39a181e` |
+| 68 | Use VPJ vector length 64 | 68.7983009815 (run 01) | rejected | `c7028e0` / `a3bc131` |
+| 69 | Build EXTAU tables with grouped OpenACC | 69.0177049637 (run 01) | rejected | `d5e76b7` / `a4947d4` |
+| 70 | Re-profile current Step 67 source | 71.0379288197 (diagnostic trace) | measurement | `d596361` |
+| 71 | Split FRPRMN energy envelope | 68.9183897972 (one diagnostic run) | measurement | `b379f69` |
+| 72 | Split expectation envelope | 68.6513030529 (one diagnostic run) | measurement | `10a1d50` |
+| 73 | Split off-diagonal envelope | 69.2815968990 (one diagnostic run) | measurement | `6fdbecb` |
+| 74 | Reuse band-independent NONLOC YLM preparation | 68.0681188811 | accepted baseline | `3687243` |
 
 ## Other Rejected Experiments
 
@@ -1346,3 +1359,21 @@ and CPU/FFTW behavior. Run `tools/run_tddft_step74.sh 01` first. If both
 checks pass and the result is not a clear regression, collect runs 02/03 with
 `tools/run_tddft_step74.sh 02-03` and compare the median with the official
 Step 67 median `68.3616518974` sec.
+
+## Step 74 Result and Acceptance
+
+| run | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| 01 | `68.1138920784` | PASS | PASS |
+| 02 | `68.0681188811` | PASS | PASS |
+| 03 | `68.0592751503` | PASS | PASS |
+
+- Tested revision: `3687243228e08ad290f779ec8df5ec934a44b009`
+- Three-run median: `68.0681188811` sec
+- Run range: `0.0546169281` sec
+- Improvement from Step 67: `0.2935330163` sec (`0.429383%`)
+
+All three Step 74 runs are faster than the fastest Step 67 run and pass both
+correctness checks. The bounded reuse preserves one YLM rebuild per k-point
+and every coefficient-dependent operation. Step 74 is accepted as the new
+official source and performance baseline.

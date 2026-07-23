@@ -461,3 +461,10 @@ launch-shape search, with Step 67 retained unless the three-run gate passes.
 Run 01 regressed by `0.638734%`, over twice the Step 67 run range. Step 68 is
 rejected without runs 02/03, and vector length 128 is restored. Do not retry
 the same vector-length-64 form.
+
+Steps 71-73 progressively split FRPRMN energy, expectation, and off-diagonal
+work and showed that HLOCAL/NONLOC and matrix dots, not communication, dominate
+that small envelope. Step 74 reuses only band-independent NONLOC YLM
+preparation once per k-point/event. All three runs passed both checks. The
+`68.0681188811` sec median with a `0.0546169281` sec range is `0.429383%`
+faster than Step 67, so Step 74 is accepted as the new official baseline.
