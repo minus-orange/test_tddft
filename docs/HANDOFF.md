@@ -495,6 +495,15 @@ Do not optimize the dot or communication children. Step 73 adds default-off
 timers only inside off-diagonal work for HLOCAL, NONLOC, matrix dots,
 communication/copy, and gather/output. Run `tools/run_tddft_step73.sh` once.
 
+Step 73 passed both checks at revision `6fdbecb`. Its `0.264491` sec
+off-diagonal parent split into HLOCAL `0.080938` sec, NONLOC `0.099967` sec,
+matrix dots `0.079395` sec, communication/copy `0.000005` sec,
+gather/output `0.002409` sec, and a `0.001777` sec gap. Do not optimize
+communication or output. Diagonal plus off-diagonal NONLOC is about
+`0.399673` sec and repeats band-independent YLM preparation for every band.
+The next bounded implementation should prepare YLM once per k-point while
+preserving all coefficient-dependent NONLOC work.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

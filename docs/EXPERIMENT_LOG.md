@@ -1313,3 +1313,24 @@ off-diagonal conditional path. Preserve equations, loops, output, MPI,
 OpenACC ownership, and the diagnostic-off instruction path. Run
 `tools/run_tddft_step73.sh` once. Use the combined diagonal plus off-diagonal
 HLOCAL/NONLOC ceilings to decide whether to optimize this branch or stop it.
+
+## Step 73 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP73_OFFDIAG_SPLIT_01`
+- Tested revision: `6fdbecb1bc54da9538f39b84633db5d8582f5032`
+- Diagnostic wall: `69.2815968990` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- Off-diagonal parent: `0.264491` sec
+- HLOCAL: `0.080938` sec
+- NONLOC: `0.099967` sec
+- Matrix dot products: `0.079395` sec
+- Communication/copy: `0.000005` sec
+- Gather/output: `0.002409` sec
+- Parent gap: `0.001777` sec
+
+Communication and gather/output are not worthwhile targets. Combined with
+Step 72 diagonal work, the measured HLOCAL ceiling is about `0.320826` sec
+and the NONLOC ceiling about `0.399673` sec. NONLOC redundantly rebuilds YLM
+for every band even though G2 is unchanged within a k-point. Test reuse of
+that band-independent preparation next; preserve the first preparation for
+each k-point and all coefficient-dependent work.

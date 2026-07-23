@@ -181,6 +181,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     off-diagonal`0.258875 sec`。内積と通信は最適化しない。
 58. Step 73はoff-diagonalをHLOCAL、NONLOC、行列内積、通信/copy、集約/outputへ
     default-off timerだけで分ける。`./tools/run_tddft_step73.sh`を1回実行する。
+59. Step 73はPASS/PASS。off-diagonal`0.264491 sec`の内訳はHLOCAL`0.080938 sec`、
+    NONLOC`0.099967 sec`、行列内積`0.079395 sec`、通信/copy`0.000005 sec`、
+    集約/output`0.002409 sec`。通信とoutputは最適化しない。
+60. 対角とoff-diagonalを合わせたNONLOCは約`0.399673 sec`。次は係数に依存しない
+    YLM準備を各bandから各k-point 1回へまとめる単一仮説を検証する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
