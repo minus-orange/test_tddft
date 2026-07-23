@@ -191,6 +191,8 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 62. Step 74の3 runは全てPASS/PASS。wallは`68.1138920784`、`68.0681188811`、
     `68.0592751503 sec`、中央値`68.0681188811 sec`、実行幅`0.0546169281 sec`。
     Step 67比`0.2935330163 sec`（`0.429383%`）高速なので正式採用した。
+63. 次は追加実装ではなく、正式Step 74 sourceの広域FRPRMN timerをStep 75で再実行し、
+    現行残差と未分類量を更新する。`./tools/run_tddft_step75.sh`を1回だけ実行する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

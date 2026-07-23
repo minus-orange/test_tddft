@@ -1377,3 +1377,12 @@ All three Step 74 runs are faster than the fastest Step 67 run and pass both
 correctness checks. The bounded reuse preserves one YLM rebuild per k-point
 and every coefficient-dependent operation. Step 74 is accepted as the new
 official source and performance baseline.
+
+## Step 75 Plan
+
+Do not add another optimization yet. Re-run the existing broad default-off
+FRPRMN timers on accepted Step 74 source and print the current residual,
+classified children, and unclassified gap. This updates the target selection
+after YLM reuse without changing equations, MPI, OpenACC ownership, or the
+diagnostic-off path. Run `tools/run_tddft_step75.sh` once. Its wall is
+diagnostic and cannot replace the Step 74 baseline.

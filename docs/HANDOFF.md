@@ -517,6 +517,10 @@ All three Step 74 runs passed both checks at `68.1138920784`,
 `0.2935330163` sec (`0.429383%`). Every candidate run is faster than the
 fastest Step 67 run, so Step 74 is the accepted source and official baseline.
 
+Step 75 performs no optimization. It re-runs the broad FRPRMN timers on the
+accepted Step 74 source and reports both residual and unclassified time in one
+summary. Use `tools/run_tddft_step75.sh` once; its wall is diagnostic.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
