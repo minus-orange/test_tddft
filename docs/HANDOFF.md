@@ -539,6 +539,10 @@ Control was dominated by seed `0.549649` sec; corrector was only `0.078602`
 sec and coefficient restore only `0.002889` sec. Re-split VOFRHO before
 selecting another implementation.
 
+Step 77 adds default-off VOFRHO child timers for exchange-correlation, FFT,
+Hartree zeroing, Hartree construction, and Hartree addition. Use
+`tools/run_tddft_step77.sh` once; its wall is not a performance baseline.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

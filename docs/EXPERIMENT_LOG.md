@@ -1407,6 +1407,14 @@ The Step 62 OpenACC host-copy removal remains effective: the old Step 61
 coefficient-restore measurement of `2.158536` sec is now only `0.002889` sec.
 The next diagnostic target is VOFRHO, not the already small restore path.
 
+## Step 77 Plan
+
+Add default-off child timers inside VOFRHO for exchange-correlation, FFT,
+Hartree zeroing, Hartree construction, and Hartree addition. This changes no
+equations, loop order, MPI, OpenACC ownership, or diagnostic-off execution.
+Run `tools/run_tddft_step77.sh` once. Its wall is diagnostic and cannot replace
+the Step 74 baseline.
+
 ## Step 75 Result
 
 - Archive: `nvhpc_cufft_1rank_02_STEP75_STEP74_FRPRMN_01`

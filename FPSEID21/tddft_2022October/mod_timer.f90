@@ -324,5 +324,15 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'offdiag_comm_copy'
   case (90)
     name = 'offdiag_gather_output'
+  case (91)
+    name = 'vofrho_xc'
+  case (92)
+    name = 'vofrho_fft'
+  case (93)
+    name = 'vofrho_hartree_zero'
+  case (94)
+    name = 'vofrho_hartree_build'
+  case (95)
+    name = 'vofrho_hartree_add'
   end select
 end subroutine fpseid_mod_timer_name

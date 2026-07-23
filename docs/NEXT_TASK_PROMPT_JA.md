@@ -206,6 +206,8 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     correctorは`0.078602 sec`、Step 62後の係数復元は`0.002889 sec`まで低下した。
 68. 次は追加最適化ではなく、最大のVOFRHOをexchange-correlation、FFT、Hartree準備・
     加算へ分解してから単一仮説を選ぶ。
+69. Step 77はVOFRHOへdefault-off子timerだけを追加する。`./tools/run_tddft_step77.sh`
+    を1回実行し、diagnostic wallはbaselineに使用しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

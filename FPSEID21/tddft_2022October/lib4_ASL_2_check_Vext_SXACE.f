@@ -44,6 +44,9 @@ CC      CALL CLOCK(TIM0)
 C
 C     EXCHANGE CORRELATION CONTRIBUTION TO THE ONE-ELECTRON POTENTIAL
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(91)
+#endif
       IF(IGGA.EQ.1) THEN
        CALL G2VXC2(TPIBA,NRX,NRY,NRZ,NXYZ,NG,NGQ,G,
      & VG,RHO,RHOG,I2G,
@@ -58,6 +61,10 @@ c *** for Kokubo FFTW
       ELSE
       CALL S2VXC2(NXYZ,RHO,VG)
       ENDIF
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(91)
+      call prof_start(92)
+#endif
 c ** for Sugino FFT
 c      CALL FFT3FX(NRX,NRY,NRZ,NXYZ,VG,VCLR,
 c     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
@@ -67,19 +74,34 @@ c ** for Kokubo FFTW
 c      call FFT3FX_fftw(NXYZ,VG,plancfp,plancbp)
 c ** for Kokubo fftw ASL compatible
       CALL FFT3FX_fftwASL(NRX,NRY,NRZ,NXYZ,VG,VCLR,plancfp,plancbp)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(92)
+      call prof_start(93)
+#endif
 C
 C        HARTREE POTENTIAL
 C
       DO 47 IG=1,NXYZ
    47 VCSR(IG)=(0.D0,0.D0)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(93)
+      call prof_start(94)
+#endif
 C
 *VDIR NODEP(VCSR,RHOG)
 !ocl norecurrence(VCSR,RHOG)
       DO 49 IG=2,NG
       JG=I2G(IG)
    49 VCSR(JG)=0.5D0*FPI*RHOG(JG)/(TPIBA2*G(4,IG))
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(94)
+      call prof_start(95)
+#endif
       DO 48 IG=1,NXYZ
    48 VG(IG)=VG(IG)+VCSR(IG)*2.D0
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(95)
+#endif
 C
 c *** Smoothing of potential
 c      adump4=4*adump
