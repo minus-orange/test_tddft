@@ -1222,3 +1222,30 @@ bounded photograph-return summary, and do not use trace wall as a baseline.
 Use `tools/run_tddft_step70_nsys.sh` once; select no implementation before its
 kernel, synchronization, runtime/API, transfer, MPI, and non-kernel envelopes
 are classified.
+
+## Step 70 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP70_STEP67_NSYS_01`
+- Tested revision: `d59636195927e5dfa2675ac5fcc92d4d7bacc3f0`
+- Trace wall: `71.0379288197` sec (diagnostic; not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `62.122339` sec; `tmevl_total`: `53.291200` sec
+- FRPRMN residual outside TMEVL: `8.831139` sec
+- Estimated aggregate CUDA kernels: about `13.96` sec (`19.65%` of trace wall)
+- Fused nonlocal kernel: `8.247974033` sec (`59.1%` of kernel time)
+- VPJ kernel: `1.574436754` sec (`11.3%` of kernel time)
+- H2D: 45,230 copies / `31,590.245` MB / `2.742187068` sec
+- D2H: 7,954 copies / `6,127.482` MB / `0.488619796` sec
+- CUDA stream/event synchronization: `17.372092065` sec total
+- MPI summary: no rows
+
+The approximately `57.08` sec outside CUDA kernels is not a pure GPU-idle
+timer, because CPU work, synchronization, runtime, and trace overhead overlap,
+but it confirms that kernel execution still occupies only about one fifth of
+the trace wall. Direct transfer device time is only about `3.231` sec and MPI
+is not a principal target. The fused nonlocal kernel remains the largest GPU
+kernel, but its unchanged source was already diagnosed by Step 39: the
+tutorial has only 32 blocks for 108 A100 SMs. Do not repeat the same NCU or add
+a tutorial-only small-band kernel without production input. The next bounded
+diagnostic should split the current `frprmn_energy_diag` host envelope before
+another implementation is selected.

@@ -1970,3 +1970,12 @@ Run 01 passed both checks but took `69.0177049637` sec, a `0.6560530663` sec
 The FRPRMN residual decreased by `0.546599` sec but complete wall regressed, so
 runs 02/03 were skipped, Step 69 was rejected, and the host EXTAU path was
 restored. Re-profile the restored current source with Nsight Systems next.
+
+Step 70 passed both checks. Its `71.0379288197` sec trace wall is not a
+baseline. Aggregate CUDA kernels were about `13.96` sec (`19.65%` of trace
+wall), led by the fused nonlocal kernel at `8.247974033` sec (`59.1%` of
+kernel time) and VPJ at `1.574436754` sec (`11.3%`). H2D plus D2H used
+`3.230806864` sec, overlapping stream plus event synchronization totaled
+`17.372092065` sec, and MPI had no rows. Step 39 already diagnosed the fused
+kernel's 32-block tutorial constraint, so split current `frprmn_energy_diag`
+instead of repeating the same NCU form.

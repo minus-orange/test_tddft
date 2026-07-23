@@ -130,6 +130,12 @@ took `69.0177049637` sec, `0.959680%` slower than Step 67 and `3.2144x` the
 accepted run range. Runs 02/03 were skipped and the host EXTAU source was
 restored. Step 67 remains the official baseline.
 
+Step 70 re-profiled the restored current source. Its `71.0379288197` sec trace
+wall passed both checks but is not a baseline. Aggregate CUDA kernels were
+about `13.96` sec (`19.65%`), H2D plus D2H device time was `3.230806864` sec,
+CUDA stream plus event synchronization was `17.372092065` sec, and MPI had no
+rows. Step 67 remains the official baseline.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

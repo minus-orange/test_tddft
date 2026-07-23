@@ -1789,3 +1789,10 @@ run 01は両checkにPASSしましたが`69.0177049637`秒で、Step 67中央値�
 FRPRMN残差は`0.546599`秒減りましたが全体wallは悪化したため、run 02/03は省略して
 Step 69を不採用とし、host EXTAU経路へ戻します。次は復元後の現行sourceをNsight
 Systemsで再診断します。
+
+Step 70は両checkにPASSしました。trace wall `71.0379288197`秒はbaselineではありません。
+CUDA kernel合計は約`13.96`秒（trace wallの`19.65%`）で、nonlocal fused kernelが
+`8.247974033`秒（kernelの`59.1%`）、VPJ kernelが`1.574436754`秒（`11.3%`）でした。
+H2D+D2Hは`3.230806864`秒、stream+event同期APIは重複を含む`17.372092065`秒、MPIは
+空でした。最大kernelはStep 39で32-block制約を診断済みなので同形NCUは繰り返さず、
+次は現行`frprmn_energy_diag`を分解します。

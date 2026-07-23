@@ -464,6 +464,15 @@ off, profiles CUDA/OpenACC/NVTX/OSRT/MPI, archives and checks the result, and
 prints the first ten rows of each summary for photograph-only return. Its wall
 is diagnostic and must not replace the Step 67 baseline.
 
+Step 70 passed both checks at revision `d596361`. Its `71.0379288197` sec trace
+wall is diagnostic only. Aggregate CUDA kernels were about `13.96` sec
+(`19.65%`), led by the unchanged fused nonlocal kernel at `8.247974033` sec
+(`59.1%`) and the VPJ kernel at `1.574436754` sec (`11.3%`). H2D plus D2H
+device time was `3.230806864` sec; stream plus event synchronization was
+`17.372092065` sec and overlaps other work. MPI had no rows. Because Step 39
+already identified the fused kernel's 32-block tutorial occupancy constraint,
+do not repeat that NCU form. Split current `frprmn_energy_diag` next.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

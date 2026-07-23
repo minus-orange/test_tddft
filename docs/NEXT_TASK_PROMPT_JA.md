@@ -163,6 +163,13 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     diagnostic OFFでbuildし、check/compareを必須とし、trace wallをbaselineにしない。
 50. terminalに出るkernel、H2D/D2H、CUDA API、OpenACC、OSRT、MPI要約の写真だけを
     受け取り、次の実装は分類完了後に選ぶ。
+51. Step 70はPASS/PASS。trace wall `71.0379288197 sec`はbaselineではない。kernel合計
+    約`13.96 sec`（`19.65%`）、H2D+D2H `3.230806864 sec`、stream+event同期API
+    `17.372092065 sec`、MPI reportは空だった。
+52. 最大kernelはnonlocal fused `8.247974033 sec`（kernelの`59.1%`）だが、Step 39で
+    tutorialの32 blocks/108 SM制約を診断済み。同形NCUや小band専用kernelを再試行しない。
+53. 次は追加最適化ではなく、現行`frprmn_energy_diag`約`0.93 sec`をVG組立、E-field、
+    expectation/off-diagonalへ分解してから単一仮説を選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
