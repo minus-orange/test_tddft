@@ -170,6 +170,8 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     tutorialの32 blocks/108 SM制約を診断済み。同形NCUや小band専用kernelを再試行しない。
 53. 次は追加最適化ではなく、現行`frprmn_energy_diag`約`0.93 sec`をVG組立、E-field、
     expectation/off-diagonalへ分解してから単一仮説を選ぶ。
+54. Step 71はdefault-off timerだけを追加する。演算、loop、ownership、MPI、通常buildを
+    変更せず、`./tools/run_tddft_step71.sh`を1回だけ実行する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

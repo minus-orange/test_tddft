@@ -1001,6 +1001,9 @@ c
 C
 C#################################################################
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(78)
+#endif
 c      if ( itstep.eq.0 .or. itstep.eq.ntstep) then
 c      do ig=1,nxyz
 c      jg=i2g(ig)
@@ -1014,6 +1017,10 @@ c
 c       VG(IG)=RHO3(IG)+RHO4(IG)
        VG(IG)=RHO3(IG)+RHO4(IG)+ft*VEXT(IG)
        enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(78)
+      call prof_start(79)
+#endif
 c
 c *** compute E-field from VG when (itstep mode itmod) = 0
       if ( mod(itstep,itmod).eq.0 .and. my_rank.eq.0
@@ -1034,6 +1041,9 @@ c
         enddo
         call Efield(Vplt,nrx,nry,nrz,nxyz,time,93)
       endif
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(79)
+#endif
 c
 c *** The final-step expectation path below reads COEF on the host for
 c *** every correction, including corrections that have not converged.
@@ -1070,6 +1080,9 @@ c       stop
 c       endif
 c **** temp check : end !
 c
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(80)
+#endif
       if ( itstep.eq.0 .or. itstep.eq.ntstep) then
 c ********************
 c Calculation of the expectation values.
@@ -1441,6 +1454,7 @@ C
       endif
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(80)
       call prof_stop(55)
 #endif
       if (IOK.eq.1 ) goto 9899  ! quit the Predictor-correcter loop

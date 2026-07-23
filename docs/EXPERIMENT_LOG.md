@@ -1249,3 +1249,13 @@ tutorial has only 32 blocks for 108 A100 SMs. Do not repeat the same NCU or add
 a tutorial-only small-band kernel without production input. The next bounded
 diagnostic should split the current `frprmn_energy_diag` host envelope before
 another implementation is selected.
+
+## Step 71 Plan
+
+Add default-off timers only and split `frprmn_energy_diag` into the always-run
+VG assembly loop, conditional E-field work, and the initial/final expectation
+plus off-diagonal path. The existing COEF host synchronization remains outside
+the parent timer. Equations, loops, OpenACC ownership, MPI, and the
+diagnostic-off instruction path are unchanged. Run `tools/run_tddft_step71.sh`
+once, require both correctness checks, and classify the three children plus
+the parent gap before selecting an implementation. Its wall is diagnostic.

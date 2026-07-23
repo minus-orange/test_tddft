@@ -298,5 +298,11 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'vpjgen_acc_kernel_wait'
   case (77)
     name = 'vpjgen_acc_d2h'
+  case (78)
+    name = 'frprmn_energy_vg_build'
+  case (79)
+    name = 'frprmn_energy_efield'
+  case (80)
+    name = 'frprmn_energy_expect'
   end select
 end subroutine fpseid_mod_timer_name

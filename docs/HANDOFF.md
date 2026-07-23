@@ -473,6 +473,12 @@ device time was `3.230806864` sec; stream plus event synchronization was
 already identified the fused kernel's 32-block tutorial occupancy constraint,
 do not repeat that NCU form. Split current `frprmn_energy_diag` next.
 
+Step 71 adds only default-off child timers for VG assembly, E-field work, and
+initial/final expectation plus off-diagonal work. Use
+`tools/run_tddft_step71.sh` once. It builds TDDFT only, runs and archives the
+100-step case, requires both checks, and prints the parent, children, and gap
+in one photograph-sized summary. Do not use its wall as a baseline.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

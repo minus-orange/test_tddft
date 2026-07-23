@@ -4,9 +4,9 @@
       integer i
       real*8 pt,pt0
       integer pc,prank
-      common /profdata/ pt(77),pt0(77),pc(77),prank
+      common /profdata/ pt(80),pt0(80),pc(80),prank
       prank=rank
-      do 10 i=1,77
+      do 10 i=1,80
         pt(i)=0.0d0
         pt0(i)=0.0d0
         pc(i)=0
@@ -20,8 +20,8 @@
       integer id
       real*8 pt,pt0
       integer pc,prank
-      common /profdata/ pt(77),pt0(77),pc(77),prank
-      if (id.lt.1 .or. id.gt.77) return
+      common /profdata/ pt(80),pt0(80),pc(80),prank
+      if (id.lt.1 .or. id.gt.80) return
       pt0(id)=MPI_Wtime()
       call fpseid_mod_timer_start(id)
       return
@@ -33,8 +33,8 @@
       integer id
       real*8 pt,pt0
       integer pc,prank
-      common /profdata/ pt(77),pt0(77),pc(77),prank
-      if (id.lt.1 .or. id.gt.77) return
+      common /profdata/ pt(80),pt0(80),pc(80),prank
+      if (id.lt.1 .or. id.gt.80) return
       pt(id)=pt(id)+MPI_Wtime()-pt0(id)
       pc(id)=pc(id)+1
       call fpseid_mod_timer_stop(id)
@@ -47,13 +47,13 @@
       real*8 pt,pt0,psum,pmax
       integer pc,pcmax,prank
       character*24 name
-      common /profdata/ pt(77),pt0(77),pc(77),prank
-      dimension psum(77),pmax(77),pcmax(77)
-      call MPI_Reduce(pt,psum,77,MPI_DOUBLE_PRECISION,MPI_SUM,0,
+      common /profdata/ pt(80),pt0(80),pc(80),prank
+      dimension psum(80),pmax(80),pcmax(80)
+      call MPI_Reduce(pt,psum,80,MPI_DOUBLE_PRECISION,MPI_SUM,0,
      &                MPI_COMM_WORLD,ierr)
-      call MPI_Reduce(pt,pmax,77,MPI_DOUBLE_PRECISION,MPI_MAX,0,
+      call MPI_Reduce(pt,pmax,80,MPI_DOUBLE_PRECISION,MPI_MAX,0,
      &                MPI_COMM_WORLD,ierr)
-      call MPI_Reduce(pc,pcmax,77,MPI_INTEGER,MPI_MAX,0,
+      call MPI_Reduce(pc,pcmax,80,MPI_INTEGER,MPI_MAX,0,
      &                MPI_COMM_WORLD,ierr)
       call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
       if (prank.ne.0) return
@@ -61,7 +61,7 @@
       write(6,*)'FPSEID_PROFILE_BEGIN'
       write(6,*)' id label                    count',
      &          '      max_rank_sec       avg_rank_sec'
-      do 20 id=1,77
+      do 20 id=1,80
         if (pcmax(id).le.0) goto 20
         call prof_name(id,name)
         write(6,100)id,name,pcmax(id),pmax(id),psum(id)/dfloat(nproc)
@@ -153,5 +153,8 @@
       if (id.eq.75) name='vpjgen_acc_kernel_d2h'
       if (id.eq.76) name='vpjgen_acc_kernel_wait'
       if (id.eq.77) name='vpjgen_acc_d2h'
+      if (id.eq.78) name='frprmn_energy_vg_build'
+      if (id.eq.79) name='frprmn_energy_efield'
+      if (id.eq.80) name='frprmn_energy_expect'
       return
       end
