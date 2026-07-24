@@ -1996,3 +1996,21 @@ work on every call. All three runs passed both checks at `68.1138920784`,
 `68.0681188811`, and `68.0592751503` sec. The `68.0681188811` sec median is
 `0.2935330163` sec (`0.429383%`) faster than Step 67, with a
 `0.0546169281` sec range. Step 74 is accepted as the new official baseline.
+
+## Steps 75-81: FRPRMN reclassification and LDA XC-loop offload
+
+Steps 75-77 progressively reclassified the accepted Step 74 FRPRMN residual,
+VRHO, and VOFRHO. Exchange-correlation was the largest child at `0.653802`
+sec of the `0.962422` sec VOFRHO envelope. Step 79 found every GGA G2VXC2
+child inactive, proving that this Si111-H input executes the LDA S2VXC2 path.
+
+Step 80 offloads only the active S2VXC2 independent grid-point loop, copying
+RHO in and VCSR out while preserving branches, formulas, caller FFT/Hartree
+work, MPI, and the CPU/FFTW path. All three runs passed both checks at
+`67.4321370125`, `67.2197408676`, and `67.4207620621` sec. The
+`67.4207620621` sec median is `0.6473568190` sec (`0.951043%`) faster than
+Step 74, with a `0.2123961449` sec range. Step 80 is accepted as the new
+official baseline.
+
+Step 81 makes no source optimization. It re-runs the existing broad FRPRMN
+timers on accepted Step 80 source before another hypothesis is selected.

@@ -1811,3 +1811,20 @@ Step 74はNONLOCのband非依存YLM準備を各k-point/eventの最初のbandだ�
 wallは`68.1138920784`、`68.0681188811`、`68.0592751503`秒でした。中央値
 `68.0681188811`秒はStep 67より`0.2935330163`秒（`0.429383%`）高速で、
 実行幅は`0.0546169281`秒です。Step 74を新しい正式baselineとして採用します。
+
+## Step 75-81: FRPRMN再分類とLDA交換相関loopのGPU化
+
+Step 75-77で正式Step 74 sourceのFRPRMN残差、VRHO、VOFRHOを段階的に再分類しました。
+VOFRHO `0.962422`秒のうち交換相関が`0.653802`秒で最大でした。Step 79ではGGA
+G2VXC2子timerが全てinactiveとなり、このSi111-H入力がLDA S2VXC2経路を通ることを
+確認しました。
+
+Step 80は実行されるS2VXC2の独立格子点loopだけをOpenACC化し、RHOをcopyin、
+VCSRをcopyoutしました。分岐、数式、caller FFT/Hartree、MPI、CPU/FFTW経路は
+維持しています。3 runは全て両checkにPASSし、wallは`67.4321370125`、
+`67.2197408676`、`67.4207620621`秒でした。中央値`67.4207620621`秒はStep 74より
+`0.6473568190`秒（`0.951043%`）高速で、実行幅は`0.2123961449`秒です。
+Step 80を新しい正式baselineとして採用します。
+
+次は追加最適化ではなく、正式Step 80 sourceで既存の広域FRPRMN timerを再実行し、
+改善後の残差を再分類するStep 81診断です。

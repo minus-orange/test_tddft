@@ -4,8 +4,8 @@ Last updated: 2026-07-24
 
 ## Official Baseline
 
-- Logical step: Step 74
-- Source implementation commit: `3687243`
+- Logical step: Step 80
+- Source implementation commit: `59686f0`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,42 +16,24 @@ Last updated: 2026-07-24
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP74_YLM_REUSE_01` | 68.1138920784 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP74_YLM_REUSE_02` | 68.0681188811 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP74_YLM_REUSE_03` | 68.0592751503 | PASS | PASS |
-
-Official three-run median: `68.0681188811` sec.
-Run-to-run range: `0.0546169281` sec.
-
-## Pending Step 80 Acceptance Candidate
-
-Step 80 offloads only the active LDA S2VXC2 independent grid-point loop.
-Its source implementation is `59686f0`.
-
-| archive label | wall_sec | check | relaxed compare |
-|---|---:|---|---|
 | `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_01` | 67.4321370125 | PASS | PASS |
 | `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_02` | 67.2197408676 | PASS | PASS |
 | `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_03` | 67.4207620621 | PASS | PASS |
 
-Candidate median: `67.4207620621` sec.
-Candidate run range: `0.2123961449` sec.
-Improvement over Step 74: `0.6473568190` sec (`0.951043%`).
+Official three-run median: `67.4207620621` sec.
+Run-to-run range: `0.2123961449` sec.
 
-All runs passed the performance and correctness gates. Formal replacement of
-the official Step 74 baseline remains pending explicit human approval.
-
-## Step 74 Median-Wall Run 02 Profile
+## Step 80 Median-Wall Run 03 Profile
 
 | timer | total_sec |
 |---|---:|
-| `time_step_total` | 68.274443 |
-| `frprmn` | 59.215289 |
-| `tmevl_total` | 51.121951 |
-| `s2_nonlocal` | 11.363897 |
-| `s2_nonlocal_make` | 1.321259 |
-| `s2_nonlocal_gemm` | 10.019893 |
-| `exnlp_gemm_dot` | 8.348194 |
+| `time_step_total` | 67.624276 |
+| `frprmn` | 58.618044 |
+| `tmevl_total` | 51.152267 |
+| `s2_nonlocal` | 11.383827 |
+| `s2_nonlocal_make` | 1.327962 |
+| `s2_nonlocal_gemm` | 10.032972 |
+| `exnlp_gemm_dot` | 8.364374 |
 
 ## Comparison Policy
 
@@ -166,6 +148,13 @@ candidates together. Its single diagnostic-off run passed both checks but took
 `68.3785300255` sec, `0.3104111444` sec (`0.456030%`) slower than the Step 74
 median and `5.6834x` the Step 74 run range. Runs 02/03 were skipped and the
 temporary implementation was reverted. Step 74 remains the official baseline.
+
+Step 80 offloads only the active LDA S2VXC2 independent grid-point loop,
+copying RHO in and VCSR out while preserving its formulas, branches, caller
+FFT/Hartree work, MPI, and CPU/FFTW path. All three runs passed both checks.
+Its `67.4207620621` sec median is `0.6473568190` sec (`0.951043%`) faster than
+Step 74, with a `0.2123961449` sec range. Step 80 supersedes Step 74 as the
+official baseline.
 
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit

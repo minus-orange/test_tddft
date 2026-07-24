@@ -421,3 +421,12 @@ HLOCAL/NONLOCと行列内積が主要部であることを確認しました。S
 band非依存YLM準備だけを各k-point/event 1回へ集約しました。3 runは全て両checkに
 PASSし、中央値`68.0681188811`秒、実行幅`0.0546169281`秒でした。Step 67より
 `0.429383%`高速なため、Step 74を新しい正式baselineとして採用します。
+
+Step 75-79で現行FRPRMN、VRHO、VOFRHO、交換相関経路を再診断し、Si111-HがGGA
+G2VXC2ではなくLDA S2VXC2を実行することを確認しました。Step 80ではS2VXC2の
+独立格子点loopだけをOpenACC化しました。3 runは全て両checkにPASSし、中央値
+`67.4207620621`秒、実行幅`0.2123961449`秒でした。Step 74より`0.951043%`高速なため、
+Step 80を新しい正式baselineとして採用します。
+
+Step 81では追加最適化を行わず、正式Step 80 sourceの広域FRPRMN timerを再実行して
+改善後の残差を再分類します。

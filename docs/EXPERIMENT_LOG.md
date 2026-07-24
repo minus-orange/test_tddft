@@ -63,7 +63,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 77 | Split accepted-source VOFRHO | 69.1326959133 (one diagnostic run) | measurement | `a371d4d` |
 | 78 | Temporarily offload remaining data-parallel host loops together | 68.3785300255 (run 01) | rejected | `94e7176` + `cc65c3c` / result rollback |
 | 79 | Split G2VXC2 exchange-correlation path | 69.1785750389 (one diagnostic run) | inactive-path measurement | `0f3b066` |
-| 80 | Offload active LDA S2VXC2 grid loop | 67.4207620621 median | acceptance candidate; approval pending | `59686f0` |
+| 80 | Offload active LDA S2VXC2 grid loop | 67.4207620621 median | accepted baseline | `59686f0` |
 
 ## Other Rejected Experiments
 
@@ -1492,8 +1492,16 @@ compare the three-run median with the official Step 74 median.
 - Median-wall run 03 `exnlp_gemm_dot`: `8.364374` sec
 
 All three diagnostic-off runs are correct. The median advantage satisfies the
-performance gate and makes Step 80 an acceptance candidate. Formal baseline
-replacement and the next diagnostic remain pending explicit human approval.
+performance gate, and the user approved formal adoption. Step 80 supersedes
+Step 74 as the official baseline. Step 81 will re-run the broad FRPRMN timers
+on the accepted source before another optimization is selected.
+
+## Step 81 Plan
+
+Make no source optimization. Re-run the existing broad exclusive FRPRMN
+timers on the accepted Step 80 source and report the residual, classified
+children, and unclassified gap. Run `tools/run_tddft_step81.sh` once. Its
+diagnostic wall must not replace the Step 80 baseline.
 
 ## Step 78 Temporary Maximum-Offload Result and Rejection
 

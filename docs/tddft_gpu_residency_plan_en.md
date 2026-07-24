@@ -468,3 +468,13 @@ that small envelope. Step 74 reuses only band-independent NONLOC YLM
 preparation once per k-point/event. All three runs passed both checks. The
 `68.0681188811` sec median with a `0.0546169281` sec range is `0.429383%`
 faster than Step 67, so Step 74 is accepted as the new official baseline.
+
+Steps 75-79 re-diagnosed current FRPRMN, VRHO, VOFRHO, and exchange-correlation
+work and proved that Si111-H executes LDA S2VXC2 rather than GGA G2VXC2.
+Step 80 offloads only the S2VXC2 independent grid-point loop. All three runs
+passed both checks. Its `67.4207620621` sec median with a `0.2123961449` sec
+range is `0.951043%` faster than Step 74, so Step 80 is accepted as the new
+official baseline.
+
+Step 81 makes no source optimization. It re-runs the broad FRPRMN timers on
+accepted Step 80 source to reclassify the improved residual.

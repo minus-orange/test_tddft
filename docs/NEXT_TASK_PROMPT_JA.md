@@ -25,22 +25,22 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 74です。
+正式baselineは論理Step 80です。
 
-- source implementation: `3687243`
+- source implementation: `59686f0`
 - pinned build mode: `9cbb6bc`
 - A100-PCIE-40GB、1 GPU / 1 MPI rank
 - NVHPC + OpenACC + cuFFT
 - `-gpu=mem:separate:pinnedalloc`
 - Si111-H、100 steps
-- diagnostic OFF 3回中央値: `68.0681188811 sec`
-- 実行幅: `0.0546169281 sec`
+- diagnostic OFF 3回中央値: `67.4207620621 sec`
+- 実行幅: `0.2123961449 sec`
 - 全runでnormal checkとrelaxed compare PASS
 
-Step 74はStep 67までの採用済みGPU化を保持し、NONLOCでband非依存のYLM準備だけを
-各k-point/eventの最初のbandへ集約しています。係数依存のkinetic DCOEFとSEPPOT、
-MPI、数式順序、CPU/FFTW fallbackは維持しています。Step 67中央値より
-`0.2935330163 sec`（`0.429383%`）高速で、全3 runのcorrectnessと性能採否gateを満たして
+Step 80はStep 74までの採用済みGPU化を保持し、実際に通るLDA S2VXC2の独立格子点loop
+だけをOpenACC化しています。RHOをcopyin、VCSRをcopyoutし、分岐、数式、caller
+FFT/Hartree、MPI、CPU/FFTW fallbackを維持しています。Step 74中央値より
+`0.6473568190 sec`（`0.951043%`）高速で、全3 runのcorrectnessと性能採否gateを満たして
 正式採用済みです。最新HEADを自動的にbaseline扱いしない原則は維持します。
 
 最終ゴールは、タイムステップループ内を可能な限りGPU化し、大規模配列のhost/device
@@ -49,12 +49,12 @@ MPI、数式順序、CPU/FFTW fallbackは維持しています。Step 67中央�
 
 現時点の確定値:
 
-- Step 74 median-wall run 02 `time_step_total`: `68.274443 sec`
-- `frprmn`: `59.215289 sec`
-- `tmevl_total`: `51.121951 sec`
-- `frprmn - tmevl_total`: `8.093338 sec`
-- `s2_nonlocal`: `11.363897 sec`
-- `exnlp_gemm_dot`: `8.348194 sec`
+- Step 80 median-wall run 03 `time_step_total`: `67.624276 sec`
+- `frprmn`: `58.618044 sec`
+- `tmevl_total`: `51.152267 sec`
+- `frprmn - tmevl_total`: `7.465777 sec`
+- `s2_nonlocal`: `11.383827 sec`
+- `exnlp_gemm_dot`: `8.364374 sec`
 - Step 51で判明した旧`VPJ_GEN` CPU積分: `36.132464 sec`
 
 Step 48のNsight値はStep 52/57 GPU化より前なので、現在のkernel時間・転送回数・
@@ -244,6 +244,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     3回中央値は`67.4207620621 sec`、実行幅は`0.2123961449 sec`。
 85. Step 74比で`0.6473568190 sec`、`0.951043%`高速なため採用候補。正式baseline変更と
     次診断は人間の明示承認待ちであり、承認前に追加実装しない。
+86. ユーザーがStep 80の正式採用を承認した。Step 80は正式baselineで、中央値
+    `67.4207620621 sec`、実行幅`0.2123961449 sec`。
+87. 次は追加最適化ではなく、正式Step 80 sourceの既存広域FRPRMN timerを再実行する
+    Step 81診断。A100では`./tools/run_tddft_step81.sh`を1回実行する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

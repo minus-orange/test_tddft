@@ -16,15 +16,15 @@
 - 実行条件: 1 GPU / 1 MPI rank
 - 検証ケース: Si111-H、100 time steps
 - 実装: NVIDIA HPC SDK + OpenACC + cuFFT
-- 正式採用ソース: Step 74
+- 正式採用ソース: Step 80
 
 性能:
 
 ```text
 初期cuFFT host-copy版: 約443.2秒
-現在の正式baseline:    約 68.07秒
-高速化:                約 6.51倍
-実行時間削減:          約84.6%
+現在の正式baseline:    約 67.42秒
+高速化:                約 6.57倍
+実行時間削減:          約84.8%
 ```
 
 全正式採用runで通常checkとrelaxed compareにPASSした。
@@ -344,13 +344,14 @@ kernel特殊化:
 | Step 62 | 冗長host復元削除 | 約68.57秒 |
 | Step 67 | VPJ vector length 128 | 約68.36秒 |
 | Step 74 | YLM再利用 | 約68.07秒 |
+| Step 80 | LDA交換相関loop GPU化 | 約67.42秒 |
 
 総合結果:
 
 ```text
-443.2秒 -> 68.07秒
-約6.51倍高速化
-実行時間を約84.6%削減
+443.2秒 -> 67.42秒
+約6.57倍高速化
+実行時間を約84.8%削減
 ```
 
 ## スライド12: 現在のソースと残課題
@@ -364,15 +365,15 @@ kernel特殊化:
 | `fft_cufft.f` | device pointer版・batch版cuFFT |
 | `fpseid_cufft_wrap.c` | cuFFT wrapperとplan管理 |
 | `vpj_gen.f` | VPJ動径積分kernel |
-| `lib4_ASL_2_check_Vext_SXACE.f` | LOCPOT、VOFRHO |
+| `lib4_ASL_2_check_Vext_SXACE.f` | LOCPOT、VOFRHO、LDA交換相関 |
 | `pspw_tm11_Vext_Avec_v4_alloc.f` | time-step loop外metadata常駐 |
 | `tools/build_nvhpc.sh` | NVHPC、pinned allocation設定 |
 
 現在の正式baseline:
 
 ```text
-Step 74
-68.0681188811 sec
+Step 80
+67.4207620621 sec
 ```
 
 Step 76で再分類したVRHO:
@@ -386,19 +387,19 @@ Step 76で再分類したVRHO:
 | corrector | 0.078602秒 |
 | COEF復元 | 0.002889秒 |
 
-次の診断:
+Step 80でGPU化した交換相関:
 
-- Step 77でVOFRHOをexchange-correlation、FFT、Hartree処理へ分解する。
-- Step 77は計測用変更であり、正式baselineはStep 74のままである。
-- 次のGPU化は、分解後に1秒前後の支配領域から単一仮説として選ぶ。
+- Si111-Hで実行されるLDA S2VXC2の独立格子点loopだけをGPU化した。
+- 3回中央値でStep 74より`0.951043%`高速化した。
+- 次はStep 81で改善後のFRPRMN残差を再分類する。
 
 ## 正式baselineと文書の位置づけ
 
-- 正式baseline: 論理Step 74
-- source implementation commit: `3687243`
+- 正式baseline: 論理Step 80
+- source implementation commit: `59686f0`
 - pinned build-mode commit: `9cbb6bc`
-- A100 3回中央値: `68.0681188811 sec`
-- Step 75以降はStep 74 sourceを対象とした診断・分類作業である。
+- A100 3回中央値: `67.4207620621 sec`
+- Step 81はStep 80 sourceを対象とした診断・分類作業である。
 - PowerPointでは診断wallと正式baselineを混在させない。
 
 # 任意付録: 変更前／変更後の実コード
@@ -635,10 +636,48 @@ c --- NONLOC内
 - 最初のbandだけ計算し、以後のbandでは結果を再利用する。
 - 数値計算の内容を変えず、重複計算を削減した。
 
+## 付録A7: 実行されるLDA交換相関loopをGPU化
+
+対象:
+
+- `FPSEID21/tddft_2022October/lib4_ASL_2_check_Vext_SXACE.f`
+- routine `S2VXC2`
+
+変更前:
+
+```fortran
+      DO 10 IG=1,NXYZ
+      VCSR(IG)=0.D0
+      IF(RHO(IG).GT.0.D0) THEN
+         ...
+      ENDIF
+   10 CONTINUE
+```
+
+変更後:
+
+```fortran
+!$acc parallel loop copyin(RHO(1:NXYZ))
+!$acc& copyout(VCSR(1:NXYZ))
+!$acc& private(RS,EC,VX,CC,VC,VXC2)
+      DO 10 IG=1,NXYZ
+      VCSR(IG)=0.D0
+      IF(RHO(IG).GT.0.D0) THEN
+         ...
+      ENDIF
+   10 CONTINUE
+```
+
+要点:
+
+- 診断によりSi111-HがGGAではなくLDA S2VXC2を通ることを確認してから変更した。
+- 格子点間で独立なloopだけをGPU化し、分岐と各格子点内の数式順序を維持した。
+- Step 74比で3回中央値を`0.951043%`短縮した。
+
 ## 付録コードを載せる場合の推奨構成
 
 - 本編では変更を「単純OpenACC化」「データ常駐」「FFT集約」
   「kernel融合」「重複処理削減」の5種類に集約する。
 - 発表時間が短い場合は、付録A2、A3、A5だけを使用する。
-- 技術説明を重視する場合は、A1からA6までを末尾へ追加する。
+- 技術説明を重視する場合は、A1からA7までを末尾へ追加する。
 - PowerPointでは変更前を灰色、変更後の追加行とOpenACC指示行を青色で示す。

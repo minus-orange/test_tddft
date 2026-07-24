@@ -1,26 +1,26 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-07-23
+Last updated: 2026-07-24
 
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `3687243` (`Reuse NONLOC YLM preparation by k-point`)
+- Accepted source baseline: `59686f0` (`Offload active LDA S2VXC2 grid loop`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 74 with Step 37 pinned allocation mode
-- Current source implementation: Step 74 commit `3687243`
+- Current configuration: accepted Step 80 with Step 37 pinned allocation mode
+- Current source implementation: Step 80 commit `59686f0`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 74 accepted
+- Current HEAD status: Step 80 accepted; Step 81 diagnostic prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 74 median `68.0681188811` sec
+- Performance baseline: Step 80 median `67.4207620621` sec
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -587,9 +587,13 @@ three-run median against Step 74.
 Step 80 runs 01/02/03 at revision `59686f0` all passed both checks and took
 `67.4321370125`, `67.2197408676`, and `67.4207620621` sec. The median is
 `67.4207620621` sec with a `0.2123961449` sec range, improving on Step 74 by
-`0.6473568190` sec (`0.951043%`). Step 80 satisfies the performance gate and
-is an acceptance candidate. Formal baseline replacement and the next
-diagnostic remain pending explicit human approval.
+`0.6473568190` sec (`0.951043%`). The user approved adoption, so Step 80 is
+the official baseline.
+
+Step 81 makes no source optimization. It re-runs the existing broad exclusive
+FRPRMN timers on the accepted Step 80 source to classify the current residual
+before another hypothesis is selected. Run `tools/run_tddft_step81.sh` once;
+its diagnostic wall is not a baseline.
 
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
@@ -615,7 +619,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `68.0681188811` sec.
+6. Compare the three-run median with `67.4207620621` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait
