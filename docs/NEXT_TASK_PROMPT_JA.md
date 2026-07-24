@@ -236,6 +236,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     VCSRをcopyoutし、分岐、数式、caller FFT/Hartree、MPI、CPU/FFTW経路を維持する。
 81. A100では最初に`./tools/run_tddft_step80.sh 01`だけを実行する。PASS/PASSかつ明確な
     回帰がなければ`./tools/run_tddft_step80.sh 02-03`で残り2回をまとめて取得する。
+82. Step 80 run 01はPASS/PASS、`67.4321370125 sec`。正式Step 74中央値より
+    `0.6359818686 sec`、`0.934331%`高速で有望だが、1回だけでは採用確定しない。
+83. 次は`./tools/run_tddft_step80.sh 02-03`を1回実行し、3回中央値でStep 80の採否を
+    判定する。新しい最適化を追加しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

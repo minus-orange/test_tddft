@@ -63,6 +63,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 77 | Split accepted-source VOFRHO | 69.1326959133 (one diagnostic run) | measurement | `a371d4d` |
 | 78 | Temporarily offload remaining data-parallel host loops together | 68.3785300255 (run 01) | rejected | `94e7176` + `cc65c3c` / result rollback |
 | 79 | Split G2VXC2 exchange-correlation path | 69.1785750389 (one diagnostic run) | inactive-path measurement | `0f3b066` |
+| 80 | Offload active LDA S2VXC2 grid loop | 67.4321370125 (run 01) | promising; runs 02/03 pending | `59686f0` |
 
 ## Other Rejected Experiments
 
@@ -1472,6 +1473,25 @@ order per point, caller FFT, Hartree work, MPI, and CPU/FFTW behavior. Run
 `tools/run_tddft_step80.sh 01` first. If both checks pass and it is not a clear
 regression, collect runs 02/03 with `tools/run_tddft_step80.sh 02-03` and
 compare the three-run median with the official Step 74 median.
+
+## Step 80 Initial Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_01`
+- Tested revision: `59686f06731feb089ac21d6caa11331dd81051f7`
+- Wall: `67.4321370125` sec
+- Correctness: check PASS; relaxed compare PASS
+- Step 74 median difference: `-0.6359818686` sec (`-0.934331%`)
+- `time_step_total`: `67.636696` sec
+- `frprmn`: `58.599733` sec
+- `tmevl_total`: `51.057783` sec
+- `s2_nonlocal`: `11.353528` sec
+- `s2_nonlocal_gemm`: `9.992073` sec
+- `exnlp_gemm_dot`: `8.324000` sec
+
+The first diagnostic-off run is correct and faster than the official Step 74
+median by substantially more than the Step 74 run range. This is promising,
+but it is not yet accepted from one run. Collect runs 02/03 together and make
+the adoption decision from the three-run median.
 
 ## Step 78 Temporary Maximum-Offload Result and Rejection
 
