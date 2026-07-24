@@ -252,6 +252,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     A100 Step 80中央値比は`1.847517x`、wallは`45.873295%`短い。
 89. H100値は1回のみで、正確なH100型式、revision、compiler、`cc90` build条件が未記録。
     H100正式baselineにはせず、A100 Step 81計画も変更しない。
+90. ソースコードベースの履歴比較には、Step 80のNVHPC実ビルド対象OpenACC compute
+    site 19個を100%とする相対indexを使う。Step 37/41は84.2%、Step 52は89.5%、
+    Step 57/62/67/74は94.7%、Step 80は100.0%。
+91. このindexはGPU使用率でも全並列化可能loopの絶対GPU化率でもない。cuFFT内部を
+    数えず、常駐、allocation、vector length、再利用だけの改善では値が変わらない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
@@ -286,7 +291,7 @@ CPU/FFTW fallback、fixed-form Fortran、correctness toleranceを維持してく
 性能採否はdiagnostic OFF、normal checkとrelaxed compare、同条件3回中央値で行います。
 production入力と対応referenceはまだ存在しないため、推測で生成しないでください。
 
-初回報告では、Git状態、正式Step 74 baseline、Step 52からの改善、現在確定している比率、
+初回報告では、Git状態、正式Step 80 baseline、Step 52からの改善、現在確定している比率、
 再診断で取得する指標、簡潔なA100実行コマンド案だけを示し、追加実装へ進まず停止してください。
 
 ---

@@ -43,6 +43,45 @@ Run-to-run range: `0.2123961449` sec.
 - Correctness requires both `check` and relaxed `compare` to pass for every run.
 - An implementation without a median advantage is recorded and rolled back.
 
+## Source-Level GPU Coverage History
+
+For a reproducible source-based trend, define the OpenACC compute-site coverage
+index as:
+
+```text
+NVHPC-selected TDDFT source OpenACC parallel/kernels construct starts
+--------------------------------------------------------------------- * 100
+Step 80 accepted-source construct starts (19)
+```
+
+This is a relative source-coverage index, not GPU utilization and not an
+absolute percentage of every theoretically parallelizable loop. It does not
+count cuFFT library internals, and it intentionally stays unchanged for
+residency, allocation, vector-length, reuse, and transfer-boundary
+optimizations that add no compute construct.
+
+| accepted step | compute sites | relative source GPU index |
+|---:|---:|---:|
+| 21 | 11 | 57.9% |
+| 22 | 11 | 57.9% |
+| 23 | 11 | 57.9% |
+| 24 | 11 | 57.9% |
+| 25 | 11 | 57.9% |
+| 28 | 12 | 63.2% |
+| 33 | 16 | 84.2% |
+| 34 | 16 | 84.2% |
+| 36 | 16 | 84.2% |
+| 37 | 16 | 84.2% |
+| 41 | 16 | 84.2% |
+| 52 | 17 | 89.5% |
+| 57 | 18 | 94.7% |
+| 62 | 18 | 94.7% |
+| 67 | 18 | 94.7% |
+| 74 | 18 | 94.7% |
+| 80 | 19 | 100.0% |
+
+Regenerate this table with `tools/report_tddft_source_gpu_index.sh`.
+
 Step 57 is `36.4633102420` sec (`33.8393%`) faster than the Step 41 median and
 `2.1465852261` sec (`2.9230%`) faster than the Step 52 median. It retains the
 accepted Step 52 VPJ radial-integration offload and additionally parallelizes
