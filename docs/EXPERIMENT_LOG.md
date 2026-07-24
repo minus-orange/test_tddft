@@ -63,7 +63,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 77 | Split accepted-source VOFRHO | 69.1326959133 (one diagnostic run) | measurement | `a371d4d` |
 | 78 | Temporarily offload remaining data-parallel host loops together | 68.3785300255 (run 01) | rejected | `94e7176` + `cc65c3c` / result rollback |
 | 79 | Split G2VXC2 exchange-correlation path | 69.1785750389 (one diagnostic run) | inactive-path measurement | `0f3b066` |
-| 80 | Offload active LDA S2VXC2 grid loop | 67.4321370125 (run 01) | promising; runs 02/03 pending | `59686f0` |
+| 80 | Offload active LDA S2VXC2 grid loop | 67.4207620621 median | acceptance candidate; approval pending | `59686f0` |
 
 ## Other Rejected Experiments
 
@@ -1474,24 +1474,26 @@ order per point, caller FFT, Hartree work, MPI, and CPU/FFTW behavior. Run
 regression, collect runs 02/03 with `tools/run_tddft_step80.sh 02-03` and
 compare the three-run median with the official Step 74 median.
 
-## Step 80 Initial Result
+## Step 80 Three-Run Result
 
 - Archive: `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_01`
 - Tested revision: `59686f06731feb089ac21d6caa11331dd81051f7`
-- Wall: `67.4321370125` sec
-- Correctness: check PASS; relaxed compare PASS
-- Step 74 median difference: `-0.6359818686` sec (`-0.934331%`)
-- `time_step_total`: `67.636696` sec
-- `frprmn`: `58.599733` sec
-- `tmevl_total`: `51.057783` sec
-- `s2_nonlocal`: `11.353528` sec
-- `s2_nonlocal_gemm`: `9.992073` sec
-- `exnlp_gemm_dot`: `8.324000` sec
+- Run 01: `67.4321370125` sec; check PASS; relaxed compare PASS
+- Run 02: `67.2197408676` sec; check PASS; relaxed compare PASS
+- Run 03: `67.4207620621` sec; check PASS; relaxed compare PASS
+- Three-run median: `67.4207620621` sec
+- Run range: `0.2123961449` sec
+- Step 74 median improvement: `0.6473568190` sec (`0.951043%`)
+- Median-wall run 03 `time_step_total`: `67.624276` sec
+- Median-wall run 03 `frprmn`: `58.618044` sec
+- Median-wall run 03 `tmevl_total`: `51.152267` sec
+- Median-wall run 03 `s2_nonlocal`: `11.383827` sec
+- Median-wall run 03 `s2_nonlocal_gemm`: `10.032972` sec
+- Median-wall run 03 `exnlp_gemm_dot`: `8.364374` sec
 
-The first diagnostic-off run is correct and faster than the official Step 74
-median by substantially more than the Step 74 run range. This is promising,
-but it is not yet accepted from one run. Collect runs 02/03 together and make
-the adoption decision from the three-run median.
+All three diagnostic-off runs are correct. The median advantage satisfies the
+performance gate and makes Step 80 an acceptance candidate. Formal baseline
+replacement and the next diagnostic remain pending explicit human approval.
 
 ## Step 78 Temporary Maximum-Offload Result and Rejection
 

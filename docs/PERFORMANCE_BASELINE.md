@@ -23,6 +23,24 @@ Last updated: 2026-07-24
 Official three-run median: `68.0681188811` sec.
 Run-to-run range: `0.0546169281` sec.
 
+## Pending Step 80 Acceptance Candidate
+
+Step 80 offloads only the active LDA S2VXC2 independent grid-point loop.
+Its source implementation is `59686f0`.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_01` | 67.4321370125 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_02` | 67.2197408676 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_03` | 67.4207620621 | PASS | PASS |
+
+Candidate median: `67.4207620621` sec.
+Candidate run range: `0.2123961449` sec.
+Improvement over Step 74: `0.6473568190` sec (`0.951043%`).
+
+All runs passed the performance and correctness gates. Formal replacement of
+the official Step 74 baseline remains pending explicit human approval.
+
 ## Step 74 Median-Wall Run 02 Profile
 
 | timer | total_sec |

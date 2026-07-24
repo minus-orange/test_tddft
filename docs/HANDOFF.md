@@ -584,11 +584,12 @@ MPI, and CPU/FFTW behavior. Run `tools/run_tddft_step80.sh 01` first. Run
 `02-03` only after a healthy first result and decide from the diagnostic-off
 three-run median against Step 74.
 
-Step 80 run 01 at revision `59686f0` passed both checks and took
-`67.4321370125` sec. This is `0.6359818686` sec (`0.934331%`) faster than the
-official Step 74 median and is larger than the Step 74 run range. The result
-is promising but remains provisional until runs 02/03 are collected with
-`tools/run_tddft_step80.sh 02-03` and the three-run median is evaluated.
+Step 80 runs 01/02/03 at revision `59686f0` all passed both checks and took
+`67.4321370125`, `67.2197408676`, and `67.4207620621` sec. The median is
+`67.4207620621` sec with a `0.2123961449` sec range, improving on Step 74 by
+`0.6473568190` sec (`0.951043%`). Step 80 satisfies the performance gate and
+is an acceptance candidate. Formal baseline replacement and the next
+diagnostic remain pending explicit human approval.
 
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
