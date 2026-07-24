@@ -212,7 +212,7 @@ c ***  work area for orthogonization
 c      complex*16  sig(nbndq,nbndq),x0(nbndq,nbndq),
 c     &    x1(nbndq,nbndq),work1(nbndq,nbndq),work20(nbndq,nbndq)
 ccc
-      complex*16 ctemp
+      complex*16 ctemp,ctmp
 c ***  work area for orthogonization
 c      complex*16  sig(nbndq*numkq*nbndq*numkq),
 c     &    x0(nbndq*numkq*nbndq*numkq),
@@ -762,10 +762,14 @@ C
 c *** Smoothing of potential : rho1 as work area
 *VDIR NODEP(rho1,rho3)
 !ocl norecurrence(rho1,rho3)
+!$acc parallel loop copyin(RHO3(1:NXYZ),FDUMP(1:NXYZ),
+!$acc& I2G(1:NXYZ)) copyout(RHO1(1:NXYZ))
       do ig=1,nxyz
       jg=i2g(ig)
       rho1(jg)=rho3(jg)*fdump(ig)
       enddo
+!$acc parallel loop copyin(RHO1(1:NXYZ))
+!$acc& copyout(RHO3(1:NXYZ))
       do ig=1,nxyz
       rho3(ig)=rho1(ig)
       enddo
@@ -812,6 +816,9 @@ c  ***  extrapolate VG(t+dt/2) from past VG's ***
        if ( itstep.ne.0 ) then
 c ***
         if ( itstep.eq.1 ) then
+!$acc parallel loop copyin(RHO3(1:NXYZ))
+!$acc& copyout(VG0(1:NXYZ),VG1(1:NXYZ),VG2(1:NXYZ),
+!$acc& VG3(1:NXYZ),VG4(1:NXYZ),VG5(1:NXYZ))
          do ig=1,nxyz
           rr3=dreal( RHO3(IG) )
           VG0(IG)=rr3
@@ -846,6 +853,10 @@ c * for vg5 ***
          call extvgen(a3v5,a4v5,b3v5,b4v5,pf,pi)
 c
          thrd=1.d0/3.d0
+!$acc parallel loop copyin(RHO3(1:NXYZ))
+!$acc& copy(VG0(1:NXYZ),VG3(1:NXYZ))
+!$acc& copyout(VG1(1:NXYZ),VG2(1:NXYZ),
+!$acc& VG4(1:NXYZ),VG5(1:NXYZ))
          do ig=1,nxyz
           rr3=dreal( RHO3(IG) )
           rr0=VG0(IG)
@@ -865,6 +876,8 @@ ccc          VGPST(IG)=VG0(IG)
          enddo
         endif ! if itsetp.eq.1 or ge.2 loop end:
        endif  ! if iscf.eq.1 loop end
+!$acc parallel loop copyin(VG3(1:NXYZ))
+!$acc& copyout(VGOLD(1:NXYZ))
       do ig=1,nxyz
        VGOLD(ig)=VG3(ig) ! store
       enddo
@@ -894,6 +907,9 @@ c
 c
         if ( itstep.eq.1 .and. iscf.eq.2 ) then
 cc        if ( itstep.ge.1 ) then
+!$acc parallel loop copyin(RHO3(1:NXYZ),VG0(1:NXYZ))
+!$acc& copyout(VG1(1:NXYZ),VG2(1:NXYZ),VG3(1:NXYZ),
+!$acc& VG4(1:NXYZ),VG5(1:NXYZ))
          do ig=1,nxyz
 c            linear interpolation !!!
          rr3=dreal( RHO3(IG) )
@@ -928,6 +944,10 @@ c * for vg5 ***
          call intvgen(a3v5,a4v5,b3v5,b4v5,pf,pi)
 c
          THRD=1.d0/3.d0
+!$acc parallel loop copyin(RHO3(1:NXYZ),VG0(1:NXYZ))
+!$acc& copy(VG3(1:NXYZ))
+!$acc& copyout(VG1(1:NXYZ),VG2(1:NXYZ),
+!$acc& VG4(1:NXYZ),VG5(1:NXYZ))
          do ig=1,nxyz
          rr3=dreal( RHO3(IG) )
          rr0=VG0(IG)
@@ -983,6 +1003,8 @@ c       call coefcp(coef0(1,nbgn,ik0),coef(1,nbgn,ik0),ng2q*nblng)
        call coefcp(coef0(1,1,ik0),coef(1,1,ik0),ng2q*nblng)
        enddo
 #endif
+!$acc parallel loop copyin(VG3(1:NXYZ))
+!$acc& copyout(VGOLD(1:NXYZ))
        do ig=1,nxyz
         VGOLD(ig)=VG3(ig) ! store
        enddo
@@ -1013,6 +1035,8 @@ cc
 cc     POTENTIAL VG: G -> real space
 cc
 c
+!$acc parallel loop copyin(RHO3(1:NXYZ),RHO4(1:NXYZ),
+!$acc& VEXT(1:NXYZ)) copyout(VG(1:NXYZ))
        do ig=1,nxyz
 c       VG(IG)=RHO3(IG)+RHO4(IG)
        VG(IG)=RHO3(IG)+RHO4(IG)+ft*VEXT(IG)
@@ -1030,12 +1054,16 @@ cccc
 cc     POTENTIAL VG: G -> real space
 cc
 c +++ compute E-field from VG : real space
+!$acc parallel loop copyin(RHO3(1:NXYZ),RHO4(1:NXYZ),
+!$acc& VEXT(1:NXYZ)) copyout(VPLT(1:NXYZ))
         do ig=1,nxyz
 c       VG(IG)=RHO3(IG)+RHO4(IG)
         Vplt(IG)=RHO3(IG)+RHO4(IG)+ft*VEXT(IG)
         enddo
         call Efield(Vplt,nrx,nry,nrz,nxyz,time,92)
 c
+!$acc parallel loop copyin(VEXT(1:NXYZ))
+!$acc& copyout(VPLT(1:NXYZ))
         do ig=1,nxyz
         Vplt(IG)=ft*VEXT(IG)
         enddo
@@ -1140,6 +1168,9 @@ c     & YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
       call prof_start(83)
 #endif
        temp=0
+!$acc parallel loop reduction(+:temp)
+!$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc& copyin(DCOEF(1:NG2Q,1:1))
         do ig=1,ng2(ik)
 c        temp=temp + dble( dconjg( coef(ig,ib,ik) )*dcoef(ig,1) )
         temp=temp + dble( dconjg( coef(ig,iib,ik) )*dcoef(ig,1) )
@@ -1290,13 +1321,19 @@ c     &   YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
 #endif
 c
 c          do ib1=nbegin(my_rank),nend(my_rank)
+!$acc parallel loop gang private(iib1,ctmp)
+!$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc& copyin(DCOEF(1:NG2Q,1:1))
+!$acc& copy(CMAT(1:NBNDQ,1:NBNDQ))
           do ib1=ib2+1,nend(my_rank)
            iib1=ib1-nbegin(my_rank)+1
-           cmat(ib1,ib2)=0.d0
+           ctmp=(0.d0,0.d0)
+!$acc loop vector reduction(+:ctmp)
             do ig=1,nxyz
-              cmat(ib1,ib2)=cmat(ib1,ib2)+
+              ctmp=ctmp+
      &         dconjg( coef(ig,iib1,ik) )* dcoef(ig,1)
             enddo
+           cmat(ib1,ib2)=ctmp
 c *** temp check
 c          write(6,*)'my_rank',my_rank,'ik',ik,'<',ib1,'|H|'
 c     &      ,ib2,'>=',cmat(ib1,ib2)
@@ -1411,16 +1448,22 @@ c          write(6,*)'my_rank',my_rank,' H*coef ended !'
 c          if (my_rank.eq.3 ) stop
 c         endif
 c ** temp check end
+!$acc parallel loop gang private(iib1,ctmp)
+!$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc& copyin(DCOEF(1:NG2Q,1:1))
+!$acc& copy(CMAT(1:NBNDQ,1:NBNDQ))
            do ib1=nbegin(my_rank),nend(my_rank)
            iib1=ib1-nbegin(my_rank)+1
 c           cmat(ib1,ib2)=0
-           cmat(ib2,ib1)=0
+           ctmp=(0.d0,0.d0)
+!$acc loop vector reduction(+:ctmp)
             do ig=1,nxyz
 c             cmat(ib1,ib2)=cmat(ib1,ib2)+
-             cmat(ib2,ib1)=cmat(ib2,ib1)+
+             ctmp=ctmp+
 c     &        dconjg( coef(ig,iib1,ik) )*dcoef(ig,1)
      &        coef(ig,iib1,ik)*dconjg( dcoef(ig,1) )
             enddo  ! end of ig loop
+           cmat(ib2,ib1)=ctmp
 c *** temp check
 cc          cmat(ib2,ib1)=dconjg( cmat(ib1,ib2) )
 c          write(6,*)'my_rank',my_rank,'ik',ik,'<',ib2,'|H|'
@@ -1806,6 +1849,11 @@ c *** prepare EXTAU !!!
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_start(48)
 #endif
+#ifdef _OPENACC
+      call PREPARE_EXTAU_ACC(NGcont,NTAUQ,G21(1,1,IK),
+     & G22(1,1,IK),G23(1,1,IK),G24(1,1,IK),G25(1,1,IK),
+     & TAU1,TAU2,TAU3,TAU4,TAU5,EXTAU,TPIBA)
+#else
 c ****** part 1 ********
 ! ==============================================================================
 !     ITBF=0
@@ -2007,6 +2055,7 @@ c      call MPI_Bcast(EXTAU(1,nbegint(icpu),5),ntleng*(nxyz/6)
 c     & ,MPI_DOUBLE_COMPLEX, icpu,MPI_COMM_WORLD,ierr)
 c      enddo
 c **
+#endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(48)
       call prof_start(58)
@@ -2727,6 +2776,8 @@ c
 c      complex*16 VG(NXYZ),VGOLD(NXYZ)
       dimension VG(NXYZ),VGOLD(NXYZ)
       RDIF=0
+!$acc parallel loop reduction(+:RDIF)
+!$acc& copyin(VG(1:NXYZ),VGOLD(1:NXYZ))
       do 1 ig=1,nxyz
 c      sss=abs(  ( VG(IG)-VGOLD(IG) ) ) 
       sss=VG(IG)-VGOLD(IG) 
@@ -3103,6 +3154,72 @@ c
      & ,mshbegin,mshend,ncpuq,1 )
 #endif
 c
+!$acc end data
+      return
+      end
+
+c ======================================================================
+c     Temporary MAX_OFFLOAD experiment: build all five EXTAU tables on
+c     the GPU.  This intentionally repeats the rejected Step 69 mapping
+c     so its interaction with the additional offloaded host loops can be
+c     measured once.  The experiment will be reverted after the A100 run.
+c ======================================================================
+      subroutine PREPARE_EXTAU_ACC(NGcont,NTAUQ,G21,G22,G23,G24,G25,
+     & TAU1,TAU2,TAU3,TAU4,TAU5,EXTAU,TPIBA)
+      implicit real*8 (a-h,o-z)
+      dimension G21(4,NGcont),G22(4,NGcont),G23(4,NGcont),
+     & G24(4,NGcont),G25(4,NGcont)
+      dimension TAU1(3,NTAUQ),TAU2(3,NTAUQ),TAU3(3,NTAUQ),
+     & TAU4(3,NTAUQ),TAU5(3,NTAUQ)
+      complex*16 EXTAU(NGcont,5,NTAUQ)
+
+!$acc data copyin(G21,G22,G23,G24,G25,TAU1,TAU2,TAU3,TAU4,TAU5)
+!$acc& copyout(EXTAU)
+!$acc parallel loop collapse(2) vector_length(128)
+      do itseq=1,NTAUQ
+       do ig=1,NGcont
+        temp=TPIBA*(G21(1,ig)*TAU1(1,itseq)
+     &             +G21(2,ig)*TAU1(2,itseq)
+     &             +G21(3,ig)*TAU1(3,itseq))
+        EXTAU(ig,1,itseq)=DCMPLX(COS(temp),SIN(temp))
+       enddo
+      enddo
+!$acc parallel loop collapse(2) vector_length(128)
+      do itseq=1,NTAUQ
+       do ig=1,NGcont
+        temp=TPIBA*(G22(1,ig)*TAU2(1,itseq)
+     &             +G22(2,ig)*TAU2(2,itseq)
+     &             +G22(3,ig)*TAU2(3,itseq))
+        EXTAU(ig,2,itseq)=DCMPLX(COS(temp),SIN(temp))
+       enddo
+      enddo
+!$acc parallel loop collapse(2) vector_length(128)
+      do itseq=1,NTAUQ
+       do ig=1,NGcont
+        temp=TPIBA*(G23(1,ig)*TAU3(1,itseq)
+     &             +G23(2,ig)*TAU3(2,itseq)
+     &             +G23(3,ig)*TAU3(3,itseq))
+        EXTAU(ig,3,itseq)=DCMPLX(COS(temp),SIN(temp))
+       enddo
+      enddo
+!$acc parallel loop collapse(2) vector_length(128)
+      do itseq=1,NTAUQ
+       do ig=1,NGcont
+        temp=TPIBA*(G24(1,ig)*TAU4(1,itseq)
+     &             +G24(2,ig)*TAU4(2,itseq)
+     &             +G24(3,ig)*TAU4(3,itseq))
+        EXTAU(ig,4,itseq)=DCMPLX(COS(temp),SIN(temp))
+       enddo
+      enddo
+!$acc parallel loop collapse(2) vector_length(128)
+      do itseq=1,NTAUQ
+       do ig=1,NGcont
+        temp=TPIBA*(G25(1,ig)*TAU5(1,itseq)
+     &             +G25(2,ig)*TAU5(2,itseq)
+     &             +G25(3,ig)*TAU5(3,itseq))
+        EXTAU(ig,5,itseq)=DCMPLX(COS(temp),SIN(temp))
+       enddo
+      enddo
 !$acc end data
       return
       end
