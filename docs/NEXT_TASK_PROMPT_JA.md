@@ -248,6 +248,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     `67.4207620621 sec`、実行幅`0.2123961449 sec`。
 87. 次は追加最適化ではなく、正式Step 80 sourceの既存広域FRPRMN timerを再実行する
     Step 81診断。A100では`./tools/run_tddft_step81.sh`を1回実行する。
+88. ユーザーがH100でStep 80を1回試し、`36.492636919 sec`、PASS/PASSだった。
+    A100 Step 80中央値比は`1.847517x`、wallは`45.873295%`短い。
+89. H100値は1回のみで、正確なH100型式、revision、compiler、`cc90` build条件が未記録。
+    H100正式baselineにはせず、A100 Step 81計画も変更しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

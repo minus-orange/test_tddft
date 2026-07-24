@@ -1503,6 +1503,22 @@ timers on the accepted Step 80 source and report the residual, classified
 children, and unclassified gap. Run `tools/run_tddft_step81.sh` once. Its
 diagnostic wall must not replace the Step 80 baseline.
 
+## Step 80 H100 Exploratory Run
+
+- Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`
+- Reported source: Step 80
+- Device class: NVIDIA H100 (exact model not yet recorded)
+- Wall: `36.492636919` sec
+- Correctness: check PASS; relaxed compare PASS
+- Difference from the A100 Step 80 median: `-30.928125143` sec
+- Relative wall reduction: `45.873295%`
+- A100-median/H100-run ratio: `1.847517x`
+
+This is a useful cross-device observation, not a formal H100 baseline. It is
+one run, and the photograph does not establish the exact H100 model, Git
+revision, compiler version, or whether the binary was compiled for `cc90`.
+Do not mix it into the A100 three-run series or change the A100 baseline.
+
 ## Step 78 Temporary Maximum-Offload Result and Rejection
 
 At the user's request, one temporary combined experiment was run before Step 77

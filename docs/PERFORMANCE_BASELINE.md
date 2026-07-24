@@ -156,6 +156,15 @@ Its `67.4207620621` sec median is `0.6473568190` sec (`0.951043%`) faster than
 Step 74, with a `0.2123961449` sec range. Step 80 supersedes Step 74 as the
 official baseline.
 
+## H100 Cross-Device Observation
+
+One user-operated Step 80 run on an NVIDIA H100 reported
+`36.492636919` sec and passed both correctness checks. This is `1.847517x`
+the throughput of the A100 Step 80 median, or a `45.873295%` wall reduction.
+It is not a formal H100 baseline because only one run is available and the
+exact H100 model, Git revision, compiler version, and GPU architecture target
+were not captured. The official baseline above remains A100-only.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

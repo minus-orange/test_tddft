@@ -29,6 +29,11 @@
 
 全正式採用runで通常checkとrelaxed compareにPASSした。
 
+参考値:
+
+- H100でのStep 80単発runは`36.492636919秒`、check/compare PASS。
+- A100正式中央値に対して約`1.85倍`だが、H100は3回測定前の参考値である。
+
 ## スライド2: GPU化の設計方針
 
 - 計算量の大きいloopをOpenACC kernel化する。

@@ -595,6 +595,13 @@ FRPRMN timers on the accepted Step 80 source to classify the current residual
 before another hypothesis is selected. Run `tools/run_tddft_step81.sh` once;
 its diagnostic wall is not a baseline.
 
+A user-operated exploratory Step 80 run on an NVIDIA H100 took
+`36.492636919` sec and passed both checks. It is `1.847517x` faster than the
+A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
+only one run, and the exact H100 model, revision, compiler, and `cc90` build
+target were not captured. Keep the official A100 baseline and Step 81 plan
+unchanged.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
