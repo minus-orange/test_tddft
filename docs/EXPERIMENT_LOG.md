@@ -1,6 +1,6 @@
 # TDDFT GPU Experiment Log
 
-Last updated: 2026-07-23
+Last updated: 2026-07-24
 
 The performance baseline is defined in `PERFORMANCE_BASELINE.md`. Detailed
 implementation and timer notes are in the bilingual progress summaries.
@@ -58,6 +58,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 72 | Split expectation envelope | 68.6513030529 (one diagnostic run) | measurement | `10a1d50` |
 | 73 | Split off-diagonal envelope | 69.2815968990 (one diagnostic run) | measurement | `6fdbecb` |
 | 74 | Reuse band-independent NONLOC YLM preparation | 68.0681188811 | accepted baseline | `3687243` |
+| 78 | Temporarily offload remaining data-parallel host loops together | 68.3785300255 (run 01) | rejected | `94e7176` + `cc65c3c` / result rollback |
 
 ## Other Rejected Experiments
 
@@ -1414,6 +1415,31 @@ Hartree zeroing, Hartree construction, and Hartree addition. This changes no
 equations, loop order, MPI, OpenACC ownership, or diagnostic-off execution.
 Run `tools/run_tddft_step77.sh` once. Its wall is diagnostic and cannot replace
 the Step 74 baseline.
+
+## Step 78 Temporary Maximum-Offload Result and Rejection
+
+At the user's request, one temporary combined experiment was run before Step 77
+to obtain a quick upper-bound result. Under OpenACC it additionally offloaded
+EXTAU table generation, VRHO array/control loops, expectation and off-diagonal
+dot products, and the convergence reduction. MPI calls and scalar branch
+control remained on the host. The first revision `94e7176` required the
+follow-up lifetime fix `cc65c3c`, which placed COEF in one enclosing data
+region for the expectation/off-diagonal interval.
+
+- Archive: `nvhpc_cufft_1rank_02_STEP78_MAX_OFFLOAD_01`
+- Tested revision: `cc65c3c88738e9b49cfc0307665444dbb60ccce9`
+- Wall: `68.3785300255` sec
+- Correctness: check PASS; relaxed compare PASS
+- Step 74 median difference: `+0.3104111444` sec (`+0.456030%`)
+- Difference relative to the Step 74 run range: `5.6834x`
+
+The combined change is correct but clearly slower than the official Step 74
+median. Runs 02/03 are intentionally skipped. The added source and one-run
+helper are reverted in the same result-record commit, restoring the accepted
+Step 74 execution path. This result also reinforces the existing conclusion
+that increasing the number of offloaded loops without extending coherent
+device ownership can add transfer and launch overhead. Resume the bounded
+workflow with the still-pending Step 77 VOFRHO diagnostic.
 
 ## Step 75 Result
 

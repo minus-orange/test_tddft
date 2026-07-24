@@ -1,6 +1,6 @@
 # TDDFT GPU Performance Baseline
 
-Last updated: 2026-07-23
+Last updated: 2026-07-24
 
 ## Official Baseline
 
@@ -142,6 +142,12 @@ All three runs passed both checks. Its `68.0681188811` sec median is
 `0.2935330163` sec (`0.429383%`) faster than Step 67, with a
 `0.0546169281` sec range. Every Step 74 run is faster than the fastest Step 67
 run, so Step 74 supersedes Step 67 as the official baseline.
+
+Step 78 temporarily offloaded several remaining data-parallel host-loop
+candidates together. Its single diagnostic-off run passed both checks but took
+`68.3785300255` sec, `0.3104111444` sec (`0.456030%`) slower than the Step 74
+median and `5.6834x` the Step 74 run range. Runs 02/03 were skipped and the
+temporary implementation was reverted. Step 74 remains the official baseline.
 
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit

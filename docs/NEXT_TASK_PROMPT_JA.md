@@ -208,6 +208,18 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     加算へ分解してから単一仮説を選ぶ。
 69. Step 77はVOFRHOへdefault-off子timerだけを追加する。`./tools/run_tddft_step77.sh`
     を1回実行し、diagnostic wallはbaselineに使用しない。
+70. ユーザー要望によりStep 77より先に、一時的なStep 78 MAX_OFFLOADを1回だけ実行した。
+    EXTAU生成、VRHO配列・制御loop、energy expectation/off-diagonal内積、収束reductionを
+    まとめてOpenACC化し、MPI呼出しとscalar分岐制御はhostに維持した。
+71. 初回revision `94e7176`では初期stepのCOEFがdeviceに存在せずpresent errorとなった。
+    `cc65c3c`でexpectation/off-diagonal区間を1個のdata領域で囲み、COEFを区間入口で
+    1回だけ用意して修正した。
+72. Step 78 archive `nvhpc_cufft_1rank_02_STEP78_MAX_OFFLOAD_01`はPASS/PASS。
+    wallは`68.3785300255 sec`で、Step 74中央値より`0.3104111444 sec`
+    （`0.456030%`）、正式実行幅の`5.6834x`遅かった。
+73. 明確な回帰のためrun 02/03は省略し、Step 78のsourceと専用helperを結果記録と同時に
+    revertした。追加loopを個別転送付きでGPU化するだけでは採用しない。
+74. 正式baselineは引き続きStep 74。次のbounded actionは未実施のStep 77 VOFRHO診断へ戻る。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

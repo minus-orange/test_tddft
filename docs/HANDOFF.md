@@ -545,6 +545,18 @@ Step 77 adds default-off VOFRHO child timers for exchange-correlation, FFT,
 Hartree zeroing, Hartree construction, and Hartree addition. Use
 `tools/run_tddft_step77.sh` once; its wall is not a performance baseline.
 
+Before running Step 77, Step 78 temporarily combined the remaining
+data-parallel host-loop candidates to obtain a quick upper-bound result. It
+offloaded EXTAU generation, VRHO array/control loops, energy expectation and
+off-diagonal dot products, and convergence reduction while retaining host MPI
+and scalar branch control. Archive
+`nvhpc_cufft_1rank_02_STEP78_MAX_OFFLOAD_01` passed both checks at revision
+`cc65c3c` but took `68.3785300255` sec. That is `0.3104111444` sec
+(`0.456030%`) slower than the Step 74 median and `5.6834x` the accepted run
+range. Runs 02/03 were skipped, and the complete temporary implementation and
+helper were reverted in the result-record commit. Step 74 remains the official
+baseline; the next bounded action remains the Step 77 diagnostic.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47
