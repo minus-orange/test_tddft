@@ -1121,6 +1121,7 @@ c      write(6,*)' Before calculating the expectation values '
 c      write(6,*)'     VG in real space '
 c      write(6,*)( vg(ig),ig=1,1500,100 )
 c ***  temp check : end
+!$acc data copyin(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
       do ik=1,numk
        if ( itstep.eq.ntstep .and. IOK.eq.1 ) then
        if ( my_rank.eq.0 ) write(6,1818)ik
@@ -1543,6 +1544,7 @@ c **************
 #endif
        endif  ! end of if  itstep.eq.ntstep .and... loop
       enddo   ! end of ik loop
+!$acc end data
  1212 format( '<',i4,'| H |',i4,'>=',2F24.16,' HR ')
  1818 format(' Off-diagonal elements at the',i4,'-th k-point')
 c **** temp check
