@@ -60,25 +60,32 @@ count cuFFT library internals, and it intentionally stays unchanged for
 residency, allocation, vector-length, reuse, and transfer-boundary
 optimizations that add no compute construct.
 
-| accepted step | compute sites | relative source GPU index |
-|---:|---:|---:|
-| 21 | 11 | 57.9% |
-| 22 | 11 | 57.9% |
-| 23 | 11 | 57.9% |
-| 24 | 11 | 57.9% |
-| 25 | 11 | 57.9% |
-| 28 | 12 | 63.2% |
-| 33 | 16 | 84.2% |
-| 34 | 16 | 84.2% |
-| 36 | 16 | 84.2% |
-| 37 | 16 | 84.2% |
-| 41 | 16 | 84.2% |
-| 52 | 17 | 89.5% |
-| 57 | 18 | 94.7% |
-| 62 | 18 | 94.7% |
-| 67 | 18 | 94.7% |
-| 74 | 18 | 94.7% |
-| 80 | 19 | 100.0% |
+For a bounded time-step-loop estimate, the denominator is 39 currently
+identified parallelizable compute sites: the 19 accepted Step 80 sites plus
+the 20 additional sites temporarily tested together in Step 78 and reverted.
+This is a provisional absolute candidate-site coverage, not proof that all
+theoretically parallelizable loops have been identified. It weights a small
+control loop and a dominant array kernel equally.
+
+| accepted step | compute sites | relative index | identified time-step candidate coverage |
+|---:|---:|---:|---:|
+| 21 | 11 | 57.9% | 28.2% |
+| 22 | 11 | 57.9% | 28.2% |
+| 23 | 11 | 57.9% | 28.2% |
+| 24 | 11 | 57.9% | 28.2% |
+| 25 | 11 | 57.9% | 28.2% |
+| 28 | 12 | 63.2% | 30.8% |
+| 33 | 16 | 84.2% | 41.0% |
+| 34 | 16 | 84.2% | 41.0% |
+| 36 | 16 | 84.2% | 41.0% |
+| 37 | 16 | 84.2% | 41.0% |
+| 41 | 16 | 84.2% | 41.0% |
+| 52 | 17 | 89.5% | 43.6% |
+| 57 | 18 | 94.7% | 46.2% |
+| 62 | 18 | 94.7% | 46.2% |
+| 67 | 18 | 94.7% | 46.2% |
+| 74 | 18 | 94.7% | 46.2% |
+| 80 | 19 | 100.0% | 48.7% |
 
 Regenerate this table with `tools/report_tddft_source_gpu_index.sh`.
 

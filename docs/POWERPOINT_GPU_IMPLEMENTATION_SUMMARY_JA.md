@@ -333,23 +333,23 @@ kernel特殊化:
 
 ## スライド11: 性能推移
 
-| 段階 | 主な変更 | 100-step wall | 相対ソースGPU化率 |
+| 段階 | 主な変更 | 100-step wall | time-step候補GPU化率 |
 |---|---|---:|---:|
 | 初期cuFFT host-copy | FFTごとにH2D/D2H | 約443.2秒 | 対象外 |
 | Step 3 | device pointer cuFFT | 約360.3秒 | 対象外 |
 | Step 12 | P常駐＋冗長kernel削除 | 約172.65秒 | 対象外 |
-| Step 21 | local FFT batch化 | 約146.54秒 | 57.9% |
-| Step 25 | nonlocal kernel融合・調整 | 約130.61秒 | 57.9% |
-| Step 33 | charge-density FFT batch化 | 約116.12秒 | 84.2% |
-| Step 34 | coefficient D2H繰延べ | 約113.56秒 | 84.2% |
-| Step 37 | pinned allocation | 約108.10秒 | 84.2% |
-| Step 41 | static metadata常駐 | 約107.75秒 | 84.2% |
-| Step 52 | VPJ動径積分GPU化 | 約73.44秒 | 89.5% |
-| Step 57 | LOCPOT GPU化 | 約71.29秒 | 94.7% |
-| Step 62 | 冗長host復元削除 | 約68.57秒 | 94.7% |
-| Step 67 | VPJ vector length 128 | 約68.36秒 | 94.7% |
-| Step 74 | YLM再利用 | 約68.07秒 | 94.7% |
-| Step 80 | LDA交換相関loop GPU化 | 約67.42秒 | 100.0% |
+| Step 21 | local FFT batch化 | 約146.54秒 | 28.2% |
+| Step 25 | nonlocal kernel融合・調整 | 約130.61秒 | 28.2% |
+| Step 33 | charge-density FFT batch化 | 約116.12秒 | 41.0% |
+| Step 34 | coefficient D2H繰延べ | 約113.56秒 | 41.0% |
+| Step 37 | pinned allocation | 約108.10秒 | 41.0% |
+| Step 41 | static metadata常駐 | 約107.75秒 | 41.0% |
+| Step 52 | VPJ動径積分GPU化 | 約73.44秒 | 43.6% |
+| Step 57 | LOCPOT GPU化 | 約71.29秒 | 46.2% |
+| Step 62 | 冗長host復元削除 | 約68.57秒 | 46.2% |
+| Step 67 | VPJ vector length 128 | 約68.36秒 | 46.2% |
+| Step 74 | YLM再利用 | 約68.07秒 | 46.2% |
+| Step 80 | LDA交換相関loop GPU化 | 約67.42秒 | 48.7% |
 
 総合結果:
 
@@ -359,10 +359,11 @@ kernel特殊化:
 実行時間を約84.8%削減
 ```
 
-相対ソースGPU化率は、Step 80のNVHPC実ビルド対象にあるOpenACC compute site
-19個を100%とした履歴比較値である。GPU使用率や、理論上並列化可能な全loopに対する
-絶対率ではない。データ常駐、allocation、vector length、重複処理削減では
-compute site数が増えないため、性能が向上しても率は同じ場合がある。
+time-step候補GPU化率は、現在GPU化済みの19 siteと、Step 78で一時GPU化して戻した
+残候補20 siteを合わせた39 siteを母数とする暫定値である。全候補を数学的に網羅した
+絶対値ではなく、小さな制御loopと主要配列kernelを同じ1 siteとして数える。
+データ常駐、allocation、vector length、重複処理削減ではsite数が増えないため、
+性能が向上しても率は同じ場合がある。
 
 ## スライド12: 現在のソースと残課題
 

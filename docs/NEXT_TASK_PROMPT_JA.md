@@ -257,6 +257,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     Step 57/62/67/74は94.7%、Step 80は100.0%。
 91. このindexはGPU使用率でも全並列化可能loopの絶対GPU化率でもない。cuFFT内部を
     数えず、常駐、allocation、vector length、再利用だけの改善では値が変わらない。
+92. time-step loop内の既知候補に限定した暫定絶対値は、Step 80採用済み19 siteと
+    Step 78で一時GPU化してrevertした残候補20 site、計39 siteを母数とする。
+93. この候補site率はStep 37/41が41.0%、Step 52が43.6%、Step 57/62/67/74が46.2%、
+    Step 80が48.7%。小loopと支配kernelを同じ1 siteで数えるため演算量比ではない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

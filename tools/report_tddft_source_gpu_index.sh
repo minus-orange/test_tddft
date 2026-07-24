@@ -7,7 +7,8 @@ set -eu
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$ROOT_DIR"
 
-DENOMINATOR=19
+RELATIVE_DENOMINATOR=19
+TIMESTEP_CANDIDATE_DENOMINATOR=39
 FILES="
 FPSEID21/tddft_2022October/fft_cufft.f
 FPSEID21/tddft_2022October/frprmn_tm12_check_Vext_Avec_v4.f
@@ -16,7 +17,8 @@ FPSEID21/tddft_2022October/tmevl10_Avec_v4.f
 FPSEID21/tddft_2022October/vpj_gen.f
 "
 
-printf '%-6s %-9s %8s %10s\n' step commit sites index_pct
+printf '%-6s %-9s %8s %10s %14s\n' \
+  step commit sites relative_pct timestep_pct
 printf '%s\n' \
   '21 bad046f' \
   '22 1b98197' \
@@ -44,7 +46,13 @@ do
       wc -l |
       tr -d ' '
   )
-  percentage=$(awk -v count="$count" -v total="$DENOMINATOR" \
+  relative_percentage=$(awk -v count="$count" \
+    -v total="$RELATIVE_DENOMINATOR" \
     'BEGIN { printf "%.1f", 100.0 * count / total }')
-  printf '%-6s %-9s %8s %9s%%\n' "$step" "$commit" "$count" "$percentage"
+  timestep_percentage=$(awk -v count="$count" \
+    -v total="$TIMESTEP_CANDIDATE_DENOMINATOR" \
+    'BEGIN { printf "%.1f", 100.0 * count / total }')
+  printf '%-6s %-9s %8s %9s%% %13s%%\n' \
+    "$step" "$commit" "$count" \
+    "$relative_percentage" "$timestep_percentage"
 done
