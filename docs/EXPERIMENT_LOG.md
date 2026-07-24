@@ -58,6 +58,9 @@ implementation and timer notes are in the bilingual progress summaries.
 | 72 | Split expectation envelope | 68.6513030529 (one diagnostic run) | measurement | `10a1d50` |
 | 73 | Split off-diagonal envelope | 69.2815968990 (one diagnostic run) | measurement | `6fdbecb` |
 | 74 | Reuse band-independent NONLOC YLM preparation | 68.0681188811 | accepted baseline | `3687243` |
+| 75 | Re-measure accepted-source FRPRMN envelopes | 68.4886379242 (one diagnostic run) | measurement | `30c8623` |
+| 76 | Re-measure accepted-source VRHO children | 68.4871740341 (one diagnostic run) | measurement | `5a4b9c7` |
+| 77 | Split accepted-source VOFRHO | 69.1326959133 (one diagnostic run) | measurement | `a371d4d` |
 | 78 | Temporarily offload remaining data-parallel host loops together | 68.3785300255 (run 01) | rejected | `94e7176` + `cc65c3c` / result rollback |
 
 ## Other Rejected Experiments
@@ -1415,6 +1418,34 @@ Hartree zeroing, Hartree construction, and Hartree addition. This changes no
 equations, loop order, MPI, OpenACC ownership, or diagnostic-off execution.
 Run `tools/run_tddft_step77.sh` once. Its wall is diagnostic and cannot replace
 the Step 74 baseline.
+
+## Step 77 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP77_VOFRHO_SPLIT_01`
+- Tested revision: `a371d4d1f237d9d77d3e7ed77a807edd2c3ce68b`
+- Diagnostic wall: `69.1326959133` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- VRHO parent: `1.793642` sec
+- VOFRHO parent: `0.962422` sec
+- Exchange-correlation: `0.653802` sec (`67.9329%` of VOFRHO)
+- Final potential FFT: `0.111733` sec (`11.6095%`)
+- Hartree zeroing: `0.013661` sec
+- Hartree construction: `0.161106` sec (`16.7396%`)
+- Hartree addition: `0.017956` sec
+- VOFRHO gap: `0.004164` sec
+
+Exchange-correlation is the clear next diagnostic target. It contains
+reciprocal-space derivative setup, nine derivative FFTs, exchange work,
+correlation work, and final assembly. Split those five children before
+changing OpenACC ownership or loop placement.
+
+## Step 79 Plan
+
+Add default-off child timers only inside G2VXC2 for derivative setup, the nine
+derivative FFT calls, exchange, correlation, and final potential assembly.
+Preserve equations, loop order, FFT calls, MPI, OpenACC ownership, and the
+diagnostic-off path. Run `tools/run_tddft_step79.sh` once. Its wall is
+diagnostic and cannot replace the Step 74 baseline.
 
 ## Step 78 Temporary Maximum-Offload Result and Rejection
 

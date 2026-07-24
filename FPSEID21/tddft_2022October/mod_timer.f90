@@ -334,5 +334,15 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'vofrho_hartree_build'
   case (95)
     name = 'vofrho_hartree_add'
+  case (96)
+    name = 'g2vxc_derivative_setup'
+  case (97)
+    name = 'g2vxc_derivative_fft'
+  case (98)
+    name = 'g2vxc_exchange'
+  case (99)
+    name = 'g2vxc_correlation'
+  case (100)
+    name = 'g2vxc_assemble'
   end select
 end subroutine fpseid_mod_timer_name

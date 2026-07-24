@@ -557,6 +557,20 @@ range. Runs 02/03 were skipped, and the complete temporary implementation and
 helper were reverted in the result-record commit. Step 74 remains the official
 baseline; the next bounded action remains the Step 77 diagnostic.
 
+Step 77 subsequently passed both checks at revision `a371d4d`. Archive
+`nvhpc_cufft_1rank_02_STEP77_VOFRHO_SPLIT_01` took
+`69.1326959133` sec with diagnostics enabled, so its wall is not a baseline.
+VOFRHO was `0.962422` sec: exchange-correlation `0.653802`, final FFT
+`0.111733`, Hartree zeroing `0.013661`, Hartree construction `0.161106`,
+Hartree addition `0.017956`, and gap `0.004164` sec. Exchange-correlation is
+the dominant child at `67.9329%`.
+
+Step 79 is a diagnostic-only split of G2VXC2 into derivative setup, nine
+derivative FFTs, exchange, correlation, and final assembly. It changes no
+equations, loops, FFT calls, MPI, ownership, or diagnostic-off execution. Run
+`tools/run_tddft_step79.sh` once and use its child times to choose one bounded
+ownership or compute hypothesis.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

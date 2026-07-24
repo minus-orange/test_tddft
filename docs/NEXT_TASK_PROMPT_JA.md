@@ -220,6 +220,14 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 73. 明確な回帰のためrun 02/03は省略し、Step 78のsourceと専用helperを結果記録と同時に
     revertした。追加loopを個別転送付きでGPU化するだけでは採用しない。
 74. 正式baselineは引き続きStep 74。次のbounded actionは未実施のStep 77 VOFRHO診断へ戻る。
+75. Step 77はPASS/PASS。diagnostic wallは`69.1326959133 sec`でbaselineではない。
+    VOFRHO `0.962422 sec`の内訳はXC `0.653802`、最終FFT `0.111733`、
+    Hartree zero `0.013661`、Hartree build `0.161106`、Hartree add `0.017956`、
+    gap `0.004164 sec`。
+76. XCがVOFRHOの`67.9329%`で最大。次は追加最適化ではなく、G2VXC2を微分配列生成、
+    9本の微分FFT、exchange、correlation、最終合成へ分けるStep 79診断を行う。
+77. Step 79はtimerだけを追加し、数式、loop順、FFT呼出し、MPI、OpenACC ownership、
+    diagnostic-off経路を変更しない。A100では`./tools/run_tddft_step79.sh`を1回実行する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

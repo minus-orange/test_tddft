@@ -68,6 +68,9 @@ c       miya=13
 c       if (miya.eq.13 ) stop
 c ** check end
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+       call prof_start(96)
+#endif
        DO JG = 1, NXYZ
         DRX(JG)  = (0.0D0,0.0D0)
         DRY(JG)  = (0.0D0,0.0D0)
@@ -92,6 +95,10 @@ C
         DRYZ(JG) =  - TPIBA2*G(2,IG)*G(3,IG)*RHOG(JG)
         DRZX(JG) =  - TPIBA2*G(3,IG)*G(1,IG)*RHOG(JG)
        END DO
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+       call prof_stop(96)
+       call prof_start(97)
+#endif
 C
 C --- TRANSFORM TO R-SPACE ----
 c *** for Sugino FFT
@@ -210,6 +217,10 @@ c       call FFT3BX_fftw(NXYZ,DRZX,plancfp,plancbp)
 c **** for Kokubo fftw ASL compatible
         CALL FFT3BX_fftwASL( NRX, NRY, NRZ, NXYZ, DRZX, VWORK,
      &              plancfp,plancbp            )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+       call prof_stop(97)
+       call prof_start(98)
+#endif
 C
       DO 100 IG = 1, NXYZ
        VX    = 0.0D0
@@ -249,6 +260,10 @@ C ---  GGA EXCHANGE ---
 c
 c       CALL EXCHPBE(DEN,S,U1,V1,1,1,EX,VX)
        CALL EXCHPBE(RHO,VWORK,DRYY,1,1,DRZZ,NXYZ,GMIN)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+       call prof_stop(98)
+       call prof_start(99)
+#endif
 C --- LDA CORRELATION ---
 c       CALL CORLSD(RS,0,ECLOC,VCLOC,VCDN,ECRS,ECZET,ALFC)
 c       zzero=0
@@ -283,6 +298,10 @@ c     &     ,H,DVCUP,DVCDN)
 c  *** note FK and SH should be rebuild in CORPBE !!!
        CALL CORPBE(RHO,VWORK,zzero,DRYY,zzero2,1,1,DRX,DRY,DRZ
      &     ,DRXY,DRYZ,DRZX,NXYZ,GMIN)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+       call prof_stop(99)
+       call prof_start(100)
+#endif
 c
       DO 500 IG=1,NXYZ
       DEN= RHO(IG)
@@ -296,6 +315,9 @@ c                    Vx          +VcLSD          +VcPBEcorrection
   600 CONTINUE
       ENDIF
   500 CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+       call prof_stop(100)
+#endif
 c *** for check
 c      call clock(t1)
 c      write(6,*)' G2VXC2 took ',t1-t0,'seconds'
