@@ -571,6 +571,19 @@ equations, loops, FFT calls, MPI, ownership, or diagnostic-off execution. Run
 `tools/run_tddft_step79.sh` once and use its child times to choose one bounded
 ownership or compute hypothesis.
 
+Step 79 archive `nvhpc_cufft_1rank_02_STEP79_XC_SPLIT_01` passed both checks
+at revision `0f3b066`; its `69.1785750389` sec wall is diagnostic only.
+VOFRHO was `0.960509` sec and XC was `0.655301` sec, but every G2VXC2 child
+was inactive and the derived gap equaled the complete XC parent. The Si111-H
+input therefore uses the LDA S2VXC2 branch, not G2VXC2. S2VXC2 is one
+independent grid-point loop.
+
+Step 80 tests only OpenACC offload of that active S2VXC2 loop, copying RHO in
+and VCSR out while preserving formulas, branches, caller FFT/Hartree work,
+MPI, and CPU/FFTW behavior. Run `tools/run_tddft_step80.sh 01` first. Run
+`02-03` only after a healthy first result and decide from the diagnostic-off
+three-run median against Step 74.
+
 Do not broaden Step 62 beyond the measured dead host copy
 is classified. The accepted LOCPOT hypothesis must remain bounded.
 Step 47

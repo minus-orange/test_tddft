@@ -228,6 +228,14 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     9本の微分FFT、exchange、correlation、最終合成へ分けるStep 79診断を行う。
 77. Step 79はtimerだけを追加し、数式、loop順、FFT呼出し、MPI、OpenACC ownership、
     diagnostic-off経路を変更しない。A100では`./tools/run_tddft_step79.sh`を1回実行する。
+78. Step 79はPASS/PASS、diagnostic wall `69.1785750389 sec`。VOFRHOは`0.960509`、
+    XCは`0.655301 sec`だが、G2VXC2子timerは全てinactiveでgapがXC全体と一致した。
+79. Si111-H入力はGGA G2VXC2ではなくLDA S2VXC2経路を使用する。inactiveなG2VXC2を
+    このbenchmark向けに最適化しない。
+80. Step 80は実行されるS2VXC2の独立格子点loopだけをOpenACC化する。RHOをcopyin、
+    VCSRをcopyoutし、分岐、数式、caller FFT/Hartree、MPI、CPU/FFTW経路を維持する。
+81. A100では最初に`./tools/run_tddft_step80.sh 01`だけを実行する。PASS/PASSかつ明確な
+    回帰がなければ`./tools/run_tddft_step80.sh 02-03`で残り2回をまとめて取得する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

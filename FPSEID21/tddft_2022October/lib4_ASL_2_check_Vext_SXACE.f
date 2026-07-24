@@ -134,6 +134,9 @@ C**************************************************
       DATA XB1,XALPHA/0.6108870577D0,0.7D0/
       PAI=4.D0*DATAN(1.D0)
       FPT=3.D0/(4.D0*PAI)
+!$acc parallel loop copyin(RHO(1:NXYZ))
+!$acc& copyout(VCSR(1:NXYZ))
+!$acc& private(RS,EC,VX,CC,VC,VXC2)
       DO 10 IG=1,NXYZ
       VCSR(IG)=0.D0
       IF(RHO(IG).GT.0.D0) THEN

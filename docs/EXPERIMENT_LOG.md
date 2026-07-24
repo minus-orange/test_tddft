@@ -62,6 +62,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 76 | Re-measure accepted-source VRHO children | 68.4871740341 (one diagnostic run) | measurement | `5a4b9c7` |
 | 77 | Split accepted-source VOFRHO | 69.1326959133 (one diagnostic run) | measurement | `a371d4d` |
 | 78 | Temporarily offload remaining data-parallel host loops together | 68.3785300255 (run 01) | rejected | `94e7176` + `cc65c3c` / result rollback |
+| 79 | Split G2VXC2 exchange-correlation path | 69.1785750389 (one diagnostic run) | inactive-path measurement | `0f3b066` |
 
 ## Other Rejected Experiments
 
@@ -1446,6 +1447,31 @@ derivative FFT calls, exchange, correlation, and final potential assembly.
 Preserve equations, loop order, FFT calls, MPI, OpenACC ownership, and the
 diagnostic-off path. Run `tools/run_tddft_step79.sh` once. Its wall is
 diagnostic and cannot replace the Step 74 baseline.
+
+## Step 79 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP79_XC_SPLIT_01`
+- Tested revision: `0f3b066`
+- Diagnostic wall: `69.1785750389` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- VOFRHO parent: `0.960509` sec
+- XC parent: `0.655301` sec
+- All G2VXC2 children: inactive
+- Derived G2VXC2 gap: `0.655301` sec
+
+The complete parent appearing as the gap proves that this Si111-H input does
+not execute the GGA G2VXC2 branch. It executes the LDA S2VXC2 branch instead.
+Do not optimize the inactive G2VXC2 derivative/FFT path for this benchmark.
+S2VXC2 is one independent grid-point loop, so test only that loop next.
+
+## Step 80 Plan
+
+Under OpenACC, offload only the active S2VXC2 grid-point loop with RHO copied
+in and VCSR copied out. Preserve its branch conditions, formulas, iteration
+order per point, caller FFT, Hartree work, MPI, and CPU/FFTW behavior. Run
+`tools/run_tddft_step80.sh 01` first. If both checks pass and it is not a clear
+regression, collect runs 02/03 with `tools/run_tddft_step80.sh 02-03` and
+compare the three-run median with the official Step 74 median.
 
 ## Step 78 Temporary Maximum-Offload Result and Rejection
 
