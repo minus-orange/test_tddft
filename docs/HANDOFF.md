@@ -605,6 +605,16 @@ accepted S2VXC2 offload. Use `tools/show_tddft_step81_detail.sh` to print the
 already-recorded VRHO and energy child rows before selecting another
 implementation; it performs no build or rerun.
 
+That detail showed VOFRHO `0.359571` sec, with XC reduced to `0.063268` sec
+and the remaining FFT plus Hartree work accounting for nearly all of the
+rest. XC fell by `0.590534` sec (`90.3231%`) from Step 77 and is no longer
+the target. VRHO control is now larger at `0.657103` sec. Energy was
+`1.118869` sec, including E-field `0.248282` and expectation `0.778436` sec.
+E-field was only `0.004286` sec in Step 71 and includes host output work, so
+first run `tools/show_tddft_step81_detail.sh control` to print the current
+call counts and VRHO control split from the same archive. Do not rebuild or
+rerun yet.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

@@ -2024,3 +2024,13 @@ Part1to5 at `1.947618` sec, EXTAU preparation at `1.448376` sec, VRHO at
 formal `0.6473568190` sec Step 80 wall improvement. Before selecting another
 implementation, print the VRHO and energy child rows from the same archive
 with `tools/show_tddft_step81_detail.sh`; no rebuild or rerun is needed.
+
+The existing-archive detail showed VOFRHO at `0.359571` sec: XC used only
+`0.063268` sec, final FFT `0.110018` sec, and Hartree construction
+`0.154377` sec. XC is `0.590534` sec (`90.3231%`) below Step 77 and is no
+longer the target; VRHO control is now larger at `0.657103` sec. Energy used
+`1.118869` sec, including E-field at `0.248282` sec and expectation at
+`0.778436` sec. E-field was only `0.004286` sec in Step 71 and includes host
+output work. Print call counts and the current VRHO control children from the
+same archive with `tools/show_tddft_step81_detail.sh control` before choosing
+one hypothesis. No rerun is needed.

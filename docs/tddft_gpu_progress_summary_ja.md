@@ -1836,3 +1836,11 @@ FRPRMN残差は`7.878776`秒で、`7.833973`秒（`99.4313%`）を既存の排�
 VRHOはStep 75の`1.799974`秒から`0.625997`秒（`34.7781%`）減り、Step 80の正式な
 wall改善`0.6473568190`秒と整合しました。次の実装を選ぶ前に、同じarchive内のVRHOと
 energy子timerを`tools/show_tddft_step81_detail.sh`で表示します。再build・再実行は不要です。
+
+既存archiveの詳細ではVOFRHO `0.359571`秒のうち、XCは`0.063268`秒、最終FFT
+`0.110018`秒、Hartree build `0.154377`秒でした。XCはStep 77比`0.590534`秒
+（`90.3231%`）減り、次の対象ではありません。現在はVRHO control `0.657103`秒の方が
+大きい状態です。energy `1.118869`秒のうちE-fieldは`0.248282`秒、expectationは
+`0.778436`秒でした。E-fieldはStep 71で`0.004286`秒だったうえhost出力を含むため、
+`tools/show_tddft_step81_detail.sh control`で同じarchiveの呼出回数とVRHO control子timerを
+確認してから次の単一仮説を選びます。再実行は不要です。

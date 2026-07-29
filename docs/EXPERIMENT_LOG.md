@@ -1526,6 +1526,21 @@ EXTAU offload regressed. Before selecting another implementation, print the
 VRHO and energy child timers already captured in this archive with
 `tools/show_tddft_step81_detail.sh`; no rebuild or rerun is required.
 
+The existing-archive detail showed VOFRHO at `0.359571` sec: XC `0.063268`,
+final FFT `0.110018`, Hartree zero/build/add `0.011973` / `0.154377` /
+`0.016406`, and only `0.003529` sec other. XC is `0.590534` sec
+(`90.3231%`) below Step 77, confirming that it is no longer the target.
+VRHO control is now the larger remaining VRHO child at `0.657103` sec.
+
+Energy diagnostic was `1.118869` sec: VG build `0.060059`, E-field
+`0.248282`, and expectation `0.778436` sec. Expectation remains dominated by
+HLOCAL `0.239013`, NONLOC `0.268549`, and off-diagonal work `0.252268` sec;
+communication is negligible. Because E-field was only `0.004286` sec in
+Step 71 and performs host output work, do not select it or VRHO control from
+aggregate times alone. Use `tools/show_tddft_step81_detail.sh control` to
+print current call counts and the already-recorded seed/predict/corrector
+split. This still performs no build or rerun.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

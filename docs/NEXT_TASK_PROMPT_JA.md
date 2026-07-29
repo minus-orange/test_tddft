@@ -267,6 +267,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     `1.118869 sec`。VRHOはStep 75比`0.625997 sec`（`34.7781%`）減りStep 80効果と整合。
 96. 次は追加実装・再実行ではなく、`./tools/show_tddft_step81_detail.sh`で同じStep 81
     archiveのVRHO・energy子timerを写真に収め、その結果から単一仮説を選ぶ。
+97. 詳細ではVOFRHO `0.359571 sec`中XCは`0.063268 sec`で、Step 77比`90.3231%`減。
+    VRHO control `0.657103 sec`の方が大きく、XCは次の対象ではない。
+98. energy `1.118869 sec`中E-fieldは`0.248282`、expectationは`0.778436 sec`。
+    E-fieldはStep 71の`0.004286 sec`と差が大きくhost出力を含むため、まだ選ばない。
+99. 次は再実行せず、`./tools/show_tddft_step81_detail.sh control`で同じarchiveの
+    呼出回数とseed/predict/corrector内訳を確認してから単一仮説を選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

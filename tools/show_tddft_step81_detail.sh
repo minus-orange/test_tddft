@@ -9,6 +9,7 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 LABEL=${LABEL:-nvhpc_cufft_1rank_02_STEP81_STEP80_FRPRMN_01}
 ARCHIVE_DIR=$ROOT_DIR/run/tddft_archives/$LABEL
 OUTPUT=${TDDFT_OUTPUT:-"$ARCHIVE_DIR/tddft.out"}
+MODE=${1:-all}
 
 if [ ! -f "$OUTPUT" ]; then
   echo "ERROR: Step 81 archive output is missing: $OUTPUT" >&2
@@ -19,13 +20,33 @@ echo "FPSEID21 STEP81 EXISTING ARCHIVE DETAIL"
 echo "label=$LABEL"
 echo "No build or rerun; values come from the existing Step 81 archive."
 
-awk '
+awk -v mode="$MODE" '
   /FPSEID_PROFILE_BEGIN/ { active=1; next }
   /FPSEID_PROFILE_END/ { active=0 }
   active {
     value[$2]=$4
+    calls[$2]=$3
   }
   END {
+    if (mode == "control") {
+      print ""
+      print "[Step 81 control/count detail]"
+      print "label                              calls  total_sec"
+      control[1]="frprmn_vrho_mix"
+      control[2]="frprmn_vrho_mix_control"
+      control[3]="frprmn_vrho_seed_ctrl"
+      control[4]="frprmn_vrho_predict_ctrl"
+      control[5]="frprmn_vrho_correct_ctrl"
+      control[6]="frprmn_vrho_interp"
+      control[7]="frprmn_vrho_converge"
+      control[8]="frprmn_vrho_coef_restore"
+      control[9]="frprmn_energy_diag"
+      control[10]="frprmn_energy_efield"
+      for (i=1; i<=10; i++)
+        printf "%-33s %5d %10.6f\n", control[i],
+          calls[control[i]], value[control[i]]
+      exit
+    }
     print ""
     print "[VRHO detail: seconds]"
     vrho[1]="frprmn_vrho_mix"
