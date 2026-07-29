@@ -2519,14 +2519,18 @@ C     MAIN LOOP
 C
 c      DO 1010 IB=1,NBND
 C
+         call prof_start(101)
          DO 101 JG=1,NXYZ
   101    RHO1(JG)=(0.D0,0.D0)
+         call prof_stop(101)
 *VDIR NODEP(RHO1)
 !ocl norecurrence(RHO1)
+         call prof_start(102)
          DO 100 IG=1,NG2
          JG=J2G(IG)
 c  100    RHO1(JG)=COEF(IG,IB)
   100    RHO1(JG)=COEF(IG)
+         call prof_stop(102)
 C
 c *** for Sugino FFT
 c         CALL FFT3BX(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,
@@ -2536,13 +2540,17 @@ c      CALL FFT3BX_ASL(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,WSAVE_XYZ,IFAC_XYZ)
 c *** for Kokubo FFTW
 c      call FFT3BX_fftw(NXYZ,RHO1,plancfp,plancbp)
 c *** for Kokubo fftw ASL compatible
+      call prof_start(103)
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,plancfp,plancbp)
+      call prof_stop(103)
 C
 C        RHO1:WAVEFN IN REAL SPACE
 C        VG:POTENTIAL IN REAL SPACE
 C
+         call prof_start(104)
          DO 300 I=1,NXYZ
   300    RHO2(I)=VG(I)*RHO1(I)
+         call prof_stop(104)
 c *** for Sugino FFT
 c         CALL FFT3FX(NRX,NRY,NRZ,NXYZ,RHO2,RHO1,
 c     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
@@ -2551,14 +2559,18 @@ c      CALL FFT3FX_ASL(NRX,NRY,NRZ,NXYZ,RHO2,RHO1,WSAVE_XYZ,IFAC_XYZ)
 c *** for Kokubo FFTW
 c      call FFT3FX_fftw(NXYZ,RHO2,plancfp,plancbp)
 c *** for Kokubo fftw ASL compatible
+      call prof_start(105)
       CALL FFT3FX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO2,RHO1,plancfp,plancbp)
+      call prof_stop(105)
 C
 *VDIR NODEP(RHO2)
 !ocl norecurrence(RHO2)
+         call prof_start(106)
          DO 110 IG=1,NG2
          JG=J2G(IG)
 c  110    DCOEF(IG,IB)=RHO2(JG)
   110    DCOEF(IG)=RHO2(JG)
+         call prof_stop(106)
 C
 c 1010 CONTINUE
 C
@@ -2598,9 +2610,12 @@ c      DIMENSION VPJ(NG2Q/3,3,3,NTYQ),VPP(3,3,NTYQ),IOVP(2,NTYQ)
       FPI=4.D0*PI
       TPIBA2=TPIBA**2
 C
+         DO 581 IG=1,NG2
+c         RHOA(IG)=G2(4,IG)*0.5D0*TPIBA2
+         RHOA(IG)=GDUMP(IG)*0.5D0*TPIBA2
+  581    CONTINUE
          DO 584 IG=1,NG2
-  584    DCOEF(IG)=DCOEF(IG)
-     &    +(GDUMP(IG)*0.5D0*TPIBA2)*COEF(IG)
+  584    DCOEF(IG)=DCOEF(IG)+RHOA(IG)*COEF(IG)
 C
 c **  temp check
 c      miya=13

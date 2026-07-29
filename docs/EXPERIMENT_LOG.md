@@ -1602,7 +1602,7 @@ mechanism. Before selecting another implementation, print the current broad
 and energy envelopes from this same archive with
 `tools/show_tddft_step83_next.sh`; this requires no build or rerun.
 
-## Step 84 Plan
+## Step 84 Result and Rejection
 
 The current energy envelope is `0.847562` sec. Its diagonal and off-diagonal
 NONLOC children total about `0.3578` sec. NONLOC currently makes one complete
@@ -1610,8 +1610,27 @@ host pass over NG2 to stage the band-independent kinetic factor in RHOA, then
 immediately makes a second pass that consumes it once. Fuse those two passes
 by applying the same GDUMP expression directly in the DCOEF update. Preserve
 operation grouping, YLM reuse, HLOCAL, SEPPOT, MPI, OpenACC ownership, and the
-CPU/FFTW path. Run `tools/run_tddft_step84.sh 01` first. Collect 02/03 only
-after PASS/PASS without a clear regression.
+CPU/FFTW path.
+
+- Tested revision: `9ad48b4b882c913acb46b1fb1d7e6533bfdb90433`
+- Runs 01/02/03: `66.7368218899`, `66.7220189571`, `66.8331620693` sec
+- Correctness: all normal checks PASS; all relaxed comparisons PASS
+- Median: `66.7368218899` sec
+- Range: `0.1111431122` sec
+- Step 82 median difference: `+0.0829117298` sec (`+0.124391%`)
+
+The fused pass is correct but provides no performance advantage. Restore the
+accepted Step 82 expression and remove the Step 84 run helper. Step 82 remains
+the official baseline.
+
+## Step 85 Plan
+
+The current diagonal and off-diagonal HLOCAL children are `0.237196` and
+`0.080948` sec. Before changing their GPU ownership, split HLOCAL into zero,
+scatter, inverse FFT, local-potential multiply, forward FFT, and gather timers.
+This is diagnostic only and changes no equations, loop order, MPI, or ownership.
+Run `tools/run_tddft_step85.sh` once and do not use its diagnostic wall as a
+performance baseline.
 
 ## Step 80 H100 Exploratory Run
 

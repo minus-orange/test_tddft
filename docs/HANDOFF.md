@@ -647,8 +647,15 @@ The Step 83 archive ranks Part1to5 at `1.941613` sec, EXTAU preparation at
 `1.440404` sec, and energy at `0.847562` sec. The first two already regressed
 in direct-offload forms because their immediate consumers remain on the host.
 Step 84 instead removes one redundant host pass inside NONLOC kinetic-factor
-setup without changing ownership or communication. Run
-`tools/run_tddft_step84.sh 01` first.
+setup without changing ownership or communication. Its three runs were
+`66.7368218899`, `66.7220189571`, and `66.8331620693` sec; all passed both
+checks, but the `66.7368218899` sec median is `0.124391%` slower than Step 82.
+Step 84 is rejected and its source change is reverted.
+
+Step 85 is diagnostic only. It splits the current HLOCAL envelope into zero,
+scatter, inverse FFT, local-potential multiply, forward FFT, and gather timers
+without changing equations or ownership. Run `tools/run_tddft_step85.sh` once;
+do not use its diagnostic wall as a baseline.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

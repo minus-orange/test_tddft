@@ -1872,4 +1872,9 @@ VRHO controlは`0.103696`秒、VRHO全体は`0.622439`秒となり、Step 82の�
 Part1to5とEXTAUの単純GPU化は直後のhost consumer境界により既に回帰しました。
 Step 84はenergy内NONLOCでband不変kinetic factorを一度RHOAへ格納して直後に読む
 冗長host passだけをDCOEF更新へ融合します。ownership、MPI、HLOCAL、YLM再利用は
-変更しません。
+変更しません。3 run中央値は`66.7368218899`秒でStep 82より`0.124391%`遅く、
+正しさは全runで確認できたものの性能利得がないため却下し、正式Step 82式へ戻しました。
+
+次のStep 85は追加最適化ではなく、energy内HLOCALをzero、scatter、逆FFT、
+局所ポテンシャル積、順FFT、gatherへ分解する診断です。現行の対角HLOCAL
+`0.237196`秒と非対角HLOCAL `0.080948`秒のどこに次のGPU化余地があるか確認します。

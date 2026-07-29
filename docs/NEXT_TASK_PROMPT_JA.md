@@ -301,6 +301,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      DCOEF更新へ融合するだけとし、ownership、MPI、HLOCAL、YLM再利用、数式を維持する。
 112. A100では`./tools/run_tddft_step84.sh 01`だけを実行し、PASS/PASSかつ明確な回帰が
      なければ02/03をまとめて取得する。
+113. Step 84の3 runは`66.7368218899`、`66.7220189571`、`66.8331620693 sec`で全て
+     PASS/PASS。中央値`66.7368218899 sec`はStep 82比`0.124391%`遅く、利得なし。
+114. Step 84を却下して正式Step 82式へ戻し、Step 82をbaselineとして維持する。
+115. 次は`./tools/run_tddft_step85.sh`を1回だけ実行し、energy HLOCALをzero、scatter、
+     inverse FFT、VG multiply、forward FFT、gatherへ分解する。diagnostic wallはbaselineにしない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

@@ -344,5 +344,17 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'g2vxc_correlation'
   case (100)
     name = 'g2vxc_assemble'
+  case (101)
+    name = 'hlocal_zero'
+  case (102)
+    name = 'hlocal_scatter'
+  case (103)
+    name = 'hlocal_inverse_fft'
+  case (104)
+    name = 'hlocal_vg_multiply'
+  case (105)
+    name = 'hlocal_forward_fft'
+  case (106)
+    name = 'hlocal_gather'
   end select
 end subroutine fpseid_mod_timer_name

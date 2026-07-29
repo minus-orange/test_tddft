@@ -2068,4 +2068,12 @@ The current leading envelopes are Part1to5 at `1.941613` sec, EXTAU at
 already regressed at their immediate host-consumer boundaries. Step 84 removes
 only the redundant NONLOC host pass that stages a band-independent kinetic
 factor in RHOA and immediately consumes it once. Ownership, MPI, HLOCAL, and
-YLM reuse remain unchanged.
+YLM reuse remain unchanged. Its three-run median was `66.7368218899` sec,
+`0.124391%` slower than Step 82. All correctness checks passed, but the change
+has no performance advantage and is rejected; the accepted Step 82 expression
+is restored.
+
+Step 85 is diagnostic only. It splits energy HLOCAL into zero, scatter,
+inverse FFT, local-potential multiply, forward FFT, and gather timers. This
+will classify the current `0.237196` sec diagonal and `0.080948` sec
+off-diagonal HLOCAL envelopes before any ownership change.
