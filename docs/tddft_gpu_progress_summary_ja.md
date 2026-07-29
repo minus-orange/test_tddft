@@ -1964,3 +1964,9 @@ phase単位の`work2_`全体cacheとmetadata-only cacheのreuse経路を閉じ�
 するため、そのままGPU化上限とは扱えません。default-off timerで`LOCPOTF`全体と
 local生成からMPI境界までを測り、残差を導出します。`./tools/run_tddft_step94.sh`を
 1回だけ実行し、両checkを必須とし、diagnostic wallはbaselineに使用しません。
+
+Step 94はrevision `f7cf9d7`で両checkにPASSしました。diagnostic wall
+`72.0893621445`秒はbaselineではありません。`LOCPOTF`全体`4.345268`秒のうち、
+local G生成・force蓄積・MPIは`1.193364`秒（`27.464%`）、残差は`3.151904`秒
+（`72.536%`）でした。local/MPI区間は支配的でないため直接offloadせず、Step 95で
+残差をEWALD、local energy、XC、Hartree、未分類gapへ分解します。

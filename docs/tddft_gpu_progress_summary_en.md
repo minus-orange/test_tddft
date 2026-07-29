@@ -2185,3 +2185,10 @@ ceiling. Default-off timers measure the complete call and the local
 construction through its MPI boundary, with the remainder derived from them.
 Run `./tools/run_tddft_step94.sh` once, require both checks, and do not use its
 diagnostic wall as a baseline.
+
+Step 94 passed both checks at revision `f7cf9d7`. Its `72.0893621445` sec
+diagnostic wall is not a baseline. The complete `LOCPOTF` call used
+`4.345268` sec; local G construction, force accumulation, and MPI used
+`1.193364` sec (`27.464%`), leaving `3.151904` sec (`72.536%`). The local/MPI
+section is not dominant, so do not offload it yet. Step 95 splits the remainder
+into EWALD, local energy, XC, Hartree, and an unclassified gap.

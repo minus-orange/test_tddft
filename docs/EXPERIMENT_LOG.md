@@ -1903,6 +1903,22 @@ check and relaxed compare, and do not use its wall as a baseline. A
 local-potential implementation is not selected until the current child share
 is known.
 
+## Step 94 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP94_STEP86_LOCPOTF_01`
+- Tested revision: `f7cf9d78660fdbfbdd1acbb3cc2204f4f0d225e0`
+- Diagnostic wall: `72.0893621445` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `electf_force`: `9.265508` sec
+- `electf_locpotf_total`: `4.345268` sec
+- `locpotf_local_mpi`: `1.193364` sec (`27.464%`)
+- Derived remainder: `3.151904` sec (`72.536%`)
+
+Local G construction, force accumulation, and MPI are not the dominant
+`LOCPOTF` section. Do not implement the analogous LOCPOT offload yet. Split the
+larger remainder into EWALD, local-energy, XC, Hartree, and unclassified gap
+before selecting one performance hypothesis.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

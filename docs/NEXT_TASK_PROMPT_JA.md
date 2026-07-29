@@ -404,6 +404,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 155. Step 94はdefault-off timerで`LOCPOTF`全体とlocal生成からMPI境界までを測る。
      A100では`./tools/run_tddft_step94.sh`を1回だけ実行し、両checkを必須とし、
      diagnostic wallはbaselineに使用しない。
+156. Step 94はPASS/PASS。diagnostic wall `72.0893621445 sec`はbaselineではない。
+     `LOCPOTF=4.345268 sec`中、local生成・force蓄積・MPIは`1.193364 sec`
+     （`27.464%`）、残差は`3.151904 sec`（`72.536%`）だった。
+157. local/MPI区間は支配的でないため直接offloadしない。次のStep 95で残差をEWALD、
+     local energy、XC、Hartree、未分類gapへ分解してから単一仮説を選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

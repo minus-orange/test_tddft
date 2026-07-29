@@ -770,6 +770,13 @@ the current local construction merits a narrower split. Do not implement a
 LOCPOTF offload before this current-source measurement, and do not use its
 diagnostic wall as a baseline.
 
+Step 94 passed both checks at revision `f7cf9d7`. Its diagnostic wall was
+`72.0893621445` sec and is not a baseline. `electf_locpotf_total` was
+`4.345268` sec; local G construction, force accumulation, and MPI used
+`1.193364` sec (`27.464%`), leaving `3.151904` sec (`72.536%`) outside that
+child. The local/MPI section is not dominant, so do not offload it yet. Step 95
+must first split the remainder into EWALD, local-energy, XC, Hartree, and gap.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
