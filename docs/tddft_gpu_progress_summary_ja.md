@@ -1931,3 +1931,10 @@ Step 70比でH2D+D2Hは`0.269326551`秒、H2D量は`3,229.206` MB減りました
 profiler overheadが重なるため純GPU idleではありません。次は再実行せず、既存Step 91
 archiveからTMEVL update/wait行だけを表示し、source attributionを確定してから単一の
 ownership仮説を選びます。
+
+既存archiveの詳細では、line 1930 `work2_` updateは4,720回、
+inclusive `1.609217948`秒、内包Wait `1.530650988`秒でした。line 1933 metadata
+updateは`0.148298132`秒、内包Waitは`0.137812074`秒です。line 2405の
+fused-kernel完了Waitは`8.360886829`秒で、CUDA fused kernel `8.200543838`秒と
+整合します。Updateと内包Waitは重複するため加算しません。次は再実行せず、既存Step 88
+timerからhost生成、update、metadata、fused GEMMを同時表示して実装上限を確認します。

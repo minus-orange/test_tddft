@@ -2143,3 +2143,13 @@ is not pure GPU idle because CPU computation, waits, runtime, and profiler
 overhead overlap. Before another implementation, print only the source-
 attributed TMEVL update/wait rows from the existing Step 91 archive and use
 them to separate required host-consumer boundaries from avoidable staging.
+
+The existing-archive detail attributes line 1930 to 4,720 `work2_` updates:
+`1.609217948` sec inclusive, with `1.530650988` sec in its nested Wait row.
+The line-1933 metadata update used `0.148298132` sec inclusive, with
+`0.137812074` sec in nested Wait. The line-2405 fused-kernel completion Wait
+used `8.360886829` sec, consistent with the `8.200543838` sec fused CUDA
+kernel. Inclusive Update and nested Wait rows overlap and are not additive.
+Before implementing direct device construction, print the existing Step 88
+host-generation and GEMM timers beside these Step 91 rows to establish the
+actual optimization ceiling without another run.

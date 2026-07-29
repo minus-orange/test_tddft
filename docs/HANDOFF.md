@@ -722,6 +722,18 @@ overlap. Before a new implementation, run
 archive only and prints source-attributed TMEVL update/wait rows and selected
 CUDA API rows.
 
+The existing-archive detail attributes line 1930 to 4,720 `work2_` updates:
+`1.609217948` sec inclusive, with `1.530650988` sec in the nested Wait row.
+Line 1933 metadata updates used `0.148298132` sec inclusive, with
+`0.137812074` sec in nested Wait. Line 2405 fused-kernel completion Wait was
+`8.360886829` sec, consistent with the `8.200543838` sec fused CUDA kernel.
+Do not add inclusive Update, nested Wait, and CUDA API rows together.
+
+Run `./tools/show_tddft_step91_next.sh` next. It performs no build or rerun;
+it combines the existing Step 88 current-source timers with these Step 91
+source-attributed rows. Select no direct `work2_` generation implementation
+until its host-generation, upload, and fused-GEMM ceilings are shown together.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

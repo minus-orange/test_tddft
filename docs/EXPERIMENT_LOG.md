@@ -1817,6 +1817,28 @@ CUDA synchronization/copy rows. Use those source-attributed rows to distinguish
 required host-consumer boundaries from avoidable repeated staging before
 selecting one bounded ownership hypothesis.
 
+## Step 91 Existing-Archive Transfer/Wait Detail
+
+The line-1930 `work2_` update ran 4,720 times and used `1.609217948` sec,
+including a nested Wait row of `1.530650988` sec. The line-1933 `cfac_` and
+`ngnl_` metadata update used `0.148298132` sec, including `0.137812074` sec
+in its nested Wait row. Together the two Update rows total `1.757516080` sec
+and their nested Wait rows total `1.668463062` sec. These inclusive rows must
+not be added to each other or to CUDA API synchronization.
+
+The line-2405 fused-kernel completion Wait used `8.360886829` sec over 18,880
+events, consistent with the `8.200543838` sec fused CUDA kernel remaining the
+dominant GPU computation. Eliminating a host upload alone is not enough:
+device construction would still have to reproduce the host `work2_`, `cfac_`,
+and `ngnl_` values and preserve the sequential projector order. Previous YLM
+ownership and fine-grained lookup-copy forms regressed badly, so do not repeat
+them.
+
+Before deciding whether a distinct owner-side generation/fusion shape exists,
+run `tools/show_tddft_step91_next.sh`. It reads the existing Step 88 diagnostic
+archive and Step 91 Nsight archive only, printing the current host-generation,
+update, metadata, and fused-GEMM timers together. No build or rerun is needed.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

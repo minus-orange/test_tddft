@@ -367,6 +367,15 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 143. 次は追加実装・再実行せず、`./tools/show_tddft_step91_detail.sh`で既存Step 91
      archiveのTMEVL update/waitとCUDA同期/copy行だけを表示し、必須host consumer境界と
      回避可能な反復stagingを区別してから単一ownership仮説を選ぶ。
+144. line 1930 `work2_` updateは4,720回、inclusive `1.609217948 sec`で、内包Waitは
+     `1.530650988 sec`。line 1933 metadata updateは`0.148298132 sec`、内包Waitは
+     `0.137812074 sec`。inclusive Updateと内包Waitを加算しない。
+145. line 2405 fused-kernel完了Waitは`8.360886829 sec`で、CUDA kernel
+     `8.200543838 sec`が引き続き支配的。転送削除だけでなく、同じ値・逐次projector順を
+     保つdevice生成が必要。
+146. 次は`./tools/show_tddft_step91_next.sh`で既存Step 88/91 archiveからhost生成、
+     update、metadata、fused GEMM timerを一括表示する。build/rerunせず、上限確認前に
+     `work2_`直接生成を実装しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
