@@ -392,6 +392,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 151. Step 93は追加最適化を行わず、同じphaseの連続call間で`ngnl_`、`cfac_`、
      `work2_`を個別に完全比較する。`./tools/run_tddft_step93.sh`を1回だけ実行し、
      metadataが一定なら反復metadata updateの1回化だけを次候補として検討する。
+152. Step 93はPASS/PASS。diagnostic wall `72.5525600910 sec`はbaselineではない。
+     5 phaseすべてで943比較を行い、`ngnl_pct`、`cfac_pct`、`work2_pct`、`all_pct`は
+     すべて`0.000%`だった。
+153. metadataもprojector値とともに毎回変化するため、反復metadata updateの1回化は
+     不成立。Steps 92/93でphase単位の`work2_`全体cacheとmetadata-only cacheを閉じ、
+     同形を再試行しない。正式baselineはStep 86の`66.5019950867 sec`のまま。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

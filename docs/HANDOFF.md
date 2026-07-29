@@ -17,8 +17,8 @@ Last updated: 2026-07-29
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 86 accepted; Step 90 closes SEPPOT fine-grained
-  work; Step 91 current-source Nsight Systems diagnostic prepared
+- Current HEAD status: Step 86 accepted; Steps 92/93 close phase-keyed
+  nonlocal input and metadata reuse after exact component diagnostics
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 86 median `66.5019950867` sec
@@ -751,6 +751,15 @@ changed and none matched exactly. Complete host-produced `work2_` caching is
 therefore rejected. Step 93 is diagnostic-only and separates equality for
 `ngnl_`, `cfac_`, and `work2_`; run `./tools/run_tddft_step93.sh` once and
 use only its compact component table. Its wall is not a baseline.
+
+Step 93 passed both checks at revision `0c63c84`. Its diagnostic wall was
+`72.5525600910` sec and is not a baseline. Every phase reported 943 component
+comparisons, and `ngnl_`, `cfac_`, `work2_`, and the complete tuple each had
+`0.000%` exact equality. The metadata changes together with the projector
+values, so do not replace the repeated metadata update with one-time device
+initialization. Steps 92/93 close this complete-value reuse path; do not retry
+full `work2_` caching or metadata caching for the same phase-keyed scheme.
+The official Step 86 median remains `66.5019950867` sec.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

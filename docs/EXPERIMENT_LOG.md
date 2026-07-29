@@ -1870,6 +1870,24 @@ Step 93 makes no optimization. It separates exact equality for `ngnl_`,
 hypothesis may initialize that metadata on the device once; otherwise the
 nonlocal staging path remains unchanged.
 
+## Step 93 Component Reuse Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP93_STEP86_EXNLP_PARTS_01`
+- Tested revision: `0c63c848777ee56e52d56569364376ad91fb9336`
+- Diagnostic wall: `72.5525600910` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- Comparisons: 943 for each of the five Suzuki-Trotter phases
+- `ngnl_` exact equality: `0.000%` in every phase
+- `cfac_` exact equality: `0.000%` in every phase
+- `work2_` exact equality: `0.000%` in every phase
+- Complete tuple exact equality: `0.000%` in every phase
+
+Both metadata components change with the projector values. One-time metadata
+device initialization is therefore invalid for this phase-keyed scheme.
+Together with Step 92, this closes complete host-produced `work2_` reuse and
+metadata-only reuse. Do not retry either cache shape. The official Step 86
+diagnostic-off median remains `66.5019950867` sec.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

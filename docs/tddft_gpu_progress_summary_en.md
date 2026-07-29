@@ -2169,3 +2169,11 @@ all five phases, with zero exact matches, so complete host-produced `work2_`
 reuse is invalid. Step 93 makes no optimization and compares `ngnl_`, `cfac_`,
 and `work2_` independently. Only constant metadata would justify considering
 a one-time metadata device initialization next.
+
+Step 93 passed both checks at revision `0c63c84`. Its `72.5525600910` sec
+diagnostic wall is not a baseline. Each of the five phases had 943 comparisons,
+and exact equality was `0.000%` for `ngnl_`, `cfac_`, `work2_`, and the full
+tuple. Metadata therefore changes with the projector values, so one-time
+metadata device initialization is invalid. Steps 92/93 close both complete
+`work2_` caching and metadata-only caching for this phase-keyed scheme; do not
+retry either form. The official Step 86 median remains `66.5019950867` sec.

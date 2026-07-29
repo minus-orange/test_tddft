@@ -1951,3 +1951,10 @@ Step 92は両checkにPASSしました。5 phaseすべてで比較可能な943回
 changedは943回、equal率は`0.000%`でした。したがって`work2_`一式のhost生成cache
 再利用は不可能です。Step 93では追加最適化せず、`ngnl_`、`cfac_`、`work2_`を
 個別比較し、metadataだけが一定なら反復metadata updateの1回化を検討します。
+
+Step 93はrevision `0c63c84`で両checkにPASSしました。diagnostic wall
+`72.5525600910`秒はbaselineではありません。5 phaseそれぞれ943比較で、`ngnl_`、
+`cfac_`、`work2_`、全体の完全一致率はすべて`0.000%`でした。metadataもprojector値と
+ともに変化するため、反復metadata updateの1回化は成立しません。Steps 92/93で
+phase単位の`work2_`全体cacheとmetadata-only cacheのreuse経路を閉じ、同形を再試行
+しません。正式Step 86中央値は`66.5019950867`秒のままです。
