@@ -2650,12 +2650,19 @@ c      DIMENSION VPJ(NG2Q/3,3,3,NTYQ),VPP(3,3,NTYQ),IOVP(2,NTYQ)
       FPI=4.D0*PI
       TPIBA2=TPIBA**2
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(108)
+#endif
          DO 581 IG=1,NG2
 c         RHOA(IG)=G2(4,IG)*0.5D0*TPIBA2
          RHOA(IG)=GDUMP(IG)*0.5D0*TPIBA2
   581    CONTINUE
          DO 584 IG=1,NG2
   584    DCOEF(IG)=DCOEF(IG)+RHOA(IG)*COEF(IG)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(108)
+      call prof_start(109)
+#endif
 C
 c **  temp check
 c      miya=13
@@ -2673,6 +2680,10 @@ c **  temp check : end
           NG26=NGcont
           CALL GETYLM(NG2Q,NG26,G2,RHOA,YLM,TPIBA,NGcont)
          ENDIF
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(109)
+      call prof_start(110)
+#endif
 c  ************************************
          CALL SEPPOT( NG2Q, NG2, NBND, G2,
      &   VPJ, VPP, YLM, RHO2, WORK2(1,1), WORK2(1,2),WORK2(1,3),
@@ -2680,6 +2691,9 @@ c  ************************************
      &   COEF, DCOEF, TPIBA, IOVP, OMEGA,
      &                NTAUQ, NTYQ, LREQ, TAU, NTYPE, NUMTY, NIDN,
      &                MXOFL,NGNL,NGcont                       )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(110)
+#endif
   580 CONTINUE
 C     CALL CLOCK(TIM1)
 C     WRITE(6,*) ' NBND = ',NBND

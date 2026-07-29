@@ -2098,3 +2098,9 @@ Step 87 passed both checks. The complete 768-call device HLOCAL path took
 Step 85 host-staged total and directly confirms the Step 86 mechanism. Next,
 print the remaining energy hierarchy from the same archive without a rebuild
 or rerun before selecting another implementation.
+
+The energy expectation in the same Step 87 archive is `0.634219` sec. Its
+largest component is NONLOC: `0.274122` sec diagonal plus `0.090716` sec
+off-diagonal, or `0.364838` sec (`57.53%`). Because Step 84 already rejected
+the simple kinetic-pass fusion, Step 88 adds no optimization and splits all
+NONLOC calls into kinetic, YLM, and SEPPOT stages.

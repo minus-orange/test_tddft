@@ -358,5 +358,11 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'hlocal_gather'
   case (107)
     name = 'hlocal_acc_total'
+  case (108)
+    name = 'nonloc_kinetic'
+  case (109)
+    name = 'nonloc_ylm'
+  case (110)
+    name = 'nonloc_seppot'
   end select
 end subroutine fpseid_mod_timer_name

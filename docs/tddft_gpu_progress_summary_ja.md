@@ -1894,3 +1894,8 @@ Step 87は両checkにPASSしました。device HLOCAL全768回は`0.247780`秒�
 `0.128030`、非対角`0.040771`、TMEVL由来`0.078979`秒です。Step 85のhost staged
 `0.482563`秒から`0.234783`秒（`48.653%`）減り、Step 86の改善機序を直接確認しました。
 次は同じarchiveからenergy階層を表示し、再実行せずに次の単一仮説を選びます。
+
+同じStep 87 archiveのenergy expectationは`0.634219`秒でした。最大成分は対角
+NONLOC `0.274122`秒と非対角NONLOC `0.090716`秒の合計`0.364838`秒（`57.53%`）です。
+Step 84の単純kinetic pass融合は既に不採用なので、Step 88では追加最適化をせず、
+NONLOC全呼出しをkinetic、YLM、SEPPOTへ分解します。

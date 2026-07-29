@@ -328,6 +328,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      （`48.653%`）減り、Step 86の改善機序を直接確認した。
 126. 次は追加実装・再実行せず、`./tools/show_tddft_step87_next.sh`で同じarchiveの
      energy階層を表示し、残る単一仮説を選ぶ。
+127. 現行energy expectation `0.634219 sec`の最大成分はNONLOCで、対角
+     `0.274122`＋非対角`0.090716`=`0.364838 sec`（`57.53%`）。
+128. Step 84の単純kinetic host pass融合は既却下なので再試行しない。Step 88は
+     NONLOCをkinetic、YLM、SEPPOTへdefault-off timerだけで分解する。
+129. A100では`./tools/run_tddft_step88.sh`を1回だけ実行し、diagnostic wallを
+     baselineに使わない。内訳確認前に追加最適化しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

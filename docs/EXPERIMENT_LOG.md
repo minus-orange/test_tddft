@@ -1695,6 +1695,24 @@ with the smaller end-to-end median improvement. Before another implementation,
 print the remaining energy hierarchy from this same archive with
 `tools/show_tddft_step87_next.sh`.
 
+## Step 87 Existing-Archive Energy Detail
+
+The current energy expectation is `0.634219` sec. Its largest remaining
+component is NONLOC: diagonal `0.274122` plus off-diagonal `0.090716`, for
+`0.364838` sec (`57.53%` of expectation). The combined energy HLOCAL time is
+`0.168801` sec after Step 86. Dot products, communication, and hierarchy gaps
+are smaller. Step 84 already rejected a simple redundant kinetic-pass fusion,
+so do not repeat it.
+
+## Step 88 Plan
+
+Add default-off timers inside NONLOC around kinetic coefficient updates, YLM
+preparation/reuse, and SEPPOT projector calculation. Measure all NONLOC calls
+because the same routine serves TMEVL expectation and energy expectation.
+Change no equations, loop order, ownership, MPI, or diagnostic-off path. Run
+`tools/run_tddft_step88.sh` once and choose a single implementation only after
+the split is known.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

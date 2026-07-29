@@ -678,6 +678,12 @@ sec, HLOCAL fell by `0.234783` sec (`48.653%`). Next, use
 `./tools/show_tddft_step87_next.sh` without rebuilding or rerunning to display
 the remaining energy hierarchy before selecting another implementation.
 
+The Step 87 existing-archive detail shows `0.634219` sec in energy expectation.
+NONLOC is the largest component at `0.364838` sec: diagonal `0.274122` plus
+off-diagonal `0.090716`. Step 88 adds default-off timers for NONLOC kinetic,
+YLM, and SEPPOT stages. Run `./tools/run_tddft_step88.sh` once; do not add an
+optimization until that split is available.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

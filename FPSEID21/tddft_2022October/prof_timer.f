@@ -183,5 +183,8 @@
       if (id.eq.105)name='hlocal_forward_fft'
       if (id.eq.106)name='hlocal_gather'
       if (id.eq.107)name='hlocal_acc_total'
+      if (id.eq.108)name='nonloc_kinetic'
+      if (id.eq.109)name='nonloc_ylm'
+      if (id.eq.110)name='nonloc_seppot'
       return
       end
