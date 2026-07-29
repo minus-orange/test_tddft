@@ -1946,3 +1946,8 @@ Step 88/91の一括表示では、nonlocal親`11.548827`秒に対してhost make
 するため進めません。Step 92では数値経路を変えず、5 phase別に連続callの
 `work2_`/`cfac_`/`ngnl_`が全要素完全一致するかを数え、host生成cacheの可能性を
 先に確認します。
+
+Step 92は両checkにPASSしました。5 phaseすべてで比較可能な943回の完全一致は0回、
+changedは943回、equal率は`0.000%`でした。したがって`work2_`一式のhost生成cache
+再利用は不可能です。Step 93では追加最適化せず、`ngnl_`、`cfac_`、`work2_`を
+個別比較し、metadataだけが一定なら反復metadata updateの1回化を検討します。

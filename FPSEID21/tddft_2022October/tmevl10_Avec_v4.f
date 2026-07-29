@@ -2357,15 +2357,17 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       implicit double precision(a-h,o-z)
       integer np,ngwork,loopcnt,ngnl(loopcnt)
       integer exobs,exsame,exchanged
+      integer exngsame,excfsame,exwksame
       integer prev_loopcnt(5),prev_ngwork(5)
       integer, allocatable, save :: prev_ngnl(:,:)
       complex*16 work1(ngwork,loopcnt),cfac(loopcnt)
       complex*16, allocatable, save :: prev_work(:,:,:)
       complex*16, allocatable, save :: prev_cfac(:,:)
-      logical cache_valid(5),same
+      logical cache_valid(5),same,sameng,samecf,samewk,sameshape
       logical, save :: initialized = .false.
       save cache_valid,prev_loopcnt,prev_ngwork
       common /exnlpreuse/ exobs(5),exsame(5),exchanged(5)
+      common /exnlpparts/ exngsame(5),excfsame(5),exwksame(5)
 
       if (np.lt.1 .or. np.gt.5) return
       if (.not.initialized) then
@@ -2380,28 +2382,32 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
          initialized=.true.
       endif
 
-      same=cache_valid(np)
-      if (same) then
+      sameshape=cache_valid(np)
+      if (sameshape) then
          if (prev_loopcnt(np).ne.loopcnt .or.
-     &       prev_ngwork(np).ne.ngwork) same=.false.
+     &       prev_ngwork(np).ne.ngwork) sameshape=.false.
       endif
-      if (same) then
+      sameng=sameshape
+      samecf=sameshape
+      samewk=sameshape
+      if (sameshape) then
          do ia=1,loopcnt
-            if (prev_ngnl(ia,np).ne.ngnl(ia)) same=.false.
-            if (prev_cfac(ia,np).ne.cfac(ia)) same=.false.
-            if (.not.same) goto 10
+            if (prev_ngnl(ia,np).ne.ngnl(ia)) sameng=.false.
+            if (prev_cfac(ia,np).ne.cfac(ia)) samecf=.false.
             do ig=1,ngnl(ia)
                if (prev_work(ig,ia,np).ne.work1(ig,ia)) then
-                  same=.false.
-                  goto 10
+                  samewk=.false.
                endif
             enddo
          enddo
       endif
-   10 continue
+      same=sameng.and.samecf.and.samewk
 
       exobs(np)=exobs(np)+1
       if (cache_valid(np)) then
+         if (sameng) exngsame(np)=exngsame(np)+1
+         if (samecf) excfsame(np)=excfsame(np)+1
+         if (samewk) exwksame(np)=exwksame(np)+1
          if (same) then
             exsame(np)=exsame(np)+1
          else
@@ -2424,7 +2430,9 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       subroutine exnlp_reuse_report()
       implicit double precision(a-h,o-z)
       integer exobs,exsame,exchanged,ncomp
+      integer exngsame,excfsame,exwksame
       common /exnlpreuse/ exobs(5),exsame(5),exchanged(5)
+      common /exnlpparts/ exngsame(5),excfsame(5),exwksame(5)
       write(6,*)'FPSEID_EXNLP_REUSE_BEGIN'
       write(6,*)' phase observations equal changed equal_pct'
       do iphase=1,5
@@ -2437,7 +2445,26 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       enddo
       write(6,*)'FPSEID_EXNLP_REUSE_END'
       write(6,*)
+      write(6,*)'FPSEID_EXNLP_COMPONENT_BEGIN'
+      write(6,*)' phase compares ngnl_pct cfac_pct work2_pct all_pct'
+      do iphase=1,5
+         ncomp=exsame(iphase)+exchanged(iphase)
+         png=0.d0
+         pcf=0.d0
+         pwk=0.d0
+         pall=0.d0
+         if (ncomp.gt.0) then
+            png=100.d0*dfloat(exngsame(iphase))/dfloat(ncomp)
+            pcf=100.d0*dfloat(excfsame(iphase))/dfloat(ncomp)
+            pwk=100.d0*dfloat(exwksame(iphase))/dfloat(ncomp)
+            pall=100.d0*dfloat(exsame(iphase))/dfloat(ncomp)
+         endif
+         write(6,110)iphase,ncomp,png,pcf,pwk,pall
+      enddo
+      write(6,*)'FPSEID_EXNLP_COMPONENT_END'
+      write(6,*)
   100 format(1x,i5,3(1x,i12),1x,f10.3)
+  110 format(1x,i5,1x,i12,4(1x,f10.3))
       return
       end
 #endif

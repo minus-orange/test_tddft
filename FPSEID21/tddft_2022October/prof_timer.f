@@ -6,10 +6,12 @@
       integer pc,prank
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       integer exobs,exsame,exchanged
+      integer exngsame,excfsame,exwksame
 #endif
       common /profdata/ pt(120),pt0(120),pc(120),prank
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       common /exnlpreuse/ exobs(5),exsame(5),exchanged(5)
+      common /exnlpparts/ exngsame(5),excfsame(5),exwksame(5)
 #endif
       prank=rank
       do 10 i=1,120
@@ -22,6 +24,9 @@
         exobs(i)=0
         exsame(i)=0
         exchanged(i)=0
+        exngsame(i)=0
+        excfsame(i)=0
+        exwksame(i)=0
    20 continue
 #endif
       return

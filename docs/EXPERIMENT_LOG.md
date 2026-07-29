@@ -1858,6 +1858,18 @@ consecutive TMEVL calls of each Suzuki-Trotter phase. Run
 `tools/run_tddft_step92.sh` once and use its equal/changed counts to decide
 whether a host-produced cache can remove generation and upload safely.
 
+## Step 92 Exact Nonlocal Reuse Result
+
+Step 92 passed both correctness checks. Every phase reported 944 observations
+and 943 comparable consecutive calls. All five phases had zero exact matches
+and 943 changes (`0.000%` equal), so complete host-produced `work2_` reuse is
+not valid. Its `71.3717830181` second diagnostic wall is not a baseline.
+
+Step 93 makes no optimization. It separates exact equality for `ngnl_`,
+`cfac_`, and `work2_`. If only the metadata stays constant, the next bounded
+hypothesis may initialize that metadata on the device once; otherwise the
+nonlocal staging path remains unchanged.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

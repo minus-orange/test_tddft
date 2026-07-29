@@ -2163,3 +2163,9 @@ copy forms. Step 92 therefore keeps the numerical and ownership paths
 unchanged and counts exact complete `work2_`/`cfac_`/`ngnl_` matches between
 consecutive calls of each of the five Suzuki-Trotter phases before any
 host-produced cache is implemented.
+
+Step 92 passed both checks. Every one of the 943 comparable calls changed in
+all five phases, with zero exact matches, so complete host-produced `work2_`
+reuse is invalid. Step 93 makes no optimization and compares `ngnl_`, `cfac_`,
+and `work2_` independently. Only constant metadata would justify considering
+a one-time metadata device initialization next.

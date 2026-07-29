@@ -386,6 +386,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      callのactive `work2_`/`cfac_`/`ngnl_`全値が完全一致するかを数える診断。
      `./tools/run_tddft_step92.sh`を1回だけ実行し、equal/changed比からhost生成cacheの
      可否を決める。診断wallはbaselineに使用しない。
+150. Step 92はPASS/PASS。全phaseでobservations `944`、比較対象`943`回のうち
+     exact equal `0`、changed `943`、equal率`0.000%`。完全なhost生成cache再利用は
+     不可なので実装しない。診断wall `71.3717830181 sec`はbaselineに使用しない。
+151. Step 93は追加最適化を行わず、同じphaseの連続call間で`ngnl_`、`cfac_`、
+     `work2_`を個別に完全比較する。`./tools/run_tddft_step93.sh`を1回だけ実行し、
+     metadataが一定なら反復metadata updateの1回化だけを次候補として検討する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

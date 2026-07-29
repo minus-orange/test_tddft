@@ -746,6 +746,12 @@ Suzuki-Trotter phase and prints exact equal/changed counts. Run
 `./tools/run_tddft_step92.sh` once. Its wall is diagnostic; use the counts to
 decide whether a host-produced phase cache is safe before implementing reuse.
 
+Step 92 passed both checks. For each of the five phases, all 943 comparisons
+changed and none matched exactly. Complete host-produced `work2_` caching is
+therefore rejected. Step 93 is diagnostic-only and separates equality for
+`ngnl_`, `cfac_`, and `work2_`; run `./tools/run_tddft_step93.sh` once and
+use only its compact component table. Its wall is not a baseline.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
