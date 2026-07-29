@@ -1986,3 +1986,8 @@ Step 96はPASS/PASSでしたが、100比較すべてで`EWA`と`FORCE`が変化�
 各`0.000%`でした。出力cacheは不採用です。EWALDは`3.024790`秒の高価値targetなので、
 Step 97でG-space、R-space、MPI、setup/AGEN gapへ分け、最大compute区間を次の直接
 GPU化候補にします。
+
+Step 97ではG-spaceが`2.795064`秒（EWALDYの`92.404%`）を占めました。Step 98は
+EWALDY callごとの1 data region内でatom pairをGPU並列化し、pair内G-vector加算順と
+MPI pair分担を維持、共有FORCEだけをatomic更新します。まずdiagnostic OFF run 01で
+正しさと性能を判定します。

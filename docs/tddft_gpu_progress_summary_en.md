@@ -2211,3 +2211,9 @@ Step 96 passed both checks, but every one of the 100 comparisons changed;
 caching is rejected. EWALD remains a high-value `3.024790` sec target, so
 Step 97 splits it into G-space, R-space, MPI, and setup/AGEN gap and promotes
 the dominant compute child as the next direct GPU acceleration candidate.
+
+Step 97 found G-space dominant at `2.795064` sec (`92.404%` of EWALDY).
+Step 98 parallelizes atom pairs inside one data region per EWALDY call,
+preserves each pair's G-vector accumulation order and MPI pair assignment,
+and uses atomic updates only for shared force elements. A diagnostic-off run
+01 decides correctness and whether the performance path merits two more runs.

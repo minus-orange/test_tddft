@@ -1974,6 +1974,21 @@ reductions/broadcast. The remaining setup/AGEN time is derived as a gap.
 Whichever compute child dominates becomes the next direct acceleration target;
 do not optimize sub-percent LOCPOTF children first.
 
+## Step 97 Result and Step 98 Plan
+
+Step 97 revision `02fa239` passed both checks. Its `72.0625281334` sec wall is
+diagnostic only. EWALDY used `3.024816` sec: G-space `2.795064` sec
+(`92.404%`), R-space `0.205414` sec (`6.791%`), MPI `0.019249` sec
+(`0.636%`), and setup/AGEN gap `0.005089` sec (`0.168%`).
+
+Step 98 directly targets G-space. Under OpenACC it uses one data region per
+EWALDY call, parallelizes the rectangular atom-pair space, preserves each
+pair's G-vector accumulation order, and uses atomic updates only for shared
+force elements. The existing MPI pair assignment is expressed by its exact
+triangular sequence formula. CPU/FFTW retains the original loop nest. Run 01
+diagnostic-off first; collect runs 02-03 only if it passes both checks and is
+promising against the Step 86 median.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

@@ -430,6 +430,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 164. EWALDは`3.024790 sec`の高価値targetなので、Step 97ではG-space、R-space、MPIを
      default-off timerで分解し、setup/AGEN gapを導出する。最大compute子区間を次の
      直接GPU化候補とし、sub-percentのLOCPOTF子区間は先に最適化しない。
+165. Step 97はrevision `02fa239`でPASS/PASS。EWALDY `3.024816 sec`中、G-space
+     `2.795064 sec`（`92.404%`）、R-space `0.205414 sec`、MPI `0.019249 sec`、
+     setup/AGEN gap `0.005089 sec`だった。diagnostic wallはbaselineにしない。
+166. Step 98はG-spaceを直接対象にし、EWALDY callごとに1 data region、atom-pair並列、
+     pair内G加算順維持、共有FORCEのみatomic updateとする。MPI pair分担とCPU/FFTW原形を
+     維持し、まずdiagnostic OFF run 01のPASS/PASSとwallを確認する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

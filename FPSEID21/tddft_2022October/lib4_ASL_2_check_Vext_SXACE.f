@@ -820,6 +820,71 @@ C
 C
 C     START LOOP OVER ATOMS IN CELL
 C
+#ifdef _OPENACC
+      IPBEG=nbegint(my_rank)
+      IPEND=nendt(my_rank)
+!$acc data copy(FORCE(1:3,1:NATOT))
+!$acc& copyin(G(1:4,1:NG),EXPG(1:NG),TAU(1:3,1:NATOT))
+!$acc& copyin(ZZ(1:NATOT))
+      DO I=1,NATOT
+        IPAIR=I*(I-1)/2+1
+        if ( IPAIR.ge.IPBEG .and. IPAIR.le.IPEND ) then
+          ESUMG=ESUMG+ZZ(I)*ZZ(I)*ESUM0
+        endif
+      ENDDO
+!$acc parallel loop collapse(2) default(present)
+!$acc& private(IPAIR,RX,RY,RZ,ESUB,FSX,FSY,FSZ,GDT,EXP1,EXP2)
+!$acc& reduction(+:ESUMG)
+      DO I=1,NATOT
+        DO J=1,NATOT
+          IF(J.LT.I) THEN
+            IPAIR=I*(I-1)/2+1+J
+            if ( IPAIR.ge.IPBEG .and. IPAIR.le.IPEND ) then
+              RX=TAU(1,I)-TAU(1,J)
+              RY=TAU(2,I)-TAU(2,J)
+              RZ=TAU(3,I)-TAU(3,J)
+              ESUB=0.D0
+              FSX=0.D0
+              FSY=0.D0
+              FSZ=0.D0
+!$acc loop seq
+              DO IG=NG,2,-1
+                GDT=G(1,IG)*RX+G(2,IG)*RY+G(3,IG)*RZ
+                GDT=GDT*TPIBA
+                EXP1=COS(GDT)*EXPG(IG)
+                EXP2=SIN(GDT)*EXPG(IG)
+                ESUB=ESUB+EXP1
+                FSX=FSX+G(1,IG)*EXP2
+                FSY=FSY+G(2,IG)*EXP2
+                FSZ=FSZ+G(3,IG)*EXP2
+              ENDDO
+              ESUB=ESUB-0.25D0/EPS
+              ESUMG=ESUMG+2.D0*ZZ(I)*ZZ(J)*ESUB
+!$acc atomic update
+              FORCE(1,I)=FORCE(1,I)+ZZ(J)*FSX
+!$acc atomic update
+              FORCE(2,I)=FORCE(2,I)+ZZ(J)*FSY
+!$acc atomic update
+              FORCE(3,I)=FORCE(3,I)+ZZ(J)*FSZ
+!$acc atomic update
+              FORCE(1,J)=FORCE(1,J)-ZZ(I)*FSX
+!$acc atomic update
+              FORCE(2,J)=FORCE(2,J)-ZZ(I)*FSY
+!$acc atomic update
+              FORCE(3,J)=FORCE(3,J)-ZZ(I)*FSZ
+            endif
+          ENDIF
+        ENDDO
+      ENDDO
+      ESUMG=PI2*ESUMG/OMEGA
+!$acc parallel loop collapse(2) default(present)
+      DO K=1,3
+        DO I=1,NATOT
+          FORCE(K,I)=4.D0*PI*ZZ(I)*TPIBA*FORCE(K,I)/OMEGA
+        ENDDO
+      ENDDO
+!$acc end data
+#else
       iseq=0
       DO 1540 I=1,NATOT
 C
@@ -885,6 +950,7 @@ ccc      endif  ! if i.ge.nbegint(my_rank) .and. i.le.nendt(my_rank)
       DO 1545 I=1,NATOT
         FORCE(K,I)=4.D0*PI*ZZ(I)*TPIBA*FORCE(K,I)/OMEGA
  1545 CONTINUE
+#endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(125)
 #endif

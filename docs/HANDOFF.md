@@ -18,7 +18,7 @@ Last updated: 2026-07-29
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - Current HEAD status: Step 86 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 97 EWALD internal timing prepared
+  nonlocal reuse; Step 98 EWALD G-space OpenACC performance test prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 86 median `66.5019950867` sec
@@ -804,6 +804,14 @@ Step 96 at `4902b4f` passed both checks, but all 100 comparisons changed:
 Step 97 retains the high-value EWALD target and splits its `3.024790` sec into
 G-space, R-space, MPI, and setup/AGEN gap before directly accelerating the
 dominant compute child. Run `./tools/run_tddft_step97.sh` once.
+
+Step 97 at `02fa239` passed both checks. G-space dominated EWALDY at
+`2.795064` sec (`92.404%`); R-space was `0.205414` sec, MPI `0.019249` sec,
+and setup/AGEN gap `0.005089` sec. Its diagnostic wall is not a baseline.
+Step 98 directly parallelizes atom pairs in G-space inside one data region per
+EWALDY call, retains pair-local G accumulation order and MPI pair assignment,
+and atomically accumulates shared force elements. Run
+`./tools/run_tddft_step98.sh 01` first.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
