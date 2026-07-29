@@ -1991,3 +1991,8 @@ Step 97ではG-spaceが`2.795064`秒（EWALDYの`92.404%`）を占めました�
 EWALDY callごとの1 data region内でatom pairをGPU並列化し、pair内G-vector加算順と
 MPI pair分担を維持、共有FORCEだけをatomic更新します。まずdiagnostic OFF run 01で
 正しさと性能を判定します。
+
+Step 98は3 runすべてPASS/PASSで、中央値`66.1477772789`秒、range
+`0.27479244077`秒でした。Step 86比`0.532642%`高速なため正式採用します。Step 99は
+同じdata regionと演算を維持し、atom pairをgang、内側G-vectorをvector reductionへ
+割り当てて、残る逐次G loopを直接短縮します。

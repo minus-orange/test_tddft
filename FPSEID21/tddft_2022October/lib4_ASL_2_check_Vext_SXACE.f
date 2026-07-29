@@ -832,8 +832,8 @@ C
           ESUMG=ESUMG+ZZ(I)*ZZ(I)*ESUM0
         endif
       ENDDO
-!$acc parallel loop collapse(2) default(present)
-!$acc& private(IPAIR,RX,RY,RZ,ESUB,FSX,FSY,FSZ,GDT,EXP1,EXP2)
+!$acc parallel loop gang collapse(2) default(present)
+!$acc& private(IPAIR,RX,RY,RZ,ESUB,FSX,FSY,FSZ)
 !$acc& reduction(+:ESUMG)
       DO I=1,NATOT
         DO J=1,NATOT
@@ -847,7 +847,8 @@ C
               FSX=0.D0
               FSY=0.D0
               FSZ=0.D0
-!$acc loop seq
+!$acc loop vector private(GDT,EXP1,EXP2)
+!$acc& reduction(+:ESUB,FSX,FSY,FSZ)
               DO IG=NG,2,-1
                 GDT=G(1,IG)*RX+G(2,IG)*RY+G(3,IG)*RZ
                 GDT=GDT*TPIBA

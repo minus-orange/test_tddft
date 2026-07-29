@@ -5,23 +5,23 @@ Last updated: 2026-07-29
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `9dd8c20` (`Keep TDDFT HLOCAL transforms on device`)
+- Accepted source baseline: `6ef8676` (`Offload TDDFT EWALD G-space pairs`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 86 with Step 37 pinned allocation mode
-- Current source implementation: Step 86 commit `9dd8c20`
+- Current configuration: accepted Step 98 with Step 37 pinned allocation mode
+- Current source implementation: Step 98 commit `6ef8676`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 86 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 98 EWALD G-space OpenACC performance test prepared
+- Current HEAD status: Step 98 accepted; Steps 92/93 close phase-keyed
+  nonlocal reuse; Step 99 EWALD gang/vector performance test prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 86 median `66.5019950867` sec
+- Performance baseline: Step 98 median `66.1477772789` sec
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -813,6 +813,13 @@ EWALDY call, retains pair-local G accumulation order and MPI pair assignment,
 and atomically accumulates shared force elements. Run
 `./tools/run_tddft_step98.sh 01` first.
 
+All Step 98 runs passed both checks. The walls were `66.1477772789`,
+`66.14293359913`, and `66.4177260399` sec; median `66.1477772789`, range
+`0.27479244077`. This is `0.532642%` faster than Step 86, so Step 98 is the
+accepted baseline. Step 99 retains its ownership and arithmetic but maps each
+pair to a gang and the inner G loop to a vector reduction. Run
+`./tools/run_tddft_step99.sh 01` first.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
@@ -844,7 +851,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `66.5019950867` sec.
+6. Compare the three-run median with `66.1477772789` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

@@ -2217,3 +2217,8 @@ Step 98 parallelizes atom pairs inside one data region per EWALDY call,
 preserves each pair's G-vector accumulation order and MPI pair assignment,
 and uses atomic updates only for shared force elements. A diagnostic-off run
 01 decides correctness and whether the performance path merits two more runs.
+
+All three Step 98 runs passed both checks. Their median is `66.1477772789` sec
+with a `0.27479244077` sec range, `0.532642%` faster than Step 86, so Step 98
+is accepted. Step 99 retains the same data region and arithmetic while mapping
+atom pairs to gangs and the inner G-vector loop to a vector reduction.

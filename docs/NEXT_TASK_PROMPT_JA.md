@@ -25,15 +25,16 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 86です。
+正式baselineは論理Step 98です。
 
-- source implementation: `9dd8c20`
+- source implementation: `6ef8676`
 - pinned build mode: `9cbb6bc`
 - A100-PCIE-40GB、1 GPU / 1 MPI rank
 - NVHPC + OpenACC + cuFFT
 - `-gpu=mem:separate:pinnedalloc`
 - Si111-H、100 steps
-- diagnostic OFF 3回中央値: `66.5019950867 sec`
+- diagnostic OFF 3回中央値: `66.1477772789 sec`
+- 3回range: `0.27479244077 sec`
 - 実行幅: `0.2952189446 sec`
 - 全runでnormal checkとrelaxed compare PASS
 
@@ -436,6 +437,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 166. Step 98はG-spaceを直接対象にし、EWALDY callごとに1 data region、atom-pair並列、
      pair内G加算順維持、共有FORCEのみatomic updateとする。MPI pair分担とCPU/FFTW原形を
      維持し、まずdiagnostic OFF run 01のPASS/PASSとwallを確認する。
+167. Step 98は3 runすべてPASS/PASS、`66.1477772789`、`66.14293359913`、
+     `66.4177260399`秒、中央値`66.1477772789`秒、range `0.27479244077`秒だった。
+     Step 86比`0.3542178078`秒（`0.532642%`）高速なので正式採用する。
+168. Step 99はStep 98のdata region、atomic FORCE、MPI分担、pair内演算を維持し、
+     atom pairをgang、内側G-vector loopをvector reductionへ割り当てる。まず
+     `./tools/run_tddft_step99.sh 01`を実行し、Step 98中央値と比較する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

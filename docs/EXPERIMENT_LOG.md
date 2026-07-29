@@ -68,6 +68,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 84 | Fuse redundant NONLOC kinetic host pass | 66.7368218899 median | rejected | `9ad48b4` / restored in `0494fe5` |
 | 85 | Split all current HLOCAL stages | 66.9716517925 (one diagnostic run) | measurement | `0494fe5` |
 | 86 | Keep HLOCAL transforms and loops on device | 66.5019950867 median | accepted baseline | `9dd8c20` |
+| 98 | Offload EWALD G-space atom pairs | 66.1477772789 median | accepted baseline | `6ef8676` |
 
 ## Other Rejected Experiments
 
@@ -1988,6 +1989,18 @@ force elements. The existing MPI pair assignment is expressed by its exact
 triangular sequence formula. CPU/FFTW retains the original loop nest. Run 01
 diagnostic-off first; collect runs 02-03 only if it passes both checks and is
 promising against the Step 86 median.
+
+## Step 98 Result and Step 99 Plan
+
+All Step 98 runs passed both checks at `66.1477772789`, `66.14293359913`, and
+`66.4177260399` sec. The median is `66.1477772789` sec with a
+`0.27479244077` sec range, improving on Step 86 by `0.3542178078` sec
+(`0.532642%`). Step 98 is accepted as the source and performance baseline.
+
+The gain is much smaller than the original `2.795064` sec G-space host timer.
+Step 99 keeps the accepted data region, atomic force updates, MPI assignment,
+and pair-local arithmetic, but maps one atom pair to a gang and its G-vector
+loop to a vector reduction. Run 01 first and compare against Step 98.
 
 ## Step 80 H100 Exploratory Run
 
