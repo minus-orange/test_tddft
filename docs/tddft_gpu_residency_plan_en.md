@@ -478,3 +478,9 @@ official baseline.
 
 Step 81 makes no source optimization. It re-runs the broad FRPRMN timers on
 accepted Step 80 source to reclassify the improved residual.
+
+Step 82 replaces the predictor-corrector COEF0 host copy plus H2D with a
+device-local seed copy. All three runs passed both checks. Its
+`66.6539101601` sec median with a `0.2699508667` sec range is `1.137412%`
+faster than Step 80, so Step 82 is the new official baseline. Step 83
+re-measures the VRHO seed/control timers without adding an optimization.

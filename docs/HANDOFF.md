@@ -1,26 +1,26 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-07-24
+Last updated: 2026-07-29
 
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `59686f0` (`Offload active LDA S2VXC2 grid loop`)
+- Accepted source baseline: `2b7f5ba` (`Initialize TDDFT seed coefficients on device`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 80 with Step 37 pinned allocation mode
-- Current source implementation: Step 80 commit `59686f0`
+- Current configuration: accepted Step 82 with Step 37 pinned allocation mode
+- Current source implementation: Step 82 commit `2b7f5ba`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 80 accepted; Step 81 diagnostic completed
+- Current HEAD status: Step 82 accepted; Step 83 diagnostic planned
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 80 median `67.4207620621` sec
+- Performance baseline: Step 82 median `66.6539101601` sec
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -629,6 +629,13 @@ is close to the measured `0.562341` sec seed cost. It is promising but remains
 one run. Next run `tools/run_tddft_step82.sh 02-03` and decide from the
 three-run median.
 
+Step 82 runs 02/03 also passed both checks at `66.6139972210` and
+`66.6539101601` sec. The three-run median is `66.6539101601` sec with a
+`0.2699508667` sec range, improving on Step 80 by `0.7668519020` sec
+(`1.137412%`). Step 82 is the new official baseline. Next run the
+diagnostic-only `tools/run_tddft_step83.sh` once to confirm the current VRHO
+seed/control split; do not use its diagnostic wall as a baseline.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
@@ -660,7 +667,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `67.4207620621` sec.
+6. Compare the three-run median with `66.6539101601` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

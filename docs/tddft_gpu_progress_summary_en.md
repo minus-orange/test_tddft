@@ -2049,3 +2049,10 @@ Step 82 run 01 passed both checks at `66.8839480877` sec. It is
 is close to the Step 81 measured seed cost of `0.562341` sec. Do not update
 the baseline from one run; collect runs 02/03 together and decide from the
 three-run median.
+
+Runs 02/03 also passed both checks at `66.6139972210` and
+`66.6539101601` sec. The `66.6539101601` sec three-run median with a
+`0.2699508667` sec range is `0.7668519020` sec (`1.137412%`) faster than
+Step 80. Every run is faster than the old median, so Step 82 is accepted as
+the official baseline. Step 83 adds no optimization; it re-measures the VRHO
+seed/control timers on accepted Step 82 source.

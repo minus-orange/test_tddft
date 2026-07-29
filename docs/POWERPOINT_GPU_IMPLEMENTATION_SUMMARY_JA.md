@@ -350,17 +350,18 @@ kernel特殊化:
 | Step 67 | VPJ vector length 128 | 約68.36秒 | 46.2% |
 | Step 74 | YLM再利用 | 約68.07秒 | 46.2% |
 | Step 80 | LDA交換相関loop GPU化 | 約67.42秒 | 48.7% |
+| Step 82 | COEF0 seedをGPU内コピー | 約66.65秒 | 51.3% |
 
 総合結果:
 
 ```text
-443.2秒 -> 67.42秒
-約6.57倍高速化
-実行時間を約84.8%削減
+443.2秒 -> 66.65秒
+約6.65倍高速化
+実行時間を約85.0%削減
 ```
 
-time-step候補GPU化率は、現在GPU化済みの19 siteと、Step 78で一時GPU化して戻した
-残候補20 siteを合わせた39 siteを母数とする暫定値である。全候補を数学的に網羅した
+time-step候補GPU化率は、現在GPU化済みの20 siteと、Step 78で確認した未採用の
+残候補19 siteを合わせた39 siteを母数とする暫定値である。全候補を数学的に網羅した
 絶対値ではなく、小さな制御loopと主要配列kernelを同じ1 siteとして数える。
 データ常駐、allocation、vector length、重複処理削減ではsite数が増えないため、
 性能が向上しても率は同じ場合がある。
@@ -383,8 +384,8 @@ time-step候補GPU化率は、現在GPU化済みの19 siteと、Step 78で一時
 現在の正式baseline:
 
 ```text
-Step 80
-67.4207620621 sec
+Step 82
+66.6539101601 sec
 ```
 
 Step 76で再分類したVRHO:
@@ -404,13 +405,19 @@ Step 80でGPU化した交換相関:
 - 3回中央値でStep 74より`0.951043%`高速化した。
 - 次はStep 81で改善後のFRPRMN残差を再分類する。
 
+Step 82でGPU化したseed初期化:
+
+- predictor-corrector開始時のCOEF→COEF0をhost copy＋H2DからGPU内copyへ変更した。
+- 3回中央値でStep 80より`1.137412%`高速化した。
+- 次はStep 83でVRHO seed/control timerを再確認する。
+
 ## 正式baselineと文書の位置づけ
 
-- 正式baseline: 論理Step 80
-- source implementation commit: `59686f0`
+- 正式baseline: 論理Step 82
+- source implementation commit: `2b7f5ba`
 - pinned build-mode commit: `9cbb6bc`
-- A100 3回中央値: `67.4207620621 sec`
-- Step 81はStep 80 sourceを対象とした診断・分類作業である。
+- A100 3回中央値: `66.6539101601 sec`
+- Step 83はStep 82 sourceを対象とした診断・分類作業である。
 - PowerPointでは診断wallと正式baselineを混在させない。
 
 # 任意付録: 変更前／変更後の実コード
@@ -685,10 +692,46 @@ c --- NONLOC内
 - 格子点間で独立なloopだけをGPU化し、分岐と各格子点内の数式順序を維持した。
 - Step 74比で3回中央値を`0.951043%`短縮した。
 
+## 付録A8: predictor-corrector seedをGPU内コピー
+
+対象:
+
+- `FPSEID21/tddft_2022October/frprmn_tm12_check_Vext_Avec_v4.f`
+
+変更前:
+
+```fortran
+      do ik0=1,numkq
+        call coefcp(coef(1,1,ik0),coef0(1,1,ik0),ng2q*nblng)
+      enddo
+!$acc enter data copyin(COEF(...),COEF0(...))
+```
+
+変更後:
+
+```fortran
+!$acc enter data copyin(COEF(...)) create(COEF0(...))
+!$acc parallel loop collapse(3) present(COEF,COEF0)
+      do ik0=1,numkq
+        do ib=1,nblng
+          do ig=1,ng2q
+            COEF0(ig,ib,ik0)=COEF(ig,ib,ik0)
+          enddo
+        enddo
+      enddo
+```
+
+要点:
+
+- OpenACC版だけhost seed copyとCOEF0 H2DをGPU内copyへ置換した。
+- predictor-corrector区間の寿命、補正restart、MPI、数式は変更していない。
+- CPU/FFTW版は元のhost copyを維持した。
+- Step 80比で3回中央値を`1.137412%`短縮した。
+
 ## 付録コードを載せる場合の推奨構成
 
 - 本編では変更を「単純OpenACC化」「データ常駐」「FFT集約」
   「kernel融合」「重複処理削減」の5種類に集約する。
 - 発表時間が短い場合は、付録A2、A3、A5だけを使用する。
-- 技術説明を重視する場合は、A1からA7までを末尾へ追加する。
+- 技術説明を重視する場合は、A1からA8までを末尾へ追加する。
 - PowerPointでは変更前を灰色、変更後の追加行とOpenACC指示行を青色で示す。

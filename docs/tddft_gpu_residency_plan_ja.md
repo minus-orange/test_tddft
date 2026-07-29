@@ -430,3 +430,8 @@ Step 80を新しい正式baselineとして採用します。
 
 Step 81では追加最適化を行わず、正式Step 80 sourceの広域FRPRMN timerを再実行して
 改善後の残差を再分類します。
+
+Step 82ではpredictor-corrector開始時のCOEF0 seedをhost copy＋H2Dからdevice内copyへ
+変更しました。3 runは全て両checkにPASSし、中央値`66.6539101601`秒、実行幅
+`0.2699508667`秒でした。Step 80より`1.137412%`高速なため、Step 82を新しい正式
+baselineとして採用します。Step 83はVRHO seed/control timerの再診断です。

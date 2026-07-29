@@ -1,6 +1,6 @@
 # TDDFT GPU Experiment Log
 
-Last updated: 2026-07-24
+Last updated: 2026-07-29
 
 The performance baseline is defined in `PERFORMANCE_BASELINE.md`. Detailed
 implementation and timer notes are in the bilingual progress summaries.
@@ -64,6 +64,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 78 | Temporarily offload remaining data-parallel host loops together | 68.3785300255 (run 01) | rejected | `94e7176` + `cc65c3c` / result rollback |
 | 79 | Split G2VXC2 exchange-correlation path | 69.1785750389 (one diagnostic run) | inactive-path measurement | `0f3b066` |
 | 80 | Offload active LDA S2VXC2 grid loop | 67.4207620621 median | accepted baseline | `59686f0` |
+| 82 | Initialize predictor-corrector COEF0 seed on device | 66.6539101601 median | accepted baseline | `2b7f5ba` |
 
 ## Other Rejected Experiments
 
@@ -1569,6 +1570,20 @@ The first run is healthy and promising. Its wall reduction is also close to
 the Step 81 measured seed cost of `0.562341` sec, consistent with the bounded
 hypothesis. This single run does not establish a new baseline. Collect Step 82
 runs 02/03 together, then decide from the three-run median.
+
+## Step 82 Final Result
+
+- Run 01: `66.8839480877` sec; check PASS; relaxed compare PASS
+- Run 02: `66.6139972210` sec; check PASS; relaxed compare PASS
+- Run 03: `66.6539101601` sec; check PASS; relaxed compare PASS
+- Three-run median: `66.6539101601` sec
+- Run-to-run range: `0.2699508667` sec
+- Step 80 median difference: `-0.7668519020` sec (`-1.137412%`)
+
+Every Step 82 run is faster than the official Step 80 median. Accept the
+device-local COEF0 seed initialization and supersede Step 80 with Step 82 as
+the official baseline. Step 83 is diagnostic only: re-run the existing VRHO
+child timers on accepted Step 82 source to confirm the seed/control reduction.
 
 ## Step 80 H100 Exploratory Run
 

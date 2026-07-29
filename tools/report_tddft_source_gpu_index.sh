@@ -2,12 +2,12 @@
 set -eu
 
 # Reproducible source-level OpenACC compute-site coverage index.
-# The denominator is the 19 compute constructs in accepted Step 80 source.
+# The denominator is the 20 compute constructs in accepted Step 82 source.
 
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$ROOT_DIR"
 
-RELATIVE_DENOMINATOR=19
+RELATIVE_DENOMINATOR=20
 TIMESTEP_CANDIDATE_DENOMINATOR=39
 FILES="
 FPSEID21/tddft_2022October/fft_cufft.f
@@ -36,7 +36,8 @@ printf '%s\n' \
   '62 7475ccb' \
   '67 39a181e' \
   '74 3687243' \
-  '80 59686f0' |
+  '80 59686f0' \
+  '82 2b7f5ba' |
 while read -r step commit
 do
   count=$(

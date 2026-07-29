@@ -1,11 +1,11 @@
 # TDDFT GPU Performance Baseline
 
-Last updated: 2026-07-24
+Last updated: 2026-07-29
 
 ## Official Baseline
 
-- Logical step: Step 80
-- Source implementation commit: `59686f0`
+- Logical step: Step 82
+- Source implementation commit: `2b7f5ba`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,24 +16,24 @@ Last updated: 2026-07-24
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_01` | 67.4321370125 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_02` | 67.2197408676 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP80_S2VXC_ACC_03` | 67.4207620621 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP82_COEF0_D2D_SEED_01` | 66.8839480877 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP82_COEF0_D2D_SEED_02` | 66.6139972210 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP82_COEF0_D2D_SEED_03` | 66.6539101601 | PASS | PASS |
 
-Official three-run median: `67.4207620621` sec.
-Run-to-run range: `0.2123961449` sec.
+Official three-run median: `66.6539101601` sec.
+Run-to-run range: `0.2699508667` sec.
 
-## Step 80 Median-Wall Run 03 Profile
+## Step 82 Median-Wall Run 03 Profile
 
 | timer | total_sec |
 |---|---:|
-| `time_step_total` | 67.624276 |
-| `frprmn` | 58.618044 |
-| `tmevl_total` | 51.152267 |
-| `s2_nonlocal` | 11.383827 |
-| `s2_nonlocal_make` | 1.327962 |
-| `s2_nonlocal_gemm` | 10.032972 |
-| `exnlp_gemm_dot` | 8.364374 |
+| `time_step_total` | 66.852572 |
+| `frprmn` | 57.830151 |
+| `tmevl_total` | 51.135678 |
+| `s2_nonlocal` | 11.383683 |
+| `s2_nonlocal_make` | 1.342635 |
+| `s2_nonlocal_gemm` | 10.018271 |
+| `exnlp_gemm_dot` | 8.350857 |
 
 ## Comparison Policy
 
@@ -51,7 +51,7 @@ index as:
 ```text
 NVHPC-selected TDDFT source OpenACC parallel/kernels construct starts
 --------------------------------------------------------------------- * 100
-Step 80 accepted-source construct starts (19)
+Step 82 accepted-source construct starts (20)
 ```
 
 This is a relative source-coverage index, not GPU utilization and not an
@@ -61,31 +61,32 @@ residency, allocation, vector-length, reuse, and transfer-boundary
 optimizations that add no compute construct.
 
 For a bounded time-step-loop estimate, the denominator is 39 currently
-identified parallelizable compute sites: the 19 accepted Step 80 sites plus
-the 20 additional sites temporarily tested together in Step 78 and reverted.
+identified parallelizable compute sites: the 20 accepted Step 82 sites plus
+the 19 still-unaccepted sites identified by the Step 78 temporary experiment.
 This is a provisional absolute candidate-site coverage, not proof that all
 theoretically parallelizable loops have been identified. It weights a small
 control loop and a dominant array kernel equally.
 
 | accepted step | compute sites | relative index | identified time-step candidate coverage |
 |---:|---:|---:|---:|
-| 21 | 11 | 57.9% | 28.2% |
-| 22 | 11 | 57.9% | 28.2% |
-| 23 | 11 | 57.9% | 28.2% |
-| 24 | 11 | 57.9% | 28.2% |
-| 25 | 11 | 57.9% | 28.2% |
-| 28 | 12 | 63.2% | 30.8% |
-| 33 | 16 | 84.2% | 41.0% |
-| 34 | 16 | 84.2% | 41.0% |
-| 36 | 16 | 84.2% | 41.0% |
-| 37 | 16 | 84.2% | 41.0% |
-| 41 | 16 | 84.2% | 41.0% |
-| 52 | 17 | 89.5% | 43.6% |
-| 57 | 18 | 94.7% | 46.2% |
-| 62 | 18 | 94.7% | 46.2% |
-| 67 | 18 | 94.7% | 46.2% |
-| 74 | 18 | 94.7% | 46.2% |
-| 80 | 19 | 100.0% | 48.7% |
+| 21 | 11 | 55.0% | 28.2% |
+| 22 | 11 | 55.0% | 28.2% |
+| 23 | 11 | 55.0% | 28.2% |
+| 24 | 11 | 55.0% | 28.2% |
+| 25 | 11 | 55.0% | 28.2% |
+| 28 | 12 | 60.0% | 30.8% |
+| 33 | 16 | 80.0% | 41.0% |
+| 34 | 16 | 80.0% | 41.0% |
+| 36 | 16 | 80.0% | 41.0% |
+| 37 | 16 | 80.0% | 41.0% |
+| 41 | 16 | 80.0% | 41.0% |
+| 52 | 17 | 85.0% | 43.6% |
+| 57 | 18 | 90.0% | 46.2% |
+| 62 | 18 | 90.0% | 46.2% |
+| 67 | 18 | 90.0% | 46.2% |
+| 74 | 18 | 90.0% | 46.2% |
+| 80 | 19 | 95.0% | 48.7% |
+| 82 | 20 | 100.0% | 51.3% |
 
 Regenerate this table with `tools/report_tddft_source_gpu_index.sh`.
 
@@ -208,6 +209,12 @@ residual was `7.878776` sec, of which `7.833973` sec (`99.4313%`) was
 classified and `0.044803` sec remained unclassified. VRHO fell from the
 Step 75 value of `1.799974` to `1.173977` sec, a `0.625997` sec
 (`34.7781%`) reduction consistent with the formal Step 80 wall improvement.
+
+Step 82 replaces the OpenACC host COEF-to-COEF0 seed copy and COEF0 H2D with
+a device-local copy at the existing predictor-corrector data entry. All three
+runs passed both checks. Its `66.6539101601` sec median is
+`0.7668519020` sec (`1.137412%`) faster than Step 80, with a
+`0.2699508667` sec range. Step 82 supersedes Step 80 as the official baseline.
 
 ## H100 Cross-Device Observation
 
