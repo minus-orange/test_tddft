@@ -18,7 +18,7 @@ Last updated: 2026-07-29
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - Current HEAD status: Step 86 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 94 current-source ELECTF LOCPOTF diagnostic prepared
+  nonlocal reuse; Step 95 LOCPOTF remainder diagnostic prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 86 median `66.5019950867` sec
@@ -776,6 +776,12 @@ Step 94 passed both checks at revision `f7cf9d7`. Its diagnostic wall was
 `1.193364` sec (`27.464%`), leaving `3.151904` sec (`72.536%`) outside that
 child. The local/MPI section is not dominant, so do not offload it yet. Step 95
 must first split the remainder into EWALD, local-energy, XC, Hartree, and gap.
+
+Step 95 adds default-off timers only for those four remainder components and
+extends the diagnostic timer table from 120 to 124 entries. It changes no
+equation, loop, MPI call, OpenACC ownership, or diagnostic-off path. Run
+`./tools/run_tddft_step95.sh` once and select no implementation before the
+remainder percentages and gap are known. Its wall is diagnostic only.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

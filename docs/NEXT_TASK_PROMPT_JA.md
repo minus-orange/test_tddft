@@ -409,6 +409,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      （`27.464%`）、残差は`3.151904 sec`（`72.536%`）だった。
 157. local/MPI区間は支配的でないため直接offloadしない。次のStep 95で残差をEWALD、
      local energy、XC、Hartree、未分類gapへ分解してから単一仮説を選ぶ。
+158. Step 95はdefault-off timerだけを追加し、timer表を120から124 entryへ整合して
+     拡張する。数式、loop順、MPI、OpenACC ownership、CPU/FFTW、diagnostic-off経路を
+     変更しない。
+159. A100では`./tools/run_tddft_step95.sh`を1回だけ実行し、両checkを必須とする。
+     4子区間の残差比率と未分類gapを確認するまで実装を選ばず、wallはbaselineにしない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

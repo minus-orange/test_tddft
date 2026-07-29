@@ -8,13 +8,13 @@
       integer exobs,exsame,exchanged
       integer exngsame,excfsame,exwksame
 #endif
-      common /profdata/ pt(120),pt0(120),pc(120),prank
+      common /profdata/ pt(124),pt0(124),pc(124),prank
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       common /exnlpreuse/ exobs(5),exsame(5),exchanged(5)
       common /exnlpparts/ exngsame(5),excfsame(5),exwksame(5)
 #endif
       prank=rank
-      do 10 i=1,120
+      do 10 i=1,124
         pt(i)=0.0d0
         pt0(i)=0.0d0
         pc(i)=0
@@ -38,8 +38,8 @@
       integer id
       real*8 pt,pt0
       integer pc,prank
-      common /profdata/ pt(120),pt0(120),pc(120),prank
-      if (id.lt.1 .or. id.gt.120) return
+      common /profdata/ pt(124),pt0(124),pc(124),prank
+      if (id.lt.1 .or. id.gt.124) return
       pt0(id)=MPI_Wtime()
       call fpseid_mod_timer_start(id)
       return
@@ -51,8 +51,8 @@
       integer id
       real*8 pt,pt0
       integer pc,prank
-      common /profdata/ pt(120),pt0(120),pc(120),prank
-      if (id.lt.1 .or. id.gt.120) return
+      common /profdata/ pt(124),pt0(124),pc(124),prank
+      if (id.lt.1 .or. id.gt.124) return
       pt(id)=pt(id)+MPI_Wtime()-pt0(id)
       pc(id)=pc(id)+1
       call fpseid_mod_timer_stop(id)
@@ -65,13 +65,13 @@
       real*8 pt,pt0,psum,pmax
       integer pc,pcmax,prank
       character*24 name
-      common /profdata/ pt(120),pt0(120),pc(120),prank
-      dimension psum(120),pmax(120),pcmax(120)
-      call MPI_Reduce(pt,psum,120,MPI_DOUBLE_PRECISION,MPI_SUM,0,
+      common /profdata/ pt(124),pt0(124),pc(124),prank
+      dimension psum(124),pmax(124),pcmax(124)
+      call MPI_Reduce(pt,psum,124,MPI_DOUBLE_PRECISION,MPI_SUM,0,
      &                MPI_COMM_WORLD,ierr)
-      call MPI_Reduce(pt,pmax,120,MPI_DOUBLE_PRECISION,MPI_MAX,0,
+      call MPI_Reduce(pt,pmax,124,MPI_DOUBLE_PRECISION,MPI_MAX,0,
      &                MPI_COMM_WORLD,ierr)
-      call MPI_Reduce(pc,pcmax,120,MPI_INTEGER,MPI_MAX,0,
+      call MPI_Reduce(pc,pcmax,124,MPI_INTEGER,MPI_MAX,0,
      &                MPI_COMM_WORLD,ierr)
       call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
       if (prank.ne.0) return
@@ -79,7 +79,7 @@
       write(6,*)'FPSEID_PROFILE_BEGIN'
       write(6,*)' id label                    count',
      &          '      max_rank_sec       avg_rank_sec'
-      do 20 id=1,120
+      do 20 id=1,124
         if (pcmax(id).le.0) goto 20
         call prof_name(id,name)
         write(6,100)id,name,pcmax(id),pmax(id),psum(id)/dfloat(nproc)
@@ -217,5 +217,9 @@
       if (id.eq.118)name='seppot_p_dcoef'
       if (id.eq.119)name='electf_locpotf_total'
       if (id.eq.120)name='locpotf_local_mpi'
+      if (id.eq.121)name='locpotf_ewald'
+      if (id.eq.122)name='locpotf_local_energy'
+      if (id.eq.123)name='locpotf_xc'
+      if (id.eq.124)name='locpotf_hartree'
       return
       end

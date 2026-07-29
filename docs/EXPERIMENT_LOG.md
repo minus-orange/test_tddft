@@ -1919,6 +1919,19 @@ Local G construction, force accumulation, and MPI are not the dominant
 larger remainder into EWALD, local-energy, XC, Hartree, and unclassified gap
 before selecting one performance hypothesis.
 
+## Step 95 Plan
+
+Add default-off child timers around the existing EWALDY call, local-energy
+reduction, XC call, and Hartree reduction/final assembly. Keep the Step 94
+complete `LOCPOTF` and local-build/MPI timers and derive the four-child total
+and unclassified remainder gap.
+
+The timer table grows from 120 to 124 entries, with every initialization,
+bound, reduction count, and report loop changed consistently. Equations, loop
+order, MPI, OpenACC ownership, CPU/FFTW behavior, and diagnostic-off execution
+remain unchanged. Run `tools/run_tddft_step95.sh` once, require both
+correctness checks, and do not use its wall as a baseline.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

@@ -2192,3 +2192,9 @@ diagnostic wall is not a baseline. The complete `LOCPOTF` call used
 `1.193364` sec (`27.464%`), leaving `3.151904` sec (`72.536%`). The local/MPI
 section is not dominant, so do not offload it yet. Step 95 splits the remainder
 into EWALD, local energy, XC, Hartree, and an unclassified gap.
+
+Step 95 adds default-off timers around the existing EWALDY call, local-energy
+reduction, XC call, and Hartree reduction/final assembly. The diagnostic timer
+table grows consistently from 120 to 124 entries. Equations, loop order, MPI,
+OpenACC ownership, CPU/FFTW behavior, and diagnostic-off execution are
+unchanged. Run `./tools/run_tddft_step95.sh` once.

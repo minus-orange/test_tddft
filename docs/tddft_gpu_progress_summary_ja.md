@@ -1970,3 +1970,8 @@ Step 94はrevision `f7cf9d7`で両checkにPASSしました。diagnostic wall
 local G生成・force蓄積・MPIは`1.193364`秒（`27.464%`）、残差は`3.151904`秒
 （`72.536%`）でした。local/MPI区間は支配的でないため直接offloadせず、Step 95で
 残差をEWALD、local energy、XC、Hartree、未分類gapへ分解します。
+
+Step 95はdefault-off timerだけを追加し、既存のEWALDY call、local-energy reduction、
+XC call、Hartree reduction/final assemblyを個別計測します。timer表は120から124 entryへ
+整合して拡張し、数式、loop順、MPI、OpenACC ownership、CPU/FFTW、diagnostic-off経路は
+変更しません。A100では`./tools/run_tddft_step95.sh`を1回だけ実行します。

@@ -1384,11 +1384,17 @@ c *** temp check ; end
 C
 C       EWALD SUM
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(121)
+#endif
       CALL EWALDY(TPIBA,OMEGA,EWA,NGQ,NG,G,EXPG,FORCE,LATQ,EWVEC,
      &           NTAUQ,NTYQ,NTYPE,TAU,NUMTY,NIDN,ZV,ZZ,
      &           A1,A2,A3,B1,B2,B3,itstep
 c
      &          ,nbegintt,nendtt,ncpuq,ncpu )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(121)
+#endif
 C *****   EWALD END
 C     WRITE(6,6002)
 C6002 FORMAT(15X,'  ****  FORCE EWALD PARTS: NEGATIVE')
@@ -1581,6 +1587,9 @@ ccc       write(6,7979)(WEXT(IG),IG=1,NXYZ,NXYZ)
       endif
  7979 format(4f22.16)
 c *** temp check : end
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(122)
+#endif
       ELOCAL=0.D0
       ELOCALd=0.D0
       DO 6351 IG=1,NXYZ
@@ -1599,6 +1608,9 @@ c      endif
 c *** temp check :end
       ELOCAL=OMEGA*ELOCAL
       ELOCALd=OMEGA*ELOCALd
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(122)
+#endif
 C
 c *** temp check
 c      if ( my_rank.eq.0 ) then
@@ -1620,6 +1632,9 @@ c      write(6,*)' Before calling S2XC2 : EH=',EH
 c      endif
 c *** temp check ; end
 C         EXCHANGE CORRELATION PART
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(123)
+#endif
       IF(IGGA.EQ.1) THEN
 c *** temp check
 c       write(6,*)' GGA is selected!' 
@@ -1641,6 +1656,9 @@ c *** temp check: end
       CALL S2XC2(NXYZ,RHO,EXC,VG)
       ENDIF
       EXC = OMEGA*EXC/DBLE(NXYZ)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(123)
+#endif
 C
 C      CALL S2VXC2(NXYZ,RHO,VG)
 C      EVXC=0.D0
@@ -1652,6 +1670,9 @@ C     WRITE(6,*) ' EVXC=',EVXC
 C
 C        HARTREE ENERGY
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(124)
+#endif
       EH=0.D0
       EHd=0.D0
 *VDIR NODEP(WEXT,REXT)
@@ -1677,6 +1698,9 @@ C
 C
       DELTAd=EHd+ELOCALd
       DELTA=EWA+EH+ELOCAL+EXC+ESELF
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(124)
+#endif
 C
       RETURN
       END

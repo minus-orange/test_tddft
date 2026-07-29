@@ -384,5 +384,13 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'electf_locpotf_total'
   case (120)
     name = 'locpotf_local_mpi'
+  case (121)
+    name = 'locpotf_ewald'
+  case (122)
+    name = 'locpotf_local_energy'
+  case (123)
+    name = 'locpotf_xc'
+  case (124)
+    name = 'locpotf_hartree'
   end select
 end subroutine fpseid_mod_timer_name
