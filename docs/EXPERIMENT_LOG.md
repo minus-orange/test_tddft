@@ -1541,6 +1541,22 @@ aggregate times alone. Use `tools/show_tddft_step81_detail.sh control` to
 print current call counts and the already-recorded seed/predict/corrector
 split. This still performs no build or rerun.
 
+## Step 82 Plan
+
+The Step 81 archive shows VRHO control at `0.657103` sec, dominated by seed
+initialization at `0.562341` sec (`85.5773%`). Predictor and corrector control
+used only `0.016313` and `0.076263` sec. Test one bounded ownership change:
+under OpenACC only, omit the host COEF-to-COEF0 seed copy and the subsequent
+COEF0 H2D. At the existing predictor-corrector data entry, copy COEF in,
+create COEF0, and initialize COEF0 from COEF with one device kernel.
+
+Keep the same per-sequence allocation lifetime, correction restart, exit,
+MPI, equations, and arithmetic order. Preserve the original host copy for
+CPU/FFTW. This is not the rejected Step 45 whole-time-step COEF allocation.
+Run `tools/run_tddft_step82.sh 01` first. Only after PASS/PASS without a clear
+regression, collect runs 02/03 together and decide from the three-run median
+against Step 80.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

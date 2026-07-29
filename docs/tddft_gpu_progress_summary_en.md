@@ -2034,3 +2034,12 @@ longer the target; VRHO control is now larger at `0.657103` sec. Energy used
 output work. Print call counts and the current VRHO control children from the
 same archive with `tools/show_tddft_step81_detail.sh control` before choosing
 one hypothesis. No rerun is needed.
+
+The control detail shows seed initialization at `0.562341` sec
+(`85.5773%` of VRHO control); predictor and corrector control used only
+`0.016313` and `0.076263` sec. Under OpenACC, Step 82 removes only the host
+COEF-to-COEF0 seed copy and COEF0 H2D, creates COEF0 at the existing
+predictor-corrector data entry, and initializes it from COEF with one device
+kernel. Per-sequence lifetime, correction restart, MPI, equations, and the
+CPU/FFTW host copy remain unchanged, so this is distinct from rejected
+Step 45. Run `tools/run_tddft_step82.sh 01` first.

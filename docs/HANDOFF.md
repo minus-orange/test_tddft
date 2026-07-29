@@ -615,6 +615,14 @@ first run `tools/show_tddft_step81_detail.sh control` to print the current
 call counts and VRHO control split from the same archive. Do not rebuild or
 rerun yet.
 
+The control detail shows seed initialization at `0.562341` sec
+(`85.5773%` of VRHO control), while predictor and corrector control are only
+`0.016313` and `0.076263` sec. Step 82 tests only device-local
+COEF-to-COEF0 initialization at the existing predictor-corrector data entry,
+removing the OpenACC host seed copy and COEF0 H2D. It preserves per-sequence
+lifetime and the CPU/FFTW copy, so it is distinct from rejected Step 45.
+Run `tools/run_tddft_step82.sh 01` first.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

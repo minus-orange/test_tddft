@@ -714,11 +714,13 @@ c ***  temp check end
 c       if ( iscf.eq.1 .and. my_rank.ne.0 ) then
        if ( iscf.eq.1 ) then
          nblng=nend(my_rank)-nbegin(my_rank)+1
+#ifndef _OPENACC
 c         nbgn=nbegin(my_rank)
          do ik0=1,numkq
 c         call coefcp(coef(1,nbgn,ik0),coef0(1,nbgn,ik0),ng2q*nblng)
          call coefcp(coef(1,1,ik0),coef0(1,1,ik0),ng2q*nblng)
          enddo
+#endif
        endif
         if ( iscf.gt.ITMAX ) then
          if ( my_rank.eq.0 ) then
@@ -1596,14 +1598,29 @@ c *** for Kokubo FFT -- LY2,LZ1,LZ2 are still necessary for ROTRA
 c
 c *** Keep the time-evolution coefficients resident for the complete
 c *** predictor-corrector sequence.  COEF0 is the unchanged wavefunction
-c *** used to restart every correction.  The host coefcp above remains the
-c *** CPU/FFTW path; on OpenACC the correction restart below is device-local.
+c *** used to restart every correction.  The host coefcp above remains only
+c *** for CPU/FFTW.  OpenACC initializes COEF0 from resident COEF on device.
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_start(45)
 #endif
       if (iscf.eq.1) then
+#ifdef _OPENACC
+!$acc enter data copyin(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc& create(COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc parallel loop collapse(3)
+!$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
+!$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
+       do ik0=1,numkq
+        do ib=1,nblng
+         do ig=1,ng2q
+          COEF0(ig,ib,ik0)=COEF(ig,ib,ik0)
+         enddo
+        enddo
+       enddo
+#else
 !$acc enter data copyin(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
 !$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
+#endif
       else
 !$acc parallel loop collapse(3)
 !$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ),

@@ -273,6 +273,13 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     E-fieldはStep 71の`0.004286 sec`と差が大きくhost出力を含むため、まだ選ばない。
 99. 次は再実行せず、`./tools/show_tddft_step81_detail.sh control`で同じarchiveの
     呼出回数とseed/predict/corrector内訳を確認してから単一仮説を選ぶ。
+100. control詳細はseed `0.562341 sec`、predictor `0.016313`、corrector
+     `0.076263 sec`。seedがcontrolの`85.5773%`で次の対象。
+101. Step 82はOpenACC時のhost COEF→COEF0 seed copyとCOEF0 H2Dだけを、現行data入口の
+     COEF copyin、COEF0 create、device copyへ置換する。区間寿命、restart、MPI、数式、
+     CPU/FFTWを維持し、Step 45のtime-step全体常駐を再試行しない。
+102. A100では`./tools/run_tddft_step82.sh 01`だけを実行し、PASS/PASSかつ明確な回帰が
+     なければ02/03をまとめて取得する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

@@ -1844,3 +1844,10 @@ energy子timerを`tools/show_tddft_step81_detail.sh`で表示します。再buil
 `0.778436`秒でした。E-fieldはStep 71で`0.004286`秒だったうえhost出力を含むため、
 `tools/show_tddft_step81_detail.sh control`で同じarchiveの呼出回数とVRHO control子timerを
 確認してから次の単一仮説を選びます。再実行は不要です。
+
+control詳細ではseed初期化が`0.562341`秒でVRHO controlの`85.5773%`を占め、
+predictorは`0.016313`秒、correctorは`0.076263`秒でした。Step 82はOpenACC時だけhostの
+COEF→COEF0 seed copyとCOEF0 H2Dを省き、現行predictor-corrector data入口でCOEFを
+copyin、COEF0をcreateしてdevice上で1回コピーします。区間寿命、補正restart、MPI、数式、
+CPU/FFTW copyは維持するため、Step 45のtime-step全体COEF常駐とは異なります。まず
+`tools/run_tddft_step82.sh 01`だけを実行します。
