@@ -1005,6 +1005,90 @@ C  17 WRITE(6,*) (FORCE(J,I),J=1,3)
       END
 C*
 C*
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      subroutine ewald_reuse_observe(ewa,force,ntauq,ntyq,
+     &                               numty,nidn)
+      implicit real*8 (a-h,o-z)
+      integer ntauq,ntyq,numty(ntyq),nidn(ntauq,ntyq)
+      integer ewobs,ewsame,ewchanged,ewesame,ewforcesame
+      real*8 force(3,ntauq)
+      real*8, allocatable, save :: prev_force(:,:)
+      real*8, save :: prev_ewa
+      integer, save :: prev_ntauq=0
+      logical, save :: cache_valid=.false.
+      logical sameewa,sameforce
+      common /ewaldreuse/ ewobs,ewsame,ewchanged,ewesame,
+     &                    ewforcesame
+
+      if (prev_ntauq.ne.ntauq) then
+         if (allocated(prev_force)) deallocate(prev_force)
+         allocate(prev_force(3,ntauq))
+         prev_ntauq=ntauq
+         cache_valid=.false.
+      endif
+      sameewa=cache_valid
+      sameforce=cache_valid
+      if (cache_valid) then
+         if (prev_ewa.ne.ewa) sameewa=.false.
+         do ity=1,ntyq
+            do ita=1,abs(numty(ity))
+               itau=nidn(ita,ity)
+               do k=1,3
+                  if (prev_force(k,itau).ne.force(k,itau))
+     &               sameforce=.false.
+               enddo
+            enddo
+         enddo
+      endif
+      ewobs=ewobs+1
+      if (cache_valid) then
+         if (sameewa) ewesame=ewesame+1
+         if (sameforce) ewforcesame=ewforcesame+1
+         if (sameewa.and.sameforce) then
+            ewsame=ewsame+1
+         else
+            ewchanged=ewchanged+1
+         endif
+      endif
+      prev_ewa=ewa
+      do ity=1,ntyq
+         do ita=1,abs(numty(ity))
+            itau=nidn(ita,ity)
+            do k=1,3
+               prev_force(k,itau)=force(k,itau)
+            enddo
+         enddo
+      enddo
+      cache_valid=.true.
+      return
+      end
+
+      subroutine ewald_reuse_report()
+      implicit real*8 (a-h,o-z)
+      integer ewobs,ewsame,ewchanged,ewesame,ewforcesame,ncomp
+      common /ewaldreuse/ ewobs,ewsame,ewchanged,ewesame,
+     &                    ewforcesame
+      ncomp=ewsame+ewchanged
+      pew=0.d0
+      pforce=0.d0
+      pall=0.d0
+      if (ncomp.gt.0) then
+         pew=100.d0*dfloat(ewesame)/dfloat(ncomp)
+         pforce=100.d0*dfloat(ewforcesame)/dfloat(ncomp)
+         pall=100.d0*dfloat(ewsame)/dfloat(ncomp)
+      endif
+      write(6,*)'FPSEID_EWALD_REUSE_BEGIN'
+      write(6,*)' observations compares equal changed',
+     &          ' ewa_pct force_pct all_pct'
+      write(6,100)ewobs,ncomp,ewsame,ewchanged,pew,pforce,pall
+      write(6,*)'FPSEID_EWALD_REUSE_END'
+      write(6,*)
+  100 format(1x,4(1x,i12),3(1x,f10.3))
+      return
+      end
+#endif
+C*
+C*
       SUBROUTINE AGEN(B1,B2,B3,NRX,NRY,NRZ,NG,NGQ,G,GCUT,itstep)
 C
       IMPLICIT REAL*8 (A-H,O-Z)
@@ -1394,6 +1478,7 @@ c
      &          ,nbegintt,nendtt,ncpuq,ncpu )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(121)
+      call ewald_reuse_observe(EWA,FORCE,NTAUQ,NTYQ,NUMTY,NIDN)
 #endif
 C *****   EWALD END
 C     WRITE(6,6002)

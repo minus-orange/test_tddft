@@ -1975,3 +1975,9 @@ Step 95はdefault-off timerだけを追加し、既存のEWALDY call、local-ene
 XC call、Hartree reduction/final assemblyを個別計測します。timer表は120から124 entryへ
 整合して拡張し、数式、loop順、MPI、OpenACC ownership、CPU/FFTW、diagnostic-off経路は
 変更しません。A100では`./tools/run_tddft_step95.sh`を1回だけ実行します。
+
+Step 95はPASS/PASSで、LOCPOTF残差`3.159508`秒のうちEWALDが`3.024790`秒
+（`95.736%`）でした。local energy、XC、Hartree、gapの合計は`4.264%`です。
+Step 96は実装前の限定診断として、固定核の101回のEWALDY出力`EWA`とactive-atom
+`FORCE`を直前callとexact比較します。100比較すべて一致した場合だけ初回出力cacheを
+次の候補にします。

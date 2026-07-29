@@ -7,11 +7,14 @@
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       integer exobs,exsame,exchanged
       integer exngsame,excfsame,exwksame
+      integer ewobs,ewsame,ewchanged,ewesame,ewforcesame
 #endif
       common /profdata/ pt(124),pt0(124),pc(124),prank
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       common /exnlpreuse/ exobs(5),exsame(5),exchanged(5)
       common /exnlpparts/ exngsame(5),excfsame(5),exwksame(5)
+      common /ewaldreuse/ ewobs,ewsame,ewchanged,ewesame,
+     &                    ewforcesame
 #endif
       prank=rank
       do 10 i=1,124
@@ -28,6 +31,11 @@
         excfsame(i)=0
         exwksame(i)=0
    20 continue
+      ewobs=0
+      ewsame=0
+      ewchanged=0
+      ewesame=0
+      ewforcesame=0
 #endif
       return
       end
@@ -88,6 +96,7 @@
       write(6,*)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call exnlp_reuse_report()
+      call ewald_reuse_report()
 #endif
   100 format(1x,i3,1x,a24,1x,i10,2(1x,f18.6))
       return

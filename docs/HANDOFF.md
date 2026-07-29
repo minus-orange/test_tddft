@@ -18,7 +18,7 @@ Last updated: 2026-07-29
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - Current HEAD status: Step 86 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 95 LOCPOTF remainder diagnostic prepared
+  nonlocal reuse; Step 96 EWALD exact-output reuse diagnostic prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 86 median `66.5019950867` sec
@@ -789,6 +789,14 @@ baseline. Only the final `awk` summary failed because the target implementation
 reserves `split` as a function name and rejected it as a variable. Do not rerun
 the calculation: pull the summary fix and run
 `./tools/report_tddft_step95.sh` against the existing archive.
+
+The recovered Step 95 summary shows a `3.159508` sec LOCPOTF remainder:
+EWALD `3.024790` sec (`95.736%`), local energy `0.008415` sec (`0.266%`),
+XC `0.105457` sec (`3.338%`), Hartree `0.018546` sec (`0.587%`), and gap
+`0.002300` sec (`0.073%`). Step 96 adds diagnostic-only exact comparisons of
+EWALDY `EWA` and active-atom `FORCE` outputs across its 101 fixed-nuclei calls.
+Run `./tools/run_tddft_step96.sh` once. Only if all 100 comparisons are equal
+should the next step implement first-call reuse of those two outputs.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

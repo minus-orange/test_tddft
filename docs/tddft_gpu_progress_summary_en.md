@@ -2198,3 +2198,10 @@ reduction, XC call, and Hartree reduction/final assembly. The diagnostic timer
 table grows consistently from 120 to 124 entries. Equations, loop order, MPI,
 OpenACC ownership, CPU/FFTW behavior, and diagnostic-off execution are
 unchanged. Run `./tools/run_tddft_step95.sh` once.
+
+Step 95 passed both checks. EWALD used `3.024790` sec (`95.736%`) of the
+`3.159508` sec LOCPOTF remainder; local energy, XC, Hartree, and the gap
+together account for only `4.264%`. Before implementing reuse, Step 96 exactly
+compares `EWA` and active-atom `FORCE` outputs across the 101 fixed-nuclei
+EWALDY calls. First-call output caching is considered only if all 100
+comparisons match.

@@ -1940,6 +1940,27 @@ remains valid: its diagnostic wall was `72.0551159382` sec under archive label
 `tools/report_tddft_step95.sh` rechecks and summarizes that existing archive
 without rebuilding or rerunning TDDFT. The diagnostic wall is not a baseline.
 
+## Step 95 Result
+
+- Revision: `6952f54`
+- Archive: `nvhpc_cufft_1rank_02_STEP95_STEP86_LOCPOTF_SPLIT_01`
+- Correctness: `check=PASS`, `compare=PASS`
+- Diagnostic wall: `72.0551159382` sec (not a baseline)
+- `electf_locpotf_total`: `4.094380` sec
+- `locpotf_local_mpi`: `0.934872` sec
+- LOCPOTF remainder: `3.159508` sec
+- EWALD: `3.024790` sec (`95.736%` of the remainder)
+- Local energy: `0.008415` sec (`0.266%`)
+- XC: `0.105457` sec (`3.338%`)
+- Hartree: `0.018546` sec (`0.587%`)
+- Unclassified gap: `0.002300` sec (`0.073%`)
+
+EWALD alone explains essentially the complete LOCPOTF remainder. Step 96 tests
+one bounded hypothesis before implementing a cache: compare every `EWA` and
+active-atom `FORCE` output from the 101 fixed-nuclei EWALDY calls exactly
+against the preceding call. If all 100 comparisons match, cache only those two
+outputs after the first call; otherwise do not implement that reuse path.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`
