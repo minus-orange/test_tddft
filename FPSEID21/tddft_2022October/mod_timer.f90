@@ -374,5 +374,11 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'seppot_d'
   case (115)
     name = 'seppot_f'
+  case (116)
+    name = 'seppot_p_projector'
+  case (117)
+    name = 'seppot_p_reduce'
+  case (118)
+    name = 'seppot_p_dcoef'
   end select
 end subroutine fpseid_mod_timer_name

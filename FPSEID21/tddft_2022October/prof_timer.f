@@ -191,5 +191,8 @@
       if (id.eq.113)name='seppot_p'
       if (id.eq.114)name='seppot_d'
       if (id.eq.115)name='seppot_f'
+      if (id.eq.116)name='seppot_p_projector'
+      if (id.eq.117)name='seppot_p_reduce'
+      if (id.eq.118)name='seppot_p_dcoef'
       return
       end

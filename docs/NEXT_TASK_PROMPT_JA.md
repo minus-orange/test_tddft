@@ -340,6 +340,13 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      分解する。最大channelの確認前にSEPPOT全体を一括GPU化しない。
 132. A100では`./tools/run_tddft_step89.sh`を1回だけ実行する。diagnostic wallは
      baselineに使わない。
+133. Step 89はPASS/PASS。SEPPOT `0.547832 sec`の分類内訳はEXTAU
+     `0.188158`（`36.414%`）、s `0.103150`（`19.963%`）、p `0.225405 sec`
+     （`43.623%`）。d/fはこの入力ではinactive、分類gapは`0.031119 sec`。
+134. Step 47のtutorial専用s/p全体offloadは既却下なので再導入しない。Step 90は最大の
+     p channelをprojector生成、係数reduction、DCOEF更新へtimerだけで分解する。
+135. A100では`./tools/run_tddft_step90.sh`を1回だけ実行する。数式、loop順、
+     ownership、MPI、diagnostic-off経路は変更せず、wallをbaselineに使わない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

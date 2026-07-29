@@ -2111,3 +2111,11 @@ Step 88 passed both checks. Across all 768 NONLOC calls, kinetic used
 candidate. Step 89 adds no optimization; it splits SEPPOT into EXTAU phase
 table construction and s/p/d/f orbital channels so that only the dominant
 channel is considered for the next incremental GPU change.
+
+Step 89 passed both checks. Of `0.547832` sec in SEPPOT, the classified
+children were EXTAU at `0.188158` sec (`36.414%`), s at `0.103150` sec
+(`19.963%`), and p at `0.225405` sec (`43.623%`); d/f were inactive for this
+input. The tutorial-specific whole s/p offload was already rejected in
+Step 47 and will not be retried. Step 90 adds no optimization and splits the
+dominant p channel into projector construction, coefficient reduction, and
+DCOEF update loops.

@@ -17,7 +17,8 @@ Last updated: 2026-07-29
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 86 accepted; Step 87 HLOCAL confirmation completed
+- Current HEAD status: Step 86 accepted; Step 89 SEPPOT split completed;
+  Step 90 p-channel diagnostic prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 86 median `66.5019950867` sec
@@ -689,6 +690,13 @@ sec (`10.325%`), YLM `0.003207` sec (`0.589%`), and SEPPOT `0.485064` sec
 (`89.086%`). Step 89 adds default-off timers for SEPPOT EXTAU and the s/p/d/f
 orbital channels. Run `./tools/run_tddft_step89.sh` once before selecting a
 single channel implementation.
+
+Step 89 passed both checks. SEPPOT used `0.547832` sec. Its classified
+children were EXTAU `0.188158` sec (`36.414%`), s `0.103150` sec
+(`19.963%`), and p `0.225405` sec (`43.623%`); d/f were inactive. Because
+Step 47 already rejected a tutorial-specific whole s/p offload, Step 90 adds
+diagnostic-only timers around the p projector, reduction, and DCOEF loops.
+Run `./tools/run_tddft_step90.sh` once and do not use its wall as a baseline.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

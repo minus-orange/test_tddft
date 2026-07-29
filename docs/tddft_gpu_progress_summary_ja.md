@@ -1905,3 +1905,9 @@ Step 88は両checkにPASSしました。全768回のNONLOC呼出しは、kinetic
 `0.485064`秒（`89.086%`）でした。したがって、次の有意な候補はSEPPOTです。
 Step 89では追加最適化を行わず、SEPPOTをEXTAU位相表生成とs/p/d/f軌道channelへ
 分解し、支配channelを特定してから一箇所ずつGPU化を検討します。
+
+Step 89は両checkにPASSしました。SEPPOT `0.547832`秒の分類内訳はEXTAU
+`0.188158`秒（`36.414%`）、s channel `0.103150`秒（`19.963%`）、p channel
+`0.225405`秒（`43.623%`）で、d/fはこの入力ではinactiveでした。Step 47で
+tutorial専用s/p全体offloadは既に不採用なので再試行しません。Step 90は追加最適化を
+せず、最大のp channelをprojector生成、係数reduction、DCOEF更新へ分解します。

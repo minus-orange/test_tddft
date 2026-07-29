@@ -2928,6 +2928,9 @@ c          endif
 c *** temp check : end
       ELSEIF(L.EQ.1.AND.IBUN(2,ITY).NE.1) THEN
 C             NO PARTITIONING
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(116)
+#endif
 c         DO 60 IG=1,NG2
          DO 60 IG=1,NGNL(ITY)
          Y11=DCMPLX( YLM(IG,2), 0.D0)
@@ -2937,6 +2940,10 @@ c         DO 60 IG=1,NG2
          WORK2(IG)=EXTAU(IG)*Y12*VPJ(IG,1,LI,ITY)
          WORK3(IG)=EXTAU(IG)*Y13*VPJ(IG,1,LI,ITY)
    60    CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(116)
+      call prof_start(117)
+#endif
 c         DO 62 IB=1,NBND
             CT1=(0.D0,0.D0)
             CT2=(0.D0,0.D0)
@@ -2953,6 +2960,10 @@ c            CT3=CT3+COEF(IG,IB)*WORK3(IG)
             CT1=CT1/VPP(1,LI,ITY)/OMEGA
             CT2=CT2/VPP(1,LI,iTY)/OMEGA
             CT3=CT3/VPP(1,LI,ITY)/OMEGA
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(117)
+      call prof_start(118)
+#endif
 c            DO 66 IG=1,NG2
             DO 66 IG=1,NGNL(ITY)
 c            DCOEF(IG,IB)=DCOEF(IG,IB)
@@ -2961,10 +2972,16 @@ c            DCOEF(IG,IB)=DCOEF(IG,IB)
      &           +CT2*DCONJG(WORK2(IG))
      &           +CT3*DCONJG(WORK3(IG))
    66       CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(118)
+#endif
 c   62    CONTINUE
       ELSEIF(L.EQ.1) THEN
 C             PARTITIONING
          DO 1261 IP=2,3
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(116)
+#endif
 c         DO 61 IG=1,NG2
          DO 61 IG=1,NGNL(ITY)
          Y11=DCMPLX( YLM(IG,2), 0.D0)
@@ -2974,6 +2991,10 @@ c         DO 61 IG=1,NG2
          WORK2(IG)=EXTAU(IG)*Y12*VPJ(IG,IP,LI,ITY)
          WORK3(IG)=EXTAU(IG)*Y13*VPJ(IG,IP,LI,ITY)
    61    CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(116)
+      call prof_start(117)
+#endif
 c         DO 63 IB=1,NBND
             CT1=(0.D0,0.D0)
             CT2=(0.D0,0.D0)
@@ -2990,6 +3011,10 @@ c            CT3=CT3+COEF(IG,IB)*WORK3(IG)
             CT1=CT1/VPP(IP,LI,ITY)/OMEGA
             CT2=CT2/VPP(IP,LI,ITY)/OMEGA
             CT3=CT3/VPP(IP,LI,iTY)/OMEGA
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(117)
+      call prof_start(118)
+#endif
 c            DO 67 IG=1,NG2
             DO 67 IG=1,NGNL(ITY)
 c            DCOEF(IG,IB)=DCOEF(IG,IB)
@@ -2998,6 +3023,9 @@ c            DCOEF(IG,IB)=DCOEF(IG,IB)
      &           +CT2*DCONJG(WORK2(IG))
      &           +CT3*DCONJG(WORK3(IG))
    67       CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(118)
+#endif
 c   63    CONTINUE
 c +*** temp check for lowest band
 c          if (my_rank.eq.0 ) then

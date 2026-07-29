@@ -1735,6 +1735,31 @@ s/p/d/f orbital channel. This identifies the active dominant branch before
 splitting its projector construction, coefficient reductions, and DCOEF
 updates. Run `tools/run_tddft_step89.sh` once; make no optimization yet.
 
+## Step 89 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP89_STEP86_SEPPOT_01`
+- Tested revision: `917ce1e9b81faf3a267b2b30ac930e982c848c35`
+- Diagnostic wall: `67.2417340279` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- SEPPOT parent: `0.547832` sec over 768 NONLOC calls
+- EXTAU: `0.188158` sec (`36.414%` of classified time)
+- s channel: `0.103150` sec (`19.963%`)
+- p channel: `0.225405` sec (`43.623%`)
+- d/f channels: inactive for this input
+- Classified total: `0.516713` sec; gap: `0.031119` sec
+
+The active p channel is the largest child, but a complete tutorial-specific
+s/p offload was already rejected in Step 47. Step 90 therefore adds timers
+only around p-channel projector construction, coefficient reduction, and
+DCOEF update loops before considering a distinct bounded hypothesis.
+
+## Step 90 Plan
+
+Measure the three existing p-channel loops without changing arithmetic,
+ordering, ownership, MPI, or the diagnostic-off path. Run
+`tools/run_tddft_step90.sh` once. Do not reintroduce the rejected Step 47
+whole-channel implementation.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`
