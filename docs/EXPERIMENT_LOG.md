@@ -1888,6 +1888,21 @@ Together with Step 92, this closes complete host-produced `work2_` reuse and
 metadata-only reuse. Do not retry either cache shape. The official Step 86
 diagnostic-off median remains `66.5019950867` sec.
 
+## Step 94 Plan
+
+Re-measure current-source ELECTF `LOCPOTF` before selecting another
+implementation. The old Step 43 `4.071556` sec parent combines EWALD, local
+G-vector/force construction, MPI, energy, XC, and Hartree work. Add two
+default-off timers only: the complete `LOCPOTF` call and the existing local
+potential/force construction through its MPI boundary. Derive the remainder
+from the two values.
+
+This diagnostic changes no equation, loop order, MPI call, OpenACC ownership,
+or diagnostic-off path. Run `tools/run_tddft_step94.sh` once, require normal
+check and relaxed compare, and do not use its wall as a baseline. A
+local-potential implementation is not selected until the current child share
+is known.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

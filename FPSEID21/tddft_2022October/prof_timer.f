@@ -215,5 +215,7 @@
       if (id.eq.116)name='seppot_p_projector'
       if (id.eq.117)name='seppot_p_reduce'
       if (id.eq.118)name='seppot_p_dcoef'
+      if (id.eq.119)name='electf_locpotf_total'
+      if (id.eq.120)name='locpotf_local_mpi'
       return
       end

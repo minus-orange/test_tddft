@@ -2177,3 +2177,11 @@ tuple. Metadata therefore changes with the projector values, so one-time
 metadata device initialization is invalid. Steps 92/93 close both complete
 `work2_` caching and metadata-only caching for this phase-keyed scheme; do not
 retry either form. The official Step 86 median remains `66.5019950867` sec.
+
+Step 94 is diagnostic-only and re-measures current-source ELECTF `LOCPOTF`.
+The old Step 43 `4.071556` sec value combines EWALD, local G-vector/force
+construction, MPI, energy, XC, and Hartree work, so it is not a direct offload
+ceiling. Default-off timers measure the complete call and the local
+construction through its MPI boundary, with the remainder derived from them.
+Run `./tools/run_tddft_step94.sh` once, require both checks, and do not use its
+diagnostic wall as a baseline.

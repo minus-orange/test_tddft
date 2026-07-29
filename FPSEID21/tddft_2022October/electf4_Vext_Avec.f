@@ -152,6 +152,9 @@ c          DCOEF(ig,ii)=DCMPLX(0.d0,0.d0)
 c         enddo
 c       enddo
 c +++ temp check; end
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(119)
+#endif
       CALL LOCPOTF(NXYZ,NG,NGQ,G,EXPG,RHO1,TPIBA,OMEGA,
 cc     &             DELTA,VG,RHO,RHOG,I2G,FORCE,RHO2,
      &             DELTA,DELTAd,VG,RHO,RHOG,I2G,FORCE,VGA,
@@ -176,6 +179,9 @@ c *** for Kokubo FFTW
      &                  ,plancfp,plancbp
 c
      &   ,nbegint,nendt,nbegintt,nendtt,ncpuq,ncpu )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(119)
+#endif
 C
 C     CALCULATE NON-LOCAL POTENTIAL CONTRIBUTION
 c **** temp check

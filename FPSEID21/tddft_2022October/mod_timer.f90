@@ -380,5 +380,9 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'seppot_p_reduce'
   case (118)
     name = 'seppot_p_dcoef'
+  case (119)
+    name = 'electf_locpotf_total'
+  case (120)
+    name = 'locpotf_local_mpi'
   end select
 end subroutine fpseid_mod_timer_name

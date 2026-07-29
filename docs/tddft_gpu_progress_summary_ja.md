@@ -1958,3 +1958,9 @@ Step 93はrevision `0c63c84`で両checkにPASSしました。diagnostic wall
 ともに変化するため、反復metadata updateの1回化は成立しません。Steps 92/93で
 phase単位の`work2_`全体cacheとmetadata-only cacheのreuse経路を閉じ、同形を再試行
 しません。正式Step 86中央値は`66.5019950867`秒のままです。
+
+次のStep 94は追加最適化ではなく、現行sourceのELECTF `LOCPOTF`再診断です。旧Step 43
+の`4.071556`秒にはEWALD、local G-vector/force生成、MPI、energy、XC、Hartreeが混在
+するため、そのままGPU化上限とは扱えません。default-off timerで`LOCPOTF`全体と
+local生成からMPI境界までを測り、残差を導出します。`./tools/run_tddft_step94.sh`を
+1回だけ実行し、両checkを必須とし、diagnostic wallはbaselineに使用しません。

@@ -18,7 +18,7 @@ Last updated: 2026-07-29
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - Current HEAD status: Step 86 accepted; Steps 92/93 close phase-keyed
-  nonlocal input and metadata reuse after exact component diagnostics
+  nonlocal reuse; Step 94 current-source ELECTF LOCPOTF diagnostic prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 86 median `66.5019950867` sec
@@ -760,6 +760,15 @@ values, so do not replace the repeated metadata update with one-time device
 initialization. Steps 92/93 close this complete-value reuse path; do not retry
 full `work2_` caching or metadata caching for the same phase-keyed scheme.
 The official Step 86 median remains `66.5019950867` sec.
+
+The next bounded action is diagnostic-only Step 94. The old Step 43
+`electf_locpotf=4.071556` sec value covers EWALD, local G-vector and force
+construction, MPI, energy, XC, and Hartree work, so it is not evidence for a
+direct offload. Step 94 adds default-off parent and local-build/MPI timers only.
+Run `./tools/run_tddft_step94.sh` once and use the child share to decide whether
+the current local construction merits a narrower split. Do not implement a
+LOCPOTF offload before this current-source measurement, and do not use its
+diagnostic wall as a baseline.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

@@ -398,6 +398,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 153. metadataもprojector値とともに毎回変化するため、反復metadata updateの1回化は
      不成立。Steps 92/93でphase単位の`work2_`全体cacheとmetadata-only cacheを閉じ、
      同形を再試行しない。正式baselineはStep 86の`66.5019950867 sec`のまま。
+154. 次は追加最適化ではなくStep 94で現行ELECTF `LOCPOTF`を再診断する。旧Step 43の
+     `4.071556 sec`親にはEWALD、local G-vector/force生成、MPI、energy、XC、Hartreeが
+     混在するため、直接offloadの根拠にしない。
+155. Step 94はdefault-off timerで`LOCPOTF`全体とlocal生成からMPI境界までを測る。
+     A100では`./tools/run_tddft_step94.sh`を1回だけ実行し、両checkを必須とし、
+     diagnostic wallはbaselineに使用しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

@@ -1419,6 +1419,9 @@ C
 C LOCAL POTENTITAL
 C
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(120)
+#endif
       do IG=1,NXYZ
 c       WEXT(IG)=DCONJG( RHOG(IG)+REXT(IG) )
        WEXT(IG)=DCONJG( RHOG(IG)+ft*REXT(IG) )
@@ -1556,6 +1559,9 @@ C
             enddo
            endif ! end of if my_rank.ne.0 loop
 c
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(120)
+#endif
 C * TEMP
 C     WRITE(6,6004)
 C6004 FORMAT(15X,'  ****  FORCE LOCAL PARTS: NEGATIVE ')
