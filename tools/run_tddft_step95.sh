@@ -52,49 +52,5 @@ LABEL="$LABEL" TDDFT_OUTPUT=Si111-H_tm.out_100steps \
   TDDFT_ERR=Si111-H_tm.err \
   "$SCRIPT_DIR/archive_tddft_result.sh" "$RUN_DIR" >/dev/null
 
-ARCHIVE_DIR=$ROOT_DIR/run/tddft_archives/$LABEL
-python3 "$SCRIPT_DIR/check_tddft_result.py" check \
-  "$ARCHIVE_DIR/tddft.out" --err "$ARCHIVE_DIR/tddft.err" >/dev/null
-python3 "$SCRIPT_DIR/check_tddft_result.py" compare \
-  "$ARCHIVE_DIR/tddft.out" --test-err "$ARCHIVE_DIR/tddft.err" >/dev/null
-
-echo
-echo "FPSEID21 STEP95 ELECTF LOCPOTF SPLIT SUMMARY"
-echo "revision=$(git rev-parse HEAD)"
-echo "source_baseline=9dd8c20"
-echo "label=$LABEL"
-echo "diagnostic=ON check=PASS compare=PASS"
-echo "official_step86_median_sec=66.5019950867"
-grep 'steps took' "$ARCHIVE_DIR/tddft.out" | tail -n 1
-awk '
-  /FPSEID_PROFILE_BEGIN/ { active=1; next }
-  /FPSEID_PROFILE_END/ { active=0 }
-  active && ($2 ~ /^(time_step_total|electf_force|electf_locpotf_total|locpotf_local_mpi|locpotf_ewald|locpotf_local_energy|locpotf_xc|locpotf_hartree)$/) {
-    print
-    value[$2]=$4
-  }
-  END {
-    total=value["electf_locpotf_total"]
-    local=value["locpotf_local_mpi"]
-    remainder=total-local
-    split=value["locpotf_ewald"]+value["locpotf_local_energy"] \
-      +value["locpotf_xc"]+value["locpotf_hartree"]
-    gap=remainder-split
-    printf "derived locpotf_remainder_sec %.6f\n", remainder
-    printf "derived remainder_split_sec %.6f\n", split
-    printf "derived remainder_gap_sec %.6f\n", gap
-    if (remainder > 0.0) {
-      printf "derived ewald_pct %.3f\n", \
-        100.0*value["locpotf_ewald"]/remainder
-      printf "derived local_energy_pct %.3f\n", \
-        100.0*value["locpotf_local_energy"]/remainder
-      printf "derived xc_pct %.3f\n", \
-        100.0*value["locpotf_xc"]/remainder
-      printf "derived hartree_pct %.3f\n", \
-        100.0*value["locpotf_hartree"]/remainder
-      printf "derived gap_pct %.3f\n", 100.0*gap/remainder
-    }
-  }
-' "$ARCHIVE_DIR/tddft.out"
-echo "Percentages use the LOCPOTF remainder outside local_mpi."
-echo "Diagnostic wall only; do not use it as a performance baseline."
+REVISION=$(git rev-parse HEAD) LABEL=$LABEL \
+  "$SCRIPT_DIR/report_tddft_step95.sh"

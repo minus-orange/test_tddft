@@ -783,6 +783,13 @@ equation, loop, MPI call, OpenACC ownership, or diagnostic-off path. Run
 `./tools/run_tddft_step95.sh` once and select no implementation before the
 remainder percentages and gap are known. Its wall is diagnostic only.
 
+The first Step 95 A100 run at `6952f54` completed, archived its output, and
+passed both checks. Its diagnostic wall was `72.0551159382` sec and is not a
+baseline. Only the final `awk` summary failed because the target implementation
+reserves `split` as a function name and rejected it as a variable. Do not rerun
+the calculation: pull the summary fix and run
+`./tools/report_tddft_step95.sh` against the existing archive.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

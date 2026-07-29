@@ -1932,6 +1932,14 @@ order, MPI, OpenACC ownership, CPU/FFTW behavior, and diagnostic-off execution
 remain unchanged. Run `tools/run_tddft_step95.sh` once, require both
 correctness checks, and do not use its wall as a baseline.
 
+The first A100 run at revision `6952f54` completed and was archived with both
+checks passing, but the final summary stopped because the target `awk` reserves
+`split` as a function name and rejected its use as a variable. The measured run
+remains valid: its diagnostic wall was `72.0551159382` sec under archive label
+`nvhpc_cufft_1rank_02_STEP95_STEP86_LOCPOTF_SPLIT_01`.
+`tools/report_tddft_step95.sh` rechecks and summarizes that existing archive
+without rebuilding or rerunning TDDFT. The diagnostic wall is not a baseline.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

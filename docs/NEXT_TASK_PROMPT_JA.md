@@ -414,6 +414,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      変更しない。
 159. A100では`./tools/run_tddft_step95.sh`を1回だけ実行し、両checkを必須とする。
      4子区間の残差比率と未分類gapを確認するまで実装を選ばず、wallはbaselineにしない。
+160. revision `6952f54`の初回A100実行はarchiveと両checkまで成功したが、末尾要約だけが
+     A100側`awk`で組み込み関数名`split`を変数に使ったため停止した。計算は再実行せず、
+     修正版をpullして`./tools/report_tddft_step95.sh`で既存archiveを再check・再要約する。
+     diagnostic wallは`72.0551159382`秒でありbaselineには使わない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
