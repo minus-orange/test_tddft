@@ -17,7 +17,7 @@ Last updated: 2026-07-29
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 82 accepted; Step 83 diagnostic planned
+- Current HEAD status: Step 82 accepted; Step 83 diagnostic completed
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 82 median `66.6539101601` sec
@@ -635,6 +635,13 @@ Step 82 runs 02/03 also passed both checks at `66.6139972210` and
 (`1.137412%`). Step 82 is the new official baseline. Next run the
 diagnostic-only `tools/run_tddft_step83.sh` once to confirm the current VRHO
 seed/control split; do not use its diagnostic wall as a baseline.
+
+Step 83 passed both checks. Seed control fell from the Step 81 value
+`0.562341` to `0.000497` sec (`99.9116%`), VRHO control fell from `0.657103`
+to `0.103696` sec, and the VRHO parent fell from `1.173977` to `0.622439`
+sec. This confirms the Step 82 mechanism. Next run only
+`tools/show_tddft_step83_next.sh`; it reads the existing archive and performs
+no build or rerun.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

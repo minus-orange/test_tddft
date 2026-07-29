@@ -1585,6 +1585,23 @@ device-local COEF0 seed initialization and supersede Step 80 with Step 82 as
 the official baseline. Step 83 is diagnostic only: re-run the existing VRHO
 child timers on accepted Step 82 source to confirm the seed/control reduction.
 
+## Step 83 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP83_STEP82_VRHO_01`
+- Tested revision: `d841f7a25a466fb23c88977e4eaf5e871726655d`
+- Diagnostic wall: `67.2204380035` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- VRHO parent: `0.622439` sec
+- Seed control: `0.000497` sec
+- VRHO control: `0.103696` sec
+
+Relative to the Step 81 archive, seed control fell by `0.561844` sec
+(`99.9116%`), VRHO control by `0.553407` sec (`84.2192%`), and the complete
+VRHO parent by `0.551538` sec (`46.9803%`). This directly confirms the Step 82
+mechanism. Before selecting another implementation, print the current broad
+and energy envelopes from this same archive with
+`tools/show_tddft_step83_next.sh`; this requires no build or rerun.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

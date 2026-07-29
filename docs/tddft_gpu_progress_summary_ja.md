@@ -1862,3 +1862,8 @@ run 02/03も両checkにPASSし、`66.6139972210`、`66.6539101601`秒でした�
 （`1.137412%`）高速です。全runが旧中央値より速いためStep 82を正式採用します。
 次のStep 83は追加最適化ではなく、正式Step 82 sourceのVRHO seed/control timerを
 再測定して改善箇所を確認します。
+
+Step 83は両checkにPASSしました。seedは`0.000497`秒でStep 81比`99.9116%`減、
+VRHO controlは`0.103696`秒、VRHO全体は`0.622439`秒となり、Step 82の高速化要因を
+確認しました。次は同じarchiveから現行広域envelopeとenergy子timerを表示し、
+再実行せずに次の単一仮説を選びます。

@@ -291,6 +291,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      Step 82を正式baselineとして採用する。
 107. 次は追加最適化ではなく、`./tools/run_tddft_step83.sh`で正式Step 82 sourceの
      VRHO seed/control子timerを1回再診断する。diagnostic wallはbaselineにしない。
+108. Step 83はPASS/PASS。seedは`0.000497 sec`でStep 81比`99.9116%`減、VRHO controlは
+     `0.103696 sec`、VRHO parentは`0.622439 sec`となり、Step 82の機序を確認した。
+109. 次はbuild/rerunせず、`./tools/show_tddft_step83_next.sh`で同じarchiveの現行広域
+     envelopeとenergy子timerを表示し、既却下形を避けた単一仮説を選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

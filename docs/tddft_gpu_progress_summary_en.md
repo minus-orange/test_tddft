@@ -2056,3 +2056,9 @@ Runs 02/03 also passed both checks at `66.6139972210` and
 Step 80. Every run is faster than the old median, so Step 82 is accepted as
 the official baseline. Step 83 adds no optimization; it re-measures the VRHO
 seed/control timers on accepted Step 82 source.
+
+Step 83 passed both checks. Seed control was `0.000497` sec, a `99.9116%`
+reduction from Step 81; VRHO control was `0.103696` sec and the complete VRHO
+parent was `0.622439` sec. This confirms the Step 82 mechanism. Print the
+current broad and energy envelopes from the same archive before selecting the
+next bounded hypothesis; no rerun is needed.
