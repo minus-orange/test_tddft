@@ -1918,3 +1918,16 @@ Step 90は両checkにPASSしました。p channel `0.284428`秒の内訳はproje
 支配子もありません。個別kernel化はlaunch・同期負けの可能性が高いためSEPPOT経路を
 閉じます。次は追加最適化ではなく、Steps 74/80/82/86後の正式Step 86 sourceを
 Nsight Systemsで再診断し、現在のkernel・転送・同期・GPU idle構造を更新します。
+
+Step 91は両checkにPASSしました。trace wall `69.98909358414`秒はbaselineではありません。
+CUDA kernel合計は約`13.90`秒（trace wallの`19.86%`）で、nonlocal fused kernelは
+`8.200543838`秒、VPJ kernelは`1.559553328`秒でした。H2Dは45,663回、
+`28,361.039` MB、`2.479428511`秒、D2Hは7,759回、`6,036.924` MB、
+`0.482051802`秒でした。stream+event同期APIは重複を含む`17.235587864`秒で、
+MPI reportは空でした。
+
+Step 70比でH2D+D2Hは`0.269326551`秒、H2D量は`3,229.206` MB減りましたが、
+同期と主要kernelはほぼ横ばいです。kernel外約`56.09`秒にはCPU計算、runtime、wait、
+profiler overheadが重なるため純GPU idleではありません。次は再実行せず、既存Step 91
+archiveからTMEVL update/wait行だけを表示し、source attributionを確定してから単一の
+ownership仮説を選びます。

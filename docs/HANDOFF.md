@@ -705,6 +705,23 @@ each has a sub-`0.1` sec ceiling, so do not add separate fine-grained kernels.
 The current SEPPOT path is closed. Run `./tools/run_tddft_step91_nsys.sh`
 once to re-profile the accepted Step 86 source after Steps 74/80/82/86.
 
+Step 91 passed both checks. Its `69.98909358414` sec trace wall is diagnostic,
+not a baseline. Aggregate CUDA kernels were about `13.90` sec (`19.86%`),
+led by fused nonlocal at `8.200543838` sec and VPJ at `1.559553328` sec.
+H2D was 45,663 copies, `28,361.039` MB, and `2.479428511` sec; D2H was
+7,759 copies, `6,036.924` MB, and `0.482051802` sec. Stream plus event
+synchronization totaled `17.235587864` sec, MPI had no rows, and allocation
+was negligible apart from one `0.273660713` sec pinned-pool initialization.
+
+Compared with Step 70, direct transfer time fell `0.269326551` sec and H2D
+volume fell `3,229.206` MB, while synchronization and the two leading kernels
+were nearly flat. Do not interpret the approximately `56.09` sec outside CUDA
+kernels as pure GPU idle because CPU work, waits, runtime, and trace overhead
+overlap. Before a new implementation, run
+`./tools/show_tddft_step91_detail.sh` once. It reads the existing Step 91
+archive only and prints source-attributed TMEVL update/wait rows and selected
+CUDA API rows.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

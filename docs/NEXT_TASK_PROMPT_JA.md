@@ -356,6 +356,17 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      Systems再診断する。Step 70以後のSteps 74/80/82/86を含む現行kernel、転送、
      API、同期、MPI、GPU idleを`./tools/run_tddft_step91_nsys.sh`で更新する。
 139. Step 91 trace wallはbaselineに使わず、通常checkとrelaxed compareを必須とする。
+140. Step 91はPASS/PASS。trace wallは`69.98909358414 sec`でbaselineではない。
+     CUDA kernel合計は約`13.90 sec`（`19.86%`）、fused nonlocalは
+     `8.200543838 sec`、VPJは`1.559553328 sec`。
+141. H2Dは45,663回・`28,361.039 MB`・`2.479428511 sec`、D2Hは7,759回・
+     `6,036.924 MB`・`0.482051802 sec`。stream+event同期は重複を含む
+     `17.235587864 sec`、MPI reportは空。
+142. Step 70比で直接転送時間は`0.269326551 sec`、H2D量は`3,229.206 MB`減ったが、
+     同期と主要kernelはほぼ不変。kernel外約`56.09 sec`を純GPU idleと解釈しない。
+143. 次は追加実装・再実行せず、`./tools/show_tddft_step91_detail.sh`で既存Step 91
+     archiveのTMEVL update/waitとCUDA同期/copy行だけを表示し、必須host consumer境界と
+     回避可能な反復stagingを区別してから単一ownership仮説を選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

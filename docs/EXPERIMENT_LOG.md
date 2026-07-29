@@ -1786,6 +1786,37 @@ update kernel, transfer, CUDA/OpenACC API, synchronization, MPI, and GPU-idle
 evidence before selecting another bounded hypothesis. The trace wall is not
 a performance baseline.
 
+## Step 91 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP91_STEP86_NSYS_01`
+- Tested revision: `11691621195fb3e80eb40c825584011dfb1685c4`
+- Trace wall: `69.98909358414` sec (diagnostic; not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `61.133014` sec; `tmevl_total`: `53.969606` sec
+- Estimated aggregate CUDA kernels: about `13.90` sec (`19.86%` of trace wall)
+- Fused nonlocal kernel: `8.200543838` sec (`59.0%` of kernel time)
+- VPJ kernel: `1.559553328` sec (`11.2%` of kernel time)
+- H2D: 45,663 copies / `28,361.039` MB / `2.479428511` sec
+- D2H: 7,759 copies / `6,036.924` MB / `0.482051802` sec
+- CUDA stream/event synchronization: `17.235587864` sec total
+- MPI summary: no rows
+- Pinned host allocation: one `cuMemHostAlloc`, `0.273660713` sec
+
+Relative to Step 70, H2D plus D2H time fell by `0.269326551` sec and H2D
+volume fell by `3,229.206` MB. The fused and VPJ kernels changed by only
+`-0.047430195` and `-0.014883426` sec, while overlapping stream plus event
+synchronization fell by only `0.136504201` sec. The approximately `56.09` sec
+outside reported CUDA kernels is not pure GPU idle because CPU computation,
+runtime, waits, and profiler overhead overlap. MPI and allocation remain
+non-dominant.
+
+Do not add a new offload yet. First run
+`tools/show_tddft_step91_detail.sh` against the existing archive. It performs
+no build or rerun and prints only TMEVL OpenACC update/wait rows plus selected
+CUDA synchronization/copy rows. Use those source-attributed rows to distinguish
+required host-consumer boundaries from avoidable repeated staging before
+selecting one bounded ownership hypothesis.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

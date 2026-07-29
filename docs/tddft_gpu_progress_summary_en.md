@@ -2128,3 +2128,18 @@ ceiling is below `0.1` sec. Separate kernels are therefore likely to lose to
 launch and synchronization overhead, so the current SEPPOT path is closed.
 The next step adds no optimization and re-profiles the accepted Step 86 source
 with Nsight Systems after the Step 74/80/82/86 changes.
+
+Step 91 passed both checks. Its `69.98909358414` sec trace wall is not a
+baseline. Aggregate CUDA kernels were about `13.90` sec (`19.86%` of trace
+wall), with fused nonlocal at `8.200543838` sec and VPJ at `1.559553328` sec.
+H2D used 45,663 copies, `28,361.039` MB, and `2.479428511` sec; D2H used
+7,759 copies, `6,036.924` MB, and `0.482051802` sec. Overlapping stream plus
+event synchronization totaled `17.235587864` sec, and MPI again had no rows.
+
+Relative to Step 70, direct transfer time fell by `0.269326551` sec and H2D
+volume fell by `3,229.206` MB, while synchronization and the two leading
+kernels were nearly flat. The approximately `56.09` sec outside CUDA kernels
+is not pure GPU idle because CPU computation, waits, runtime, and profiler
+overhead overlap. Before another implementation, print only the source-
+attributed TMEVL update/wait rows from the existing Step 91 archive and use
+them to separate required host-consumer boundaries from avoidable staging.
