@@ -1877,4 +1877,8 @@ Step 84はenergy内NONLOCでband不変kinetic factorを一度RHOAへ格納して
 
 次のStep 85は追加最適化ではなく、energy内HLOCALをzero、scatter、逆FFT、
 局所ポテンシャル積、順FFT、gatherへ分解する診断です。現行の対角HLOCAL
-`0.237196`秒と非対角HLOCAL `0.080948`秒のどこに次のGPU化余地があるか確認します。
+`0.237196`秒と非対角HLOCAL `0.080948`秒のどこに次のGPU化余地があるか確認しました。
+全768回の合計は`0.482563`秒で、FFT往復が`55.978%`、scatter/gatherが`32.770%`です。
+
+Step 86ではHLOCALだけを一時device data regionへまとめ、zero、scatter、VG積、
+gatherとcuFFT往復をGPU内で完結させます。CPU/FFTW経路は変更しません。

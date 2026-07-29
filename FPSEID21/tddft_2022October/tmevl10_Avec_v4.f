@@ -2515,6 +2515,39 @@ c *** for Kokubo FFTW
       integer*8 plancfp,plancbp
       DIMENSION J2G(NG2Q)
 C
+#ifdef _OPENACC
+C     Keep both FFTs and their surrounding loops on one temporary device
+C     allocation.  The host fallback below remains the reference path.
+!$acc data copyin(COEF(1:NG2),VG(1:NXYZ),J2G(1:NG2))
+!$acc& copyout(DCOEF(1:NG2))
+!$acc& create(RHO1(1:NXYZ),RHO2(1:NXYZ))
+!$acc parallel loop present(RHO1(1:NXYZ))
+         DO JG=1,NXYZ
+           RHO1(JG)=(0.D0,0.D0)
+         ENDDO
+!$acc parallel loop present(RHO1(1:NXYZ),COEF(1:NG2),
+!$acc& J2G(1:NG2))
+         DO IG=1,NG2
+           JG=J2G(IG)
+           RHO1(JG)=COEF(IG)
+         ENDDO
+      CALL FFT3BX_fftwASL_ACC(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,
+     &                        plancfp,plancbp)
+!$acc parallel loop present(RHO1(1:NXYZ),RHO2(1:NXYZ),
+!$acc& VG(1:NXYZ))
+         DO I=1,NXYZ
+           RHO2(I)=VG(I)*RHO1(I)
+         ENDDO
+      CALL FFT3FX_fftwASL_ACC(NRX,NRY,NRZ,NXYZ,RHO2,RHO1,
+     &                        plancfp,plancbp)
+!$acc parallel loop present(RHO2(1:NXYZ),DCOEF(1:NG2),
+!$acc& J2G(1:NG2))
+         DO IG=1,NG2
+           JG=J2G(IG)
+           DCOEF(IG)=RHO2(JG)
+         ENDDO
+!$acc end data
+#else
 C     MAIN LOOP
 C
 c      DO 1010 IB=1,NBND
@@ -2578,6 +2611,7 @@ C      CALL CLOCK(TIM1)
 C     WRITE(6,*) ' NBND = ',NBND
 C     WRITE(6,*) ' HLOCAL: CPTIME=',TIM1
 C     WRITE(6,*) ' REAL CPU_TIME : ',(TIM1-TIM0)/DBLE(NBND)
+#endif
       RETURN
       END
 C*****************************************************************

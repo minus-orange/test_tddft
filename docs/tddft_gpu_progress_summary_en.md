@@ -2076,4 +2076,10 @@ is restored.
 Step 85 is diagnostic only. It splits energy HLOCAL into zero, scatter,
 inverse FFT, local-potential multiply, forward FFT, and gather timers. This
 will classify the current `0.237196` sec diagonal and `0.080948` sec
-off-diagonal HLOCAL envelopes before any ownership change.
+off-diagonal HLOCAL envelopes before any ownership change. Across all 768
+calls, the classified total is `0.482563` sec: the FFT pair accounts for
+`55.978%` and scatter/gather for `32.770%`.
+
+Step 86 tests one temporary HLOCAL device data region. It keeps zero, scatter,
+the local-potential multiply, gather, and both cuFFTs on the GPU while retaining
+the unchanged CPU/FFTW implementation.

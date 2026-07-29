@@ -306,6 +306,14 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 114. Step 84を却下して正式Step 82式へ戻し、Step 82をbaselineとして維持する。
 115. 次は`./tools/run_tddft_step85.sh`を1回だけ実行し、energy HLOCALをzero、scatter、
      inverse FFT、VG multiply、forward FFT、gatherへ分解する。diagnostic wallはbaselineにしない。
+116. Step 85はPASS/PASS。全768 HLOCAL callはzero `0.013984`、scatter `0.067270`、
+     inverse FFT `0.128601`、VG multiply `0.040314`、forward FFT `0.141528`、
+     gather `0.090866 sec`、合計`0.482563 sec`。
+117. 768 callは対角384、非対角128、TMEVL 256。初回helperの負gapは全768子timerと
+     対角/非対角512親timerを比較した表示上の誤りで、個別計測値は有効。
+118. Step 86はHLOCALだけを一時device data regionにまとめ、host staged FFT 2往復と
+     4 host loopをGPU内に置く。CPU/FFTW経路は維持する。
+119. A100では`./tools/run_tddft_step86.sh 01`だけを実行し、結果確認前に02/03を流さない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

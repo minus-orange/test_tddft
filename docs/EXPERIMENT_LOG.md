@@ -1623,14 +1623,40 @@ The fused pass is correct but provides no performance advantage. Restore the
 accepted Step 82 expression and remove the Step 84 run helper. Step 82 remains
 the official baseline.
 
-## Step 85 Plan
+## Step 85 Result
 
 The current diagonal and off-diagonal HLOCAL children are `0.237196` and
 `0.080948` sec. Before changing their GPU ownership, split HLOCAL into zero,
 scatter, inverse FFT, local-potential multiply, forward FFT, and gather timers.
 This is diagnostic only and changes no equations, loop order, MPI, or ownership.
-Run `tools/run_tddft_step85.sh` once and do not use its diagnostic wall as a
-performance baseline.
+
+- Archive: `nvhpc_cufft_1rank_02_STEP85_STEP82_HLOCAL_01`
+- Tested revision: `0494fe533e3ed2f390d3bafca2962db2c6d024dd`
+- Diagnostic wall: `66.9716517925` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- HLOCAL calls: 768 total = 384 diagonal + 128 off-diagonal + 256 TMEVL
+- Zero: `0.013984` sec
+- Scatter: `0.067270` sec
+- Inverse FFT: `0.128601` sec
+- Local-potential multiply: `0.040314` sec
+- Forward FFT: `0.141528` sec
+- Gather: `0.090866` sec
+- Classified HLOCAL total: `0.482563` sec
+
+The original helper printed a negative parent gap because it compared all 768
+HLOCAL calls with only the 512 diagonal/off-diagonal parent calls. The stage
+timers themselves are valid; the completed diagnostic helper is removed so it
+cannot be rerun against the Step 86 source. FFTs account for `55.978%` and
+scatter/gather for `32.770%` of the complete HLOCAL time.
+
+## Step 86 Plan
+
+The host-staged cuFFT wrapper performs H2D and D2H for each FFT. Test one
+temporary HLOCAL device data region so zero, scatter, both FFTs, the
+local-potential multiply, and gather stay on the GPU. Copy only COEF/VG/J2G in
+and DCOEF out at the HLOCAL boundary. Keep the existing CPU/FFTW implementation
+unchanged. Run `tools/run_tddft_step86.sh 01` first; collect 02/03 only after
+PASS/PASS without a clear regression.
 
 ## Step 80 H100 Exploratory Run
 

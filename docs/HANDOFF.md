@@ -652,10 +652,15 @@ setup without changing ownership or communication. Its three runs were
 checks, but the `66.7368218899` sec median is `0.124391%` slower than Step 82.
 Step 84 is rejected and its source change is reverted.
 
-Step 85 is diagnostic only. It splits the current HLOCAL envelope into zero,
-scatter, inverse FFT, local-potential multiply, forward FFT, and gather timers
-without changing equations or ownership. Run `tools/run_tddft_step85.sh` once;
-do not use its diagnostic wall as a baseline.
+Step 85 passed both checks. Across all 768 HLOCAL calls, zero was `0.013984`,
+scatter `0.067270`, inverse FFT `0.128601`, local-potential multiply `0.040314`,
+forward FFT `0.141528`, and gather `0.090866` sec. The `0.482563` sec total
+includes 384 diagonal, 128 off-diagonal, and 256 TMEVL HLOCAL calls. The
+original negative gap was only a helper attribution error and is corrected.
+
+Step 86 tests one temporary device-resident HLOCAL data region, replacing the
+two host-staged cuFFT round trips and four host loops while keeping the
+CPU/FFTW path unchanged. Run `tools/run_tddft_step86.sh 01` first.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
