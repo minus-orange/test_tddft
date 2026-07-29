@@ -1925,6 +1925,10 @@ c ***  temp check for YLM : end
     2  continue
     1 continue
       call prof_stop(25)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call exnlp_reuse_observe(np,work2_,cfac_,ngnl_,
+     &                         ngwork,loopcnt)
+#endif
       call prof_start(26)
       call prof_start(38)
 !$acc update device(work2_(1:ngwork,1:loopcnt))
@@ -2346,6 +2350,97 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       end do
       return
       end subroutine exnlp_only_make
+
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      subroutine exnlp_reuse_observe(np,work1,cfac,ngnl,
+     &                               ngwork,loopcnt)
+      implicit double precision(a-h,o-z)
+      integer np,ngwork,loopcnt,ngnl(loopcnt)
+      integer exobs,exsame,exchanged
+      integer prev_loopcnt(5),prev_ngwork(5)
+      integer, allocatable, save :: prev_ngnl(:,:)
+      complex*16 work1(ngwork,loopcnt),cfac(loopcnt)
+      complex*16, allocatable, save :: prev_work(:,:,:)
+      complex*16, allocatable, save :: prev_cfac(:,:)
+      logical cache_valid(5),same
+      logical, save :: initialized = .false.
+      save cache_valid,prev_loopcnt,prev_ngwork
+      common /exnlpreuse/ exobs(5),exsame(5),exchanged(5)
+
+      if (np.lt.1 .or. np.gt.5) return
+      if (.not.initialized) then
+         allocate(prev_work(ngwork,loopcnt,5))
+         allocate(prev_cfac(loopcnt,5))
+         allocate(prev_ngnl(loopcnt,5))
+         do iphase=1,5
+            cache_valid(iphase)=.false.
+            prev_loopcnt(iphase)=0
+            prev_ngwork(iphase)=0
+         enddo
+         initialized=.true.
+      endif
+
+      same=cache_valid(np)
+      if (same) then
+         if (prev_loopcnt(np).ne.loopcnt .or.
+     &       prev_ngwork(np).ne.ngwork) same=.false.
+      endif
+      if (same) then
+         do ia=1,loopcnt
+            if (prev_ngnl(ia,np).ne.ngnl(ia)) same=.false.
+            if (prev_cfac(ia,np).ne.cfac(ia)) same=.false.
+            if (.not.same) goto 10
+            do ig=1,ngnl(ia)
+               if (prev_work(ig,ia,np).ne.work1(ig,ia)) then
+                  same=.false.
+                  goto 10
+               endif
+            enddo
+         enddo
+      endif
+   10 continue
+
+      exobs(np)=exobs(np)+1
+      if (cache_valid(np)) then
+         if (same) then
+            exsame(np)=exsame(np)+1
+         else
+            exchanged(np)=exchanged(np)+1
+         endif
+      endif
+      prev_loopcnt(np)=loopcnt
+      prev_ngwork(np)=ngwork
+      do ia=1,loopcnt
+         prev_ngnl(ia,np)=ngnl(ia)
+         prev_cfac(ia,np)=cfac(ia)
+         do ig=1,ngnl(ia)
+            prev_work(ig,ia,np)=work1(ig,ia)
+         enddo
+      enddo
+      cache_valid(np)=.true.
+      return
+      end
+
+      subroutine exnlp_reuse_report()
+      implicit double precision(a-h,o-z)
+      integer exobs,exsame,exchanged,ncomp
+      common /exnlpreuse/ exobs(5),exsame(5),exchanged(5)
+      write(6,*)'FPSEID_EXNLP_REUSE_BEGIN'
+      write(6,*)' phase observations equal changed equal_pct'
+      do iphase=1,5
+         ncomp=exsame(iphase)+exchanged(iphase)
+         pct=0.d0
+         if (ncomp.gt.0) pct=100.d0*dfloat(exsame(iphase))
+     &                         /dfloat(ncomp)
+         write(6,100)iphase,exobs(iphase),exsame(iphase),
+     &              exchanged(iphase),pct
+      enddo
+      write(6,*)'FPSEID_EXNLP_REUSE_END'
+      write(6,*)
+  100 format(1x,i5,3(1x,i12),1x,f10.3)
+      return
+      end
+#endif
 
       subroutine exnlp_gemm(ng2q, work1, coef, omega, ngnl,
      &   mxbnd, nbegin, nend, loopcnt, cfac,NGcont)

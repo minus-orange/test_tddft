@@ -2153,3 +2153,13 @@ kernel. Inclusive Update and nested Wait rows overlap and are not additive.
 Before implementing direct device construction, print the existing Step 88
 host-generation and GEMM timers beside these Step 91 rows to establish the
 actual optimization ceiling without another run.
+
+The combined Step 88/91 view places the `11.548827` sec nonlocal parent beside
+`1.348333` sec of host make, `1.550889` sec of owner-side `work2_` setup,
+`0.088045` sec of metadata setup, and `8.400202` sec in the fused dot/update.
+The host-generation plus setup ceiling is `2.987267` sec, but direct device
+generation would require the rejected YLM ownership or fine-grained lookup
+copy forms. Step 92 therefore keeps the numerical and ownership paths
+unchanged and counts exact complete `work2_`/`cfac_`/`ngnl_` matches between
+consecutive calls of each of the five Suzuki-Trotter phases before any
+host-produced cache is implemented.

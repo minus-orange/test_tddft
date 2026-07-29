@@ -1938,3 +1938,11 @@ updateは`0.148298132`秒、内包Waitは`0.137812074`秒です。line 2405の
 fused-kernel完了Waitは`8.360886829`秒で、CUDA fused kernel `8.200543838`秒と
 整合します。Updateと内包Waitは重複するため加算しません。次は再実行せず、既存Step 88
 timerからhost生成、update、metadata、fused GEMMを同時表示して実装上限を確認します。
+
+Step 88/91の一括表示では、nonlocal親`11.548827`秒に対してhost make
+`1.348333`秒、owner-side `work2_` setup `1.550889`秒、metadata setup
+`0.088045`秒、fused dot/update `8.400202`秒でした。host生成とsetupの合計上限は
+`2.987267`秒ですが、直接GPU生成は既却下のYLM ownershipまたは細粒度copyを必要と
+するため進めません。Step 92では数値経路を変えず、5 phase別に連続callの
+`work2_`/`cfac_`/`ngnl_`が全要素完全一致するかを数え、host生成cacheの可能性を
+先に確認します。

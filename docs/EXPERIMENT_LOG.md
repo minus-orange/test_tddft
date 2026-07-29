@@ -1839,6 +1839,25 @@ run `tools/show_tddft_step91_next.sh`. It reads the existing Step 88 diagnostic
 archive and Step 91 Nsight archive only, printing the current host-generation,
 update, metadata, and fused-GEMM timers together. No build or rerun is needed.
 
+## Step 91 Existing-Archive Host/Update/Kernel Ceiling
+
+The combined Step 88/91 view reports `s2_nonlocal=11.548827`,
+host `s2_nonlocal_make=1.348333`, owner-side `work2_` setup `1.550889`,
+owner-side metadata setup `0.088045`, and fused `exnlp_gemm_dot=8.400202`
+seconds. Host make plus owner-side setup is therefore `2.987267` seconds,
+`25.8668%` of the current nonlocal parent and `4.4919%` of the official
+Step 86 wall. Source timers and inclusive Nsight rows overlap, so they must
+not be added to the application wall.
+
+Direct device generation is not selected. It needs YLM, VPJ, and EXTAU on the
+device and would repeat the rejected B1 YLM ownership shape (`+6.7%`) or the
+rejected Step 20 fine-grained lookup copies (`819.404727936` seconds).
+Step 92 instead keeps equations and ownership unchanged and counts whether
+the complete active `work2_`/`cfac_`/`ngnl_` values repeat exactly between
+consecutive TMEVL calls of each Suzuki-Trotter phase. Run
+`tools/run_tddft_step92.sh` once and use its equal/changed counts to decide
+whether a host-produced cache can remove generation and upload safely.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

@@ -376,6 +376,16 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 146. 次は`./tools/show_tddft_step91_next.sh`で既存Step 88/91 archiveからhost生成、
      update、metadata、fused GEMM timerを一括表示する。build/rerunせず、上限確認前に
      `work2_`直接生成を実装しない。
+147. 一括表示では`s2_nonlocal=11.548827`、host make `1.348333`、
+     owner-side `work2_` setup `1.550889`、metadata setup `0.088045`、
+     fused dot/update `8.400202 sec`。host生成とowner-side setupの上限は
+     `2.987267 sec`だが、各timerとNsight inclusive行は重複するためwallへ加算しない。
+148. `work2_`直接GPU生成はYLM/VPJ/EXTAU ownershipを必要とし、B1 YLM ownership
+     `+6.7%`またはStep 20細粒度copy `819.404727936 sec`の却下形を繰り返すため選ばない。
+149. Step 92は数式・ownershipを変更せず、5個のSuzuki-Trotter phaseごとに連続TMEVL
+     callのactive `work2_`/`cfac_`/`ngnl_`全値が完全一致するかを数える診断。
+     `./tools/run_tddft_step92.sh`を1回だけ実行し、equal/changed比からhost生成cacheの
+     可否を決める。診断wallはbaselineに使用しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

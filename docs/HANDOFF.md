@@ -734,6 +734,18 @@ it combines the existing Step 88 current-source timers with these Step 91
 source-attributed rows. Select no direct `work2_` generation implementation
 until its host-generation, upload, and fused-GEMM ceilings are shown together.
 
+The combined view shows `s2_nonlocal=11.548827`, host make `1.348333`,
+owner-side `work2_` setup `1.550889`, metadata setup `0.088045`, and fused
+dot/update `8.400202` seconds. Host make plus owner-side setup is `2.987267`
+seconds, but direct GPU generation would require the already rejected YLM
+ownership or fine-grained lookup-copy forms.
+
+Step 92 is diagnostic-only. It compares the complete active
+`work2_`/`cfac_`/`ngnl_` values with the preceding call of the same
+Suzuki-Trotter phase and prints exact equal/changed counts. Run
+`./tools/run_tddft_step92.sh` once. Its wall is diagnostic; use the counts to
+decide whether a host-produced phase cache is safe before implementing reuse.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
