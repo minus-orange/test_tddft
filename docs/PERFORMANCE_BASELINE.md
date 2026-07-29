@@ -4,8 +4,8 @@ Last updated: 2026-07-29
 
 ## Official Baseline
 
-- Logical step: Step 82
-- Source implementation commit: `2b7f5ba`
+- Logical step: Step 86
+- Source implementation commit: `9dd8c20`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,24 +16,24 @@ Last updated: 2026-07-29
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP82_COEF0_D2D_SEED_01` | 66.8839480877 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP82_COEF0_D2D_SEED_02` | 66.6139972210 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP82_COEF0_D2D_SEED_03` | 66.6539101601 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP86_HLOCAL_ACC_01` | 66.5019950867 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP86_HLOCAL_ACC_02` | 66.6454100609 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP86_HLOCAL_ACC_03` | 66.3501911163 | PASS | PASS |
 
-Official three-run median: `66.6539101601` sec.
-Run-to-run range: `0.2699508667` sec.
+Official three-run median: `66.5019950867` sec.
+Run-to-run range: `0.2952189446` sec.
 
-## Step 82 Median-Wall Run 03 Profile
+## Step 86 Median-Wall Run 01 Profile
 
 | timer | total_sec |
 |---|---:|
-| `time_step_total` | 66.852572 |
-| `frprmn` | 57.830151 |
-| `tmevl_total` | 51.135678 |
-| `s2_nonlocal` | 11.383683 |
-| `s2_nonlocal_make` | 1.342635 |
-| `s2_nonlocal_gemm` | 10.018271 |
-| `exnlp_gemm_dot` | 8.350857 |
+| `time_step_total` | 66.691550 |
+| `frprmn` | 57.683623 |
+| `tmevl_total` | 51.100760 |
+| `s2_nonlocal` | 11.416854 |
+| `s2_nonlocal_make` | 1.327232 |
+| `s2_nonlocal_gemm` | 10.065262 |
+| `exnlp_gemm_dot` | 8.390635 |
 
 ## Comparison Policy
 
@@ -51,7 +51,7 @@ index as:
 ```text
 NVHPC-selected TDDFT source OpenACC parallel/kernels construct starts
 --------------------------------------------------------------------- * 100
-Step 82 accepted-source construct starts (20)
+Step 86 accepted-source construct starts (24)
 ```
 
 This is a relative source-coverage index, not GPU utilization and not an
@@ -61,32 +61,33 @@ residency, allocation, vector-length, reuse, and transfer-boundary
 optimizations that add no compute construct.
 
 For a bounded time-step-loop estimate, the denominator is 39 currently
-identified parallelizable compute sites: the 20 accepted Step 82 sites plus
-the 19 still-unaccepted sites identified by the Step 78 temporary experiment.
+identified parallelizable compute sites: the 24 accepted Step 86 sites plus
+the 15 still-unaccepted sites identified by the Step 78 temporary experiment.
 This is a provisional absolute candidate-site coverage, not proof that all
 theoretically parallelizable loops have been identified. It weights a small
 control loop and a dominant array kernel equally.
 
 | accepted step | compute sites | relative index | identified time-step candidate coverage |
 |---:|---:|---:|---:|
-| 21 | 11 | 55.0% | 28.2% |
-| 22 | 11 | 55.0% | 28.2% |
-| 23 | 11 | 55.0% | 28.2% |
-| 24 | 11 | 55.0% | 28.2% |
-| 25 | 11 | 55.0% | 28.2% |
-| 28 | 12 | 60.0% | 30.8% |
-| 33 | 16 | 80.0% | 41.0% |
-| 34 | 16 | 80.0% | 41.0% |
-| 36 | 16 | 80.0% | 41.0% |
-| 37 | 16 | 80.0% | 41.0% |
-| 41 | 16 | 80.0% | 41.0% |
-| 52 | 17 | 85.0% | 43.6% |
-| 57 | 18 | 90.0% | 46.2% |
-| 62 | 18 | 90.0% | 46.2% |
-| 67 | 18 | 90.0% | 46.2% |
-| 74 | 18 | 90.0% | 46.2% |
-| 80 | 19 | 95.0% | 48.7% |
-| 82 | 20 | 100.0% | 51.3% |
+| 21 | 11 | 45.8% | 28.2% |
+| 22 | 11 | 45.8% | 28.2% |
+| 23 | 11 | 45.8% | 28.2% |
+| 24 | 11 | 45.8% | 28.2% |
+| 25 | 11 | 45.8% | 28.2% |
+| 28 | 12 | 50.0% | 30.8% |
+| 33 | 16 | 66.7% | 41.0% |
+| 34 | 16 | 66.7% | 41.0% |
+| 36 | 16 | 66.7% | 41.0% |
+| 37 | 16 | 66.7% | 41.0% |
+| 41 | 16 | 66.7% | 41.0% |
+| 52 | 17 | 70.8% | 43.6% |
+| 57 | 18 | 75.0% | 46.2% |
+| 62 | 18 | 75.0% | 46.2% |
+| 67 | 18 | 75.0% | 46.2% |
+| 74 | 18 | 75.0% | 46.2% |
+| 80 | 19 | 79.2% | 48.7% |
+| 82 | 20 | 83.3% | 51.3% |
+| 86 | 24 | 100.0% | 61.5% |
 
 Regenerate this table with `tools/report_tddft_source_gpu_index.sh`.
 
@@ -215,6 +216,12 @@ a device-local copy at the existing predictor-corrector data entry. All three
 runs passed both checks. Its `66.6539101601` sec median is
 `0.7668519020` sec (`1.137412%`) faster than Step 80, with a
 `0.2699508667` sec range. Step 82 supersedes Step 80 as the official baseline.
+
+Step 86 keeps HLOCAL zero, scatter, both cuFFTs, local-potential multiply, and
+gather in one temporary device data region while preserving the CPU/FFTW path.
+All three runs passed both checks. Its `66.5019950867` sec median is
+`0.1519150734` sec (`0.22791%`) faster than Step 82, with a
+`0.2952189446` sec range. Step 86 supersedes Step 82 as the official baseline.
 
 ## H100 Cross-Device Observation
 

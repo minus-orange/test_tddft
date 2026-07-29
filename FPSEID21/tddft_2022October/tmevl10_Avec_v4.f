@@ -2518,6 +2518,9 @@ C
 #ifdef _OPENACC
 C     Keep both FFTs and their surrounding loops on one temporary device
 C     allocation.  The host fallback below remains the reference path.
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(107)
+#endif
 !$acc data copyin(COEF(1:NG2),VG(1:NXYZ),J2G(1:NG2))
 !$acc& copyout(DCOEF(1:NG2))
 !$acc& create(RHO1(1:NXYZ),RHO2(1:NXYZ))
@@ -2547,6 +2550,9 @@ C     allocation.  The host fallback below remains the reference path.
            DCOEF(IG)=RHO2(JG)
          ENDDO
 !$acc end data
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(107)
+#endif
 #else
 C     MAIN LOOP
 C

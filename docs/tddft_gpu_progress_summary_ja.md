@@ -1882,3 +1882,10 @@ Step 84はenergy内NONLOCでband不変kinetic factorを一度RHOAへ格納して
 
 Step 86ではHLOCALだけを一時device data regionへまとめ、zero、scatter、VG積、
 gatherとcuFFT往復をGPU内で完結させます。CPU/FFTW経路は変更しません。
+
+Step 86の3 runは全て両checkにPASSし、wallは`66.5019950867`、`66.6454100609`、
+`66.3501911163`秒でした。中央値`66.5019950867`秒、実行幅`0.2952189446`秒で、
+Step 82より`0.1519150734`秒（`0.22791%`）高速なため正式採用します。ソースコード
+ベースのtime-step候補GPU化率は20/39=`51.3%`から24/39=`61.5%`になりました。
+次のStep 87は追加最適化ではなく、採用済みdevice HLOCAL全体を1本の親timerで測り、
+Step 85の旧`0.482563`秒からの減少量を確認します。

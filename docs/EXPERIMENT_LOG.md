@@ -65,6 +65,9 @@ implementation and timer notes are in the bilingual progress summaries.
 | 79 | Split G2VXC2 exchange-correlation path | 69.1785750389 (one diagnostic run) | inactive-path measurement | `0f3b066` |
 | 80 | Offload active LDA S2VXC2 grid loop | 67.4207620621 median | accepted baseline | `59686f0` |
 | 82 | Initialize predictor-corrector COEF0 seed on device | 66.6539101601 median | accepted baseline | `2b7f5ba` |
+| 84 | Fuse redundant NONLOC kinetic host pass | 66.7368218899 median | rejected | `9ad48b4` / restored in `0494fe5` |
+| 85 | Split all current HLOCAL stages | 66.9716517925 (one diagnostic run) | measurement | `0494fe5` |
+| 86 | Keep HLOCAL transforms and loops on device | 66.5019950867 median | accepted baseline | `9dd8c20` |
 
 ## Other Rejected Experiments
 
@@ -1649,14 +1652,30 @@ timers themselves are valid; the completed diagnostic helper is removed so it
 cannot be rerun against the Step 86 source. FFTs account for `55.978%` and
 scatter/gather for `32.770%` of the complete HLOCAL time.
 
-## Step 86 Plan
+## Step 86 Final Result
 
 The host-staged cuFFT wrapper performs H2D and D2H for each FFT. Test one
 temporary HLOCAL device data region so zero, scatter, both FFTs, the
 local-potential multiply, and gather stay on the GPU. Copy only COEF/VG/J2G in
 and DCOEF out at the HLOCAL boundary. Keep the existing CPU/FFTW implementation
-unchanged. Run `tools/run_tddft_step86.sh 01` first; collect 02/03 only after
-PASS/PASS without a clear regression.
+unchanged. All runs passed both checks:
+
+- Run 01: `66.5019950867` sec
+- Run 02: `66.6454100609` sec
+- Run 03: `66.3501911163` sec
+- Three-run median: `66.5019950867` sec
+- Run-to-run range: `0.2952189446` sec
+- Step 82 improvement: `0.1519150734` sec (`0.22791%`)
+
+Accept Step 86 as the official A100 baseline.
+
+## Step 87 Plan
+
+Add one default-off parent timer around the accepted device HLOCAL path. Use it
+to compare the complete 768-call HLOCAL time with Step 85's `0.482563` sec and
+derive diagonal, off-diagonal, and TMEVL contributions. This changes no
+diagnostic-off execution. Run `tools/run_tddft_step87.sh` once; its wall time
+is diagnostic and is not a baseline.
 
 ## Step 80 H100 Exploratory Run
 

@@ -356,5 +356,7 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'hlocal_forward_fft'
   case (106)
     name = 'hlocal_gather'
+  case (107)
+    name = 'hlocal_acc_total'
   end select
 end subroutine fpseid_mod_timer_name

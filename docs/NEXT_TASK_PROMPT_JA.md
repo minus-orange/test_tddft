@@ -25,22 +25,22 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 82です。
+正式baselineは論理Step 86です。
 
-- source implementation: `2b7f5ba`
+- source implementation: `9dd8c20`
 - pinned build mode: `9cbb6bc`
 - A100-PCIE-40GB、1 GPU / 1 MPI rank
 - NVHPC + OpenACC + cuFFT
 - `-gpu=mem:separate:pinnedalloc`
 - Si111-H、100 steps
-- diagnostic OFF 3回中央値: `66.6539101601 sec`
-- 実行幅: `0.2699508667 sec`
+- diagnostic OFF 3回中央値: `66.5019950867 sec`
+- 実行幅: `0.2952189446 sec`
 - 全runでnormal checkとrelaxed compare PASS
 
-Step 82はStep 80までの採用済みGPU化を保持し、OpenACC時のhost COEF→COEF0 seed copy
-とCOEF0 H2Dを、現行predictor-corrector data入口でのdevice copyへ置換しています。
-区間寿命、補正restart、MPI、数式、CPU/FFTW fallbackは維持しています。Step 80中央値より
-`0.7668519020 sec`（`1.137412%`）高速で、全3 runのcorrectnessと性能採否gateを満たして
+Step 86はStep 82までの採用済みGPU化を保持し、HLOCALのzero、scatter、cuFFT往復、
+局所ポテンシャル積、gatherを1個の一時device data region内で完結させています。
+CPU/FFTW fallback、数式、MPI境界は維持しています。Step 82中央値より
+`0.1519150734 sec`（`0.22791%`）高速で、全3 runのcorrectnessと性能採否gateを満たして
 正式採用済みです。最新HEADを自動的にbaseline扱いしない原則は維持します。
 
 最終ゴールは、タイムステップループ内を可能な限りGPU化し、大規模配列のhost/device
@@ -252,15 +252,15 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     A100 Step 80中央値比は`1.847517x`、wallは`45.873295%`短い。
 89. H100値は1回のみで、正確なH100型式、revision、compiler、`cc90` build条件が未記録。
     H100正式baselineにはせず、A100 Step 81計画も変更しない。
-90. ソースコードベースの履歴比較には、Step 82のNVHPC実ビルド対象OpenACC compute
-    site 20個を100%とする相対indexを使う。Step 37/41は80.0%、Step 52は85.0%、
-    Step 57/62/67/74は90.0%、Step 80は95.0%、Step 82は100.0%。
+90. ソースコードベースの履歴比較には、Step 86のNVHPC実ビルド対象OpenACC compute
+    site 24個を100%とする相対indexを使う。Step 37/41は66.7%、Step 52は70.8%、
+    Step 57/62/67/74は75.0%、Step 80は79.2%、Step 82は83.3%、Step 86は100.0%。
 91. このindexはGPU使用率でも全並列化可能loopの絶対GPU化率でもない。cuFFT内部を
     数えず、常駐、allocation、vector length、再利用だけの改善では値が変わらない。
-92. time-step loop内の既知候補に限定した暫定絶対値は、Step 82採用済み20 siteと
-    Step 78で確認した未採用候補19 site、計39 siteを母数とする。
+92. time-step loop内の既知候補に限定した暫定絶対値は、Step 86採用済み24 siteと
+    Step 78で確認した未採用候補15 site、計39 siteを母数とする。
 93. この候補site率はStep 37/41が41.0%、Step 52が43.6%、Step 57/62/67/74が46.2%、
-    Step 80が48.7%、Step 82が51.3%。小loopと支配kernelを同じ1 siteで数えるため
+    Step 80が48.7%、Step 82が51.3%、Step 86が61.5%。小loopと支配kernelを同じ1 siteで数えるため
     演算量比ではない。
 94. Step 81はPASS/PASS。診断wallは`68.5029249191 sec`でbaselineではない。FRPRMN残差
     `7.878776 sec`の`7.833973 sec`（`99.4313%`）を分類し、未分類は`0.044803 sec`。
@@ -314,6 +314,14 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 118. Step 86はHLOCALだけを一時device data regionにまとめ、host staged FFT 2往復と
      4 host loopをGPU内に置く。CPU/FFTW経路は維持する。
 119. A100では`./tools/run_tddft_step86.sh 01`だけを実行し、結果確認前に02/03を流さない。
+120. Step 86の3 runは`66.5019950867`、`66.6454100609`、`66.3501911163 sec`で全て
+     PASS/PASS。中央値`66.5019950867 sec`、実行幅`0.2952189446 sec`。
+121. Step 82比`0.1519150734 sec`（`0.22791%`）高速なため、Step 86を正式baselineとして
+     採用する。現在のtime-step候補GPU化率は24/39=`61.5%`。
+122. 次は追加最適化ではなく、正式Step 86 sourceのHLOCAL全768 callを1本の親timerで
+     再診断するStep 87。A100では`./tools/run_tddft_step87.sh`を1回だけ実行する。
+123. Step 87のdiagnostic wallはbaselineに使わず、Step 85の旧HLOCAL合計
+     `0.482563 sec`との差と、対角・非対角・TMEVL寄与を確認する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

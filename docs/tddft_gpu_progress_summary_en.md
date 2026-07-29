@@ -2083,3 +2083,11 @@ calls, the classified total is `0.482563` sec: the FFT pair accounts for
 Step 86 tests one temporary HLOCAL device data region. It keeps zero, scatter,
 the local-potential multiply, gather, and both cuFFTs on the GPU while retaining
 the unchanged CPU/FFTW implementation.
+
+All three Step 86 runs passed both checks at `66.5019950867`,
+`66.6454100609`, and `66.3501911163` sec. The `66.5019950867` sec median
+with a `0.2952189446` sec range is `0.1519150734` sec (`0.22791%`) faster
+than Step 82, so Step 86 is accepted. The source-based time-step candidate
+coverage rises from 20/39 (`51.3%`) to 24/39 (`61.5%`). Step 87 adds no
+optimization; it times the complete accepted device HLOCAL path and compares
+it with the Step 85 host-staged total of `0.482563` sec.

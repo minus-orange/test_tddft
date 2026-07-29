@@ -351,17 +351,18 @@ kernel特殊化:
 | Step 74 | YLM再利用 | 約68.07秒 | 46.2% |
 | Step 80 | LDA交換相関loop GPU化 | 約67.42秒 | 48.7% |
 | Step 82 | COEF0 seedをGPU内コピー | 約66.65秒 | 51.3% |
+| Step 86 | HLOCALのloop＋cuFFTをGPU内連続実行 | 約66.50秒 | 61.5% |
 
 総合結果:
 
 ```text
-443.2秒 -> 66.65秒
-約6.65倍高速化
+443.2秒 -> 66.50秒
+約6.66倍高速化
 実行時間を約85.0%削減
 ```
 
-time-step候補GPU化率は、現在GPU化済みの20 siteと、Step 78で確認した未採用の
-残候補19 siteを合わせた39 siteを母数とする暫定値である。全候補を数学的に網羅した
+time-step候補GPU化率は、現在GPU化済みの24 siteと、Step 78で確認した未採用の
+残候補15 siteを合わせた39 siteを母数とする暫定値である。全候補を数学的に網羅した
 絶対値ではなく、小さな制御loopと主要配列kernelを同じ1 siteとして数える。
 データ常駐、allocation、vector length、重複処理削減ではsite数が増えないため、
 性能が向上しても率は同じ場合がある。
@@ -384,8 +385,8 @@ time-step候補GPU化率は、現在GPU化済みの20 siteと、Step 78で確認
 現在の正式baseline:
 
 ```text
-Step 82
-66.6539101601 sec
+Step 86
+66.5019950867 sec
 ```
 
 Step 76で再分類したVRHO:
@@ -411,13 +412,19 @@ Step 82でGPU化したseed初期化:
 - 3回中央値でStep 80より`1.137412%`高速化した。
 - 次はStep 83でVRHO seed/control timerを再確認する。
 
+Step 86でGPU内連続実行したHLOCAL:
+
+- zero、scatter、局所ポテンシャル積、gatherの4 loopとcuFFT往復を1 data領域にまとめた。
+- 3回中央値でStep 82より`0.22791%`高速化した。
+- time-step候補GPU化率は24/39=`61.5%`。
+
 ## 正式baselineと文書の位置づけ
 
-- 正式baseline: 論理Step 82
-- source implementation commit: `2b7f5ba`
+- 正式baseline: 論理Step 86
+- source implementation commit: `9dd8c20`
 - pinned build-mode commit: `9cbb6bc`
-- A100 3回中央値: `66.6539101601 sec`
-- Step 83はStep 82 sourceを対象とした診断・分類作業である。
+- A100 3回中央値: `66.5019950867 sec`
+- Step 87はStep 86 sourceを対象とした診断・分類作業である。
 - PowerPointでは診断wallと正式baselineを混在させない。
 
 # 任意付録: 変更前／変更後の実コード

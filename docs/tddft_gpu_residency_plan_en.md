@@ -484,3 +484,9 @@ device-local seed copy. All three runs passed both checks. Its
 `66.6539101601` sec median with a `0.2699508667` sec range is `1.137412%`
 faster than Step 80, so Step 82 is the new official baseline. Step 83
 re-measures the VRHO seed/control timers without adding an optimization.
+
+Step 86 keeps HLOCAL zero, scatter, both cuFFTs, the local-potential multiply,
+and gather inside one temporary device data region. All three runs passed both
+checks. Its `66.5019950867` sec median with a `0.2952189446` sec range is
+`0.22791%` faster than Step 82, so Step 86 is the new official baseline.
+Step 87 adds no optimization; it measures the complete device HLOCAL parent.

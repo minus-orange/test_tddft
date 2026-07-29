@@ -182,5 +182,6 @@
       if (id.eq.104)name='hlocal_vg_multiply'
       if (id.eq.105)name='hlocal_forward_fft'
       if (id.eq.106)name='hlocal_gather'
+      if (id.eq.107)name='hlocal_acc_total'
       return
       end

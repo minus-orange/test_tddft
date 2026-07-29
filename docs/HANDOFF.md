@@ -5,22 +5,22 @@ Last updated: 2026-07-29
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `2b7f5ba` (`Initialize TDDFT seed coefficients on device`)
+- Accepted source baseline: `9dd8c20` (`Keep TDDFT HLOCAL transforms on device`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 82 with Step 37 pinned allocation mode
-- Current source implementation: Step 82 commit `2b7f5ba`
+- Current configuration: accepted Step 86 with Step 37 pinned allocation mode
+- Current source implementation: Step 86 commit `9dd8c20`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 82 accepted; Step 83 diagnostic completed
+- Current HEAD status: Step 86 accepted; Step 87 HLOCAL confirmation prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 82 median `66.6539101601` sec
+- Performance baseline: Step 86 median `66.5019950867` sec
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -658,9 +658,18 @@ forward FFT `0.141528`, and gather `0.090866` sec. The `0.482563` sec total
 includes 384 diagonal, 128 off-diagonal, and 256 TMEVL HLOCAL calls. The
 original negative gap was only a helper attribution error and is corrected.
 
-Step 86 tests one temporary device-resident HLOCAL data region, replacing the
-two host-staged cuFFT round trips and four host loops while keeping the
-CPU/FFTW path unchanged. Run `tools/run_tddft_step86.sh 01` first.
+Step 86 keeps HLOCAL zero, scatter, both cuFFTs, local-potential multiply, and
+gather inside one temporary device data region while keeping the CPU/FFTW path
+unchanged. All three runs passed both checks at `66.5019950867`,
+`66.6454100609`, and `66.3501911163` sec. The median is
+`66.5019950867` sec with a `0.2952189446` sec range, improving on Step 82 by
+`0.1519150734` sec (`0.22791%`). Step 86 is the accepted baseline.
+
+Step 87 adds one diagnostic-only parent timer around the accepted device
+HLOCAL path. Run `./tools/run_tddft_step87.sh` once on A100. Use its compact
+summary to compare all 768 HLOCAL calls with the Step 85 host-staged total of
+`0.482563` sec and derive the diagonal, off-diagonal, and TMEVL contributions.
+Its wall time is diagnostic and must not replace the Step 86 median.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
@@ -693,7 +702,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `66.6539101601` sec.
+6. Compare the three-run median with `66.5019950867` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

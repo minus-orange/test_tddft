@@ -435,3 +435,9 @@ Step 82ではpredictor-corrector開始時のCOEF0 seedをhost copy＋H2Dからde
 変更しました。3 runは全て両checkにPASSし、中央値`66.6539101601`秒、実行幅
 `0.2699508667`秒でした。Step 80より`1.137412%`高速なため、Step 82を新しい正式
 baselineとして採用します。Step 83はVRHO seed/control timerの再診断です。
+
+Step 86ではHLOCALのzero、scatter、cuFFT往復、局所ポテンシャル積、gatherを一時
+device data region内で完結させました。3 runは全て両checkにPASSし、中央値
+`66.5019950867`秒、実行幅`0.2952189446`秒でした。Step 82より`0.22791%`高速なため、
+Step 86を新しい正式baselineとして採用します。Step 87は追加最適化ではなく、
+device HLOCAL全体の改善量を親timerで確認します。
