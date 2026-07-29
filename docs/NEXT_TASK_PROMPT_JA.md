@@ -295,6 +295,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      `0.103696 sec`、VRHO parentは`0.622439 sec`となり、Step 82の機序を確認した。
 109. 次はbuild/rerunせず、`./tools/show_tddft_step83_next.sh`で同じarchiveの現行広域
      envelopeとenergy子timerを表示し、既却下形を避けた単一仮説を選ぶ。
+110. 現行はPart1to5 `1.941613`、EXTAU `1.440404`、VRHO `0.622439`、energy
+     `0.847562 sec`。Part1to5/EXTAUの単純offload形はhost consumer境界で既却下。
+111. Step 84はNONLOCのband不変kinetic factorをRHOAへ格納して直後に1回読む冗長passを
+     DCOEF更新へ融合するだけとし、ownership、MPI、HLOCAL、YLM再利用、数式を維持する。
+112. A100では`./tools/run_tddft_step84.sh 01`だけを実行し、PASS/PASSかつ明確な回帰が
+     なければ02/03をまとめて取得する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

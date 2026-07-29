@@ -1602,6 +1602,17 @@ mechanism. Before selecting another implementation, print the current broad
 and energy envelopes from this same archive with
 `tools/show_tddft_step83_next.sh`; this requires no build or rerun.
 
+## Step 84 Plan
+
+The current energy envelope is `0.847562` sec. Its diagonal and off-diagonal
+NONLOC children total about `0.3578` sec. NONLOC currently makes one complete
+host pass over NG2 to stage the band-independent kinetic factor in RHOA, then
+immediately makes a second pass that consumes it once. Fuse those two passes
+by applying the same GDUMP expression directly in the DCOEF update. Preserve
+operation grouping, YLM reuse, HLOCAL, SEPPOT, MPI, OpenACC ownership, and the
+CPU/FFTW path. Run `tools/run_tddft_step84.sh 01` first. Collect 02/03 only
+after PASS/PASS without a clear regression.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

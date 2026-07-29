@@ -2062,3 +2062,10 @@ reduction from Step 81; VRHO control was `0.103696` sec and the complete VRHO
 parent was `0.622439` sec. This confirms the Step 82 mechanism. Print the
 current broad and energy envelopes from the same archive before selecting the
 next bounded hypothesis; no rerun is needed.
+
+The current leading envelopes are Part1to5 at `1.941613` sec, EXTAU at
+`1.440404` sec, and energy at `0.847562` sec. Direct offload of the first two
+already regressed at their immediate host-consumer boundaries. Step 84 removes
+only the redundant NONLOC host pass that stages a band-independent kinetic
+factor in RHOA and immediately consumes it once. Ownership, MPI, HLOCAL, and
+YLM reuse remain unchanged.

@@ -2598,12 +2598,9 @@ c      DIMENSION VPJ(NG2Q/3,3,3,NTYQ),VPP(3,3,NTYQ),IOVP(2,NTYQ)
       FPI=4.D0*PI
       TPIBA2=TPIBA**2
 C
-         DO 581 IG=1,NG2
-c         RHOA(IG)=G2(4,IG)*0.5D0*TPIBA2
-         RHOA(IG)=GDUMP(IG)*0.5D0*TPIBA2
-  581    CONTINUE
          DO 584 IG=1,NG2
-  584    DCOEF(IG)=DCOEF(IG)+RHOA(IG)*COEF(IG)
+  584    DCOEF(IG)=DCOEF(IG)
+     &    +(GDUMP(IG)*0.5D0*TPIBA2)*COEF(IG)
 C
 c **  temp check
 c      miya=13

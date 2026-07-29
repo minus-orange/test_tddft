@@ -643,6 +643,13 @@ sec. This confirms the Step 82 mechanism. Next run only
 `tools/show_tddft_step83_next.sh`; it reads the existing archive and performs
 no build or rerun.
 
+The Step 83 archive ranks Part1to5 at `1.941613` sec, EXTAU preparation at
+`1.440404` sec, and energy at `0.847562` sec. The first two already regressed
+in direct-offload forms because their immediate consumers remain on the host.
+Step 84 instead removes one redundant host pass inside NONLOC kinetic-factor
+setup without changing ownership or communication. Run
+`tools/run_tddft_step84.sh 01` first.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

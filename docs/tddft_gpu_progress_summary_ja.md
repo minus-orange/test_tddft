@@ -1867,3 +1867,9 @@ Step 83は両checkにPASSしました。seedは`0.000497`秒でStep 81比`99.911
 VRHO controlは`0.103696`秒、VRHO全体は`0.622439`秒となり、Step 82の高速化要因を
 確認しました。次は同じarchiveから現行広域envelopeとenergy子timerを表示し、
 再実行せずに次の単一仮説を選びます。
+
+現行上位はPart1to5 `1.941613`秒、EXTAU `1.440404`秒、energy `0.847562`秒です。
+Part1to5とEXTAUの単純GPU化は直後のhost consumer境界により既に回帰しました。
+Step 84はenergy内NONLOCでband不変kinetic factorを一度RHOAへ格納して直後に読む
+冗長host passだけをDCOEF更新へ融合します。ownership、MPI、HLOCAL、YLM再利用は
+変更しません。
