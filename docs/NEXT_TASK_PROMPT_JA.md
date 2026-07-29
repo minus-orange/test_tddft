@@ -261,6 +261,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     Step 78で一時GPU化してrevertした残候補20 site、計39 siteを母数とする。
 93. この候補site率はStep 37/41が41.0%、Step 52が43.6%、Step 57/62/67/74が46.2%、
     Step 80が48.7%。小loopと支配kernelを同じ1 siteで数えるため演算量比ではない。
+94. Step 81はPASS/PASS。診断wallは`68.5029249191 sec`でbaselineではない。FRPRMN残差
+    `7.878776 sec`の`7.833973 sec`（`99.4313%`）を分類し、未分類は`0.044803 sec`。
+95. 上位はPart1to5 `1.947618`、EXTAU `1.448376`、VRHO `1.173977`、energy
+    `1.118869 sec`。VRHOはStep 75比`0.625997 sec`（`34.7781%`）減りStep 80効果と整合。
+96. 次は追加実装・再実行ではなく、`./tools/show_tddft_step81_detail.sh`で同じStep 81
+    archiveのVRHO・energy子timerを写真に収め、その結果から単一仮説を選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

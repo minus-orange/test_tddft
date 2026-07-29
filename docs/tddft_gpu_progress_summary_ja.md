@@ -1828,3 +1828,11 @@ Step 80を新しい正式baselineとして採用します。
 
 次は追加最適化ではなく、正式Step 80 sourceで既存の広域FRPRMN timerを再実行し、
 改善後の残差を再分類するStep 81診断です。
+
+Step 81は両checkにPASSしました。診断wall `68.5029249191`秒はbaselineではありません。
+FRPRMN残差は`7.878776`秒で、`7.833973`秒（`99.4313%`）を既存の排他的timerで分類し、
+未分類は`0.044803`秒でした。上位はPart1to5 `1.947618`秒、EXTAU準備
+`1.448376`秒、VRHO `1.173977`秒、energy diagnostic `1.118869`秒です。
+VRHOはStep 75の`1.799974`秒から`0.625997`秒（`34.7781%`）減り、Step 80の正式な
+wall改善`0.6473568190`秒と整合しました。次の実装を選ぶ前に、同じarchive内のVRHOと
+energy子timerを`tools/show_tddft_step81_detail.sh`で表示します。再build・再実行は不要です。

@@ -202,6 +202,13 @@ Its `67.4207620621` sec median is `0.6473568190` sec (`0.951043%`) faster than
 Step 74, with a `0.2123961449` sec range. Step 80 supersedes Step 74 as the
 official baseline.
 
+Step 81 re-ran the broad FRPRMN timers on accepted Step 80 source. It passed
+both checks; its `68.5029249191` sec wall is diagnostic only. The FRPRMN
+residual was `7.878776` sec, of which `7.833973` sec (`99.4313%`) was
+classified and `0.044803` sec remained unclassified. VRHO fell from the
+Step 75 value of `1.799974` to `1.173977` sec, a `0.625997` sec
+(`34.7781%`) reduction consistent with the formal Step 80 wall improvement.
+
 ## H100 Cross-Device Observation
 
 One user-operated Step 80 run on an NVIDIA H100 reported

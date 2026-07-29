@@ -2014,3 +2014,13 @@ official baseline.
 
 Step 81 makes no source optimization. It re-runs the existing broad FRPRMN
 timers on accepted Step 80 source before another hypothesis is selected.
+
+Step 81 passed both checks. Its `68.5029249191` sec wall is diagnostic only.
+The FRPRMN residual was `7.878776` sec, with `7.833973` sec (`99.4313%`)
+classified and only `0.044803` sec unclassified. The largest children were
+Part1to5 at `1.947618` sec, EXTAU preparation at `1.448376` sec, VRHO at
+`1.173977` sec, and energy diagnostic at `1.118869` sec. VRHO fell by
+`0.625997` sec (`34.7781%`) from its Step 75 value, consistent with the
+formal `0.6473568190` sec Step 80 wall improvement. Before selecting another
+implementation, print the VRHO and energy child rows from the same archive
+with `tools/show_tddft_step81_detail.sh`; no rebuild or rerun is needed.

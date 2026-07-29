@@ -17,7 +17,7 @@ Last updated: 2026-07-24
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 80 accepted; Step 81 diagnostic prepared
+- Current HEAD status: Step 80 accepted; Step 81 diagnostic completed
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 80 median `67.4207620621` sec
@@ -594,6 +594,16 @@ Step 81 makes no source optimization. It re-runs the existing broad exclusive
 FRPRMN timers on the accepted Step 80 source to classify the current residual
 before another hypothesis is selected. Run `tools/run_tddft_step81.sh` once;
 its diagnostic wall is not a baseline.
+
+Step 81 passed both checks at revision `ace5097`. Its diagnostic wall was
+`68.5029249191` sec. The FRPRMN residual was `7.878776` sec, with
+`7.833973` sec (`99.4313%`) classified and only `0.044803` sec unclassified.
+The largest children were Part1to5 `1.947618`, EXTAU preparation `1.448376`,
+VRHO `1.173977`, and energy diagnostic `1.118869` sec. VRHO was
+`0.625997` sec (`34.7781%`) below the Step 75 value, directly supporting the
+accepted S2VXC2 offload. Use `tools/show_tddft_step81_detail.sh` to print the
+already-recorded VRHO and energy child rows before selecting another
+implementation; it performs no build or rerun.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

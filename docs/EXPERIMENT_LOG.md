@@ -1503,6 +1503,29 @@ timers on the accepted Step 80 source and report the residual, classified
 children, and unclassified gap. Run `tools/run_tddft_step81.sh` once. Its
 diagnostic wall must not replace the Step 80 baseline.
 
+## Step 81 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP81_STEP80_FRPRMN_01`
+- Tested revision: `ace50970fa6454b286bd0024dc36d8cf3a1d5d24`
+- Diagnostic wall: `68.5029249191` sec
+- Correctness: check PASS; relaxed compare PASS
+- `frprmn`: `59.345574` sec
+- `tmevl_total`: `51.466798` sec
+- FRPRMN residual: `7.878776` sec
+- Classified children: `7.833973` sec (`99.4313%`)
+- Unclassified: `0.044803` sec
+- Largest children: Part1to5 `1.947618` sec, EXTAU preparation
+  `1.448376` sec, VRHO `1.173977` sec, and energy diagnostic
+  `1.118869` sec
+
+Relative to the Step 75 diagnostic on accepted Step 74 source, VRHO fell by
+`0.625997` sec (`34.7781%`). This directly supports the Step 80 S2VXC2
+offload and is close to its `0.6473568190` sec formal median-wall advantage.
+Part1to5 is already known to be GPU-kernel dominated, and the tested grouped
+EXTAU offload regressed. Before selecting another implementation, print the
+VRHO and energy child timers already captured in this archive with
+`tools/show_tddft_step81_detail.sh`; no rebuild or rerun is required.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`
