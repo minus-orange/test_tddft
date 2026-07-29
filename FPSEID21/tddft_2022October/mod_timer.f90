@@ -364,5 +364,15 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'nonloc_ylm'
   case (110)
     name = 'nonloc_seppot'
+  case (111)
+    name = 'seppot_extau'
+  case (112)
+    name = 'seppot_s'
+  case (113)
+    name = 'seppot_p'
+  case (114)
+    name = 'seppot_d'
+  case (115)
+    name = 'seppot_f'
   end select
 end subroutine fpseid_mod_timer_name

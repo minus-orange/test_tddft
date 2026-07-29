@@ -2858,15 +2858,24 @@ C ****
 C
       DO 20 IATM=1,NATM
       ITAU=NIDN(IATM,ITY)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(111)
+#endif
 c        DO 22 IG=1,NG2
         DO 22 IG=1,NGNL(ITY)
         TEMP=TPIBA*(G2K(1,IG)*TAU(1,ITAU)+G2K(2,IG)*TAU(2,ITAU)
      &             +G2K(3,IG)*TAU(3,ITAU))
         EXTAU(IG)=DCMPLX(COS(TEMP),SIN(TEMP))
    22   CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(111)
+#endif
 C
       DO 30 LI=1,LMAX
       L=LI-1
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(112+L)
+#endif
 ccc      READ(82,REC=IOVP(LI,ITY)) VPP, VPJ
 C
       IF(L.EQ.0.AND.IBUN(1,ITY).NE.1) THEN
@@ -3293,8 +3302,11 @@ c  102    CONTINUE
        write(6,*)' in sub. SEPPOT '
        write(6,*)' ILL ORB IS INDICATED OR MORE THAN TWO PARTIONING '
        endif
-       stop
+      stop
       ENDIF
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(112+L)
+#endif
 c *** temp check
 c      if (my_rank.eq.0 ) then
 c       write(6,*)' ITY IATM LI =',ITY,IATM,LI 

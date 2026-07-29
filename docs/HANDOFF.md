@@ -684,6 +684,12 @@ off-diagonal `0.090716`. Step 88 adds default-off timers for NONLOC kinetic,
 YLM, and SEPPOT stages. Run `./tools/run_tddft_step88.sh` once; do not add an
 optimization until that split is available.
 
+Step 88 passed both checks. Across 768 NONLOC calls, kinetic took `0.056220`
+sec (`10.325%`), YLM `0.003207` sec (`0.589%`), and SEPPOT `0.485064` sec
+(`89.086%`). Step 89 adds default-off timers for SEPPOT EXTAU and the s/p/d/f
+orbital channels. Run `./tools/run_tddft_step89.sh` once before selecting a
+single channel implementation.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

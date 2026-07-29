@@ -1899,3 +1899,9 @@ Step 87は両checkにPASSしました。device HLOCAL全768回は`0.247780`秒�
 NONLOC `0.274122`秒と非対角NONLOC `0.090716`秒の合計`0.364838`秒（`57.53%`）です。
 Step 84の単純kinetic pass融合は既に不採用なので、Step 88では追加最適化をせず、
 NONLOC全呼出しをkinetic、YLM、SEPPOTへ分解します。
+
+Step 88は両checkにPASSしました。全768回のNONLOC呼出しは、kinetic
+`0.056220`秒（`10.325%`）、YLM `0.003207`秒（`0.589%`）、SEPPOT
+`0.485064`秒（`89.086%`）でした。したがって、次の有意な候補はSEPPOTです。
+Step 89では追加最適化を行わず、SEPPOTをEXTAU位相表生成とs/p/d/f軌道channelへ
+分解し、支配channelを特定してから一箇所ずつGPU化を検討します。

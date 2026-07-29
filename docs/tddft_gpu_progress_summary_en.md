@@ -2104,3 +2104,10 @@ largest component is NONLOC: `0.274122` sec diagonal plus `0.090716` sec
 off-diagonal, or `0.364838` sec (`57.53%`). Because Step 84 already rejected
 the simple kinetic-pass fusion, Step 88 adds no optimization and splits all
 NONLOC calls into kinetic, YLM, and SEPPOT stages.
+
+Step 88 passed both checks. Across all 768 NONLOC calls, kinetic used
+`0.056220` sec (`10.325%`), YLM `0.003207` sec (`0.589%`), and SEPPOT
+`0.485064` sec (`89.086%`). SEPPOT is therefore the only material next
+candidate. Step 89 adds no optimization; it splits SEPPOT into EXTAU phase
+table construction and s/p/d/f orbital channels so that only the dominant
+channel is considered for the next incremental GPU change.

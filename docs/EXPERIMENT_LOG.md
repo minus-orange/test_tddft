@@ -1713,6 +1713,28 @@ Change no equations, loop order, ownership, MPI, or diagnostic-off path. Run
 `tools/run_tddft_step88.sh` once and choose a single implementation only after
 the split is known.
 
+## Step 88 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP88_STEP86_NONLOC_01`
+- Tested revision: `f13e17e8b1410a5a1dd172bd876a0b20908fae69`
+- Diagnostic wall: `67.0601370335` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- NONLOC calls: 768
+- Kinetic: `0.056220` sec (`10.325%`)
+- YLM: `0.003207` sec (`0.589%`)
+- SEPPOT: `0.485064` sec (`89.086%`)
+- Classified total: `0.544491` sec
+
+SEPPOT is the only material next target. It has separate s/p/d/f branches, so
+do not offload all branches at once.
+
+## Step 89 Plan
+
+Add default-off timers around SEPPOT EXTAU phase-table construction and each
+s/p/d/f orbital channel. This identifies the active dominant branch before
+splitting its projector construction, coefficient reductions, and DCOEF
+updates. Run `tools/run_tddft_step89.sh` once; make no optimization yet.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

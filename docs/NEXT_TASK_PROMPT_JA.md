@@ -334,6 +334,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      NONLOCをkinetic、YLM、SEPPOTへdefault-off timerだけで分解する。
 129. A100では`./tools/run_tddft_step88.sh`を1回だけ実行し、diagnostic wallを
      baselineに使わない。内訳確認前に追加最適化しない。
+130. Step 88はPASS/PASS。全768 NONLOC callはkinetic `0.056220`（`10.325%`）、
+     YLM `0.003207`（`0.589%`）、SEPPOT `0.485064 sec`（`89.086%`）。
+131. 次のStep 89はSEPPOTをEXTAU位相表とs/p/d/f軌道channelへdefault-off timerだけで
+     分解する。最大channelの確認前にSEPPOT全体を一括GPU化しない。
+132. A100では`./tools/run_tddft_step89.sh`を1回だけ実行する。diagnostic wallは
+     baselineに使わない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
