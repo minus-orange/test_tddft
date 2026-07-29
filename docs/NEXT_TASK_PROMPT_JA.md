@@ -424,6 +424,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 162. Step 96は固定核の101回のEWALDYについて、`EWA`とactive-atom `FORCE`を直前callと
      exact比較する診断だけを行う。100比較すべて一致した場合だけ初回出力cacheを次の
      単一実装仮説とし、変化があればこのreuse経路を閉じる。
+163. Step 96はrevision `4902b4f`でPASS/PASSだったが、100比較すべてが変化し、
+     `ewa_pct`、`force_pct`、`all_pct`はいずれも`0.000%`だった。出力cache経路を閉じる。
+     diagnostic wall `71.6179108620`秒はbaselineにしない。
+164. EWALDは`3.024790 sec`の高価値targetなので、Step 97ではG-space、R-space、MPIを
+     default-off timerで分解し、setup/AGEN gapを導出する。最大compute子区間を次の
+     直接GPU化候補とし、sub-percentのLOCPOTF子区間は先に最適化しない。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

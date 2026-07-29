@@ -807,6 +807,9 @@ C*****************************
 C
 C    DO G SUM FOR THE CASE WHERE A=B
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(125)
+#endif
       ESUM0=0.D0
       DO 1530 I=NG,2,-1
         Q=G(4,I)*TPIBA2
@@ -882,6 +885,9 @@ ccc      endif  ! if i.ge.nbegint(my_rank) .and. i.le.nendt(my_rank)
       DO 1545 I=1,NATOT
         FORCE(K,I)=4.D0*PI*ZZ(I)*TPIBA*FORCE(K,I)/OMEGA
  1545 CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(125)
+#endif
 C
 C****************************
 C     END G SUM
@@ -893,6 +899,9 @@ C****************************
 C
 C     DO R SUM FOR THE CASE WHERE A=B
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(126)
+#endif
       ESUM0=0.D0
       DO 1600 I=2,NLV
         RMOD=SQRT(EWVEC(4,I))
@@ -983,6 +992,10 @@ CC      CALL CLOCK(TIM2)
 CC      WRITE(6,*) '  EWALD R ',ESUMR,TIM2-TIM1
 CC        WRITE(6,*) '  EWALD R ',ESUMR
       EWA=ESUMG+ESUMR
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(126)
+      call prof_start(127)
+#endif
       TEMP=0.d0
        call MPI_Reduce(EWA,TEMP,1,MPI_DOUBLE_PRECISION
      &    ,MPI_SUM, 0,MPI_COMM_WORLD,ierr)
@@ -999,6 +1012,9 @@ CC        WRITE(6,*) '  EWALD R ',ESUMR
       enddo
       call MPI_Bcast(FORCE,3*NATOT,MPI_DOUBLE_PRECISION,0,
      &        MPI_COMM_WORLD,ierr)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(127)
+#endif
 C     DO 17 I=1,NTAUQ
 C  17 WRITE(6,*) (FORCE(J,I),J=1,3)
       RETURN

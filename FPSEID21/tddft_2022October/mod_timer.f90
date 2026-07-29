@@ -392,5 +392,11 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'locpotf_xc'
   case (124)
     name = 'locpotf_hartree'
+  case (125)
+    name = 'ewald_g_space'
+  case (126)
+    name = 'ewald_r_space'
+  case (127)
+    name = 'ewald_mpi'
   end select
 end subroutine fpseid_mod_timer_name

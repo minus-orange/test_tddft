@@ -1981,3 +1981,8 @@ Step 95はPASS/PASSで、LOCPOTF残差`3.159508`秒のうちEWALDが`3.024790`�
 Step 96は実装前の限定診断として、固定核の101回のEWALDY出力`EWA`とactive-atom
 `FORCE`を直前callとexact比較します。100比較すべて一致した場合だけ初回出力cacheを
 次の候補にします。
+
+Step 96はPASS/PASSでしたが、100比較すべてで`EWA`と`FORCE`が変化し、完全一致率は
+各`0.000%`でした。出力cacheは不採用です。EWALDは`3.024790`秒の高価値targetなので、
+Step 97でG-space、R-space、MPI、setup/AGEN gapへ分け、最大compute区間を次の直接
+GPU化候補にします。

@@ -2205,3 +2205,9 @@ together account for only `4.264%`. Before implementing reuse, Step 96 exactly
 compares `EWA` and active-atom `FORCE` outputs across the 101 fixed-nuclei
 EWALDY calls. First-call output caching is considered only if all 100
 comparisons match.
+
+Step 96 passed both checks, but every one of the 100 comparisons changed;
+`EWA`, `FORCE`, and combined exact-equality rates were all `0.000%`. Output
+caching is rejected. EWALD remains a high-value `3.024790` sec target, so
+Step 97 splits it into G-space, R-space, MPI, and setup/AGEN gap and promotes
+the dominant compute child as the next direct GPU acceleration candidate.

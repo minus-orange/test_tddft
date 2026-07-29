@@ -1961,6 +1961,19 @@ active-atom `FORCE` output from the 101 fixed-nuclei EWALDY calls exactly
 against the preceding call. If all 100 comparisons match, cache only those two
 outputs after the first call; otherwise do not implement that reuse path.
 
+## Step 96 Result and Step 97 Plan
+
+Step 96 revision `4902b4f` passed both checks. Its diagnostic wall was
+`71.6179108620` sec and is not a baseline. Across 101 observations, all 100
+comparisons changed: `EWA`, active-atom `FORCE`, and the combined output each
+reported `0.000%` exact equality. Close the EWALD output-cache path.
+
+EWALD remains a measured `3.024790` sec target. Step 97 therefore adds only
+three default-off child timers around its G-space sum, R-space sum, and MPI
+reductions/broadcast. The remaining setup/AGEN time is derived as a gap.
+Whichever compute child dominates becomes the next direct acceleration target;
+do not optimize sub-percent LOCPOTF children first.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

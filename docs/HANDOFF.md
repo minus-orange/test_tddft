@@ -18,7 +18,7 @@ Last updated: 2026-07-29
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - Current HEAD status: Step 86 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 96 EWALD exact-output reuse diagnostic prepared
+  nonlocal reuse; Step 97 EWALD internal timing prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 86 median `66.5019950867` sec
@@ -797,6 +797,13 @@ XC `0.105457` sec (`3.338%`), Hartree `0.018546` sec (`0.587%`), and gap
 EWALDY `EWA` and active-atom `FORCE` outputs across its 101 fixed-nuclei calls.
 Run `./tools/run_tddft_step96.sh` once. Only if all 100 comparisons are equal
 should the next step implement first-call reuse of those two outputs.
+
+Step 96 at `4902b4f` passed both checks, but all 100 comparisons changed:
+`ewa_pct=0.000`, `force_pct=0.000`, and `all_pct=0.000`. Its
+`71.6179108620` sec diagnostic wall is not a baseline. Close output caching.
+Step 97 retains the high-value EWALD target and splits its `3.024790` sec into
+G-space, R-space, MPI, and setup/AGEN gap before directly accelerating the
+dominant compute child. Run `./tools/run_tddft_step97.sh` once.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
