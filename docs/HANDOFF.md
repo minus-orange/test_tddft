@@ -623,6 +623,12 @@ removing the OpenACC host seed copy and COEF0 H2D. It preserves per-sequence
 lifetime and the CPU/FFTW copy, so it is distinct from rejected Step 45.
 Run `tools/run_tddft_step82.sh 01` first.
 
+Step 82 run 01 passed both checks at `66.8839480877` sec. This is
+`0.5368139744` sec (`0.796215%`) faster than the official Step 80 median and
+is close to the measured `0.562341` sec seed cost. It is promising but remains
+one run. Next run `tools/run_tddft_step82.sh 02-03` and decide from the
+three-run median.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

@@ -2043,3 +2043,9 @@ predictor-corrector data entry, and initializes it from COEF with one device
 kernel. Per-sequence lifetime, correction restart, MPI, equations, and the
 CPU/FFTW host copy remain unchanged, so this is distinct from rejected
 Step 45. Run `tools/run_tddft_step82.sh 01` first.
+
+Step 82 run 01 passed both checks at `66.8839480877` sec. It is
+`0.5368139744` sec (`0.796215%`) faster than the official Step 80 median and
+is close to the Step 81 measured seed cost of `0.562341` sec. Do not update
+the baseline from one run; collect runs 02/03 together and decide from the
+three-run median.

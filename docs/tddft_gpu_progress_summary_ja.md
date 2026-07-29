@@ -1851,3 +1851,8 @@ COEF→COEF0 seed copyとCOEF0 H2Dを省き、現行predictor-corrector data入�
 copyin、COEF0をcreateしてdevice上で1回コピーします。区間寿命、補正restart、MPI、数式、
 CPU/FFTW copyは維持するため、Step 45のtime-step全体COEF常駐とは異なります。まず
 `tools/run_tddft_step82.sh 01`だけを実行します。
+
+Step 82 run 01は両checkにPASSし、wallは`66.8839480877`秒でした。正式Step 80中央値より
+`0.5368139744`秒（`0.796215%`）高速で、Step 81で測定したseed処理`0.562341`秒とも
+近い結果です。ただし1 runだけではbaselineを更新せず、run 02/03を一括取得して
+3 run中央値で採否を決めます。

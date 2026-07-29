@@ -1557,6 +1557,19 @@ Run `tools/run_tddft_step82.sh 01` first. Only after PASS/PASS without a clear
 regression, collect runs 02/03 together and decide from the three-run median
 against Step 80.
 
+## Step 82 Run 01
+
+- Archive: `nvhpc_cufft_1rank_02_STEP82_COEF0_D2D_SEED_01`
+- Tested revision: `2b7f5ba10334cbdf479d9012a75be79366104edd`
+- Wall: `66.8839480877` sec
+- Correctness: check PASS; relaxed compare PASS
+- Step 80 median difference: `-0.5368139744` sec (`-0.796215%`)
+
+The first run is healthy and promising. Its wall reduction is also close to
+the Step 81 measured seed cost of `0.562341` sec, consistent with the bounded
+hypothesis. This single run does not establish a new baseline. Collect Step 82
+runs 02/03 together, then decide from the three-run median.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

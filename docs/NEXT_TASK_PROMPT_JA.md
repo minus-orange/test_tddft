@@ -280,6 +280,10 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      CPU/FFTWを維持し、Step 45のtime-step全体常駐を再試行しない。
 102. A100では`./tools/run_tddft_step82.sh 01`だけを実行し、PASS/PASSかつ明確な回帰が
      なければ02/03をまとめて取得する。
+103. Step 82 run 01はPASS/PASS、`66.8839480877 sec`。Step 80正式中央値より
+     `0.5368139744 sec`（`0.796215%`）高速で、seed測定値`0.562341 sec`とも近い。
+104. 1 runではbaselineを更新しない。次は`./tools/run_tddft_step82.sh 02-03`で残りを
+     一括取得し、3 run中央値で採否を決める。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
