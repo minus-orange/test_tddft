@@ -17,8 +17,8 @@ Last updated: 2026-07-29
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 86 accepted; Step 89 SEPPOT split completed;
-  Step 90 p-channel diagnostic prepared
+- Current HEAD status: Step 86 accepted; Step 90 closes SEPPOT fine-grained
+  work; Step 91 current-source Nsight Systems diagnostic prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 86 median `66.5019950867` sec
@@ -697,6 +697,13 @@ children were EXTAU `0.188158` sec (`36.414%`), s `0.103150` sec
 Step 47 already rejected a tutorial-specific whole s/p offload, Step 90 adds
 diagnostic-only timers around the p projector, reduction, and DCOEF loops.
 Run `./tools/run_tddft_step90.sh` once and do not use its wall as a baseline.
+
+Step 90 passed both checks. The p channel split into projector `0.095651` sec
+(`39.103%`), coefficient reduction `0.069291` sec (`28.327%`), and DCOEF
+update `0.079670` sec (`32.570%`) over 9,216 calls. No child dominates and
+each has a sub-`0.1` sec ceiling, so do not add separate fine-grained kernels.
+The current SEPPOT path is closed. Run `./tools/run_tddft_step91_nsys.sh`
+once to re-profile the accepted Step 86 source after Steps 74/80/82/86.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

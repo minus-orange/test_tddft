@@ -1760,6 +1760,32 @@ ordering, ownership, MPI, or the diagnostic-off path. Run
 `tools/run_tddft_step90.sh` once. Do not reintroduce the rejected Step 47
 whole-channel implementation.
 
+## Step 90 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP90_STEP86_PCHANNEL_01`
+- Tested revision: `393507cb63fddb478289fc031f0c59f8a788f61f`
+- Diagnostic wall: `68.3954150677` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- p-channel parent: `0.284428` sec over 9,216 calls
+- Projector construction: `0.095651` sec (`39.103%`)
+- Coefficient reduction: `0.069291` sec (`28.327%`)
+- DCOEF update: `0.079670` sec (`32.570%`)
+- Classified total: `0.244612` sec; gap: `0.039816` sec
+
+No child dominates, and each is invoked 9,216 times. Separate offload would
+have a ceiling below `0.1` sec per child while adding fine-grained launches
+and synchronization. Together with the rejected Step 47 whole s/p offload,
+this closes the current SEPPOT path without another implementation.
+
+## Step 91 Plan
+
+Re-profile the accepted Step 86 source with diagnostics off. Step 70 predates
+the Step 74 YLM reuse, Step 80 LDA loop offload, Step 82 seed ownership, and
+Step 86 HLOCAL device region. Use `tools/run_tddft_step91_nsys.sh` once to
+update kernel, transfer, CUDA/OpenACC API, synchronization, MPI, and GPU-idle
+evidence before selecting another bounded hypothesis. The trace wall is not
+a performance baseline.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

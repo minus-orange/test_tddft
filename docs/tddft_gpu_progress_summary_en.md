@@ -2119,3 +2119,12 @@ input. The tutorial-specific whole s/p offload was already rejected in
 Step 47 and will not be retried. Step 90 adds no optimization and splits the
 dominant p channel into projector construction, coefficient reduction, and
 DCOEF update loops.
+
+Step 90 passed both checks. The `0.284428` sec p channel split into projector
+construction at `0.095651` sec (`39.103%`), coefficient reduction at
+`0.069291` sec (`28.327%`), and DCOEF update at `0.079670` sec (`32.570%`).
+Each child was called 9,216 times, no child dominates, and every individual
+ceiling is below `0.1` sec. Separate kernels are therefore likely to lose to
+launch and synchronization overhead, so the current SEPPOT path is closed.
+The next step adds no optimization and re-profiles the accepted Step 86 source
+with Nsight Systems after the Step 74/80/82/86 changes.

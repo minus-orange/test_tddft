@@ -347,6 +347,15 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      p channelをprojector生成、係数reduction、DCOEF更新へtimerだけで分解する。
 135. A100では`./tools/run_tddft_step90.sh`を1回だけ実行する。数式、loop順、
      ownership、MPI、diagnostic-off経路は変更せず、wallをbaselineに使わない。
+136. Step 90はPASS/PASS。p channel `0.284428 sec`の内訳はprojector生成
+     `0.095651`（`39.103%`）、係数reduction `0.069291`（`28.327%`）、
+     DCOEF更新`0.079670 sec`（`32.570%`）、gap `0.039816 sec`。
+137. 各子は9,216回呼ばれ、単独上限が`0.1 sec`未満で支配子もない。Step 47の却下結果と
+     合わせてSEPPOTの細粒度GPU化を終了し、個別kernelを追加しない。
+138. 次のStep 91は追加最適化ではなく、正式Step 86 sourceをdiagnostic OFFでNsight
+     Systems再診断する。Step 70以後のSteps 74/80/82/86を含む現行kernel、転送、
+     API、同期、MPI、GPU idleを`./tools/run_tddft_step91_nsys.sh`で更新する。
+139. Step 91 trace wallはbaselineに使わず、通常checkとrelaxed compareを必須とする。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

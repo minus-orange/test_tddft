@@ -1911,3 +1911,10 @@ Step 89は両checkにPASSしました。SEPPOT `0.547832`秒の分類内訳はEX
 `0.225405`秒（`43.623%`）で、d/fはこの入力ではinactiveでした。Step 47で
 tutorial専用s/p全体offloadは既に不採用なので再試行しません。Step 90は追加最適化を
 せず、最大のp channelをprojector生成、係数reduction、DCOEF更新へ分解します。
+
+Step 90は両checkにPASSしました。p channel `0.284428`秒の内訳はprojector生成
+`0.095651`秒（`39.103%`）、係数reduction `0.069291`秒（`28.327%`）、DCOEF更新
+`0.079670`秒（`32.570%`）でした。各子は9,216回呼ばれ、単独上限が`0.1`秒未満で
+支配子もありません。個別kernel化はlaunch・同期負けの可能性が高いためSEPPOT経路を
+閉じます。次は追加最適化ではなく、Steps 74/80/82/86後の正式Step 86 sourceを
+Nsight Systemsで再診断し、現在のkernel・転送・同期・GPU idle構造を更新します。
