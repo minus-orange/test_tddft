@@ -2091,3 +2091,10 @@ than Step 82, so Step 86 is accepted. The source-based time-step candidate
 coverage rises from 20/39 (`51.3%`) to 24/39 (`61.5%`). Step 87 adds no
 optimization; it times the complete accepted device HLOCAL path and compares
 it with the Step 85 host-staged total of `0.482563` sec.
+
+Step 87 passed both checks. The complete 768-call device HLOCAL path took
+`0.247780` sec: `0.128030` sec diagonal, `0.040771` sec off-diagonal, and
+`0.078979` sec derived TMEVL. This is `0.234783` sec (`48.653%`) below the
+Step 85 host-staged total and directly confirms the Step 86 mechanism. Next,
+print the remaining energy hierarchy from the same archive without a rebuild
+or rerun before selecting another implementation.

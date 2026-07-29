@@ -1677,6 +1677,24 @@ derive diagonal, off-diagonal, and TMEVL contributions. This changes no
 diagnostic-off execution. Run `tools/run_tddft_step87.sh` once; its wall time
 is diagnostic and is not a baseline.
 
+## Step 87 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP87_STEP86_HLOCAL_01`
+- Tested revision: `571233b9c3c6bd413e0949514a570f9794f61898`
+- Diagnostic wall: `67.6458580494` sec (not a baseline)
+- Correctness: check PASS; relaxed compare PASS
+- Device HLOCAL total: `0.247780` sec over 768 calls
+- Diagonal HLOCAL: `0.128030` sec over 384 calls
+- Off-diagonal HLOCAL: `0.040771` sec over 128 calls
+- Derived TMEVL HLOCAL: `0.078979` sec over 256 calls
+- Step 85 host-staged HLOCAL total: `0.482563` sec
+- Reduction: `0.234783` sec (`48.653%`)
+
+The direct HLOCAL reduction confirms the Step 86 mechanism and is consistent
+with the smaller end-to-end median improvement. Before another implementation,
+print the remaining energy hierarchy from this same archive with
+`tools/show_tddft_step87_next.sh`.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

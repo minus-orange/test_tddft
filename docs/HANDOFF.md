@@ -17,7 +17,7 @@ Last updated: 2026-07-29
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 86 accepted; Step 87 HLOCAL confirmation prepared
+- Current HEAD status: Step 86 accepted; Step 87 HLOCAL confirmation completed
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 86 median `66.5019950867` sec
@@ -670,6 +670,13 @@ HLOCAL path. Run `./tools/run_tddft_step87.sh` once on A100. Use its compact
 summary to compare all 768 HLOCAL calls with the Step 85 host-staged total of
 `0.482563` sec and derive the diagonal, off-diagonal, and TMEVL contributions.
 Its wall time is diagnostic and must not replace the Step 86 median.
+
+Step 87 passed both checks. The accepted device HLOCAL path took `0.247780`
+sec over 768 calls: diagonal `0.128030`, off-diagonal `0.040771`, and derived
+TMEVL `0.078979` sec. Relative to the Step 85 host-staged total of `0.482563`
+sec, HLOCAL fell by `0.234783` sec (`48.653%`). Next, use
+`./tools/show_tddft_step87_next.sh` without rebuilding or rerunning to display
+the remaining energy hierarchy before selecting another implementation.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

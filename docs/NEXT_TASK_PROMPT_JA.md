@@ -322,6 +322,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      再診断するStep 87。A100では`./tools/run_tddft_step87.sh`を1回だけ実行する。
 123. Step 87のdiagnostic wallはbaselineに使わず、Step 85の旧HLOCAL合計
      `0.482563 sec`との差と、対角・非対角・TMEVL寄与を確認する。
+124. Step 87はPASS/PASS。device HLOCAL全768 callは`0.247780 sec`で、対角
+     `0.128030`、非対角`0.040771`、derived TMEVL `0.078979 sec`。
+125. Step 85のhost staged HLOCAL `0.482563 sec`から`0.234783 sec`
+     （`48.653%`）減り、Step 86の改善機序を直接確認した。
+126. 次は追加実装・再実行せず、`./tools/show_tddft_step87_next.sh`で同じarchiveの
+     energy階層を表示し、残る単一仮説を選ぶ。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
