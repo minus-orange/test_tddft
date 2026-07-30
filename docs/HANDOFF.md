@@ -18,7 +18,7 @@ Last updated: 2026-07-30
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - Current HEAD status: Step 99 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 100 current-source timer profile prepared
+  nonlocal reuse; Step 101 existing-archive S2 detail prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 99 median `64.3024969101` sec
@@ -826,6 +826,15 @@ All Step 99 runs passed both checks. The walls were `64.5138220787`,
 faster than Step 86, so Step 99 is the accepted baseline. Step 100 performs
 one diagnostic-only current-source timer run to rank the largest remaining
 intervals before choosing another implementation.
+
+Step 100 passed both checks at revision `f1e22c2`; its diagnostic wall
+`70.6082198620` sec is not a baseline. `tmevl_s2` used `20.759666` sec,
+including `s2_nonlocal=16.100488`, `s2_nonlocal_make=1.432096`, and
+`s2_nonlocal_gemm=10.169891` sec. Their `4.498501` sec gap is caused by the
+diagnostic-only Steps 92/93 full-array reuse observer and is absent from
+performance builds. Do not optimize that artifact. Step 101 reads the existing
+archive only and prints nonlocal transfer plus S2-local child timers; it does
+not build or rerun TDDFT.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

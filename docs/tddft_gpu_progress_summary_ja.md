@@ -2002,3 +2002,10 @@ Step 99は3 runすべてPASS/PASSで、中央値`64.3024969101`秒、range
 正式採用します。Step 100では数値経路を変えず、現行sourceの主要timerを診断ONで
 1回だけ再計測し、次の実装対象を最大のactionable区間から選びます。診断wallは
 baselineに使用しません。
+
+Step 100は両checkにPASSしました。diagnostic wall `70.6082198620`秒はbaselineでは
+ありません。表示された`s2_nonlocal`親区間内の`4.498501`秒残差はSteps 92/93の
+diagnostic-only全配列reuse比較で、通常性能処理ではありません。実計算ではfused
+kernel `8.402617`秒が最大ですが、tutorialの32-block制約と安全なmapping/cache候補は
+診断・却下済みです。Step 101は再build・再runせず既存archiveを読み、nonlocal転送と
+S2 local内部timerを表示します。

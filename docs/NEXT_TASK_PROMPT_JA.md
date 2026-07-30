@@ -449,6 +449,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      （`3.307417%`）高速なので正式採用する。
 170. Step 100は現行sourceの既存timerを診断ONで1回だけ採取し、主要区間を再順位付け
      する。数値経路やownershipは変更せず、診断wallをbaselineに使用しない。
+171. Step 100はrevision `f1e22c2`でPASS/PASS、diagnostic wall
+     `70.6082198620`秒だった。`tmevl_s2=20.759666`、`s2_nonlocal=16.100488`、
+     make `1.432096`、gemm `10.169891`秒。残差`4.498501`秒はSteps 92/93の
+     diagnostic-only全配列reuse比較なので性能targetにしない。
+172. Step 101は再build・再runを行わず、既存Step 100 archiveからnonlocal transferと
+     S2 local内部timerを表示する。結果で未分類`4.659178`秒のactionable区間を判定する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

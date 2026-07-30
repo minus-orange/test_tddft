@@ -2016,6 +2016,23 @@ default-off timers once on the accepted source and prints a compact selection
 of the major current intervals. Use the diagnostic result only to choose the
 largest remaining actionable hotspot; its wall is not a performance baseline.
 
+## Step 100 Result and Step 101 Existing-Archive Detail
+
+Step 100 passed both checks at revision `f1e22c2`. Its `70.6082198620` sec
+diagnostic wall is not a baseline. `tmevl_s2` was `20.759666` sec and
+`s2_nonlocal` was `16.100488` sec. The apparent
+`16.100488 - 1.432096 - 10.169891 = 4.498501` sec nonlocal gap is the
+diagnostic-only full-array reuse observer retained from Steps 92/93; it is
+absent from diagnostic-off performance runs and is not an optimization target.
+
+The fused nonlocal kernel remains the largest real child at `8.402617` sec,
+but its 32-band/32-block tutorial occupancy limit, vector-length alternatives,
+direction specialization, host cache, and metadata cache have already been
+classified or rejected. Step 101 therefore reads the existing Step 100
+archive without rebuilding or rerunning. It prints the nonlocal transfer
+children and the `4.659178` sec S2-local remainder hierarchy before another
+single implementation hypothesis is selected.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

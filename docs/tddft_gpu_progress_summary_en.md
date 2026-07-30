@@ -2228,3 +2228,11 @@ with a `0.2340140343` sec range. This is `2.789633%` faster than Step 98 and
 `3.307417%` faster than Step 86, so Step 99 is accepted. Step 100 performs one
 diagnostic-only current-source timer run to rank the largest remaining
 actionable interval before selecting another implementation.
+
+Step 100 passed both checks. Its `70.6082198620` sec diagnostic wall is not a
+baseline. The `4.498501` sec gap inside the reported `s2_nonlocal` parent is
+the diagnostic-only Steps 92/93 full-array reuse observer, not normal
+performance work. The real fused kernel child remains `8.402617` sec, but its
+tutorial 32-block limit and the safe mapping/cache variants are already
+classified. Step 101 therefore reads the existing archive, without a build or
+rerun, to expose the nonlocal transfer and S2-local children.
