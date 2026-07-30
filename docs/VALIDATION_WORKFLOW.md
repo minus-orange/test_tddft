@@ -142,6 +142,12 @@ The current A100 TDDFT compile flags are `-O2 -acc -gpu=cc80 -gpu=mem:separate:p
 not part of the selected hypothesis, add `TDDFT_ONLY=1` so only TDDFT is
 built.
 
+An explicit compiler-flag experiment may override one option at a time through
+a committed wrapper. Its archive label and terminal summary must record the
+exact flags, compiler, device, and diagnostic state. A one-run flag screen is
+not an adoption measurement; the standard flags and official baseline remain
+unchanged until an isolated candidate passes three equivalent runs.
+
 Confirm diagnostics are off and the TDDFT executable links successfully. Do
 not run the GPU measurement after a failed CPU/FFTW or GPU build.
 

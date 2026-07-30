@@ -2393,3 +2393,14 @@ boundaries are restored and the helper is removed. Together with the rejected
 Step 84 energy-side fusion, this closes the same COEF-pass fusion strategy for
 the tutorial input. Do not continue low-ceiling micro-optimization without a
 new production input or new profiler evidence.
+
+Step 113 is a one-run compiler-option screen rather than a source
+optimization. It builds and runs the same current source with the standard
+`-O2` flags, isolated `-O3`, `-Mipa=fast,inline`, and GPU `fastmath`, in that
+order. Every run uses diagnostics off, 1 A100 / 1 MPI rank / 100 steps, a
+unique archive, normal check, and relaxed compare; strict compare is also
+reported as an extra numerical-risk signal. Run
+`./tools/run_tddft_step113_flags.sh` once. Its compact table compares each
+variant with the same-session standard build and the official Step 107 median.
+The screen cannot change the official flags or baseline. Only one correct,
+clearly faster isolated candidate may proceed to a separate three-run gate.

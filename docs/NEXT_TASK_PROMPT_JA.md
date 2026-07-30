@@ -589,12 +589,20 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      Step 84と合わせてtutorial入力で同じCOEF-pass融合を閉じる。
 210. 現在の大区間はsafeな高影響候補を分類済み。新しいproduction入力または新しい
      profiler根拠なしに、上限の小さい微調整を続けない。
+211. Step 113はsourceを変えず、標準`-O2`を同一session controlとして、
+     単独`-O3`、`-Mipa=fast,inline`、GPU `fastmath`を各1 runだけscreeningする。
+212. 全runはdiagnostic OFF、A100 1GPU / 1MPI / 100 steps、固有archive、
+     check/relaxed compare必須。strict compareも数値リスクとして表示する。
+213. 1 run結果は正式baselineにしない。同一session標準buildより明確に高速かつ
+     正しい単独候補がある場合だけ、後続の3 run採用gateを作る。
 
 Step 112の不採用・復元は`330bd1c`としてcommit/push済みで、CPU/FFTWの
 diagnostic OFF/ON full buildもPASSしています。現在の数値経路は正式Step 107へ
 復元済みです。
 
-次はproduction入力と対応referenceを受け取るか、正式Step 107 sourceの新しい
-profiler evidenceが得られるまで、tutorial向けsource実験を増やしません。
+次はA100で`./tools/run_tddft_step113_flags.sh`を1回実行し、末尾の
+「FPSEID21 STEP113 NVHPC FLAG SCREEN SUMMARY」から
+「One-run screening only; no result here replaces the official baseline.」までが
+入る写真1枚を返してください。
 
 ---

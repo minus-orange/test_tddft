@@ -2313,6 +2313,23 @@ tutorial intervals have already had their safe high-impact variants classified;
 do not continue with low-ceiling micro-optimizations without a new production
 input or new profiler evidence.
 
+## Step 113 Compiler-Flag Screen Plan
+
+Keep the accepted numerical source and all runtime conditions fixed. Rebuild
+and run once each with the standard `-O2` flags, isolated `-O3`,
+`-Mipa=fast,inline`, and GPU `fastmath`. The standard build runs first as a
+same-session control; `fastmath`, which has the greatest numerical risk, runs
+last. Each diagnostic-off run uses 1 A100, 1 MPI rank, and 100 steps and must
+pass normal check and relaxed compare. Also report strict compare without
+making it the existing correctness gate.
+
+Use `tools/run_tddft_step113_flags.sh`. Its compact table records exact
+compiler/device provenance, walls, deltas from the same-session standard build,
+and deltas from the official Step 107 median. This is one-run screening only.
+Do not update the standard flags or baseline, and do not mix variants into a
+median. Select at most one correct, clearly faster variant for a later
+three-run gate.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

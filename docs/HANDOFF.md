@@ -1003,6 +1003,18 @@ with the earlier Step 84 rejection. Step 110 was likewise restored in
 ceiling; require new production input or new profiler evidence before more
 low-ceiling source experiments.
 
+Step 113 is a compiler-option screen, not a source optimization or baseline
+change. In one user-operated command it rebuilds and runs the same current
+source once with the standard `-O2` flags, isolated `-O3`,
+`-Mipa=fast,inline`, and GPU `fastmath` variants, in that order. Every run uses
+diagnostics off, 1 A100 / 1 MPI rank / 100 steps, a unique archive, normal
+check, relaxed compare, and an additional strict comparison. The compact
+summary reports exact flags, compiler/device identity, wall time, difference
+from the same-session standard build, and difference from the official Step
+107 median. Run `./tools/run_tddft_step113_flags.sh` once. These single runs
+cannot replace the official baseline; only a correct, clearly faster isolated
+variant may proceed to a separate three-run adoption gate.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

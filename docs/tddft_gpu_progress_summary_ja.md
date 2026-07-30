@@ -2143,3 +2143,11 @@ run 02/03は早期停止し、2本の元loopとtimer境界へ復元してhelper�
 Step 84のenergy側pass融合も既に不採用なので、tutorial入力で同じCOEF-pass融合を
 閉じます。新しいproduction入力またはprofiler根拠なしに、上限の小さい微調整を
 続けません。
+
+Step 113はsource最適化ではなく、compiler optionの1 run screeningです。同じ現行
+sourceを標準`-O2`、単独`-O3`、`-Mipa=fast,inline`、GPU `fastmath`の順でbuild・
+実行します。全runはdiagnostic OFF、A100 1GPU / 1MPI / 100 steps、固有archive、
+通常check、relaxed compareを必須とし、数値リスク確認用にstrict compareも表示します。
+`./tools/run_tddft_step113_flags.sh`を1回実行し、同一session標準buildとの差と正式
+Step 107中央値との差を小さな表で返します。screening結果だけでは正式flagsやbaselineを
+変更せず、正しく明確に高速な単独候補がある場合だけ別の3 run gateへ進めます。
