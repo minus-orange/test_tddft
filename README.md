@@ -94,6 +94,13 @@ for a smoke test; the default three-run result is required for a baseline
 median. Immediately before each TDDFT run, the helper prints the effective
 launch as `MPI launch: mpirun -np 16 ...`.
 
+If a run returns to the prompt before printing the three-run summary, diagnose
+the latest x86 output, stderr, normal check, and relaxed comparison with:
+
+```sh
+./tools/check_tddft_x86_result.sh
+```
+
 The helper defaults to `BUILD_MODE=auto`. It records separate CG, SD, and TDDFT
 build signatures under the ignored `.cache/tddft_x86_build/` directory and
 reuses each existing binary when its tracked sources, build settings, and
