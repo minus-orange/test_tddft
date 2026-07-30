@@ -122,43 +122,43 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 22. Step 57比`2.7174229622 sec`（`3.811739%`）高速で、median-wall runのFRPRMN残差も
     `2.103294 sec`減り、Step 61の復元計測値と整合するため正式採用した。
 23. 次は追加最適化ではなく、既存の広域timerを正式Step 62 sourceで再実行するStep 63。
-    `./tools/run_tddft_step63.sh`を1回だけ実行し、現行FRPRMN残差を再分類する。
+    `./tools/history/tddft_steps/run_tddft_step63.sh`を1回だけ実行し、現行FRPRMN残差を再分類する。
 24. Step 63はcheck/compare PASS。FRPRMN残差`8.547452 sec`の`99.5381%`を再分類した。
     最大は`part1to5=2.137278 sec`（`25.0049%`）、次いでVRHO mix `1.801928 sec`、
     EXTAU `1.468457 sec`、energy diagnostic `0.933094 sec`。
 25. 次は追加最適化ではなく、既存timerで現行`part1to5`をGETYLM、VPJ integral、MPI、
     post-reductionへ再分解してから、単一仮説を選ぶ。
-26. A100では`./tools/run_tddft_step64.sh`を1回だけ実行する。diagnostic wallはbaselineに
+26. A100では`./tools/history/tddft_steps/run_tddft_step64.sh`を1回だけ実行する。diagnostic wallはbaselineに
     使用せず、通常checkとrelaxed compareを必須とする。
 27. Step 64はcheck/compare PASS。`part1to5=2.140208 sec`のうち、GETYLM `0.054554`、
     legacy名`vpjgen_cpu_integral` `1.910793`、MPI `0.039413`、post-reduction
     `0.088664 sec`で、子coverageは`97.8140%`。
 28. OpenACC時のlegacy timerはhost zeroing、VPP2 setup、GPU integral、必須D2Hを含む。
     次は追加最適化ではなく、この内訳を分けるStep 65診断。
-29. Step 65はdefault-off timerだけを追加し、`./tools/run_tddft_step65.sh`を1回実行する。
+29. Step 65はdefault-off timerだけを追加し、`./tools/history/tddft_steps/run_tddft_step65.sh`を1回実行する。
     loop、数式、MPI、ownership、diagnostic-off経路は変更しない。
 30. Step 65はcheck/compare PASS。legacy parent `1.920204 sec`のうちhost zeroing
     `0.037640`、VPP2 zeroing `0.001753`、OpenACC kernel＋D2H `1.872989 sec`
     （`97.5411%`）。host初期化省略は有力でない。
 31. 次は追加最適化ではなく、既存同期境界でkernel completionとD2Hを分けるStep 66。
     diagnostic buildだけに明示waitを入れ、diagnostic-off経路は変更しない。
-32. A100では`./tools/run_tddft_step66.sh`を1回だけ実行し、通常checkとrelaxed compareを
+32. A100では`./tools/history/tddft_steps/run_tddft_step66.sh`を1回だけ実行し、通常checkとrelaxed compareを
     必須とする。diagnostic wallはbaselineに使用しない。
 33. Step 66はcheck/compare PASS。kernel＋D2H parent `1.886449 sec`のうちkernel完了
     `1.831545 sec`（`97.0896%`）、D2H `0.047825 sec`（`2.5352%`）。
 34. 次の単一性能仮説はVPJ kernelだけの`vector_length(256)`を`128`へ変更すること。
     radial加算順、数式、ownership、D2H、MPIは維持し、diagnostic OFF 3回中央値で採否する。
-35. Step 67初回は`./tools/run_tddft_step67.sh 01`だけを実行し、PASS/PASSならrun 02/03を
-    `./tools/run_tddft_step67.sh 02-03`の1コマンドで取得する。
+35. Step 67初回は`./tools/history/tddft_steps/run_tddft_step67.sh 01`だけを実行し、PASS/PASSならrun 02/03を
+    `./tools/history/tddft_steps/run_tddft_step67.sh 02-03`の1コマンドで取得する。
 36. Step 67 run 01はcheck/compare PASS、wall `68.4441161156 sec`。Step 62中央値より
     `0.1293637752 sec`（`0.188650%`）短いが、Step 62実行幅より小さく未確定。
-37. 同じrevisionのまま`./tools/run_tddft_step67.sh 02-03`を実行し、中央値で採否する。
+37. 同じrevisionのまま`./tools/history/tddft_steps/run_tddft_step67.sh 02-03`を実行し、中央値で採否する。
 38. Step 67の3 runは全てPASS/PASS。wallは`68.4441161156`、`68.2400159836`、
     `68.3616518974 sec`、中央値`68.3616518974 sec`、実行幅`0.2041001320 sec`。
 39. Step 62比`0.2118279934 sec`（`0.308907%`）高速で、両run範囲も重ならないため
     Step 67を正式採用した。
 40. 次の単一仮説Step 68はVPJ `vector_length(128)`だけを`64`へ変更する。同じ演算順と
-    境界を維持し、初回は`./tools/run_tddft_step68.sh 01`だけを実行する。
+    境界を維持し、初回は`./tools/history/tddft_steps/run_tddft_step68.sh 01`だけを実行する。
 41. Step 68 run 01はcheck/compare PASSだが`68.7983009815 sec`で、Step 67比
     `0.4366490841 sec`（`0.638734%`）遅く、実行幅の`2.1394x`回帰した。
 42. run 02/03は省略しStep 68を不採用、VPJ vector lengthは128へ復元した。同形の64を
@@ -167,15 +167,15 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     5個の独立な位相表を1個のdata領域でGPU生成し、入力転送をまとめる。
 44. 現行host consumer用のEXTAU copyout、MPI、数式、CPU/FFTW loop、VPJ vector length
     128を維持し、ownershipなしの`work2_` GPU生成へ広げない。
-45. 初回は`./tools/run_tddft_step69.sh 01`だけを実行する。PASS/PASSで明確な回帰が
-    なければ、run 02/03を`./tools/run_tddft_step69.sh 02-03`の1コマンドで取得する。
+45. 初回は`./tools/history/tddft_steps/run_tddft_step69.sh 01`だけを実行する。PASS/PASSで明確な回帰が
+    なければ、run 02/03を`./tools/history/tddft_steps/run_tddft_step69.sh 02-03`の1コマンドで取得する。
 46. Step 69 run 01はPASS/PASSだが`69.0177049637 sec`で、Step 67比
     `0.6560530663 sec`（`0.959680%`）、正式実行幅の`3.2144x`回帰した。
 47. FRPRMN残差は`0.546599 sec`減ったが全体wallは悪化したためrun 02/03を省略し、
     Step 69を不採用としてhost EXTAU経路へ復元した。同じ grouped-copy 形を再試行しない。
 48. 次は追加実装ではなく、復元した現行Step 67 sourceをNsight Systemsで再診断し、
     kernel、転送、runtime/API、同期、MPI、GPU idleを更新する。
-49. Step 70は`./tools/run_tddft_step70_nsys.sh`を1回だけ実行する。TDDFTのみを
+49. Step 70は`./tools/history/tddft_steps/run_tddft_step70_nsys.sh`を1回だけ実行する。TDDFTのみを
     diagnostic OFFでbuildし、check/compareを必須とし、trace wallをbaselineにしない。
 50. terminalに出るkernel、H2D/D2H、CUDA API、OpenACC、OSRT、MPI要約の写真だけを
     受け取り、次の実装は分類完了後に選ぶ。
@@ -187,16 +187,16 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 53. 次は追加最適化ではなく、現行`frprmn_energy_diag`約`0.93 sec`をVG組立、E-field、
     expectation/off-diagonalへ分解してから単一仮説を選ぶ。
 54. Step 71はdefault-off timerだけを追加する。演算、loop、ownership、MPI、通常buildを
-    変更せず、`./tools/run_tddft_step71.sh`を1回だけ実行する。
+    変更せず、`./tools/history/tddft_steps/run_tddft_step71.sh`を1回だけ実行する。
 55. Step 71はPASS/PASS。`frprmn_energy_diag=0.871809 sec`のうちexpectation/off-diagonalが
     `0.809350 sec`（`92.84%`）。VG組立`0.054056 sec`とE-field`0.004286 sec`は最適化しない。
 56. Step 72はこの`0.809350 sec`を対角HLOCAL、対角NONLOC、内積、EE通信、
-    off-diagonal全体へdefault-off timerだけで分解する。`./tools/run_tddft_step72.sh`を1回実行する。
+    off-diagonal全体へdefault-off timerだけで分解する。`./tools/history/tddft_steps/run_tddft_step72.sh`を1回実行する。
 57. Step 72はPASS/PASS。expectation`0.816429 sec`の内訳は対角HLOCAL`0.239888 sec`、
     対角NONLOC`0.299706 sec`、内積`0.012768 sec`、EE通信`0.000014 sec`、
     off-diagonal`0.258875 sec`。内積と通信は最適化しない。
 58. Step 73はoff-diagonalをHLOCAL、NONLOC、行列内積、通信/copy、集約/outputへ
-    default-off timerだけで分ける。`./tools/run_tddft_step73.sh`を1回実行する。
+    default-off timerだけで分ける。`./tools/history/tddft_steps/run_tddft_step73.sh`を1回実行する。
 59. Step 73はPASS/PASS。off-diagonal`0.264491 sec`の内訳はHLOCAL`0.080938 sec`、
     NONLOC`0.099967 sec`、行列内積`0.079395 sec`、通信/copy`0.000005 sec`、
     集約/output`0.002409 sec`。通信とoutputは最適化しない。
@@ -204,26 +204,26 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     YLM準備を各bandから各k-point 1回へまとめる単一仮説を検証する。
 61. Step 74はNONLOCへ明示的reuse flagを追加し、各k-point/eventの最初のbandだけYLMを
     再構築する。係数依存のkinetic DCOEFとSEPPOTは毎回維持する。まず
-    `./tools/run_tddft_step74.sh 01`、健全なら`./tools/run_tddft_step74.sh 02-03`を実行する。
+    `./tools/history/tddft_steps/run_tddft_step74.sh 01`、健全なら`./tools/history/tddft_steps/run_tddft_step74.sh 02-03`を実行する。
 62. Step 74の3 runは全てPASS/PASS。wallは`68.1138920784`、`68.0681188811`、
     `68.0592751503 sec`、中央値`68.0681188811 sec`、実行幅`0.0546169281 sec`。
     Step 67比`0.2935330163 sec`（`0.429383%`）高速なので正式採用した。
 63. 次は追加実装ではなく、正式Step 74 sourceの広域FRPRMN timerをStep 75で再実行し、
-    現行残差と未分類量を更新する。`./tools/run_tddft_step75.sh`を1回だけ実行する。
+    現行残差と未分類量を更新する。`./tools/history/tddft_steps/run_tddft_step75.sh`を1回だけ実行する。
 64. Step 75はPASS/PASS。FRPRMN残差`8.203100 sec`のうち`8.163520 sec`
     （`99.5175%`）を分類し、未分類は`0.039580 sec`。上位はPart1to5`1.939650 sec`、
     VRHO`1.799974 sec`、EXTAU`1.438920 sec`。
 65. Part1to5とEXTAUには既知の不採用形がある。Step 60/61はStep 62前なので、
     次は現在sourceで既存VRHO子timerを再実行してから仮説を選ぶ。
 66. Step 76は追加実装をせず、現行source上で既存VRHO子timerと3階層の未分類gapを
-    まとめて再計測する。`./tools/run_tddft_step76.sh`を1回だけ実行し、diagnostic wallは
+    まとめて再計測する。`./tools/history/tddft_steps/run_tddft_step76.sh`を1回だけ実行し、diagnostic wallは
     baselineに使用しない。
 67. Step 76はPASS/PASS。VRHO`1.762396 sec`の内訳はVOFRHO`0.956957`、
     smoothing/FFT`0.156599`、control`0.646548 sec`。controlの`0.549649 sec`はseedで、
     correctorは`0.078602 sec`、Step 62後の係数復元は`0.002889 sec`まで低下した。
 68. 次は追加最適化ではなく、最大のVOFRHOをexchange-correlation、FFT、Hartree準備・
     加算へ分解してから単一仮説を選ぶ。
-69. Step 77はVOFRHOへdefault-off子timerだけを追加する。`./tools/run_tddft_step77.sh`
+69. Step 77はVOFRHOへdefault-off子timerだけを追加する。`./tools/history/tddft_steps/run_tddft_step77.sh`
     を1回実行し、diagnostic wallはbaselineに使用しない。
 70. ユーザー要望によりStep 77より先に、一時的なStep 78 MAX_OFFLOADを1回だけ実行した。
     EXTAU生成、VRHO配列・制御loop、energy expectation/off-diagonal内積、収束reductionを
@@ -244,18 +244,18 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 76. XCがVOFRHOの`67.9329%`で最大。次は追加最適化ではなく、G2VXC2を微分配列生成、
     9本の微分FFT、exchange、correlation、最終合成へ分けるStep 79診断を行う。
 77. Step 79はtimerだけを追加し、数式、loop順、FFT呼出し、MPI、OpenACC ownership、
-    diagnostic-off経路を変更しない。A100では`./tools/run_tddft_step79.sh`を1回実行する。
+    diagnostic-off経路を変更しない。A100では`./tools/history/tddft_steps/run_tddft_step79.sh`を1回実行する。
 78. Step 79はPASS/PASS、diagnostic wall `69.1785750389 sec`。VOFRHOは`0.960509`、
     XCは`0.655301 sec`だが、G2VXC2子timerは全てinactiveでgapがXC全体と一致した。
 79. Si111-H入力はGGA G2VXC2ではなくLDA S2VXC2経路を使用する。inactiveなG2VXC2を
     このbenchmark向けに最適化しない。
 80. Step 80は実行されるS2VXC2の独立格子点loopだけをOpenACC化する。RHOをcopyin、
     VCSRをcopyoutし、分岐、数式、caller FFT/Hartree、MPI、CPU/FFTW経路を維持する。
-81. A100では最初に`./tools/run_tddft_step80.sh 01`だけを実行する。PASS/PASSかつ明確な
-    回帰がなければ`./tools/run_tddft_step80.sh 02-03`で残り2回をまとめて取得する。
+81. A100では最初に`./tools/history/tddft_steps/run_tddft_step80.sh 01`だけを実行する。PASS/PASSかつ明確な
+    回帰がなければ`./tools/history/tddft_steps/run_tddft_step80.sh 02-03`で残り2回をまとめて取得する。
 82. Step 80 run 01はPASS/PASS、`67.4321370125 sec`。正式Step 74中央値より
     `0.6359818686 sec`、`0.934331%`高速で有望だが、1回だけでは採用確定しない。
-83. 次は`./tools/run_tddft_step80.sh 02-03`を1回実行し、3回中央値でStep 80の採否を
+83. 次は`./tools/history/tddft_steps/run_tddft_step80.sh 02-03`を1回実行し、3回中央値でStep 80の採否を
     判定する。新しい最適化を追加しない。
 84. Step 80 run 02/03もPASS/PASSで、`67.2197408676`、`67.4207620621 sec`。
     3回中央値は`67.4207620621 sec`、実行幅は`0.2123961449 sec`。
@@ -264,7 +264,7 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 86. ユーザーがStep 80の正式採用を承認した。Step 80は正式baselineで、中央値
     `67.4207620621 sec`、実行幅`0.2123961449 sec`。
 87. 次は追加最適化ではなく、正式Step 80 sourceの既存広域FRPRMN timerを再実行する
-    Step 81診断。A100では`./tools/run_tddft_step81.sh`を1回実行する。
+    Step 81診断。A100では`./tools/history/tddft_steps/run_tddft_step81.sh`を1回実行する。
 88. ユーザーがH100でStep 80を1回試し、`36.492636919 sec`、PASS/PASSだった。
     A100 Step 80中央値比は`1.847517x`、wallは`45.873295%`短い。
 89. H100値は1回のみで、正確なH100型式、revision、compiler、`cc90` build条件が未記録。
@@ -283,45 +283,47 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
     `7.878776 sec`の`7.833973 sec`（`99.4313%`）を分類し、未分類は`0.044803 sec`。
 95. 上位はPart1to5 `1.947618`、EXTAU `1.448376`、VRHO `1.173977`、energy
     `1.118869 sec`。VRHOはStep 75比`0.625997 sec`（`34.7781%`）減りStep 80効果と整合。
-96. 次は追加実装・再実行ではなく、`./tools/show_tddft_step81_detail.sh`で同じStep 81
+96. 次は追加実装・再実行ではなく、`./tools/history/tddft_steps/show_tddft_step81_detail.sh`で同じStep 81
     archiveのVRHO・energy子timerを写真に収め、その結果から単一仮説を選ぶ。
 97. 詳細ではVOFRHO `0.359571 sec`中XCは`0.063268 sec`で、Step 77比`90.3231%`減。
     VRHO control `0.657103 sec`の方が大きく、XCは次の対象ではない。
 98. energy `1.118869 sec`中E-fieldは`0.248282`、expectationは`0.778436 sec`。
     E-fieldはStep 71の`0.004286 sec`と差が大きくhost出力を含むため、まだ選ばない。
-99. 次は再実行せず、`./tools/show_tddft_step81_detail.sh control`で同じarchiveの
+99. 次は再実行せず、`./tools/history/tddft_steps/show_tddft_step81_detail.sh control`で同じarchiveの
     呼出回数とseed/predict/corrector内訳を確認してから単一仮説を選ぶ。
 100. control詳細はseed `0.562341 sec`、predictor `0.016313`、corrector
      `0.076263 sec`。seedがcontrolの`85.5773%`で次の対象。
 101. Step 82はOpenACC時のhost COEF→COEF0 seed copyとCOEF0 H2Dだけを、現行data入口の
      COEF copyin、COEF0 create、device copyへ置換する。区間寿命、restart、MPI、数式、
      CPU/FFTWを維持し、Step 45のtime-step全体常駐を再試行しない。
-102. A100では`./tools/run_tddft_step82.sh 01`だけを実行し、PASS/PASSかつ明確な回帰が
+102. A100では`./tools/history/tddft_steps/run_tddft_step82.sh 01`だけを実行し、PASS/PASSかつ明確な回帰が
      なければ02/03をまとめて取得する。
 103. Step 82 run 01はPASS/PASS、`66.8839480877 sec`。Step 80正式中央値より
      `0.5368139744 sec`（`0.796215%`）高速で、seed測定値`0.562341 sec`とも近い。
-104. 1 runではbaselineを更新しない。次は`./tools/run_tddft_step82.sh 02-03`で残りを
+104. 1 runではbaselineを更新しない。次は`./tools/history/tddft_steps/run_tddft_step82.sh 02-03`で残りを
      一括取得し、3 run中央値で採否を決める。
 105. Step 82 run 02/03もPASS/PASSで、`66.6139972210`、`66.6539101601 sec`。
      3回中央値は`66.6539101601 sec`、実行幅は`0.2699508667 sec`。
 106. Step 80比`0.7668519020 sec`（`1.137412%`）高速で、全runが旧中央値より速いため
      Step 82を正式baselineとして採用する。
-107. 次は追加最適化ではなく、`./tools/run_tddft_step83.sh`で正式Step 82 sourceの
+107. 次は追加最適化ではなく、`./tools/history/tddft_steps/run_tddft_step83.sh`で正式Step 82 sourceの
      VRHO seed/control子timerを1回再診断する。diagnostic wallはbaselineにしない。
 108. Step 83はPASS/PASS。seedは`0.000497 sec`でStep 81比`99.9116%`減、VRHO controlは
      `0.103696 sec`、VRHO parentは`0.622439 sec`となり、Step 82の機序を確認した。
-109. 次はbuild/rerunせず、`./tools/show_tddft_step83_next.sh`で同じarchiveの現行広域
+109. 次はbuild/rerunせず、`./tools/history/tddft_steps/show_tddft_step83_next.sh`で同じarchiveの現行広域
      envelopeとenergy子timerを表示し、既却下形を避けた単一仮説を選ぶ。
 110. 現行はPart1to5 `1.941613`、EXTAU `1.440404`、VRHO `0.622439`、energy
      `0.847562 sec`。Part1to5/EXTAUの単純offload形はhost consumer境界で既却下。
 111. Step 84はNONLOCのband不変kinetic factorをRHOAへ格納して直後に1回読む冗長passを
      DCOEF更新へ融合するだけとし、ownership、MPI、HLOCAL、YLM再利用、数式を維持する。
-112. A100では`./tools/run_tddft_step84.sh 01`だけを実行し、PASS/PASSかつ明確な回帰が
+112. A100では後に削除された歴史的helper `run_tddft_step84.sh 01`だけを実行し、
+     PASS/PASSかつ明確な回帰が
      なければ02/03をまとめて取得する。
 113. Step 84の3 runは`66.7368218899`、`66.7220189571`、`66.8331620693 sec`で全て
      PASS/PASS。中央値`66.7368218899 sec`はStep 82比`0.124391%`遅く、利得なし。
 114. Step 84を却下して正式Step 82式へ戻し、Step 82をbaselineとして維持する。
-115. 次は`./tools/run_tddft_step85.sh`を1回だけ実行し、energy HLOCALをzero、scatter、
+115. 次は後に削除された歴史的helper `run_tddft_step85.sh`を1回だけ実行し、
+     energy HLOCALをzero、scatter、
      inverse FFT、VG multiply、forward FFT、gatherへ分解する。diagnostic wallはbaselineにしない。
 116. Step 85はPASS/PASS。全768 HLOCAL callはzero `0.013984`、scatter `0.067270`、
      inverse FFT `0.128601`、VG multiply `0.040314`、forward FFT `0.141528`、
@@ -330,39 +332,39 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      対角/非対角512親timerを比較した表示上の誤りで、個別計測値は有効。
 118. Step 86はHLOCALだけを一時device data regionにまとめ、host staged FFT 2往復と
      4 host loopをGPU内に置く。CPU/FFTW経路は維持する。
-119. A100では`./tools/run_tddft_step86.sh 01`だけを実行し、結果確認前に02/03を流さない。
+119. A100では`./tools/history/tddft_steps/run_tddft_step86.sh 01`だけを実行し、結果確認前に02/03を流さない。
 120. Step 86の3 runは`66.5019950867`、`66.6454100609`、`66.3501911163 sec`で全て
      PASS/PASS。中央値`66.5019950867 sec`、実行幅`0.2952189446 sec`。
 121. Step 82比`0.1519150734 sec`（`0.22791%`）高速なため、Step 86を正式baselineとして
      採用する。現在のtime-step候補GPU化率は24/39=`61.5%`。
 122. 次は追加最適化ではなく、正式Step 86 sourceのHLOCAL全768 callを1本の親timerで
-     再診断するStep 87。A100では`./tools/run_tddft_step87.sh`を1回だけ実行する。
+     再診断するStep 87。A100では`./tools/history/tddft_steps/run_tddft_step87.sh`を1回だけ実行する。
 123. Step 87のdiagnostic wallはbaselineに使わず、Step 85の旧HLOCAL合計
      `0.482563 sec`との差と、対角・非対角・TMEVL寄与を確認する。
 124. Step 87はPASS/PASS。device HLOCAL全768 callは`0.247780 sec`で、対角
      `0.128030`、非対角`0.040771`、derived TMEVL `0.078979 sec`。
 125. Step 85のhost staged HLOCAL `0.482563 sec`から`0.234783 sec`
      （`48.653%`）減り、Step 86の改善機序を直接確認した。
-126. 次は追加実装・再実行せず、`./tools/show_tddft_step87_next.sh`で同じarchiveの
+126. 次は追加実装・再実行せず、`./tools/history/tddft_steps/show_tddft_step87_next.sh`で同じarchiveの
      energy階層を表示し、残る単一仮説を選ぶ。
 127. 現行energy expectation `0.634219 sec`の最大成分はNONLOCで、対角
      `0.274122`＋非対角`0.090716`=`0.364838 sec`（`57.53%`）。
 128. Step 84の単純kinetic host pass融合は既却下なので再試行しない。Step 88は
      NONLOCをkinetic、YLM、SEPPOTへdefault-off timerだけで分解する。
-129. A100では`./tools/run_tddft_step88.sh`を1回だけ実行し、diagnostic wallを
+129. A100では`./tools/history/tddft_steps/run_tddft_step88.sh`を1回だけ実行し、diagnostic wallを
      baselineに使わない。内訳確認前に追加最適化しない。
 130. Step 88はPASS/PASS。全768 NONLOC callはkinetic `0.056220`（`10.325%`）、
      YLM `0.003207`（`0.589%`）、SEPPOT `0.485064 sec`（`89.086%`）。
 131. 次のStep 89はSEPPOTをEXTAU位相表とs/p/d/f軌道channelへdefault-off timerだけで
      分解する。最大channelの確認前にSEPPOT全体を一括GPU化しない。
-132. A100では`./tools/run_tddft_step89.sh`を1回だけ実行する。diagnostic wallは
+132. A100では`./tools/history/tddft_steps/run_tddft_step89.sh`を1回だけ実行する。diagnostic wallは
      baselineに使わない。
 133. Step 89はPASS/PASS。SEPPOT `0.547832 sec`の分類内訳はEXTAU
      `0.188158`（`36.414%`）、s `0.103150`（`19.963%`）、p `0.225405 sec`
      （`43.623%`）。d/fはこの入力ではinactive、分類gapは`0.031119 sec`。
 134. Step 47のtutorial専用s/p全体offloadは既却下なので再導入しない。Step 90は最大の
      p channelをprojector生成、係数reduction、DCOEF更新へtimerだけで分解する。
-135. A100では`./tools/run_tddft_step90.sh`を1回だけ実行する。数式、loop順、
+135. A100では`./tools/history/tddft_steps/run_tddft_step90.sh`を1回だけ実行する。数式、loop順、
      ownership、MPI、diagnostic-off経路は変更せず、wallをbaselineに使わない。
 136. Step 90はPASS/PASS。p channel `0.284428 sec`の内訳はprojector生成
      `0.095651`（`39.103%`）、係数reduction `0.069291`（`28.327%`）、
@@ -371,7 +373,7 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      合わせてSEPPOTの細粒度GPU化を終了し、個別kernelを追加しない。
 138. 次のStep 91は追加最適化ではなく、正式Step 86 sourceをdiagnostic OFFでNsight
      Systems再診断する。Step 70以後のSteps 74/80/82/86を含む現行kernel、転送、
-     API、同期、MPI、GPU idleを`./tools/run_tddft_step91_nsys.sh`で更新する。
+     API、同期、MPI、GPU idleを`./tools/history/tddft_steps/run_tddft_step91_nsys.sh`で更新する。
 139. Step 91 trace wallはbaselineに使わず、通常checkとrelaxed compareを必須とする。
 140. Step 91はPASS/PASS。trace wallは`69.98909358414 sec`でbaselineではない。
      CUDA kernel合計は約`13.90 sec`（`19.86%`）、fused nonlocalは
@@ -381,7 +383,7 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      `17.235587864 sec`、MPI reportは空。
 142. Step 70比で直接転送時間は`0.269326551 sec`、H2D量は`3,229.206 MB`減ったが、
      同期と主要kernelはほぼ不変。kernel外約`56.09 sec`を純GPU idleと解釈しない。
-143. 次は追加実装・再実行せず、`./tools/show_tddft_step91_detail.sh`で既存Step 91
+143. 次は追加実装・再実行せず、`./tools/history/tddft_steps/show_tddft_step91_detail.sh`で既存Step 91
      archiveのTMEVL update/waitとCUDA同期/copy行だけを表示し、必須host consumer境界と
      回避可能な反復stagingを区別してから単一ownership仮説を選ぶ。
 144. line 1930 `work2_` updateは4,720回、inclusive `1.609217948 sec`で、内包Waitは
@@ -390,7 +392,7 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 145. line 2405 fused-kernel完了Waitは`8.360886829 sec`で、CUDA kernel
      `8.200543838 sec`が引き続き支配的。転送削除だけでなく、同じ値・逐次projector順を
      保つdevice生成が必要。
-146. 次は`./tools/show_tddft_step91_next.sh`で既存Step 88/91 archiveからhost生成、
+146. 次は`./tools/history/tddft_steps/show_tddft_step91_next.sh`で既存Step 88/91 archiveからhost生成、
      update、metadata、fused GEMM timerを一括表示する。build/rerunせず、上限確認前に
      `work2_`直接生成を実装しない。
 147. 一括表示では`s2_nonlocal=11.548827`、host make `1.348333`、
@@ -401,13 +403,13 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      `+6.7%`またはStep 20細粒度copy `819.404727936 sec`の却下形を繰り返すため選ばない。
 149. Step 92は数式・ownershipを変更せず、5個のSuzuki-Trotter phaseごとに連続TMEVL
      callのactive `work2_`/`cfac_`/`ngnl_`全値が完全一致するかを数える診断。
-     `./tools/run_tddft_step92.sh`を1回だけ実行し、equal/changed比からhost生成cacheの
+     `./tools/history/tddft_steps/run_tddft_step92.sh`を1回だけ実行し、equal/changed比からhost生成cacheの
      可否を決める。診断wallはbaselineに使用しない。
 150. Step 92はPASS/PASS。全phaseでobservations `944`、比較対象`943`回のうち
      exact equal `0`、changed `943`、equal率`0.000%`。完全なhost生成cache再利用は
      不可なので実装しない。診断wall `71.3717830181 sec`はbaselineに使用しない。
 151. Step 93は追加最適化を行わず、同じphaseの連続call間で`ngnl_`、`cfac_`、
-     `work2_`を個別に完全比較する。`./tools/run_tddft_step93.sh`を1回だけ実行し、
+     `work2_`を個別に完全比較する。`./tools/history/tddft_steps/run_tddft_step93.sh`を1回だけ実行し、
      metadataが一定なら反復metadata updateの1回化だけを次候補として検討する。
 152. Step 93はPASS/PASS。diagnostic wall `72.5525600910 sec`はbaselineではない。
      5 phaseすべてで943比較を行い、`ngnl_pct`、`cfac_pct`、`work2_pct`、`all_pct`は
@@ -419,7 +421,7 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      `4.071556 sec`親にはEWALD、local G-vector/force生成、MPI、energy、XC、Hartreeが
      混在するため、直接offloadの根拠にしない。
 155. Step 94はdefault-off timerで`LOCPOTF`全体とlocal生成からMPI境界までを測る。
-     A100では`./tools/run_tddft_step94.sh`を1回だけ実行し、両checkを必須とし、
+     A100では`./tools/history/tddft_steps/run_tddft_step94.sh`を1回だけ実行し、両checkを必須とし、
      diagnostic wallはbaselineに使用しない。
 156. Step 94はPASS/PASS。diagnostic wall `72.0893621445 sec`はbaselineではない。
      `LOCPOTF=4.345268 sec`中、local生成・force蓄積・MPIは`1.193364 sec`
@@ -429,11 +431,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 158. Step 95はdefault-off timerだけを追加し、timer表を120から124 entryへ整合して
      拡張する。数式、loop順、MPI、OpenACC ownership、CPU/FFTW、diagnostic-off経路を
      変更しない。
-159. A100では`./tools/run_tddft_step95.sh`を1回だけ実行し、両checkを必須とする。
+159. A100では`./tools/history/tddft_steps/run_tddft_step95.sh`を1回だけ実行し、両checkを必須とする。
      4子区間の残差比率と未分類gapを確認するまで実装を選ばず、wallはbaselineにしない。
 160. revision `6952f54`の初回A100実行はarchiveと両checkまで成功したが、末尾要約だけが
      A100側`awk`で組み込み関数名`split`を変数に使ったため停止した。計算は再実行せず、
-     修正版をpullして`./tools/report_tddft_step95.sh`で既存archiveを再check・再要約する。
+     修正版をpullして`./tools/history/tddft_steps/report_tddft_step95.sh`で既存archiveを再check・再要約する。
      diagnostic wallは`72.0551159382`秒でありbaselineには使わない。
 161. Step 95のLOCPOTF残差`3.159508 sec`中、EWALDは`3.024790 sec`
      （`95.736%`）、local energyは`0.266%`、XCは`3.338%`、Hartreeは`0.587%`、
@@ -458,7 +460,7 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      Step 86比`0.3542178078`秒（`0.532642%`）高速なので正式採用する。
 168. Step 99はStep 98のdata region、atomic FORCE、MPI分担、pair内演算を維持し、
      atom pairをgang、内側G-vector loopをvector reductionへ割り当てる。まず
-     `./tools/run_tddft_step99.sh 01`を実行し、Step 98中央値と比較する。
+     `./tools/history/tddft_steps/run_tddft_step99.sh 01`を実行し、Step 98中央値と比較する。
 169. Step 99は3 runすべてPASS/PASS、`64.5138220787`、`64.2798080444`、
      `64.3024969101`秒、中央値`64.3024969101`秒、range `0.2340140343`秒だった。
      Step 98比`1.8452803688`秒（`2.789633%`）、Step 86比`2.1994981766`秒
@@ -530,7 +532,7 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      `4.875982`秒（正式wallの`7.638%`）が最大の未分解候補です。
 182. Step 105は追加最適化せず、現行ELECTF NONLOCFをsetup、係数kinetic/current＋MPI、
      GETYLM、SEPPOTF、最終集計へdefault-off timerだけで分解します。
-183. A100では`./tools/run_tddft_step105.sh`を1回だけ実行し、両checkを必須とし、
+183. A100では`./tools/history/tddft_steps/run_tddft_step105.sh`を1回だけ実行し、両checkを必須とし、
      `FPSEID_NONLOCF_SPLIT_BEGIN`から`FPSEID_NONLOCF_SPLIT_END`までの写真を返します。
 184. Step 105はrevision `91f27a0`でPASS/PASS。diagnostic wall
      `70.5463471413`秒はbaselineではない。NONLOCF `4.975987`秒のうちSEPPOTFは
@@ -540,7 +542,7 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 186. 旧Step 47 GPU形は、現行host形がband間で再利用するWORK/DCOEF投影量生成を
      band reduction内で再計算していた。Step 106は最適化せず、現行SEPPOTFを
      位相生成、非partition s/pの投影量生成・band reduction、MPI、gapへ分解する。
-187. A100では`./tools/run_tddft_step106.sh`を1回だけ実行し、両checkを必須とし、
+187. A100では`./tools/history/tddft_steps/run_tddft_step106.sh`を1回だけ実行し、両checkを必須とし、
      `FPSEID_SEPPOTF_DETAIL_BEGIN`から`FPSEID_SEPPOTF_DETAIL_END`までの写真を返す。
      diagnostic wallはbaselineに使用しない。
 188. Step 106はrevision `9ef703b`でPASS/PASS、diagnostic wall
@@ -552,7 +554,7 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      GPU gangへ展開する。最終type→atom→s→p順を維持し、partition/d/fはhost fallback、
      COEF常駐は同一time-stepのFRPRMN→直後ELECTFだけとする。
 191. GNU MPI＋FFTW full build/linkはPASS。A100ではdiagnostic OFFの
-     `./tools/run_tddft_step107.sh 01`だけを先に実行し、両checkとwallを返す。
+     `./tools/history/tddft_steps/run_tddft_step107.sh 01`だけを先に実行し、両checkとwallを返す。
      不正解または明確に遅ければrun 02/03を早期停止する。
 192. Step 107は3 runすべてPASS/PASS。wallは`63.1300778389`、
      `63.2335109711`、`63.2135219574`秒、中央値`63.2135219574`秒、range

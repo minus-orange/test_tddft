@@ -1798,7 +1798,7 @@ run 01は両checkにPASSしましたが`68.7983009815`秒で、Step 67より`0.6
 Step 69は現行EXTAU準備`1.468457`秒だけを対象とします。OpenACC時に5個の独立な位相表を
 1個のdata領域内でGPU生成し、G21..G25とTAU1..TAU5の入力転送をまとめます。現行host
 consumer用のEXTAU copyout、MPI、数式、CPU/FFTW loop、VPJ vector length 128は維持します。
-初回は`tools/run_tddft_step69.sh 01`だけを実行します。
+初回は`tools/history/tddft_steps/run_tddft_step69.sh 01`だけを実行します。
 
 run 01は両checkにPASSしましたが`69.0177049637`秒で、Step 67中央値より
 `0.6560530663`秒（`0.959680%`）遅く、正式実行幅の`3.2144`倍回帰しました。
@@ -1851,14 +1851,14 @@ FRPRMN残差は`7.878776`秒で、`7.833973`秒（`99.4313%`）を既存の排�
 `1.448376`秒、VRHO `1.173977`秒、energy diagnostic `1.118869`秒です。
 VRHOはStep 75の`1.799974`秒から`0.625997`秒（`34.7781%`）減り、Step 80の正式な
 wall改善`0.6473568190`秒と整合しました。次の実装を選ぶ前に、同じarchive内のVRHOと
-energy子timerを`tools/show_tddft_step81_detail.sh`で表示します。再build・再実行は不要です。
+energy子timerを`tools/history/tddft_steps/show_tddft_step81_detail.sh`で表示します。再build・再実行は不要です。
 
 既存archiveの詳細ではVOFRHO `0.359571`秒のうち、XCは`0.063268`秒、最終FFT
 `0.110018`秒、Hartree build `0.154377`秒でした。XCはStep 77比`0.590534`秒
 （`90.3231%`）減り、次の対象ではありません。現在はVRHO control `0.657103`秒の方が
 大きい状態です。energy `1.118869`秒のうちE-fieldは`0.248282`秒、expectationは
 `0.778436`秒でした。E-fieldはStep 71で`0.004286`秒だったうえhost出力を含むため、
-`tools/show_tddft_step81_detail.sh control`で同じarchiveの呼出回数とVRHO control子timerを
+`tools/history/tddft_steps/show_tddft_step81_detail.sh control`で同じarchiveの呼出回数とVRHO control子timerを
 確認してから次の単一仮説を選びます。再実行は不要です。
 
 control詳細ではseed初期化が`0.562341`秒でVRHO controlの`85.5773%`を占め、
@@ -1866,7 +1866,7 @@ predictorは`0.016313`秒、correctorは`0.076263`秒でした。Step 82はOpenA
 COEF→COEF0 seed copyとCOEF0 H2Dを省き、現行predictor-corrector data入口でCOEFを
 copyin、COEF0をcreateしてdevice上で1回コピーします。区間寿命、補正restart、MPI、数式、
 CPU/FFTW copyは維持するため、Step 45のtime-step全体COEF常駐とは異なります。まず
-`tools/run_tddft_step82.sh 01`だけを実行します。
+`tools/history/tddft_steps/run_tddft_step82.sh 01`だけを実行します。
 
 Step 82 run 01は両checkにPASSし、wallは`66.8839480877`秒でした。正式Step 80中央値より
 `0.5368139744`秒（`0.796215%`）高速で、Step 81で測定したseed処理`0.562341`秒とも
@@ -1978,7 +1978,7 @@ phase単位の`work2_`全体cacheとmetadata-only cacheのreuse経路を閉じ�
 次のStep 94は追加最適化ではなく、現行sourceのELECTF `LOCPOTF`再診断です。旧Step 43
 の`4.071556`秒にはEWALD、local G-vector/force生成、MPI、energy、XC、Hartreeが混在
 するため、そのままGPU化上限とは扱えません。default-off timerで`LOCPOTF`全体と
-local生成からMPI境界までを測り、残差を導出します。`./tools/run_tddft_step94.sh`を
+local生成からMPI境界までを測り、残差を導出します。`./tools/history/tddft_steps/run_tddft_step94.sh`を
 1回だけ実行し、両checkを必須とし、diagnostic wallはbaselineに使用しません。
 
 Step 94はrevision `f7cf9d7`で両checkにPASSしました。diagnostic wall
@@ -1990,7 +1990,7 @@ local G生成・force蓄積・MPIは`1.193364`秒（`27.464%`）、残差は`3.1
 Step 95はdefault-off timerだけを追加し、既存のEWALDY call、local-energy reduction、
 XC call、Hartree reduction/final assemblyを個別計測します。timer表は120から124 entryへ
 整合して拡張し、数式、loop順、MPI、OpenACC ownership、CPU/FFTW、diagnostic-off経路は
-変更しません。A100では`./tools/run_tddft_step95.sh`を1回だけ実行します。
+変更しません。A100では`./tools/history/tddft_steps/run_tddft_step95.sh`を1回だけ実行します。
 
 Step 95はPASS/PASSで、LOCPOTF残差`3.159508`秒のうちEWALDが`3.024790`秒
 （`95.736%`）でした。local energy、XC、Hartree、gapの合計は`4.264%`です。
@@ -2054,7 +2054,7 @@ Step 47型のtutorial専用s/p全体GPU化は既に不採用なので再試行�
 timerでNONLOCF全体、setup、係数kinetic/current＋MPI、GETYLM、SEPPOTF、最終
 force/energy集計を測り、coverageと未分類gapを導出します。数式、loop順、MPI境界、
 OpenACC ownership、CPU/FFTW、diagnostic-off経路は変更しません。A100では
-`./tools/run_tddft_step105.sh`を1回だけ実行し、両checkを必須とし、diagnostic wallは
+`./tools/history/tddft_steps/run_tddft_step105.sh`を1回だけ実行し、両checkを必須とし、diagnostic wallは
 baselineに使用しません。
 
 Step 105はrevision `91f27a0`でPASS/PASSでした。diagnostic wall
@@ -2067,7 +2067,7 @@ actionable childです。
 Step 47型s/p全体GPU化は再試行しません。旧GPU形は現行host形がband間で再利用する
 WORK/DCOEF投影量生成をband reduction内で再計算していました。Step 106は数値経路を
 変えず、現行SEPPOTFを位相生成、非partition s/pの投影量生成とband reduction、MPI、
-未分類gapへ分解します。A100では`./tools/run_tddft_step106.sh`を1回だけ実行し、
+未分類gapへ分解します。A100では`./tools/history/tddft_steps/run_tddft_step106.sh`を1回だけ実行し、
 両checkを必須とします。band reductionに実質的な上限が確認できた場合だけ、投影量を
 一度生成してbandへ適用する別構造の二段GPU化を検討します。
 
@@ -2085,7 +2085,7 @@ gangとして一括縮約します。最終集計はbandごとにtype、atom、s
 ELECTFまでに限定してELECTF後にdeleteし、Step 45型のtime-step全体常駐には戻しません。
 partitioned projectorとd/f形は既存host経路を維持し、GNU MPI＋FFTW fallbackの
 full build/linkはPASSしています。まずdiagnostic OFFで
-`./tools/run_tddft_step107.sh 01`だけを実行し、PASS/PASSとwallを確認します。
+`./tools/history/tddft_steps/run_tddft_step107.sh 01`だけを実行し、PASS/PASSとwallを確認します。
 
 Step 107はdiagnostic OFFの3 runすべてで両checkにPASSしました。wallは
 `63.1300778389`、`63.2335109711`、`63.2135219574`秒、中央値
@@ -2134,7 +2134,8 @@ Step 112は最初のband/G loopで既に計算する`WFAC=|COEF|^2`をA-vector e
 同じG順で使用し、後続の2回目COEF全走査を削除します。2つのMPI交換と下流順序、
 OpenACC ownership、allocationは維持します。削減上限は約`0.287670`秒、
 正式Step 107 wallの`0.455%`です。
-まずdiagnostic OFFで`./tools/run_tddft_step112.sh 01`を実行し、両checkとwallを
+まずdiagnostic OFFで削除済みの歴史的helper
+`run_tddft_step112.sh 01`を実行し、両checkとwallを
 確認します。有望な場合だけ`02-03`へ進みます。
 
 Step 112 run 01はPASS/PASSでしたが`63.6258358955`秒で、正式Step 107中央値より
@@ -2148,7 +2149,7 @@ Step 113はsource最適化ではなく、compiler optionの1 run screeningです
 sourceを標準`-O2`、単独`-O3`、`-Mipa=fast,inline`、GPU `fastmath`の順でbuild・
 実行します。全runはdiagnostic OFF、A100 1GPU / 1MPI / 100 steps、固有archive、
 通常check、relaxed compareを必須とし、数値リスク確認用にstrict compareも表示します。
-`./tools/run_tddft_step113_flags.sh`を1回実行し、同一session標準buildとの差と正式
+`./tools/history/tddft_steps/run_tddft_step113_flags.sh`を1回実行し、同一session標準buildとの差と正式
 Step 107中央値との差を小さな表で返します。screening結果だけでは正式flagsやbaselineを
 変更せず、正しく明確に高速な単独候補がある場合だけ別の3 run gateへ進めます。
 
@@ -2161,7 +2162,7 @@ wallは標準`63.9245581627`、O3 `64.3075950146`、IPA `63.7906529903`、fastma
 
 strict compareは変更なし標準buildを含む全行でFAILしましたが、これは各archiveを
 default GNU referenceと比較した結果なのでoption固有差を示しません。次は再build・
-再計算なしの`./tools/report_tddft_step113_flags.sh`で同一session標準archiveとの
+再計算なしの`./tools/history/tddft_steps/report_tddft_step113_flags.sh`で同一session標準archiveとの
 pairwise relaxed/strict compareと最大observable差、compiler/MPI provenanceを表示します。
 O3は候補から外し、この結果後にIPAまたはfastmathの最大1候補だけを3 runへ進めます。
 
@@ -2178,7 +2179,7 @@ Step 107中央値よりなお`0.5313489437`秒（`0.840562%`）遅い結果で�
 しました。MPI driverから`nvfortran`使用は確認できており、追加A100実行は不要です。
 
 Step 114では数値sourceとmemory以外のcompiler optionを変えず、NVHPC memory modeを
-screeningします。`tools/run_tddft_step114_memory_modes.sh`は最初に採用済み
+screeningします。`tools/history/tddft_steps/run_tddft_step114_memory_modes.sh`は最初に採用済み
 `-gpu=mem:separate:pinnedalloc`を同一session controlとして実行し、次に
 `-gpu=mem:managed`、最後に`-gpu=mem:unified`を実行します。unpinned separateは
 Step 37でpinned化による中央値`4.4103%`改善が確定済みなので再試行しません。
@@ -2202,7 +2203,7 @@ hardware条件が本質的に変わらない限りtutorial経路でwhole-build m
 ですが、profiler未取得のため測定済み原因とは断定しません。
 
 Step 115では最新の採用済み数値経路を独立したH100 baseline候補として測定します。
-`tools/run_tddft_step115_h100_baseline.sh`は選択device名がH100を含むことを確認し、
+`tools/history/tddft_steps/run_tddft_step115_h100_baseline.sh`は選択device名がH100を含むことを確認し、
 diagnostic OFF、`-gpu=cc90`、採用済み`mem:separate:pinnedalloc`でTDDFTを1回buildした
 後、Si111-H 100 stepsを1GPU / 1MPIで3回実行します。
 

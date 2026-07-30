@@ -218,7 +218,7 @@ dominant CPU integral from the host critical path. The immediate task is a
 diagnostic-only Nsight Systems trace of the accepted Step 52 source. Recompute
 kernel, transfer, runtime/API, synchronization, MPI, and GPU-idle shares before
 selecting another optimization. Do not use trace wall as a baseline.
-Use the committed one-command helper `tools/run_tddft_step53_nsys.sh`; it emits
+Use the committed one-command helper `tools/history/tddft_steps/run_tddft_step53_nsys.sh`; it emits
 the bounded terminal evidence required for photograph-only return.
 
 Step 53 archive `nvhpc_cufft_1rank_02_STEP53_STEP52_NSYS_01` passed both
@@ -238,7 +238,7 @@ synchronization total `17.613188385` sec, and VPJ OpenACC wait is
 `1.816791731` sec. Aggregate kernel share is only about `18.7%` of trace wall.
 
 The immediate next task is the single Step 54 diagnostic run, not optimization.
-Use `tools/run_tddft_step54.sh`; it builds only TDDFT, runs the 100-step case,
+Use `tools/history/tddft_steps/run_tddft_step54.sh`; it builds only TDDFT, runs the 100-step case,
 archives it, checks correctness, and prints the complete photograph-sized
 timer summary. The added timers are compile-time off unless explicitly enabled
 by this helper. They split Vloc preparation, density/potential mixing,
@@ -260,7 +260,7 @@ only `frprmn_vrho_mix` into VOFRHO, smoothing/FFT, and
 interpolation/convergence. VRHO contains host loops and a cuFFT-backed
 transform, so its full Step 54 wall is not a pure CPU measurement.
 
-Step 55 diagnostic code and `tools/run_tddft_step55.sh` are ready. The helper
+Step 55 diagnostic code and `tools/history/tddft_steps/run_tddft_step55.sh` are ready. The helper
 prints only `time_step_total`, `frprmn`, `tmevl_total`, the VRHO parent, and
 the three exclusive child rows so the complete evidence fits in one photo.
 
@@ -276,7 +276,7 @@ The next bounded task is Step 56 diagnostic timing, not optimization. Split
 the Step 54 `frprmn_vloc_prepare=2.940147` sec envelope into LOCPOT,
 smoothing/FFT, and remaining interpolation/Vloc-generation work.
 
-Step 56 diagnostic code and `tools/run_tddft_step56.sh` are ready. It directly
+Step 56 diagnostic code and `tools/history/tddft_steps/run_tddft_step56.sh` are ready. It directly
 times aggregate LOCPOT and smoothing/cuFFT work and prints the remaining Vloc
 work as the parent minus those two children.
 
@@ -306,7 +306,7 @@ fell by `2.660213` sec, while `exnlp_gemm_dot` remained stable. Step 57 is the
 official baseline.
 
 The immediate next task is diagnostic only: use the committed one-command
-helper `tools/run_tddft_step58_nsys.sh` to collect one Nsight Systems trace
+helper `tools/history/tddft_steps/run_tddft_step58_nsys.sh` to collect one Nsight Systems trace
 of the accepted Step 57 source and compare its LOCPOT kernel, kernel total,
 H2D/D2H, runtime/API, synchronization, MPI, and GPU-idle structure with Step
 53. Do not select another optimization before that classification, and do not
@@ -322,7 +322,7 @@ six LOCPOT result downloads over 101 FRPRMN calls. MPI again had no rows.
 
 The LOCPOT kernel was not separately identifiable in the returned top summary.
 The immediate next task is one Step 59 diagnostic using
-`tools/run_tddft_step59.sh`. It enables the existing timers to measure the
+`tools/history/tddft_steps/run_tddft_step59.sh`. It enables the existing timers to measure the
 current accepted-source LOCPOT envelope directly. Do not change algorithms or
 data ownership and do not use its wall as a baseline.
 
@@ -336,7 +336,7 @@ directly confirming the Step 57 hypothesis.
 The next bounded task is diagnostic Step 60. The existing VRHO host-control
 parent is split into exclusive seed/coefficient-copy, predictor/extrapolation,
 and corrector/interpolation/convergence timers. Use
-`tools/run_tddft_step60.sh`; do not implement an optimization before its result.
+`tools/history/tddft_steps/run_tddft_step60.sh`; do not implement an optimization before its result.
 
 Step 60 archive `nvhpc_cufft_1rank_02_STEP60_VRHO_CONTROL_01` passed both
 correctness checks at revision `fad4d11`; its `70.9675290585` sec wall is
@@ -346,7 +346,7 @@ predictor work used only `0.016408` sec. The three children cover `99.9171%`.
 
 The next bounded task is diagnostic Step 61. Split only corrector work into
 interpolation arithmetic, convergence calculation, and failed-correction
-COEF/VGOLD restoration. Use `tools/run_tddft_step61.sh` and do not implement
+COEF/VGOLD restoration. Use `tools/history/tddft_steps/run_tddft_step61.sh` and do not implement
 an optimization before its result.
 
 Step 61 archive `nvhpc_cufft_1rank_02_STEP61_VRHO_CORRECTOR_01` passed both
@@ -359,13 +359,13 @@ Source ownership shows that the large host COEF0-to-COEF copy is dead on the
 OpenACC failed-correction path: device `COEF0` remains authoritative and the
 next correction already restores device `COEF` locally. Step 62 omits only
 that host copy under `_OPENACC`; CPU/FFTW, VGOLD, device restart, MPI, and
-arithmetic order remain unchanged. Use `tools/run_tddft_step62.sh 01` first.
+arithmetic order remain unchanged. Use `tools/history/tddft_steps/run_tddft_step62.sh 01` first.
 
 Step 62 run 01 archive `nvhpc_cufft_1rank_02_STEP62_SKIP_HOST_COEFCP_01`
 passed both correctness checks at revision `7475ccb`. Its wall was
 `68.66669352055` sec, `2.62420933245` sec (`3.6810%`) below the accepted
 Step 57 median. This is promising but not yet accepted; collect runs 02 and 03
-with `tools/run_tddft_step62.sh 02-03` and decide from the three-run median.
+with `tools/history/tddft_steps/run_tddft_step62.sh 02-03` and decide from the three-run median.
 
 Runs 02 and 03 also passed both correctness checks at `68.4877460003` and
 `68.5734798908` sec. The three-run median is `68.5734798908` sec with a
@@ -383,7 +383,7 @@ VRHO mix `1.801928` sec, EXTAU preparation `1.468457` sec, and energy diagnostic
 `part1to5` child timers on accepted Step 62 source before choosing an
 optimization.
 
-Use `tools/run_tddft_step64.sh` once for that measurement. It is a thin wrapper
+Use `tools/history/tddft_steps/run_tddft_step64.sh` once for that measurement. It is a thin wrapper
 over the already validated default-off diagnostic and prints the parent plus
 GETYLM, VPJ integral, MPI all-reduce, and post-reduction rows. Do not implement
 an optimization before this result is classified.
@@ -398,7 +398,7 @@ measurement-only Step 65 before selecting an optimization.
 
 Step 65 adds only compile-time default-off timers for host VPJWORK/VPJ zeroing,
 VPP2 zeroing, and OpenACC integral-kernel-plus-D2H time. Use
-`tools/run_tddft_step65.sh` once, require both checks, and do not use its wall
+`tools/history/tddft_steps/run_tddft_step65.sh` once, require both checks, and do not use its wall
 as a performance baseline.
 
 Step 65 archive `nvhpc_cufft_1rank_02_STEP65_VPJ_INTEGRAL_SPLIT_01` passed both
@@ -411,7 +411,7 @@ diagnostic-off change.
 
 Step 66 adds two default-off children inside the existing kernel-plus-D2H
 parent. Its explicit wait exists only in the diagnostic build and is placed at
-the already synchronous host update boundary. Use `tools/run_tddft_step66.sh`
+the already synchronous host update boundary. Use `tools/history/tddft_steps/run_tddft_step66.sh`
 once and require both checks before choosing a kernel or transfer hypothesis.
 
 Step 66 archive `nvhpc_cufft_1rank_02_STEP66_VPJ_KERNEL_D2H_01` passed both
@@ -423,8 +423,8 @@ radial accumulation order, equations, ownership, D2H, and MPI. Use the normal
 diagnostic-off three-run adoption gate against Step 62.
 
 Step 67 implements exactly that one-parameter hypothesis. Run
-`tools/run_tddft_step67.sh 01` first. If both checks pass, use
-`tools/run_tddft_step67.sh 02-03` for the remaining two runs. Compare the
+`tools/history/tddft_steps/run_tddft_step67.sh 01` first. If both checks pass, use
+`tools/history/tddft_steps/run_tddft_step67.sh 02-03` for the remaining two runs. Compare the
 three-run median with `68.5734798908` sec and revert if no advantage is
 supported.
 
@@ -441,8 +441,8 @@ run is faster than the fastest Step 62 run, so Step 67 is accepted as the new
 official source and performance baseline.
 
 Step 68 continues the same bounded one-parameter search by changing only VPJ
-vector length 128 to 64. Run `tools/run_tddft_step68.sh 01` first, then
-`tools/run_tddft_step68.sh 02-03` only after both checks pass. Compare against
+vector length 128 to 64. Run `tools/history/tddft_steps/run_tddft_step68.sh 01` first, then
+`tools/history/tddft_steps/run_tddft_step68.sh 02-03` only after both checks pass. Compare against
 the Step 67 median `68.3616518974` sec and revert if unsupported.
 
 Step 68 run 01 archive `nvhpc_cufft_1rank_02_STEP68_VPJ_VL64_01` passed both
@@ -457,7 +457,7 @@ independent phase tables on the GPU inside one grouped data region. G21..G25
 and TAU1..TAU5 are copied in once per preparation and EXTAU is copied out once
 for the unchanged host TMEVL consumer. It does not extend device ownership to
 `work2_`, alter MPI, or change the CPU/FFTW loops. Run
-`tools/run_tddft_step69.sh 01` first and stop after a clear regression;
+`tools/history/tddft_steps/run_tddft_step69.sh 01` first and stop after a clear regression;
 otherwise collect 02/03 with the combined helper command.
 
 Step 69 run 01 passed both checks at revision `d5e76b7` but took
@@ -469,7 +469,7 @@ Next, re-profile the restored current source with Nsight Systems before another
 optimization.
 
 Step 70 is that measurement-only current-source trace. Run
-`tools/run_tddft_step70_nsys.sh` once. It builds only TDDFT with source timers
+`tools/history/tddft_steps/run_tddft_step70_nsys.sh` once. It builds only TDDFT with source timers
 off, profiles CUDA/OpenACC/NVTX/OSRT/MPI, archives and checks the result, and
 prints the first ten rows of each summary for photograph-only return. Its wall
 is diagnostic and must not replace the Step 67 baseline.
@@ -485,7 +485,7 @@ do not repeat that NCU form. Split current `frprmn_energy_diag` next.
 
 Step 71 adds only default-off child timers for VG assembly, E-field work, and
 initial/final expectation plus off-diagonal work. Use
-`tools/run_tddft_step71.sh` once. It builds TDDFT only, runs and archives the
+`tools/history/tddft_steps/run_tddft_step71.sh` once. It builds TDDFT only, runs and archives the
 100-step case, requires both checks, and prints the parent, children, and gap
 in one photograph-sized summary. Do not use its wall as a baseline.
 
@@ -495,7 +495,7 @@ Step 71 passed both checks at revision `b379f69`. Of the `0.871809` sec
 and the gap `0.004117` sec. Do not optimize the two small children. Step 72
 adds default-off timers only to split the dominant expectation envelope into
 diagonal HLOCAL, diagonal NONLOC, dot products, EE communication, and the
-complete off-diagonal path. Run `tools/run_tddft_step72.sh` once.
+complete off-diagonal path. Run `tools/history/tddft_steps/run_tddft_step72.sh` once.
 
 Step 72 passed both checks at revision `10a1d50`. The `0.816429` sec
 expectation envelope split into diagonal HLOCAL `0.239888` sec, diagonal
@@ -503,7 +503,7 @@ NONLOC `0.299706` sec, dot products `0.012768` sec, EE communication
 `0.000014` sec, off-diagonal work `0.258875` sec, and a `0.005178` sec gap.
 Do not optimize the dot or communication children. Step 73 adds default-off
 timers only inside off-diagonal work for HLOCAL, NONLOC, matrix dots,
-communication/copy, and gather/output. Run `tools/run_tddft_step73.sh` once.
+communication/copy, and gather/output. Run `tools/history/tddft_steps/run_tddft_step73.sh` once.
 
 Step 73 passed both checks at revision `6fdbecb`. Its `0.264491` sec
 off-diagonal parent split into HLOCAL `0.080938` sec, NONLOC `0.099967` sec,
@@ -517,7 +517,7 @@ preserving all coefficient-dependent NONLOC work.
 Step 74 implements only that reuse hypothesis. NONLOC accepts an explicit
 reuse flag; the first band at each k-point/event computes YLM and later bands
 reuse it. All coefficient-dependent kinetic and SEPPOT work remains
-unchanged. Use `tools/run_tddft_step74.sh 01` first, then `02-03` only after a
+unchanged. Use `tools/history/tddft_steps/run_tddft_step74.sh 01` first, then `02-03` only after a
 healthy first run. Require both checks and compare the three-run median with
 the official Step 67 median `68.3616518974` sec.
 
@@ -529,7 +529,7 @@ fastest Step 67 run, so Step 74 is the accepted source and official baseline.
 
 Step 75 performs no optimization. It re-runs the broad FRPRMN timers on the
 accepted Step 74 source and reports both residual and unclassified time in one
-summary. Use `tools/run_tddft_step75.sh` once; its wall is diagnostic.
+summary. Use `tools/history/tddft_steps/run_tddft_step75.sh` once; its wall is diagnostic.
 
 Step 75 passed both checks at revision `30c8623`. The current FRPRMN residual
 was `8.203100` sec with only `0.039580` sec unclassified. The largest children
@@ -540,7 +540,7 @@ another implementation; Step 60/61 predate the Step 62 restore removal.
 
 Step 76 performs that diagnostic-only current-source VRHO split. It reports
 the existing timer rows 54, 62-64, and 67-72 plus parent, control, and
-corrector nesting gaps. Use `tools/run_tddft_step76.sh` once; its wall is not a
+corrector nesting gaps. Use `tools/history/tddft_steps/run_tddft_step76.sh` once; its wall is not a
 performance baseline.
 
 Step 76 passed both checks at revision `5a4b9c7`. Current VRHO was `1.762396`
@@ -551,7 +551,7 @@ selecting another implementation.
 
 Step 77 adds default-off VOFRHO child timers for exchange-correlation, FFT,
 Hartree zeroing, Hartree construction, and Hartree addition. Use
-`tools/run_tddft_step77.sh` once; its wall is not a performance baseline.
+`tools/history/tddft_steps/run_tddft_step77.sh` once; its wall is not a performance baseline.
 
 Before running Step 77, Step 78 temporarily combined the remaining
 data-parallel host-loop candidates to obtain a quick upper-bound result. It
@@ -576,7 +576,7 @@ the dominant child at `67.9329%`.
 Step 79 is a diagnostic-only split of G2VXC2 into derivative setup, nine
 derivative FFTs, exchange, correlation, and final assembly. It changes no
 equations, loops, FFT calls, MPI, ownership, or diagnostic-off execution. Run
-`tools/run_tddft_step79.sh` once and use its child times to choose one bounded
+`tools/history/tddft_steps/run_tddft_step79.sh` once and use its child times to choose one bounded
 ownership or compute hypothesis.
 
 Step 79 archive `nvhpc_cufft_1rank_02_STEP79_XC_SPLIT_01` passed both checks
@@ -588,7 +588,7 @@ independent grid-point loop.
 
 Step 80 tests only OpenACC offload of that active S2VXC2 loop, copying RHO in
 and VCSR out while preserving formulas, branches, caller FFT/Hartree work,
-MPI, and CPU/FFTW behavior. Run `tools/run_tddft_step80.sh 01` first. Run
+MPI, and CPU/FFTW behavior. Run `tools/history/tddft_steps/run_tddft_step80.sh 01` first. Run
 `02-03` only after a healthy first result and decide from the diagnostic-off
 three-run median against Step 74.
 
@@ -600,7 +600,7 @@ the official baseline.
 
 Step 81 makes no source optimization. It re-runs the existing broad exclusive
 FRPRMN timers on the accepted Step 80 source to classify the current residual
-before another hypothesis is selected. Run `tools/run_tddft_step81.sh` once;
+before another hypothesis is selected. Run `tools/history/tddft_steps/run_tddft_step81.sh` once;
 its diagnostic wall is not a baseline.
 
 Step 81 passed both checks at revision `ace5097`. Its diagnostic wall was
@@ -609,7 +609,7 @@ Step 81 passed both checks at revision `ace5097`. Its diagnostic wall was
 The largest children were Part1to5 `1.947618`, EXTAU preparation `1.448376`,
 VRHO `1.173977`, and energy diagnostic `1.118869` sec. VRHO was
 `0.625997` sec (`34.7781%`) below the Step 75 value, directly supporting the
-accepted S2VXC2 offload. Use `tools/show_tddft_step81_detail.sh` to print the
+accepted S2VXC2 offload. Use `tools/history/tddft_steps/show_tddft_step81_detail.sh` to print the
 already-recorded VRHO and energy child rows before selecting another
 implementation; it performs no build or rerun.
 
@@ -619,7 +619,7 @@ rest. XC fell by `0.590534` sec (`90.3231%`) from Step 77 and is no longer
 the target. VRHO control is now larger at `0.657103` sec. Energy was
 `1.118869` sec, including E-field `0.248282` and expectation `0.778436` sec.
 E-field was only `0.004286` sec in Step 71 and includes host output work, so
-first run `tools/show_tddft_step81_detail.sh control` to print the current
+first run `tools/history/tddft_steps/show_tddft_step81_detail.sh control` to print the current
 call counts and VRHO control split from the same archive. Do not rebuild or
 rerun yet.
 
@@ -629,26 +629,26 @@ The control detail shows seed initialization at `0.562341` sec
 COEF-to-COEF0 initialization at the existing predictor-corrector data entry,
 removing the OpenACC host seed copy and COEF0 H2D. It preserves per-sequence
 lifetime and the CPU/FFTW copy, so it is distinct from rejected Step 45.
-Run `tools/run_tddft_step82.sh 01` first.
+Run `tools/history/tddft_steps/run_tddft_step82.sh 01` first.
 
 Step 82 run 01 passed both checks at `66.8839480877` sec. This is
 `0.5368139744` sec (`0.796215%`) faster than the official Step 80 median and
 is close to the measured `0.562341` sec seed cost. It is promising but remains
-one run. Next run `tools/run_tddft_step82.sh 02-03` and decide from the
+one run. Next run `tools/history/tddft_steps/run_tddft_step82.sh 02-03` and decide from the
 three-run median.
 
 Step 82 runs 02/03 also passed both checks at `66.6139972210` and
 `66.6539101601` sec. The three-run median is `66.6539101601` sec with a
 `0.2699508667` sec range, improving on Step 80 by `0.7668519020` sec
 (`1.137412%`). Step 82 is the new official baseline. Next run the
-diagnostic-only `tools/run_tddft_step83.sh` once to confirm the current VRHO
+diagnostic-only `tools/history/tddft_steps/run_tddft_step83.sh` once to confirm the current VRHO
 seed/control split; do not use its diagnostic wall as a baseline.
 
 Step 83 passed both checks. Seed control fell from the Step 81 value
 `0.562341` to `0.000497` sec (`99.9116%`), VRHO control fell from `0.657103`
 to `0.103696` sec, and the VRHO parent fell from `1.173977` to `0.622439`
 sec. This confirms the Step 82 mechanism. Next run only
-`tools/show_tddft_step83_next.sh`; it reads the existing archive and performs
+`tools/history/tddft_steps/show_tddft_step83_next.sh`; it reads the existing archive and performs
 no build or rerun.
 
 The Step 83 archive ranks Part1to5 at `1.941613` sec, EXTAU preparation at
@@ -674,7 +674,7 @@ unchanged. All three runs passed both checks at `66.5019950867`,
 `0.1519150734` sec (`0.22791%`). Step 86 is the accepted baseline.
 
 Step 87 adds one diagnostic-only parent timer around the accepted device
-HLOCAL path. Run `./tools/run_tddft_step87.sh` once on A100. Use its compact
+HLOCAL path. Run `./tools/history/tddft_steps/run_tddft_step87.sh` once on A100. Use its compact
 summary to compare all 768 HLOCAL calls with the Step 85 host-staged total of
 `0.482563` sec and derive the diagonal, off-diagonal, and TMEVL contributions.
 Its wall time is diagnostic and must not replace the Step 86 median.
@@ -683,19 +683,19 @@ Step 87 passed both checks. The accepted device HLOCAL path took `0.247780`
 sec over 768 calls: diagonal `0.128030`, off-diagonal `0.040771`, and derived
 TMEVL `0.078979` sec. Relative to the Step 85 host-staged total of `0.482563`
 sec, HLOCAL fell by `0.234783` sec (`48.653%`). Next, use
-`./tools/show_tddft_step87_next.sh` without rebuilding or rerunning to display
+`./tools/history/tddft_steps/show_tddft_step87_next.sh` without rebuilding or rerunning to display
 the remaining energy hierarchy before selecting another implementation.
 
 The Step 87 existing-archive detail shows `0.634219` sec in energy expectation.
 NONLOC is the largest component at `0.364838` sec: diagonal `0.274122` plus
 off-diagonal `0.090716`. Step 88 adds default-off timers for NONLOC kinetic,
-YLM, and SEPPOT stages. Run `./tools/run_tddft_step88.sh` once; do not add an
+YLM, and SEPPOT stages. Run `./tools/history/tddft_steps/run_tddft_step88.sh` once; do not add an
 optimization until that split is available.
 
 Step 88 passed both checks. Across 768 NONLOC calls, kinetic took `0.056220`
 sec (`10.325%`), YLM `0.003207` sec (`0.589%`), and SEPPOT `0.485064` sec
 (`89.086%`). Step 89 adds default-off timers for SEPPOT EXTAU and the s/p/d/f
-orbital channels. Run `./tools/run_tddft_step89.sh` once before selecting a
+orbital channels. Run `./tools/history/tddft_steps/run_tddft_step89.sh` once before selecting a
 single channel implementation.
 
 Step 89 passed both checks. SEPPOT used `0.547832` sec. Its classified
@@ -703,13 +703,13 @@ children were EXTAU `0.188158` sec (`36.414%`), s `0.103150` sec
 (`19.963%`), and p `0.225405` sec (`43.623%`); d/f were inactive. Because
 Step 47 already rejected a tutorial-specific whole s/p offload, Step 90 adds
 diagnostic-only timers around the p projector, reduction, and DCOEF loops.
-Run `./tools/run_tddft_step90.sh` once and do not use its wall as a baseline.
+Run `./tools/history/tddft_steps/run_tddft_step90.sh` once and do not use its wall as a baseline.
 
 Step 90 passed both checks. The p channel split into projector `0.095651` sec
 (`39.103%`), coefficient reduction `0.069291` sec (`28.327%`), and DCOEF
 update `0.079670` sec (`32.570%`) over 9,216 calls. No child dominates and
 each has a sub-`0.1` sec ceiling, so do not add separate fine-grained kernels.
-The current SEPPOT path is closed. Run `./tools/run_tddft_step91_nsys.sh`
+The current SEPPOT path is closed. Run `./tools/history/tddft_steps/run_tddft_step91_nsys.sh`
 once to re-profile the accepted Step 86 source after Steps 74/80/82/86.
 
 Step 91 passed both checks. Its `69.98909358414` sec trace wall is diagnostic,
@@ -725,7 +725,7 @@ volume fell `3,229.206` MB, while synchronization and the two leading kernels
 were nearly flat. Do not interpret the approximately `56.09` sec outside CUDA
 kernels as pure GPU idle because CPU work, waits, runtime, and trace overhead
 overlap. Before a new implementation, run
-`./tools/show_tddft_step91_detail.sh` once. It reads the existing Step 91
+`./tools/history/tddft_steps/show_tddft_step91_detail.sh` once. It reads the existing Step 91
 archive only and prints source-attributed TMEVL update/wait rows and selected
 CUDA API rows.
 
@@ -736,7 +736,7 @@ Line 1933 metadata updates used `0.148298132` sec inclusive, with
 `8.360886829` sec, consistent with the `8.200543838` sec fused CUDA kernel.
 Do not add inclusive Update, nested Wait, and CUDA API rows together.
 
-Run `./tools/show_tddft_step91_next.sh` next. It performs no build or rerun;
+Run `./tools/history/tddft_steps/show_tddft_step91_next.sh` next. It performs no build or rerun;
 it combines the existing Step 88 current-source timers with these Step 91
 source-attributed rows. Select no direct `work2_` generation implementation
 until its host-generation, upload, and fused-GEMM ceilings are shown together.
@@ -750,13 +750,13 @@ ownership or fine-grained lookup-copy forms.
 Step 92 is diagnostic-only. It compares the complete active
 `work2_`/`cfac_`/`ngnl_` values with the preceding call of the same
 Suzuki-Trotter phase and prints exact equal/changed counts. Run
-`./tools/run_tddft_step92.sh` once. Its wall is diagnostic; use the counts to
+`./tools/history/tddft_steps/run_tddft_step92.sh` once. Its wall is diagnostic; use the counts to
 decide whether a host-produced phase cache is safe before implementing reuse.
 
 Step 92 passed both checks. For each of the five phases, all 943 comparisons
 changed and none matched exactly. Complete host-produced `work2_` caching is
 therefore rejected. Step 93 is diagnostic-only and separates equality for
-`ngnl_`, `cfac_`, and `work2_`; run `./tools/run_tddft_step93.sh` once and
+`ngnl_`, `cfac_`, and `work2_`; run `./tools/history/tddft_steps/run_tddft_step93.sh` once and
 use only its compact component table. Its wall is not a baseline.
 
 Step 93 passed both checks at revision `0c63c84`. Its diagnostic wall was
@@ -772,7 +772,7 @@ The next bounded action is diagnostic-only Step 94. The old Step 43
 `electf_locpotf=4.071556` sec value covers EWALD, local G-vector and force
 construction, MPI, energy, XC, and Hartree work, so it is not evidence for a
 direct offload. Step 94 adds default-off parent and local-build/MPI timers only.
-Run `./tools/run_tddft_step94.sh` once and use the child share to decide whether
+Run `./tools/history/tddft_steps/run_tddft_step94.sh` once and use the child share to decide whether
 the current local construction merits a narrower split. Do not implement a
 LOCPOTF offload before this current-source measurement, and do not use its
 diagnostic wall as a baseline.
@@ -787,7 +787,7 @@ must first split the remainder into EWALD, local-energy, XC, Hartree, and gap.
 Step 95 adds default-off timers only for those four remainder components and
 extends the diagnostic timer table from 120 to 124 entries. It changes no
 equation, loop, MPI call, OpenACC ownership, or diagnostic-off path. Run
-`./tools/run_tddft_step95.sh` once and select no implementation before the
+`./tools/history/tddft_steps/run_tddft_step95.sh` once and select no implementation before the
 remainder percentages and gap are known. Its wall is diagnostic only.
 
 The first Step 95 A100 run at `6952f54` completed, archived its output, and
@@ -795,14 +795,14 @@ passed both checks. Its diagnostic wall was `72.0551159382` sec and is not a
 baseline. Only the final `awk` summary failed because the target implementation
 reserves `split` as a function name and rejected it as a variable. Do not rerun
 the calculation: pull the summary fix and run
-`./tools/report_tddft_step95.sh` against the existing archive.
+`./tools/history/tddft_steps/report_tddft_step95.sh` against the existing archive.
 
 The recovered Step 95 summary shows a `3.159508` sec LOCPOTF remainder:
 EWALD `3.024790` sec (`95.736%`), local energy `0.008415` sec (`0.266%`),
 XC `0.105457` sec (`3.338%`), Hartree `0.018546` sec (`0.587%`), and gap
 `0.002300` sec (`0.073%`). Step 96 adds diagnostic-only exact comparisons of
 EWALDY `EWA` and active-atom `FORCE` outputs across its 101 fixed-nuclei calls.
-Run `./tools/run_tddft_step96.sh` once. Only if all 100 comparisons are equal
+Run `./tools/history/tddft_steps/run_tddft_step96.sh` once. Only if all 100 comparisons are equal
 should the next step implement first-call reuse of those two outputs.
 
 Step 96 at `4902b4f` passed both checks, but all 100 comparisons changed:
@@ -810,7 +810,7 @@ Step 96 at `4902b4f` passed both checks, but all 100 comparisons changed:
 `71.6179108620` sec diagnostic wall is not a baseline. Close output caching.
 Step 97 retains the high-value EWALD target and splits its `3.024790` sec into
 G-space, R-space, MPI, and setup/AGEN gap before directly accelerating the
-dominant compute child. Run `./tools/run_tddft_step97.sh` once.
+dominant compute child. Run `./tools/history/tddft_steps/run_tddft_step97.sh` once.
 
 Step 97 at `02fa239` passed both checks. G-space dominated EWALDY at
 `2.795064` sec (`92.404%`); R-space was `0.205414` sec, MPI `0.019249` sec,
@@ -818,14 +818,14 @@ and setup/AGEN gap `0.005089` sec. Its diagnostic wall is not a baseline.
 Step 98 directly parallelizes atom pairs in G-space inside one data region per
 EWALDY call, retains pair-local G accumulation order and MPI pair assignment,
 and atomically accumulates shared force elements. Run
-`./tools/run_tddft_step98.sh 01` first.
+`./tools/history/tddft_steps/run_tddft_step98.sh 01` first.
 
 All Step 98 runs passed both checks. The walls were `66.1477772789`,
 `66.14293359913`, and `66.4177260399` sec; median `66.1477772789`, range
 `0.27479244077`. This is `0.532642%` faster than Step 86, so Step 98 is the
 accepted baseline. Step 99 retains its ownership and arithmetic but maps each
 pair to a gang and the inner G loop to a vector reduction. Run
-`./tools/run_tddft_step99.sh 01` first.
+`./tools/history/tddft_steps/run_tddft_step99.sh 01` first.
 
 All Step 99 runs passed both checks. The walls were `64.5138220787`,
 `64.2798080444`, and `64.3024969101` sec; median `64.3024969101`, range
@@ -883,7 +883,7 @@ current source before selecting any new implementation.
 Step 105 adds default-off timers for the complete ELECTF NONLOCF call, setup,
 coefficient kinetic/current plus MPI, GETYLM, SEPPOTF, and final force/energy
 assembly. Equations, loop order, MPI boundaries, OpenACC ownership, and the
-diagnostic-off path are unchanged. Run `./tools/run_tddft_step105.sh` once.
+diagnostic-off path are unchanged. Run `./tools/history/tddft_steps/run_tddft_step105.sh` once.
 Require both correctness checks and use the diagnostic wall only for
 classification. If SEPPOTF still dominates, do not repeat the Step 47 form;
 select a new structurally different hypothesis only if one current child has a
@@ -902,7 +902,7 @@ the current host path generates WORK/DCOEF once and reuses them across local
 bands. Step 106 is diagnostic only and separates current SEPPOTF phase
 generation, nonpartitioned s/p projector generation, nonpartitioned s/p band
 reductions, MPI, and an unclassified gap. Run
-`./tools/run_tddft_step106.sh` once, require both checks, and do not use the
+`./tools/history/tddft_steps/run_tddft_step106.sh` once, require both checks, and do not use the
 diagnostic wall as a baseline. A structurally different two-stage GPU path is
 considered only if the band-reduction children have a material ceiling.
 
@@ -924,7 +924,7 @@ deleted before the next time step, so this is not the rejected Step 45
 whole-time-step ownership. Partitioned or d/f projector shapes retain the
 host path. The GNU MPI + FFTW fallback full build/link passes.
 
-Run `./tools/run_tddft_step107.sh 01` first with diagnostics off. Require both
+Run `./tools/history/tddft_steps/run_tddft_step107.sh 01` first with diagnostics off. Require both
 checks and compare its wall with the official Step 102 median
 `63.8388190269` sec. Stop after run 01 if correctness fails or the result is
 not promising; only then use `02-03` for the adoption median. Rollback target
@@ -939,7 +939,7 @@ accepted source and performance baseline.
 The next bounded action is diagnostic-only Step 108. It reuses the current
 default-off timers on accepted Step 107 and prints the major TMEVL/S2,
 FRPRMN, ELECTF/NONLOCF, HLOCAL, and EWALD intervals. Run
-`./tools/run_tddft_step108.sh` once. Its diagnostic wall is not a baseline;
+`./tools/history/tddft_steps/run_tddft_step108.sh` once. Its diagnostic wall is not a baseline;
 use the timer ranking only to choose one next high-impact hypothesis.
 
 Step 108 at `4ccf7dc` passed both checks. Its `70.2021420002` sec diagnostic
@@ -952,12 +952,12 @@ Step 107 batch path was inactive for this signed-`NUMTY` tutorial input.
 
 Step 109 adds default-off timers only. It attempts to split the proposed
 batched SEPPOTF path into projector generation, s/p batch reductions, final GPU
-assembly, result download, MPI, and a gap. Run `./tools/run_tddft_step109.sh`
+assembly, result download, MPI, and a gap. Run `./tools/history/tddft_steps/run_tddft_step109.sh`
 once and do not use its diagnostic wall as a baseline.
 
 Step 109 at `f3d6082` passed both checks, but timer IDs 140--144 did not appear
 and the wrapper stopped with its intended count error. Do not rerun yet.
-First run `./tools/report_tddft_step109.sh`; it reads the existing archive
+First run `./tools/history/tddft_steps/report_tddft_step109.sh`; it reads the existing archive
 only and reports whether legacy IDs 134--138 were active.
 
 The report confirms the legacy path. Startup output shows `NTYPE=2`,
@@ -968,7 +968,8 @@ residency change, while the batched path was inactive.
 
 Step 110 changes only this signed-count handling: zero remains unsupported and
 the batched projector/final loops use `ABS(NUMTY)` like the legacy path. Run
-`./tools/run_tddft_step110.sh 01` with diagnostics off. Require both checks and
+the historical `run_tddft_step110.sh 01` helper (removed after rejection) with
+diagnostics off. Require both checks and
 stop on failure or an unpromising wall; only then run `02-03`.
 
 Step 110 run 01 passed both checks with diagnostics off but took
@@ -981,7 +982,7 @@ COEF residency. Do not retry this SEPPOTF batch shape for the tutorial input.
 
 Step 111 is diagnostic only. It splits the current `nonlocf_kinetic_mpi`
 interval into two G-vector setup loops, two host band reductions, their two MPI
-exchanges, and YLM-radius setup. Run `./tools/run_tddft_step111.sh` once,
+exchanges, and YLM-radius setup. Run `./tools/history/tddft_steps/run_tddft_step111.sh` once,
 require both checks, and return the compact split block. Its diagnostic wall is
 not a performance baseline. Proceed to an implementation only if one compute
 child dominates the `0.799754` sec Step 108 parent.
@@ -995,7 +996,8 @@ Step 112 reuses the `WFAC=|COEF|^2` already computed in the first band/G loop
 to accumulate A-vector energy in the same G order, removing the later second
 COEF traversal. Keep both MPI exchanges and downstream order unchanged. The
 measured removable ceiling is about `0.287670` sec (`0.455%` of the official
-Step 107 wall). Run `./tools/run_tddft_step112.sh 01` with diagnostics off and
+Step 107 wall). Run the historical `run_tddft_step112.sh 01` helper (removed
+after rejection) with diagnostics off and
 require both checks before considering `02-03`. Rollback target: `4f4a276`.
 
 Step 112 run 01 passed both checks but took `63.6258358955` sec,
@@ -1015,7 +1017,7 @@ diagnostics off, 1 A100 / 1 MPI rank / 100 steps, a unique archive, normal
 check, relaxed compare, and an additional strict comparison. The compact
 summary reports exact flags, compiler/device identity, wall time, difference
 from the same-session standard build, and difference from the official Step
-107 median. Run `./tools/run_tddft_step113_flags.sh` once. These single runs
+107 median. Run `./tools/history/tddft_steps/run_tddft_step113_flags.sh` once. These single runs
 cannot replace the official baseline; only a correct, clearly faster isolated
 variant may proceed to a separate three-run adoption gate.
 
@@ -1029,7 +1031,7 @@ slower than the official Step 107 median, and none changes the baseline.
 
 All rows reported strict FAIL against the default GNU reference, including the
 unchanged standard build, so that column cannot attribute a numerical change
-to one option. Run `./tools/report_tddft_step113_flags.sh` once. It reads only
+to one option. Run `./tools/history/tddft_steps/report_tddft_step113_flags.sh` once. It reads only
 the existing archives, directly compares each option with the same-session
 standard archive, prints maximum observable differences plus compiler/MPI
 provenance, and performs no build or simulation. Use that result to choose at
@@ -1053,7 +1055,7 @@ line. The MPI driver output still established that the wrapper invokes
 Step 114 is an explicit memory-mode screen requested by the user. Keep all
 accepted source and non-memory flags fixed. Run a same-session
 `-gpu=mem:separate:pinnedalloc` control, then `-gpu=mem:managed`, then
-`-gpu=mem:unified`, using `./tools/run_tddft_step114_memory_modes.sh`.
+`-gpu=mem:unified`, using `./tools/history/tddft_steps/run_tddft_step114_memory_modes.sh`.
 Unpinned separate memory is not repeated because Step 37 already measured the
 pinned mode as `4.4103%` faster than Step 36.
 
@@ -1080,7 +1082,7 @@ not be attributed more narrowly.
 
 Step 115 establishes a separate H100 baseline candidate from the latest
 accepted numerical source. Run
-`./tools/run_tddft_step115_h100_baseline.sh` on exactly one H100. The helper
+`./tools/history/tddft_steps/run_tddft_step115_h100_baseline.sh` on exactly one H100. The helper
 requires an H100 device name, builds once for `cc90` with the accepted
 `mem:separate:pinnedalloc` mode and diagnostics off, then collects three
 Si111-H 100-step runs with 1 MPI rank.
