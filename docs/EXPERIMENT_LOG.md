@@ -2063,6 +2063,18 @@ archive and prints the unchanged `exkin_` parent/kernel ceiling. This checks
 whether the same band-independent phase precomputation is large enough to
 justify another implementation without spending time on a new diagnostic run.
 
+## Step 103 Result and Step 104 Plan
+
+The existing Step 100 archive reports `tmevl_exkin=0.671559` sec and
+`exkin_acc_kernel=0.635902` sec over 9,440 calls, leaving only a
+`0.035657` sec wrapper gap. Step 104 changes the independent iteration mapping
+from band-by-G collapse to G-vector parallelism with a sequential local-band
+inner loop. Each G vector evaluates the identical kinetic phase once and
+reuses it for all 32 local bands. Each `P(ig,iib)` update retains the same
+formula; MPI, data ownership, call count, and the CPU/FFTW path are preserved.
+The GNU MPI + FFTW fallback full build/link passes with existing legacy
+warnings only.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

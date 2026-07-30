@@ -1273,19 +1273,23 @@ c      fac=dtqrt*( GDUMP(ig) - GMHF ) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr)
      &                  mxbnd,nbegin,nend)
       implicit double precision(a-h,o-z)
       COMPLEX*16  P(NG2Q,mxbnd)
+      COMPLEX*16  PHASE
       DIMENSION G2(4,NG2Q),GDUMP(NG2Q)
 ccc      dthalf=0.5d0*dt
       call prof_start(9)
       dtqrt=0.25d0*dt*TPIBA2
       nbndloc=nend-nbegin+1
       call prof_start(37)
-!$acc parallel loop collapse(2) present(P(1:NG2Q,1:nbndloc))
-!$acc+ copyin(GDUMP(1:ng2))
-      do iib=1,nbndloc
+! Compute the band-independent kinetic phase once per G vector.
+!$acc parallel loop gang vector present(P(1:NG2Q,1:nbndloc))
+!$acc+ copyin(GDUMP(1:ng2)) private(iib,fac,phase)
       do ig=1,ng2
 c      fac=dtqrt*( GDUMP(ig) - GMHF ) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr) 
       fac=dtqrt*GDUMP(ig) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr) 
-      P(ig,iib)=dcmplx( dcos(fac),-dsin(fac) )*P(ig,iib)
+      phase=dcmplx(dcos(fac),-dsin(fac))
+!$acc loop seq
+      do iib=1,nbndloc
+      P(ig,iib)=phase*P(ig,iib)
       enddo
       enddo
       call prof_stop(37)

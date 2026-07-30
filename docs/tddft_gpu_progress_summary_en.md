@@ -2249,3 +2249,9 @@ sec with a `0.24778998752` sec range, `0.721088%` faster than Step 99 and
 `4.004656%` faster than Step 86, so Step 102 is accepted. Step 103 reads the
 existing Step 100 archive, without a build or rerun, to determine whether the
 unchanged kinetic phase has enough ceiling for the same transformation.
+
+Step 103 reports `0.671559` sec in the kinetic parent and `0.635902` sec in
+its 9,440 GPU kernels. Step 104 maps G vectors across the GPU and computes the
+band-independent kinetic phase once per G vector before applying it across the
+32 local bands. The per-element formula, call count, MPI, and ownership remain
+unchanged.

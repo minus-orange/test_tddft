@@ -2019,3 +2019,7 @@ Step 102は3 runすべてPASS/PASSで、中央値`63.8388190269`秒、range
 `0.24778998752`秒でした。Step 99比`0.721088%`、Step 86比`4.004656%`高速なため
 正式採用します。Step 103は再build・再runせず既存Step 100 archiveから未変更の
 kinetic phase上限を表示し、同じ前計算を実装する価値があるか判定します。
+
+Step 103ではkinetic親区間`0.671559`秒、9,440回のGPU kernelが`0.635902`秒でした。
+Step 104はG-vectorをGPU並列にし、band共通kinetic phaseをGごとに1回だけ計算して
+32 local bandsへ適用します。各要素式、call回数、MPI、ownershipは変更しません。

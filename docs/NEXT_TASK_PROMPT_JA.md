@@ -466,6 +466,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      `2.6631760598`秒（`4.004656%`）高速なので正式採用する。
 176. Step 103は再build・再runせず既存Step 100 archiveから`tmevl_exkin`と
      `exkin_acc_kernel`を表示し、同じband共通phase前計算の上限を確認する。
+177. Step 103では`tmevl_exkin=0.671559`秒、`exkin_acc_kernel=0.635902`秒、
+     wrapper gap `0.035657`秒だった。
+178. Step 104は独立なloop mappingをband×G collapseからG-vector GPU並列＋local-band
+     内側seqへ変え、Gごとのkinetic phaseを1回だけ計算して32 bandsに再利用する。
+     各要素式、MPI、ownership、call回数、CPU/FFTW fallbackは維持する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
