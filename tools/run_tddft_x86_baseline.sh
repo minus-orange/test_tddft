@@ -323,7 +323,7 @@ else
   reuse_build=0
 fi
 
-RUN_DIR="$RUN_DIR" TDDFT_STEPS=100 \
+RUN_DIR="$RUN_DIR" TDDFT_STEPS=100 NPROCS="$NPROCS" MPIRUN="$MPIRUN" \
   "$SCRIPT_DIR/prepare_si111_h_sample.sh"
 
 cpu_model=unknown

@@ -8,6 +8,7 @@ set -eu
 #   CACHE_DIR=<repo>/.cache/fpseid21-samples
 #   RUN_DIR=<repo>/run/Si111-H
 #   TDDFT_STEPS="2 50 100"
+#   NPROCS=1
 #
 # Override examples:
 #   RUN_DIR=/tmp/fpseid21-run TDDFT_STEPS="10" ./tools/prepare_si111_h_sample.sh
@@ -19,6 +20,22 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 CACHE_DIR=${CACHE_DIR:-"$ROOT_DIR/.cache/fpseid21-samples"}
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H"}
 TDDFT_STEPS=${TDDFT_STEPS:-"2 50 100"}
+NPROCS=${NPROCS:-1}
+MPIRUN=${MPIRUN:-mpirun}
+
+case "$NPROCS" in
+  ''|*[!0-9]*|0)
+    echo "ERROR: NPROCS must be a positive integer." >&2
+    exit 2
+    ;;
+esac
+
+set -- $TDDFT_STEPS
+if [ "$#" -eq 0 ]; then
+  echo "ERROR: TDDFT_STEPS must contain at least one step count." >&2
+  exit 2
+fi
+primary_tddft_input=Si111-H_tm.in_${1}steps
 
 SI_BASE=${SI_BASE:-"https://staff.aist.go.jp/yoshi-miyamoto/en/examples/Si111-H"}
 TR_BASE=${TR_BASE:-"https://staff.aist.go.jp/yoshi-miyamoto/en/TR"}
@@ -168,7 +185,7 @@ echo "  cp rh.Si111-H_new rh.Si111-H && cp wf_fft.Si111-H_new wf_fft.Si111-H"
 echo "  echo '0.0 0.0' > Eext && echo '0.0' > Etot"
 echo "  echo '0.0 0.0 0.0' > Avec && echo '0.0' > Ework"
 echo "  rm -f fort.23 fort.24 fort.90"
-echo "  OMP_NUM_THREADS=1 mpirun -np 1 $ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe < Si111-H_tm.in_2steps > Si111-H_tm.out_2steps 2> Si111-H_tm.err"
+echo "  OMP_NUM_THREADS=1 $MPIRUN -np $NPROCS $ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe < $primary_tddft_input > Si111-H_tm.out 2> Si111-H_tm.err"
 echo
 echo "Or run the prepared sample automatically:"
-echo "  RUN_DIR=$RUN_DIR $ROOT_DIR/tools/run_si111_h_sample.sh"
+echo "  RUN_DIR=$RUN_DIR NPROCS=$NPROCS MPIRUN=$MPIRUN TDDFT_INPUT=$primary_tddft_input $ROOT_DIR/tools/run_si111_h_sample.sh"

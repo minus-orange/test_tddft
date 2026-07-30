@@ -91,7 +91,8 @@ The default performance configuration is 16 MPI ranks, 1 OpenMP thread per
 rank, diagnostics off, and 100 TDDFT steps. Override the rank count with
 `NPROCS=<count>` when a separate measurement is required. Set `RUNS=1` only
 for a smoke test; the default three-run result is required for a baseline
-median.
+median. Immediately before each TDDFT run, the helper prints the effective
+launch as `MPI launch: mpirun -np 16 ...`.
 
 The helper defaults to `BUILD_MODE=auto`. It records separate CG, SD, and TDDFT
 build signatures under the ignored `.cache/tddft_x86_build/` directory and

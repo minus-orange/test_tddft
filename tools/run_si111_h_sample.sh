@@ -25,6 +25,13 @@ NPROCS=${NPROCS:-1}
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 export OMP_NUM_THREADS
 
+case "$NPROCS" in
+  ''|*[!0-9]*|0)
+    echo "ERROR: NPROCS must be a positive integer." >&2
+    exit 2
+    ;;
+esac
+
 CG_EXE=${CG_EXE:-"$ROOT_DIR/FPSEID21/cg_GGA_f_code/cg_exe"}
 SD_EXE=${SD_EXE:-"$ROOT_DIR/FPSEID21/sd_GGA_f_compact_code/sd_exe"}
 TDDFT_EXE=${TDDFT_EXE:-"$ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe"}
@@ -220,6 +227,7 @@ ensure_sample_links
 require_tddft_inputs
 
 echo "Running TDDFT in $RUN_DIR with $TDDFT_INPUT"
+echo "MPI launch: $MPIRUN -np $NPROCS $TDDFT_EXE"
 clear_stage_outputs
 "$MPIRUN" -np "$NPROCS" "$TDDFT_EXE" < "$TDDFT_INPUT" > Si111-H_tm.out 2> Si111-H_tm.err
 
