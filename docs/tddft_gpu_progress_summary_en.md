@@ -2448,3 +2448,17 @@ archives, normal check, relaxed compare, and a direct pairwise strict
 comparison with the control. Unified mode on Linux x86-64 requires kernel HMM
 support; any build or runtime failure is an early-stop result. This one-run
 screen cannot change the accepted flags or official Step 107 baseline.
+
+Step 114 at revision `3fe68c1` completed all three diagnostic-off variants.
+The accepted pinned-separate control took `63.9251468182` sec, managed memory
+took `130.1395111080` sec, and unified memory took `130.4787569050` sec.
+Managed and unified were `103.581091%` and `104.111783%` slower than the
+same-session control.
+
+All three variants passed normal check, relaxed compare, and direct pairwise
+strict compare with the control. Correctness therefore does not exclude the
+alternatives, but their more-than-twofold wall regression triggers early
+rejection without runs 02/03. Keep `-gpu=mem:separate:pinnedalloc` and do not
+retry whole-build managed or unified memory for this tutorial path without
+materially different ownership or hardware evidence. Automatic migration or
+access transitions are a plausible explanation, not a measured attribution.

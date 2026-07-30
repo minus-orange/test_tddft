@@ -616,16 +616,21 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      再試行しない。unifiedはLinux kernel HMM非対応ならその場で早期停止する。
 223. 全variantはdiagnostic OFF、A100 1GPU / 1MPI / 100 steps、通常check、
      relaxed compare、controlとのpairwise strict compareを必須とする。
+224. Step 114はrevision `3fe68c1`で全variantがcheck/relaxed/pairwise strict PASS。
+     wallはcontrol `63.9251468182`、managed `130.1395111080`、unified
+     `130.4787569050`秒だった。
+225. control比でmanagedは`+103.581091%`、unifiedは`+104.111783%`と2倍超なので、
+     run 02/03へ進めず両方不採用とする。
+226. 標準`-gpu=mem:separate:pinnedalloc`と正式Step 107 baselineを維持する。
+     ownership/hardware条件が本質的に変わらない限りmanaged/unifiedを再試行しない。
 
 Step 112の不採用・復元は`330bd1c`としてcommit/push済みで、CPU/FFTWの
 diagnostic OFF/ON full buildもPASSしています。現在の数値経路は正式Step 107へ
 復元済みです。
 
-次はA100で`./tools/run_tddft_step114_memory_modes.sh`を1回実行し、末尾の
-「FPSEID21 STEP114 NVHPC MEMORY-MODE SCREEN SUMMARY」から
-「One-run screening only; the official flags and baseline are unchanged.」までが
-入る写真1枚を返してください。途中停止時は「FPSEID21 STEP114 NVHPC
-MEMORY-MODE SCREEN FAILURE」から「Stop here; do not run another memory mode.」
-までが入る写真1枚を返してください。
+Step 114は完了し、追加A100実行はありません。新しいproduction入力、新しい
+profiler根拠、または本質的に異なるhardware/ownership条件が得られるまで、追加の
+whole-build memory modeや低上限tutorial micro-optimizationを先行実装しないで
+ください。
 
 ---

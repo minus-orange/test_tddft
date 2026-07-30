@@ -1060,6 +1060,20 @@ or execution fails, return the compact failure block and do not continue or
 weaken validation. This screen cannot change the standard flags or official
 Step 107 baseline.
 
+Step 114 at `3fe68c1` completed all three variants with normal check, relaxed
+compare, and control-pairwise strict compare PASS. Walls were
+`63.9251468182` sec for `mem:separate:pinnedalloc`, `130.1395111080` sec for
+`mem:managed`, and `130.4787569050` sec for `mem:unified`. Managed and unified
+regressed `103.581091%` and `104.111783%` against the same-session control and
+were also more than twice the official Step 107 median.
+
+Reject both alternative modes without runs 02/03. Keep
+`-gpu=mem:separate:pinnedalloc` as the required build mode. Do not repeat
+whole-build managed or unified memory on this tutorial path without materially
+different ownership or hardware evidence. The large regression is consistent
+with migration/access-transition overhead, but it was not profiled and should
+not be attributed more narrowly.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

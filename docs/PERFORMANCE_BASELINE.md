@@ -38,6 +38,14 @@ faster than its same-session control and remained `0.840562%` slower than this
 official median. It therefore does not enter a three-run adoption gate, and
 the standard flags and official baseline remain unchanged.
 
+Step 114 compared the accepted `mem:separate:pinnedalloc` mode with whole-build
+`mem:managed` and `mem:unified` variants. All three passed normal, relaxed, and
+same-session pairwise strict correctness checks. Managed and unified took
+`130.1395111080` and `130.4787569050` sec, respectively, versus the
+`63.9251468182` sec same-session control. Their `103.581091%` and `104.111783%`
+regressions reject both alternatives after one run. The accepted memory mode
+and official Step 107 median remain unchanged.
+
 ## Step 86 Median-Wall Run 01 Profile
 
 | timer | total_sec |

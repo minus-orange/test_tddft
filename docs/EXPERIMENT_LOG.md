@@ -81,7 +81,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 111 | Split NONLOCF kinetic/current plus MPI | 69.0858860016 (one diagnostic run) | measurement | `2415d30` |
 | 112 | Fuse NONLOCF kinetic/current and A-vector energy passes | 63.6258358955 (run 01) | rejected; early stop and restored | `1aa31fd` / `330bd1c` |
 | 113 | Screen isolated NVHPC compiler options | 63.7448709011 best one-run wall (`fastmath`) | screening; no baseline change | `05fd3c4` |
-| 114 | Screen NVHPC memory modes | pending | one-run screening planned | pending |
+| 114 | Screen NVHPC memory modes | 130.1395111080 best alternative (`managed`) | rejected; >2x control wall | `3fe68c1` |
 
 ## Other Rejected Experiments
 
@@ -2400,6 +2400,30 @@ TDDFT translation unit with exactly one memory mode, uses diagnostics off,
 and a direct strict comparison against the same-session control. These are
 one-run screening results only. The standard flags and official Step 107
 baseline cannot change without a later isolated three-run gate.
+
+## Step 114 Memory-Mode Result and Rejection
+
+Step 114 ran all three diagnostic-off variants at revision `3fe68c1` on one
+NVIDIA A100-PCIE-40GB, one MPI rank, and 100 steps:
+
+| variant | wall_sec | delta vs control | percent vs control | percent vs official |
+|---|---:|---:|---:|---:|
+| `mem:separate:pinnedalloc` control | 63.9251468182 | 0.0000000000 | 0.000000% | +1.125748% |
+| `mem:managed` | 130.1395111080 | +66.2143642898 | +103.581091% | +105.872900% |
+| `mem:unified` | 130.4787569050 | +66.5536100868 | +104.111783% | +106.409567% |
+
+Every variant passed normal check, relaxed compare, and direct pairwise strict
+compare with the control. The alternatives are therefore correct for the
+reported observables but both take slightly more than twice the control wall.
+This exceeds the early-stop threshold by a wide margin, so no three-run gate is
+justified. Reject managed and unified memory for this explicit-residency TDDFT
+path, retain `-gpu=mem:separate:pinnedalloc`, and do not retry these whole-build
+memory modes for the tutorial input without materially different ownership or
+new hardware evidence.
+
+The result is consistent with automatic page migration or host/device access
+transitions overwhelming this path, but no profiler trace was collected, so
+that mechanism remains an inference rather than a measured attribution.
 
 ## Step 80 H100 Exploratory Run
 

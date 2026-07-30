@@ -2188,3 +2188,15 @@ relaxed compare、controlとの直接pairwise strict compareを使います。Li
 unified modeにはkernel HMM対応が必要なので、buildまたはruntime失敗時は早期停止
 結果として扱います。1 run screeningだけでは標準flagsや正式Step 107 baselineを
 変更しません。
+
+Step 114はrevision `3fe68c1`で3つのdiagnostic OFF variantを完了しました。採用済み
+pinned-separate controlは`63.9251468182`秒、managedは`130.1395111080`秒、unifiedは
+`130.4787569050`秒でした。同一session control比でmanagedは`103.581091%`、unifiedは
+`104.111783%`遅く、どちらもwallが2倍を超えました。
+
+全variantは通常check、relaxed compare、controlとの直接pairwise strict compareに
+PASSしました。数値正しさでは除外されませんが、明確な大幅性能劣化なのでrun 02/03を
+行わず両方不採用とします。`-gpu=mem:separate:pinnedalloc`を維持し、ownershipまたは
+hardware条件が本質的に変わらない限りtutorial経路でwhole-build managed/unifiedを
+再試行しません。自動migrationまたはhost/device access transitionは考えられる説明
+ですが、profiler未取得のため測定済み原因とは断定しません。
