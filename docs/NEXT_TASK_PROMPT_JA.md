@@ -572,9 +572,17 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      分解する。数式、順序、MPI、ownership、diagnostic-off経路は変更しない。
 203. 親はStep 108で`0.799754`秒、正式Step 107 wallの約`1.265%`なので、compute子が
      大半を占める場合だけ次の実装候補にする。diagnostic wallはbaselineにしない。
+204. Step 111はrevision `2415d30`でPASS/PASS、diagnostic wall
+     `69.0858860016`秒。親`0.814936`秒のうち2本のhost band reductionが
+     `0.470508`＋`0.287670`=`0.758178`秒（`93.037%`）、MPI合計は
+     `0.000745`秒だった。
+205. Step 112は最初のband/G loopにA-vector energy集計を統合し、既存
+     `WFAC=|COEF|^2`を同じG順で再利用して後続の2回目COEF全走査を削除する。
+     2つのMPI交換、下流順序、ownership、allocationは維持する。
+206. 測定上の削減上限は約`0.287670`秒、正式Step 107 wallの`0.455%`。
+     diagnostic OFF run 01がPASS/PASSかつ有望な場合だけ02/03へ進む。
 
-次はA100で`./tools/run_tddft_step111.sh`を1回だけ実行し、
-`FPSEID_NONLOCF_KINETIC_SPLIT_BEGIN`から`FPSEID_NONLOCF_KINETIC_SPLIT_END`までの
-写真を受け取ってください。両checkを必須とし、diagnostic wallはbaselineにしません。
+次はStep 111結果をcommit/pushしてからStep 112を実装し、CPU/FFTW fallbackと
+fixed-formを確認して1コマンドA100 wrapperを登録してください。
 
 ---

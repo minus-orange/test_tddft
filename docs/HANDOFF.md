@@ -978,6 +978,17 @@ require both checks, and return the compact split block. Its diagnostic wall is
 not a performance baseline. Proceed to an implementation only if one compute
 child dominates the `0.799754` sec Step 108 parent.
 
+Step 111 at `2415d30` passed both checks. Its `69.0858860016` sec diagnostic
+wall is not a baseline. Of the `0.814936` sec parent, the kinetic/current and
+A-vector band reductions used `0.470508` and `0.287670` sec, together
+`93.037%`; both MPI intervals together used only `0.000745` sec.
+
+Step 112 reuses the `WFAC=|COEF|^2` already computed in the first band/G loop
+to accumulate A-vector energy in the same G order, removing the later second
+COEF traversal. Keep both MPI exchanges and downstream order unchanged. The
+measured removable ceiling is about `0.287670` sec (`0.455%` of the official
+Step 107 wall). Validate diagnostic-off run 01 before considering runs 02/03.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

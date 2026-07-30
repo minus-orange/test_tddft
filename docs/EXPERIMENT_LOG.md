@@ -78,6 +78,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 108 | Re-profile the accepted Step 107 source | 70.2021420002 (one diagnostic run) | measurement | `4ccf7dc` |
 | 109 | Split the batched SEPPOTF path | 69.1963171959 (diagnostic; legacy path observed) | measurement | `f3d6082` |
 | 110 | Enable the batched SEPPOTF path for signed `NUMTY` | 63.7820260525 (run 01) | rejected; early stop and restored | `3536127` |
+| 111 | Split NONLOCF kinetic/current plus MPI | 69.0858860016 (one diagnostic run) | measurement | `2415d30` |
 
 ## Other Rejected Experiments
 
@@ -2275,6 +2276,23 @@ equations, loop order, MPI calls, OpenACC ownership, or the diagnostic-off
 path. The parent is only `1.265%` of the official Step 107 wall, so consider
 an implementation only if one compute child owns a material majority. The
 diagnostic wall cannot replace the performance baseline.
+
+## Step 111 Result and Step 112 Plan
+
+Step 111 at revision `2415d30` passed both checks. Its diagnostic wall was
+`69.0858860016` sec and is not a baseline. The `nonlocf_kinetic_mpi` parent
+used `0.814936` sec. The kinetic/current and A-vector band reductions used
+`0.470508` and `0.287670` sec, totaling `0.758178` sec (`93.037%` of the
+parent). Both MPI intervals totaled only `0.000745` sec. G-vector setup,
+YLM-radius setup, and the unclassified gap were small.
+
+Step 112 is one bounded performance hypothesis: while the existing
+kinetic/current band loop already has `WFAC=|COEF|^2`, also accumulate the
+A-vector energy from that same `WFAC` and G ordering. Remove the later second
+full COEF traversal, but preserve the existing two MPI exchanges and all
+downstream ordering. This changes no OpenACC ownership or allocation and has a
+measured removable ceiling of about `0.287670` sec (`0.455%` of the official
+Step 107 wall). Run diagnostic-off performance run 01 first.
 
 ## Step 80 H100 Exploratory Run
 

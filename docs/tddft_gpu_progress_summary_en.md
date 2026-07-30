@@ -2353,3 +2353,15 @@ and YLM-radius setup. Equations, loop order, MPI, OpenACC ownership, and the
 diagnostic-off path are unchanged. The parent is about `1.265%` of the
 official Step 107 wall, so consider implementation only if a compute child
 owns a material majority.
+
+Step 111 at revision `2415d30` passed both checks. Its `69.0858860016` sec
+diagnostic wall is not a baseline. Of the `0.814936` sec parent, the
+kinetic/current and A-vector energy band reductions used `0.470508` and
+`0.287670` sec, totaling `0.758178` sec (`93.037%`). Both MPI intervals
+together used only `0.000745` sec.
+
+Step 112 reuses the `WFAC=|COEF|^2` already computed by the first band/G loop
+to accumulate A-vector energy in the same G order, removing the later second
+full COEF traversal. The two MPI exchanges, downstream order, OpenACC
+ownership, and allocation remain unchanged. Its measured removable ceiling is
+about `0.287670` sec, `0.455%` of the official Step 107 wall.

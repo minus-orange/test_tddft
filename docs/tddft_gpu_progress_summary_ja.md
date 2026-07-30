@@ -2106,3 +2106,14 @@ NONLOCF係数kinetic/current＋MPI区間を、2つのG-vector準備、2つのhos
 各MPI交換、YLM半径準備へdefault-off timerだけで分解します。数式、loop順、MPI、
 OpenACC ownership、diagnostic-off経路は変更しません。親区間は正式Step 107 wallの
 約`1.265%`なので、compute子区間が大半を占める場合だけ実装候補にします。
+
+Step 111はrevision `2415d30`でPASS/PASSでした。diagnostic wall
+`69.0858860016`秒はbaselineではありません。親`0.814936`秒のうち、
+kinetic/current band reductionは`0.470508`秒、A-vector energy band reductionは
+`0.287670`秒で、合計`0.758178`秒（`93.037%`）でした。MPI 2区間の合計は
+`0.000745`秒だけです。
+
+Step 112は最初のband/G loopで既に計算する`WFAC=|COEF|^2`をA-vector energyにも
+同じG順で使用し、後続の2回目COEF全走査を削除します。2つのMPI交換と下流順序、
+OpenACC ownership、allocationは維持します。削減上限は約`0.287670`秒、
+正式Step 107 wallの`0.455%`です。
