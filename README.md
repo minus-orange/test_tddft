@@ -53,6 +53,35 @@ The Intel/default and NVIDIA HPC SDK build paths use the original source files.
 GNU Fortran builds use `_gnu.f` source variants only where that compiler needs
 format-statement compatibility fixes.
 
+## One-command x86 CPU/FFTW baseline
+
+On x86-64 Linux, the following helper performs toolchain checks, builds FFTW,
+CG, SD, and TDDFT, prepares the Si111-H input, runs three independent
+CG -> SD -> 100-step TDDFT sequences, archives every TDDFT result, requires
+normal check and relaxed compare to pass, compares runs 02/03 strictly with
+run 01, and prints the median and range:
+
+```sh
+./tools/run_tddft_x86_baseline.sh
+```
+
+The default toolchain is GNU/OpenMPI. Intel oneAPI can be selected with:
+
+```sh
+TOOLCHAIN=intel ./tools/run_tddft_x86_baseline.sh
+```
+
+To use an existing FFTW installation instead of building a local copy:
+
+```sh
+SKIP_FFTW=1 FFTW_ROOT=/path/to/fftw \
+  ./tools/run_tddft_x86_baseline.sh
+```
+
+The performance configuration is fixed to 1 MPI rank, 1 OpenMP thread,
+diagnostics off, and 100 TDDFT steps. Set `RUNS=1` only for a smoke test;
+the default three-run result is required for a baseline median.
+
 ## NVIDIA HPC SDK build
 
 This path uses NVIDIA HPC SDK compilers for a CPU/OpenMP + MPI build. It does
