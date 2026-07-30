@@ -23,7 +23,9 @@ RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H"}
 TDDFT_INPUT=${TDDFT_INPUT:-Si111-H_tm.in_2steps}
 NPROCS=${NPROCS:-1}
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
-export OMP_NUM_THREADS
+CG_OMP_NUM_THREADS=${CG_OMP_NUM_THREADS:-$OMP_NUM_THREADS}
+SD_OMP_NUM_THREADS=${SD_OMP_NUM_THREADS:-$OMP_NUM_THREADS}
+TDDFT_OMP_NUM_THREADS=${TDDFT_OMP_NUM_THREADS:-$OMP_NUM_THREADS}
 
 case "$NPROCS" in
   ''|*[!0-9]*|0)
@@ -31,6 +33,19 @@ case "$NPROCS" in
     exit 2
     ;;
 esac
+for thread_count in \
+  "$OMP_NUM_THREADS" \
+  "$CG_OMP_NUM_THREADS" \
+  "$SD_OMP_NUM_THREADS" \
+  "$TDDFT_OMP_NUM_THREADS"
+do
+  case "$thread_count" in
+    ''|*[!0-9]*|0)
+      echo "ERROR: OpenMP thread counts must be positive integers." >&2
+      exit 2
+      ;;
+  esac
+done
 
 CG_EXE=${CG_EXE:-"$ROOT_DIR/FPSEID21/cg_GGA_f_code/cg_exe"}
 SD_EXE=${SD_EXE:-"$ROOT_DIR/FPSEID21/sd_GGA_f_compact_code/sd_exe"}
@@ -208,17 +223,19 @@ export OMP_STACKSIZE=${OMP_STACKSIZE:-512M}
 ensure_sample_links
 require_cg_inputs
 
-echo "Running CG in $RUN_DIR"
+echo "Running CG in $RUN_DIR with OMP_NUM_THREADS=$CG_OMP_NUM_THREADS"
 clear_stage_outputs
-"$CG_EXE" < Si111-H.in > Si111-H.out 2> Si111-H.err
+OMP_NUM_THREADS="$CG_OMP_NUM_THREADS" \
+  "$CG_EXE" < Si111-H.in > Si111-H.out 2> Si111-H.err
 promote_state CG
 
-echo "Running SD in $RUN_DIR"
+echo "Running SD in $RUN_DIR with OMP_NUM_THREADS=$SD_OMP_NUM_THREADS"
 ensure_sample_links
 ensure_sd_links
 require_sd_inputs
 clear_stage_outputs
-"$SD_EXE" < Si111-H_sd.in > Si111-H_sd.out 2> Si111-H_sd.err
+OMP_NUM_THREADS="$SD_OMP_NUM_THREADS" \
+  "$SD_EXE" < Si111-H_sd.in > Si111-H_sd.out 2> Si111-H_sd.err
 promote_state SD
 cp rh.Si111-H_new rh.Si111-H_new.sd
 
@@ -227,9 +244,11 @@ ensure_sample_links
 require_tddft_inputs
 
 echo "Running TDDFT in $RUN_DIR with $TDDFT_INPUT"
-echo "MPI launch: $MPIRUN -np $NPROCS $TDDFT_EXE"
+echo "MPI launch: OMP_NUM_THREADS=$TDDFT_OMP_NUM_THREADS $MPIRUN -np $NPROCS $TDDFT_EXE"
 clear_stage_outputs
-"$MPIRUN" -np "$NPROCS" "$TDDFT_EXE" < "$TDDFT_INPUT" > Si111-H_tm.out 2> Si111-H_tm.err
+OMP_NUM_THREADS="$TDDFT_OMP_NUM_THREADS" \
+  "$MPIRUN" -np "$NPROCS" "$TDDFT_EXE" \
+  < "$TDDFT_INPUT" > Si111-H_tm.out 2> Si111-H_tm.err
 
 echo "Done. Logs:"
 echo "  $RUN_DIR/Si111-H.out"

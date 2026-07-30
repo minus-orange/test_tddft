@@ -2497,6 +2497,22 @@ summaries without requiring a rerun. The user explicitly approved the result
 on 2026-07-30 as the x86-only formal baseline. Keep it independent of the
 A100 and H100 series.
 
+## x86 MPI x OpenMP Sweep Plan
+
+Screen the 16 combinations of 4/8/16/32 MPI ranks and 2/4/8/16 OpenMP
+threads with `tools/run_tddft_x86_mpi_omp_sweep.sh`. The helper reuses the
+existing ifx/mpiifx CPU/FFTW executables and does not compile. CG and SD stay
+at one OpenMP thread; only TDDFT receives the requested thread count. Intel
+MPI process domains and Intel OpenMP compact affinity are recorded with every
+run.
+
+The default is one diagnostic-off run per configuration. Every run must pass
+the normal result check and the x86 relaxed comparison. This first pass is a
+screening experiment, not a baseline replacement. After reviewing its ranked
+summary, measure only the fastest valid candidate three times and apply the
+usual median, range, and run-01 pairwise strict gates before considering any
+x86 baseline change.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

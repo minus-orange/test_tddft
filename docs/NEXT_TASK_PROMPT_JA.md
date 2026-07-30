@@ -72,6 +72,11 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 - 2026-07-30にユーザーがx86専用正式baselineとして明示承認
 - 写真のrange `0.0017908907`はFortran D指数のreport-only解析誤り。
   `e27071e`で今後の表示を修正済みで再実行は不要
+- x86の次の実行は
+  `./tools/run_tddft_x86_mpi_omp_sweep.sh` による
+  4/8/16/32 MPI × 2/4/8/16 OpenMPの16構成1回スクリーニング。
+  既存ifx/mpiifx CPU/FFTW実行ファイルを再利用し、再コンパイルしない。
+  結果確認前に正式x86 baselineを置換しない
 
 Step 86はStep 82までの採用済みGPU化を保持し、HLOCALのzero、scatter、cuFFT往復、
 局所ポテンシャル積、gatherを1個の一時device data region内で完結させています。

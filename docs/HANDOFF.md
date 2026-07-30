@@ -35,6 +35,10 @@ Last updated: 2026-07-30
 - The A100, H100, and x86 CPU baseline series are independent; never replace
   or mix one series with another
 - Pending human-operated GPU action: none
+- Pending human-operated x86 action: run the 16-configuration MPI x OpenMP
+  screening sweep once with `./tools/run_tddft_x86_mpi_omp_sweep.sh`; it
+  reuses existing binaries and does not compile. Return the compact terminal
+  block from `FPSEID21_X86_MPI_OMP_SWEEP_BEGIN` through `_END`.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 

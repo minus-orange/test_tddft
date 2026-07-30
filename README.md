@@ -119,6 +119,21 @@ rebuild. Use `BUILD_MODE=never` once to adopt known-compatible existing
 binaries without compiling; that run records their signatures, so subsequent
 default `auto` runs can reuse them safely.
 
+To screen the 16 combinations of 4/8/16/32 MPI ranks and 2/4/8/16 OpenMP
+threads without recompiling, run:
+
+```sh
+./tools/run_tddft_x86_mpi_omp_sweep.sh
+```
+
+The default is one run per configuration. CG and SD remain fixed at one
+OpenMP thread; only TDDFT receives the requested thread count. Intel MPI uses
+`I_MPI_PIN_DOMAIN=omp` and Intel OpenMP uses compact affinity. The terminal
+summary is ranked by TDDFT wall time and records total threads and whether
+that count exceeds the online logical CPUs. Set `RUNS_PER_CONFIG=3` only for
+a controlled three-run sweep; the normal workflow is to screen once and then
+repeat only the fastest valid configuration three times.
+
 ## NVIDIA HPC SDK build
 
 This path uses NVIDIA HPC SDK compilers for a CPU/OpenMP + MPI build. It does
