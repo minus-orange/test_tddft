@@ -8,7 +8,14 @@ set -eu
 #   RUNS=3                 independent CG -> SD -> 100-step TDDFT runs
 #   NPROCS=16              default x86 performance MPI rank count
 #   OMP_NUM_THREADS=1      fixed performance-validation OpenMP thread count
+#   BUILD_MODE=auto        reuse a matching existing build
 #   RUN_DIR=<repo>/run/Si111-H_x86
+#
+# Force a rebuild:
+#   BUILD_MODE=always ./tools/run_tddft_x86_baseline.sh
+#
+# Require an existing build without compiling:
+#   BUILD_MODE=never ./tools/run_tddft_x86_baseline.sh
 #
 # GNU/OpenMPI override:
 #   TOOLCHAIN=gnu ./tools/run_tddft_x86_baseline.sh
@@ -29,6 +36,8 @@ RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_x86"}
 ARCHIVE_ROOT=${ARCHIVE_ROOT:-"$ROOT_DIR/run/tddft_archives"}
 SKIP_FFTW=${SKIP_FFTW:-0}
 ALLOW_NON_X86=${ALLOW_NON_X86:-0}
+BUILD_MODE=${BUILD_MODE:-auto}
+BUILD_CACHE_DIR=${BUILD_CACHE_DIR:-"$ROOT_DIR/.cache/tddft_x86_build"}
 
 case "$RUNS" in
   1|3) ;;
@@ -51,6 +60,13 @@ case "$SKIP_FFTW" in
   0|1) ;;
   *)
     echo "ERROR: SKIP_FFTW must be 0 or 1." >&2
+    exit 2
+    ;;
+esac
+case "$BUILD_MODE" in
+  auto|always|never) ;;
+  *)
+    echo "ERROR: BUILD_MODE must be auto, always, or never." >&2
     exit 2
     ;;
 esac
@@ -108,9 +124,59 @@ first_nonblank_line() {
   awk 'NF { print; exit }'
 }
 
+compiler_identity() {
+  compiler_name=$1
+  compiler_path=$(command -v "$compiler_name")
+  compiler_version=$("$compiler_name" --version 2>/dev/null |
+    first_nonblank_line || true)
+  printf '%s=%s|%s\n' "$compiler_name" "$compiler_path" "$compiler_version"
+}
+
+fftw_is_ready() {
+  [ -f "$FFTW_ROOT/include/fftw3.f" ]
+}
+
+executables_are_ready() {
+  [ -x "$CG_EXE" ] &&
+    [ -x "$SD_EXE" ] &&
+    [ -x "$TDDFT_EXE" ]
+}
+
+component_can_be_reused() {
+  component_signature=$1
+  component_stamp=$2
+  component_executable=$3
+
+  case "$BUILD_MODE" in
+    always)
+      return 1
+      ;;
+    never)
+      [ -x "$component_executable" ]
+      return
+      ;;
+    auto)
+      if [ ! -x "$component_executable" ]; then
+        return 1
+      fi
+      if [ -f "$component_stamp" ] &&
+        [ "$(sed -n '1p' "$component_stamp")" = "$component_signature" ]; then
+        return 0
+      fi
+      return 1
+      ;;
+  esac
+}
+
+record_component_signature() {
+  component_signature=$1
+  component_stamp=$2
+  mkdir -p "$BUILD_CACHE_DIR"
+  printf '%s\n' "$component_signature" > "$component_stamp"
+}
+
 require_command git
 require_command python3
-require_command curl
 require_command "$CG_FC"
 require_command "$SD_FC"
 require_command "$TDDFT_FC"
@@ -133,27 +199,129 @@ short_revision=$(git rev-parse --short=12 HEAD)
 timestamp=$(date '+%Y%m%d_%H%M%S')
 label_prefix=${LABEL_PREFIX:-"x86_fftw_${NPROCS}rank_${TOOLCHAIN}_${timestamp}_${short_revision}"}
 
+CG_EXE="$ROOT_DIR/FPSEID21/cg_GGA_f_code/cg_exe"
+SD_EXE="$ROOT_DIR/FPSEID21/sd_GGA_f_compact_code/sd_exe"
+TDDFT_EXE="$ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe"
+CG_BUILD_STAMP="$BUILD_CACHE_DIR/$TOOLCHAIN.cg.stamp"
+SD_BUILD_STAMP="$BUILD_CACHE_DIR/$TOOLCHAIN.sd.stamp"
+TDDFT_BUILD_STAMP="$BUILD_CACHE_DIR/$TOOLCHAIN.tddft.stamp"
+
+cg_build_signature=$(
+  {
+    git ls-files -s -- FPSEID21/cg_GGA_f_code
+    printf '%s\n' \
+      "toolchain=$TOOLCHAIN" \
+      "cg_fc=$CG_FC"
+    compiler_identity "$CG_FC"
+  } | git hash-object --stdin
+)
+sd_build_signature=$(
+  {
+    git ls-files -s -- FPSEID21/sd_GGA_f_compact_code
+    printf '%s\n' \
+      "toolchain=$TOOLCHAIN" \
+      "sd_fc=$SD_FC"
+    compiler_identity "$SD_FC"
+  } | git hash-object --stdin
+)
+tddft_build_signature=$(
+  {
+    git ls-files -s -- \
+      FPSEID21/tddft_2022October \
+      tools/build_fftw3.sh
+    printf '%s\n' \
+      "toolchain=$TOOLCHAIN" \
+      "tddft_fc=$TDDFT_FC" \
+      "tddft_cc=$TDDFT_CC" \
+      "fftw_cc=$FFTW_CC" \
+      "fftw_fc=$FFTW_FC" \
+      "fftw_f77=$FFTW_F77" \
+      "fftw_root=$FFTW_ROOT" \
+      "fft_backend=fftw" \
+      "diagnostic=0"
+    compiler_identity "$TDDFT_FC"
+    compiler_identity "$TDDFT_CC"
+    compiler_identity "$FFTW_CC"
+    compiler_identity "$FFTW_FC"
+    compiler_identity "$FFTW_F77"
+  } | git hash-object --stdin
+)
+
+if [ "$BUILD_MODE" = never ]; then
+  if ! fftw_is_ready; then
+    echo "ERROR: BUILD_MODE=never but FFTW is missing: $FFTW_ROOT" >&2
+    exit 1
+  fi
+  if ! executables_are_ready; then
+    echo "ERROR: BUILD_MODE=never but one or more executables are missing." >&2
+    exit 1
+  fi
+fi
+
+fftw_reused=1
 if [ "$SKIP_FFTW" = 0 ]; then
-  PREFIX="$FFTW_ROOT" CC="$FFTW_CC" FC="$FFTW_FC" F77="$FFTW_F77" \
-    "$SCRIPT_DIR/build_fftw3.sh"
-elif [ ! -f "$FFTW_ROOT/include/fftw3.f" ]; then
+  if [ "$BUILD_MODE" = always ] || ! fftw_is_ready; then
+    fftw_reused=0
+    require_command curl
+    PREFIX="$FFTW_ROOT" CC="$FFTW_CC" FC="$FFTW_FC" F77="$FFTW_F77" \
+      "$SCRIPT_DIR/build_fftw3.sh"
+  else
+    echo "Reusing existing FFTW installation: $FFTW_ROOT"
+  fi
+elif ! fftw_is_ready; then
   echo "ERROR: FFTW_ROOT does not contain include/fftw3.f: $FFTW_ROOT" >&2
   exit 1
 fi
 
-(
-  cd "$ROOT_DIR/FPSEID21/cg_GGA_f_code"
-  FC="$CG_FC" ./mk_ifort.sh
-)
-(
-  cd "$ROOT_DIR/FPSEID21/sd_GGA_f_compact_code"
-  FC="$SD_FC" ./mk_ifort.sh
-)
-(
-  cd "$ROOT_DIR/FPSEID21/tddft_2022October"
-  FC="$TDDFT_FC" CC="$TDDFT_CC" FFT_BACKEND=fftw \
-    FPSEID_FRPRMN_DIAGNOSTIC=0 FFTW_ROOT="$FFTW_ROOT" ./mk_ifort.sh
-)
+cg_reused=0
+if component_can_be_reused \
+  "$cg_build_signature" "$CG_BUILD_STAMP" "$CG_EXE"; then
+  cg_reused=1
+  echo "Reusing CG executable: $CG_EXE"
+else
+  (
+    cd "$ROOT_DIR/FPSEID21/cg_GGA_f_code"
+    FC="$CG_FC" ./mk_ifort.sh
+  )
+fi
+record_component_signature "$cg_build_signature" "$CG_BUILD_STAMP"
+
+sd_reused=0
+if component_can_be_reused \
+  "$sd_build_signature" "$SD_BUILD_STAMP" "$SD_EXE"; then
+  sd_reused=1
+  echo "Reusing SD executable: $SD_EXE"
+else
+  (
+    cd "$ROOT_DIR/FPSEID21/sd_GGA_f_compact_code"
+    FC="$SD_FC" ./mk_ifort.sh
+  )
+fi
+record_component_signature "$sd_build_signature" "$SD_BUILD_STAMP"
+
+tddft_reused=0
+if [ "$fftw_reused" = 1 ] &&
+  component_can_be_reused \
+  "$tddft_build_signature" "$TDDFT_BUILD_STAMP" "$TDDFT_EXE"; then
+  tddft_reused=1
+  echo "Reusing TDDFT executable: $TDDFT_EXE"
+else
+  (
+    cd "$ROOT_DIR/FPSEID21/tddft_2022October"
+    FC="$TDDFT_FC" CC="$TDDFT_CC" FFT_BACKEND=fftw \
+      FPSEID_FRPRMN_DIAGNOSTIC=0 FFTW_ROOT="$FFTW_ROOT" ./mk_ifort.sh
+  )
+fi
+record_component_signature "$tddft_build_signature" "$TDDFT_BUILD_STAMP"
+
+if [ "$fftw_reused" = 1 ] &&
+  [ "$cg_reused" = 1 ] &&
+  [ "$sd_reused" = 1 ] &&
+  [ "$tddft_reused" = 1 ]; then
+  reuse_build=1
+else
+  reuse_build=0
+fi
 
 RUN_DIR="$RUN_DIR" TDDFT_STEPS=100 \
   "$SCRIPT_DIR/prepare_si111_h_sample.sh"
@@ -232,6 +400,12 @@ while [ "$run_no" -le "$RUNS" ]; do
     echo "compiler=$compiler"
     echo "mpi=$mpi"
     echo "fftw_root=$FFTW_ROOT"
+    echo "build_mode=$BUILD_MODE"
+    echo "build_reused=$reuse_build"
+    echo "fftw_reused=$fftw_reused"
+    echo "cg_reused=$cg_reused"
+    echo "sd_reused=$sd_reused"
+    echo "tddft_reused=$tddft_reused"
     echo "nprocs=$NPROCS"
     echo "omp_num_threads=1"
     echo "diagnostic=OFF"
@@ -265,6 +439,9 @@ echo "toolchain=$TOOLCHAIN"
 echo "compiler=$compiler"
 echo "mpi=$mpi"
 echo "fftw_root=$FFTW_ROOT"
+echo "build_mode=$BUILD_MODE"
+echo "build_reused=$reuse_build"
+echo "fftw_reused=$fftw_reused cg_reused=$cg_reused sd_reused=$sd_reused tddft_reused=$tddft_reused"
 echo "runs=$RUNS nprocs=$NPROCS omp_num_threads=1 diagnostic=OFF"
 run_no=1
 while IFS= read -r wall; do

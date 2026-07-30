@@ -93,6 +93,15 @@ rank, diagnostics off, and 100 TDDFT steps. Override the rank count with
 for a smoke test; the default three-run result is required for a baseline
 median.
 
+The helper defaults to `BUILD_MODE=auto`. It records separate CG, SD, and TDDFT
+build signatures under the ignored `.cache/tddft_x86_build/` directory and
+reuses each existing binary when its tracked sources, build settings, and
+compiler identities still match. Unchanged components are therefore not
+rebuilt when only one source tree changes. Use `BUILD_MODE=always` to force a
+rebuild. Use `BUILD_MODE=never` once to adopt known-compatible existing
+binaries without compiling; that run records their signatures, so subsequent
+default `auto` runs can reuse them safely.
+
 ## NVIDIA HPC SDK build
 
 This path uses NVIDIA HPC SDK compilers for a CPU/OpenMP + MPI build. It does
