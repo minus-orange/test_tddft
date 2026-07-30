@@ -18,7 +18,7 @@ Last updated: 2026-07-30
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - Current HEAD status: Step 102 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 104 kinetic-phase performance test prepared
+  nonlocal reuse; Step 104 kinetic-phase mapping rejected and restored
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 102 median `63.8388190269` sec
@@ -858,6 +858,13 @@ Step 104 maps G vectors across the GPU, computes one band-independent kinetic
 phase per G vector, and applies it sequentially across the 32 local bands.
 The element updates are independent, and equations, MPI, ownership, and call
 count are unchanged. The GNU MPI + FFTW fallback full build/link passes.
+
+Step 104 run 01 passed both checks but took `64.0659618378` sec, which is
+`0.2271428109` sec (`0.355807%`) slower than the Step 102 median. Runs 02/03
+are skipped. The reduced phase count did not offset the lost band-direction
+parallelism, so the implementation and helper are removed and Step 102 is
+restored.
+The restored GNU MPI + FFTW fallback full build/link passes.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

@@ -71,6 +71,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 98 | Offload EWALD G-space atom pairs | 66.1477772789 median | accepted baseline | `6ef8676` |
 | 99 | Map EWALD pairs to gangs and G vectors to vector reduction | 64.3024969101 median | accepted baseline | `6b4099f` |
 | 102 | Precompute the band-independent S2 local phase | 63.8388190269 median | accepted baseline | `d021066` |
+| 104 | Precompute the band-independent kinetic phase | 64.0659618378 run 01 | rejected / early stop | `c5bec01` / result rollback |
 
 ## Other Rejected Experiments
 
@@ -2074,6 +2075,19 @@ reuses it for all 32 local bands. Each `P(ig,iib)` update retains the same
 formula; MPI, data ownership, call count, and the CPU/FFTW path are preserved.
 The GNU MPI + FFTW fallback full build/link passes with existing legacy
 warnings only.
+
+## Step 104 Result and Rejection
+
+Run 01 passed both checks but took `64.0659618378` sec, a
+`0.2271428109` sec (`0.355807%`) regression from the Step 102 median.
+The regression is slightly smaller than the Step 102 run range, but there is
+no promising first-run signal, so runs 02/03 are skipped. Reducing phase
+evaluations did not compensate for replacing band-by-G collapse with a
+sequential band loop. Step 104 is rejected, its source and helper are removed,
+and the accepted Step 102 mapping and `63.8388190269` sec baseline are
+restored.
+The restored GNU MPI + FFTW fallback full build/link passes with existing
+legacy warnings only.
 
 ## Step 80 H100 Exploratory Run
 

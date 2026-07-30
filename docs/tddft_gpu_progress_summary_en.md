@@ -2255,3 +2255,9 @@ its 9,440 GPU kernels. Step 104 maps G vectors across the GPU and computes the
 band-independent kinetic phase once per G vector before applying it across the
 32 local bands. The per-element formula, call count, MPI, and ownership remain
 unchanged.
+
+Step 104 run 01 passed both checks but took `64.0659618378` sec,
+`0.2271428109` sec (`0.355807%`) slower than the Step 102 median. Runs 02/03
+are skipped. Computing fewer phases did not compensate for losing
+band-direction parallelism, so Step 104 is rejected and the accepted Step 102
+mapping is restored.

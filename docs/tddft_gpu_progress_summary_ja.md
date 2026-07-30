@@ -2023,3 +2023,8 @@ kinetic phase上限を表示し、同じ前計算を実装する価値がある�
 Step 103ではkinetic親区間`0.671559`秒、9,440回のGPU kernelが`0.635902`秒でした。
 Step 104はG-vectorをGPU並列にし、band共通kinetic phaseをGごとに1回だけ計算して
 32 local bandsへ適用します。各要素式、call回数、MPI、ownershipは変更しません。
+
+Step 104 run 01はPASS/PASSでしたが`64.0659618378`秒で、Step 102中央値より
+`0.2271428109`秒（`0.355807%`）遅い結果でした。run 02/03は早期停止します。
+phase計算削減よりband方向並列性低下の影響が大きいため不採用とし、Step 102の
+mappingへ復元します。

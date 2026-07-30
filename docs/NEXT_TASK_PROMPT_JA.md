@@ -471,6 +471,9 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 178. Step 104は独立なloop mappingをband×G collapseからG-vector GPU並列＋local-band
      内側seqへ変え、Gごとのkinetic phaseを1回だけ計算して32 bandsに再利用する。
      各要素式、MPI、ownership、call回数、CPU/FFTW fallbackは維持する。
+179. Step 104 run 01はPASS/PASSだが`64.0659618378`秒で、Step 102中央値より
+     `0.2271428109`秒（`0.355807%`）遅かった。run 02/03は早期停止し、band方向並列を
+     失うmappingを不採用としてsourceとhelperを削除、Step 102へ復元する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。
