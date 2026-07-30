@@ -6,7 +6,7 @@ set -eu
 # Defaults:
 #   TOOLCHAIN=gnu          GNU/OpenMPI (gfortran, mpifort, mpicc)
 #   RUNS=3                 independent CG -> SD -> 100-step TDDFT runs
-#   NPROCS=1               fixed performance-validation MPI rank count
+#   NPROCS=16              default x86 performance MPI rank count
 #   OMP_NUM_THREADS=1      fixed performance-validation OpenMP thread count
 #   RUN_DIR=<repo>/run/Si111-H_x86
 #
@@ -22,7 +22,7 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 
 TOOLCHAIN=${TOOLCHAIN:-gnu}
 RUNS=${RUNS:-3}
-NPROCS=${NPROCS:-1}
+NPROCS=${NPROCS:-16}
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 OMP_STACKSIZE=${OMP_STACKSIZE:-512M}
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_x86"}
@@ -37,10 +37,12 @@ case "$RUNS" in
     exit 2
     ;;
 esac
-if [ "$NPROCS" != 1 ]; then
-  echo "ERROR: this baseline helper requires NPROCS=1." >&2
-  exit 2
-fi
+case "$NPROCS" in
+  ''|*[!0-9]*|0)
+    echo "ERROR: NPROCS must be a positive integer." >&2
+    exit 2
+    ;;
+esac
 if [ "$OMP_NUM_THREADS" != 1 ]; then
   echo "ERROR: this baseline helper requires OMP_NUM_THREADS=1." >&2
   exit 2
@@ -129,7 +131,7 @@ fi
 revision=$(git rev-parse HEAD)
 short_revision=$(git rev-parse --short=12 HEAD)
 timestamp=$(date '+%Y%m%d_%H%M%S')
-label_prefix=${LABEL_PREFIX:-"x86_fftw_1rank_${TOOLCHAIN}_${timestamp}_${short_revision}"}
+label_prefix=${LABEL_PREFIX:-"x86_fftw_${NPROCS}rank_${TOOLCHAIN}_${timestamp}_${short_revision}"}
 
 if [ "$SKIP_FFTW" = 0 ]; then
   PREFIX="$FFTW_ROOT" CC="$FFTW_CC" FC="$FFTW_FC" F77="$FFTW_F77" \
@@ -184,7 +186,7 @@ while [ "$run_no" -le "$RUNS" ]; do
   fi
 
   RUN_DIR="$RUN_DIR" TDDFT_INPUT=Si111-H_tm.in_100steps \
-    NPROCS=1 OMP_NUM_THREADS=1 OMP_STACKSIZE="$OMP_STACKSIZE" \
+    NPROCS="$NPROCS" OMP_NUM_THREADS=1 OMP_STACKSIZE="$OMP_STACKSIZE" \
     CG_EXE="$ROOT_DIR/FPSEID21/cg_GGA_f_code/cg_exe" \
     SD_EXE="$ROOT_DIR/FPSEID21/sd_GGA_f_compact_code/sd_exe" \
     TDDFT_EXE="$ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe" \
@@ -230,7 +232,7 @@ while [ "$run_no" -le "$RUNS" ]; do
     echo "compiler=$compiler"
     echo "mpi=$mpi"
     echo "fftw_root=$FFTW_ROOT"
-    echo "nprocs=1"
+    echo "nprocs=$NPROCS"
     echo "omp_num_threads=1"
     echo "diagnostic=OFF"
     echo "normal_check=PASS"
@@ -263,7 +265,7 @@ echo "toolchain=$TOOLCHAIN"
 echo "compiler=$compiler"
 echo "mpi=$mpi"
 echo "fftw_root=$FFTW_ROOT"
-echo "runs=$RUNS nprocs=1 omp_num_threads=1 diagnostic=OFF"
+echo "runs=$RUNS nprocs=$NPROCS omp_num_threads=1 diagnostic=OFF"
 run_no=1
 while IFS= read -r wall; do
   suffix=$(printf '%02d' "$run_no")

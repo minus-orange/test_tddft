@@ -57,7 +57,8 @@ format-statement compatibility fixes.
 
 On x86-64 Linux, the following helper performs toolchain checks, builds FFTW,
 CG, SD, and TDDFT, prepares the Si111-H input, runs three independent
-CG -> SD -> 100-step TDDFT sequences, archives every TDDFT result, requires
+CG -> SD -> 100-step TDDFT sequences with 16 MPI ranks, archives every TDDFT
+result, requires
 normal check and relaxed compare to pass, compares runs 02/03 strictly with
 run 01, and prints the median and range:
 
@@ -78,9 +79,11 @@ SKIP_FFTW=1 FFTW_ROOT=/path/to/fftw \
   ./tools/run_tddft_x86_baseline.sh
 ```
 
-The performance configuration is fixed to 1 MPI rank, 1 OpenMP thread,
-diagnostics off, and 100 TDDFT steps. Set `RUNS=1` only for a smoke test;
-the default three-run result is required for a baseline median.
+The default performance configuration is 16 MPI ranks, 1 OpenMP thread per
+rank, diagnostics off, and 100 TDDFT steps. Override the rank count with
+`NPROCS=<count>` when a separate measurement is required. Set `RUNS=1` only
+for a smoke test; the default three-run result is required for a baseline
+median.
 
 ## NVIDIA HPC SDK build
 
