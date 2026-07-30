@@ -929,6 +929,12 @@ were `63.1300778389`, `63.2335109711`, and `63.2135219574` sec. The median is
 `0.6252970695` sec (`0.979493%`) faster than Step 102, so Step 107 is the
 accepted source and performance baseline.
 
+The next bounded action is diagnostic-only Step 108. It reuses the current
+default-off timers on accepted Step 107 and prints the major TMEVL/S2,
+FRPRMN, ELECTF/NONLOCF, HLOCAL, and EWALD intervals. Run
+`./tools/run_tddft_step108.sh` once. Its diagnostic wall is not a baseline;
+use the timer ranking only to choose one next high-impact hypothesis.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

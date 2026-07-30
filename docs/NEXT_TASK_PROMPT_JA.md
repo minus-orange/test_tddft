@@ -543,8 +543,12 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      `0.1034331322`秒だった。
 193. Step 102中央値より`0.6252970695`秒（`0.979493%`）高速なため、revision
      `c46cfa9`を新しいsource・性能baselineとして正式採用する。
+194. Step 108はsourceを変更せず、正式Step 107 sourceの既存default-off timerを
+     再計測する。diagnostic wallはbaselineにせず、主要区間の順位だけを次の
+     単一仮説選定に使う。
 
-次は正式Step 107 sourceを再診断し、残る最大のactionable区間を1件だけ選んでください。
-diagnostic wallはbaselineにせず、既却下形を再試行しないでください。
+次は`./tools/run_tddft_step108.sh`を1回実行し、`FPSEID_STEP108_TIMERS_BEGIN`から
+`FPSEID_STEP108_TIMERS_END`までの写真を受け取ってください。diagnostic wallは
+baselineにせず、残る最大のactionable区間を1件だけ選んでください。
 
 ---

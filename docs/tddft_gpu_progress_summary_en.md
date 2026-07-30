@@ -2317,3 +2317,8 @@ All three Step 107 diagnostic-off runs passed both correctness checks at
 `63.2135219574` sec with a `0.1034331322` sec range. This is
 `0.6252970695` sec (`0.979493%`) faster than Step 102, so the batched
 SEPPOTF path is accepted as the new source and performance baseline.
+
+Step 108 makes no source or numerical change. It re-runs the existing
+default-off timers on accepted Step 107 and prints a compact current-source
+ranking across TMEVL/S2, FRPRMN, ELECTF/NONLOCF, HLOCAL, and EWALD. Its
+diagnostic wall is not a performance baseline.

@@ -2199,6 +2199,14 @@ Relative to the official Step 102 median, Step 107 is `0.6252970695` sec
 (`0.979493%`) faster. Step 107 is accepted as the new source and performance
 baseline.
 
+## Step 108 Plan
+
+Re-run the existing default-off current-source timers on accepted Step 107
+without changing equations, loops, MPI, or OpenACC ownership. Report the major
+TMEVL/S2, FRPRMN, ELECTF/NONLOCF, HLOCAL, and EWALD intervals in one compact
+terminal block. Use the result only to select the next single high-impact
+hypothesis; its diagnostic wall cannot replace the Step 107 baseline.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

@@ -2076,3 +2076,7 @@ Step 107はdiagnostic OFFの3 runすべてで両checkにPASSしました。wall�
 `63.2135219574`秒、range `0.1034331322`秒です。Step 102中央値より
 `0.6252970695`秒（`0.979493%`）高速なため、batched SEPPOTF経路を新しいsource・
 性能baselineとして正式採用します。
+
+Step 108はsourceや数値経路を変更せず、正式Step 107 sourceで既存default-off timerを
+再計測します。TMEVL/S2、FRPRMN、ELECTF/NONLOCF、HLOCAL、EWALDの現行順位を
+小さなterminal summaryへまとめます。diagnostic wallは性能baselineに使用しません。
