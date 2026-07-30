@@ -947,6 +947,11 @@ generation, s/p batch reductions, final GPU assembly, result download, MPI,
 and a gap. Run `./tools/run_tddft_step109.sh` once and do not use its
 diagnostic wall as a baseline.
 
+Step 109 at `f3d6082` passed both checks, but timer IDs 140--144 did not appear
+and the wrapper stopped with its intended count error. Do not rerun yet.
+First run `./tools/report_tddft_step109.sh`; it reads the existing archive
+only and reports whether legacy IDs 134--138 were active.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

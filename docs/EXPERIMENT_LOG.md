@@ -2222,6 +2222,13 @@ final GPU assembly, result download, MPI, and an unclassified gap. This
 identifies whether a further bounded SEPPOTF hypothesis has material ceiling
 before returning to a lower-ranked interval.
 
+Step 109 at revision `f3d6082` passed both correctness checks, but its compact
+report stopped because timer IDs 140--144 were absent. The visible parent and
+MPI values were `4.263925` and `0.000369` sec. Before rerunning, use
+`tools/report_tddft_step109.sh` to read the existing archive and determine
+whether legacy timer IDs 134--138 ran instead. The report performs no build or
+simulation.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

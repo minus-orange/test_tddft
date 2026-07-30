@@ -552,9 +552,11 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 196. 次のactionable親区間はELECTF NONLOCF `5.076909`秒、その中のbatched
      SEPPOTF `4.262210`秒。Step 109は数値経路を変えず、projector、s/p batch、
      final、download、MPI、gapへdefault-off timerだけで分解する。
+197. Step 109はPASS/PASSだったがtimer IDs 140--144が表示されず、wrapperのcount
+     checkで停止した。親`4.263925`秒、MPI `0.000369`秒までは確認済み。100-stepを
+     再実行せず、既存archive reportで旧IDs 134--138の有無を先に確認する。
 
-次は`./tools/run_tddft_step109.sh`を1回実行し、
-`FPSEID_SEPPOTF_ACC_SPLIT_BEGIN`から`FPSEID_SEPPOTF_ACC_SPLIT_END`までの写真を
-受け取ってください。diagnostic wallはbaselineに使用しません。
+次は`./tools/report_tddft_step109.sh`を実行し、`FPSEID_STEP109_DEBUG_BEGIN`から
+`FPSEID_STEP109_DEBUG_END`までの写真を受け取ってください。build・再runはしません。
 
 ---
