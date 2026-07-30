@@ -72,6 +72,9 @@ implementation and timer notes are in the bilingual progress summaries.
 | 99 | Map EWALD pairs to gangs and G vectors to vector reduction | 64.3024969101 median | accepted baseline | `6b4099f` |
 | 102 | Precompute the band-independent S2 local phase | 63.8388190269 median | accepted baseline | `d021066` |
 | 104 | Precompute the band-independent kinetic phase | 64.0659618378 run 01 | rejected / early stop | `c5bec01` / result rollback |
+| 105 | Split current ELECTF NONLOCF | 70.5463471413 (one diagnostic run) | measurement | `91f27a0` |
+| 106 | Split current SEPPOTF | 70.2937791348 (one diagnostic run) | measurement | `9ef703b` |
+| 107 | Batch nonpartitioned s/p SEPPOTF reductions over atom x local band | 63.2135219574 median | accepted baseline | `c46cfa9` |
 
 ## Other Rejected Experiments
 
@@ -2178,6 +2181,23 @@ pass. Run `tools/run_tddft_step107.sh 01` with diagnostics off and require both
 checks. Stop on failure or an unpromising first wall; run `02-03` only after a
 healthy first result. Compare a completed three-run median with the official
 Step 102 median `63.8388190269` sec. Rollback target: `9ef703b`.
+
+## Step 107 Result
+
+All three diagnostic-off A100 runs used revision `c46cfa9`, 1 GPU / 1 MPI
+rank, and the Si111-H 100-step case. Every run passed normal check and relaxed
+compare.
+
+| archive label | wall_sec | check | relaxed compare |
+|---|---:|---|---|
+| `nvhpc_cufft_1rank_02_STEP107_SEPPOTF_BATCH_01` | 63.1300778389 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP107_SEPPOTF_BATCH_02` | 63.2335109711 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP107_SEPPOTF_BATCH_03` | 63.2135219574 | PASS | PASS |
+
+The median is `63.2135219574` sec and the range is `0.1034331322` sec.
+Relative to the official Step 102 median, Step 107 is `0.6252970695` sec
+(`0.979493%`) faster. Step 107 is accepted as the new source and performance
+baseline.
 
 ## Step 80 H100 Exploratory Run
 

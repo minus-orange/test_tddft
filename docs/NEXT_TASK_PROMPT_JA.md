@@ -25,17 +25,17 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 102です。
+正式baselineは論理Step 107です。
 
-- source implementation: `d021066`
+- source implementation: `c46cfa9`
 - pinned build mode: `9cbb6bc`
 - A100-PCIE-40GB、1 GPU / 1 MPI rank
 - NVHPC + OpenACC + cuFFT
 - `-gpu=mem:separate:pinnedalloc`
 - Si111-H、100 steps
-- diagnostic OFF 3回中央値: `63.8388190269 sec`
-- 3回range: `0.24778998752 sec`
-- 実行幅: `0.24778998752 sec`
+- diagnostic OFF 3回中央値: `63.2135219574 sec`
+- 3回range: `0.1034331322 sec`
+- 実行幅: `0.1034331322 sec`
 - 全runでnormal checkとrelaxed compare PASS
 
 Step 86はStep 82までの採用済みGPU化を保持し、HLOCALのzero、scatter、cuFFT往復、
@@ -538,9 +538,13 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 191. GNU MPI＋FFTW full build/linkはPASS。A100ではdiagnostic OFFの
      `./tools/run_tddft_step107.sh 01`だけを先に実行し、両checkとwallを返す。
      不正解または明確に遅ければrun 02/03を早期停止する。
+192. Step 107は3 runすべてPASS/PASS。wallは`63.1300778389`、
+     `63.2335109711`、`63.2135219574`秒、中央値`63.2135219574`秒、range
+     `0.1034331322`秒だった。
+193. Step 102中央値より`0.6252970695`秒（`0.979493%`）高速なため、revision
+     `c46cfa9`を新しいsource・性能baselineとして正式採用する。
 
-次はStep 107 run 01のA100結果を受け取り、PASS/PASSと正式Step 102中央値
-`63.8388190269`秒との差を判定してください。良好な場合だけrun 02/03を案内し、
-不良ならrollback target `9ef703b`へsourceを戻して結果を記録してください。
+次は正式Step 107 sourceを再診断し、残る最大のactionable区間を1件だけ選んでください。
+diagnostic wallはbaselineにせず、既却下形を再試行しないでください。
 
 ---

@@ -2311,3 +2311,9 @@ restoring the rejected Step 45 whole-time-step lifetime. Partitioned and d/f
 shapes retain the host path, and the GNU MPI + FFTW fallback full build/link
 passes. Run `./tools/run_tddft_step107.sh 01` first with diagnostics off and
 require both checks before considering runs 02-03.
+
+All three Step 107 diagnostic-off runs passed both correctness checks at
+`63.1300778389`, `63.2335109711`, and `63.2135219574` sec. Their median is
+`63.2135219574` sec with a `0.1034331322` sec range. This is
+`0.6252970695` sec (`0.979493%`) faster than Step 102, so the batched
+SEPPOTF path is accepted as the new source and performance baseline.

@@ -4,8 +4,8 @@ Last updated: 2026-07-30
 
 ## Official Baseline
 
-- Logical step: Step 102
-- Source implementation commit: `d021066`
+- Logical step: Step 107
+- Source implementation commit: `c46cfa9`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,12 +16,15 @@ Last updated: 2026-07-30
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP102_S2_PHASE_ONCE_01` | 63.8388190269 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP102_S2_PHASE_ONCE_02` | 63.71222411728 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP102_S2_PHASE_ONCE_03` | 63.9600141048 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP107_SEPPOTF_BATCH_01` | 63.1300778389 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP107_SEPPOTF_BATCH_02` | 63.2335109711 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP107_SEPPOTF_BATCH_03` | 63.2135219574 | PASS | PASS |
 
-Official three-run median: `63.8388190269` sec.
-Run-to-run range: `0.24778998752` sec.
+Official three-run median: `63.2135219574` sec.
+Run-to-run range: `0.1034331322` sec.
+
+Step 107 is `0.6252970695` sec (`0.979493%`) faster than the former Step 102
+median. All three runs passed both correctness gates.
 
 ## Step 86 Median-Wall Run 01 Profile
 

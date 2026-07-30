@@ -5,24 +5,23 @@ Last updated: 2026-07-30
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `d021066` (`Precompute TDDFT S2 local phase per grid point`)
+- Accepted source baseline: `c46cfa9` (`Batch SEPPOTF band reductions on GPU`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 102 with Step 37 pinned allocation mode
-- Current source implementation: Step 102 commit `d021066`
+- Current configuration: accepted Step 107 with Step 37 pinned allocation mode
+- Current source implementation: Step 107 commit `c46cfa9`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 102 accepted; Step 104 kinetic-phase mapping
-  rejected and restored; Step 105 confirms current ELECTF SEPPOTF dominance;
-  Step 106 diagnostic prepared and awaiting A100
+- Current HEAD status: Step 107 accepted after three diagnostic-off A100 runs
+  passed both correctness gates
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 102 median `63.8388190269` sec
+- Performance baseline: Step 107 median `63.2135219574` sec
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -924,6 +923,12 @@ checks and compare its wall with the official Step 102 median
 not promising; only then use `02-03` for the adoption median. Rollback target
 for the experiment is `9ef703b`.
 
+All three Step 107 runs passed normal check and relaxed compare. Their walls
+were `63.1300778389`, `63.2335109711`, and `63.2135219574` sec. The median is
+`63.2135219574` sec and the range is `0.1034331322` sec. This is
+`0.6252970695` sec (`0.979493%`) faster than Step 102, so Step 107 is the
+accepted source and performance baseline.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
@@ -955,7 +960,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `63.8388190269` sec.
+6. Compare the three-run median with `63.2135219574` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

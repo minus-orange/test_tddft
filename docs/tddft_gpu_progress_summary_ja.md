@@ -2070,3 +2070,9 @@ ELECTFまでに限定してELECTF後にdeleteし、Step 45型のtime-step全体�
 partitioned projectorとd/f形は既存host経路を維持し、GNU MPI＋FFTW fallbackの
 full build/linkはPASSしています。まずdiagnostic OFFで
 `./tools/run_tddft_step107.sh 01`だけを実行し、PASS/PASSとwallを確認します。
+
+Step 107はdiagnostic OFFの3 runすべてで両checkにPASSしました。wallは
+`63.1300778389`、`63.2335109711`、`63.2135219574`秒、中央値
+`63.2135219574`秒、range `0.1034331322`秒です。Step 102中央値より
+`0.6252970695`秒（`0.979493%`）高速なため、batched SEPPOTF経路を新しいsource・
+性能baselineとして正式採用します。
