@@ -7,7 +7,7 @@ Last updated: 2026-07-30
 - Logical step: Step 107
 - Source implementation commit: `c46cfa9`
 - Pinned-allocation build-mode commit: `9cbb6bc`
-- Result record commit: this documentation update
+- Result record commit: `347718f`
 - Diagnostics: off
 - Compiler/backend: NVHPC + OpenACC + cuFFT
 - Memory mode: `-gpu=mem:separate:pinnedalloc`
@@ -25,6 +25,10 @@ Run-to-run range: `0.1034331322` sec.
 
 Step 107 is `0.6252970695` sec (`0.979493%`) faster than the former Step 102
 median. All three runs passed both correctness gates.
+Step 109 later proved that signed `NUMTY=12,-2` kept the proposed batched
+SEPPOTF path inactive in these runs. The accepted gain is therefore attributed
+to Step 107's bounded FRPRMN-to-ELECTF COEF residency change. Step 110 enabled
+the batch path, was slower, and was rejected and restored in `d8ae16e`.
 
 ## Step 86 Median-Wall Run 01 Profile
 

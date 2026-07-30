@@ -320,8 +320,14 @@ Step 11 では、`P(1:NG2Q,1:nbndloc)` の GPU 常駐管理を `S2_` から外�
 
 ```text
 LABEL=nvhpc_cufft_1rank_02_STEP10_01 ./tools/archive_tddft_result.sh ./run/Si111-H_nvhpc/
-python3 ./tools/check_tddft_result.py check ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.err
-python3 ./tools/check_tddft_result.py compare ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.err
+python3 ./tools/check_tddft_result.py check \
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.out \
+  --err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.err \
+  --expected-steps 100
+python3 ./tools/check_tddft_result.py compare \
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.out \
+  --test-err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.err \
+  --expected-steps 100
 ```
 
 主な性能確認ポイントは、`s2_p_enter` と `s2_p_exit` が active timer から消え、
@@ -374,8 +380,14 @@ OpenACC kernel を削除します。
 
 ```text
 LABEL=nvhpc_cufft_1rank_02_STEP11_01 ./tools/archive_tddft_result.sh ./run/Si111-H_nvhpc/
-python3 ./tools/check_tddft_result.py check ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.err
-python3 ./tools/check_tddft_result.py compare ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.err
+python3 ./tools/check_tddft_result.py check \
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.out \
+  --err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.err \
+  --expected-steps 100
+python3 ./tools/check_tddft_result.py compare \
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.out \
+  --test-err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.err \
+  --expected-steps 100
 ```
 
 期待する性能上のシグナルは、`exnlp_gemm_zero` がタイマー出力から消え、
@@ -619,10 +631,14 @@ Step 16 実装内容:
 
 ```text
 python3 ./tools/check_tddft_result.py check \
-  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.out \
+  --err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err \
+  --expected-steps 100
 
 python3 ./tools/check_tddft_result.py compare \
-  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.out \
+  --test-err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err \
+  --expected-steps 100
 ```
 
 ## present入力版exnlp GEMM経路の使用
@@ -2074,8 +2090,9 @@ full build/linkはPASSしています。まずdiagnostic OFFで
 Step 107はdiagnostic OFFの3 runすべてで両checkにPASSしました。wallは
 `63.1300778389`、`63.2335109711`、`63.2135219574`秒、中央値
 `63.2135219574`秒、range `0.1034331322`秒です。Step 102中央値より
-`0.6252970695`秒（`0.979493%`）高速なため、batched SEPPOTF経路を新しいsource・
-性能baselineとして正式採用します。
+`0.6252970695`秒（`0.979493%`）高速なため、Step 107 revisionを新しいsource・
+性能baselineとして正式採用します。Step 109でbatch経路は未実行と判明したため、
+実測改善は限定COEF常駐によるものです。
 
 Step 108はsourceや数値経路を変更せず、正式Step 107 sourceで既存default-off timerを
 再計測します。TMEVL/S2、FRPRMN、ELECTF/NONLOCF、HLOCAL、EWALDの現行順位を
@@ -2084,8 +2101,8 @@ Step 108はsourceや数値経路を変更せず、正式Step 107 sourceで既存
 Step 108はrevision `4ccf7dc`で両checkにPASSしました。diagnostic wall
 `70.2021420002`秒はbaselineではありません。最大親区間はS2 NONLOCAL
 `16.045700`秒ですが、fused kernelの安全なmapping/cache候補は既に分類済みです。
-次のactionable親区間はELECTF NONLOCF `5.076909`秒で、そのうち採用済みbatched
-SEPPOTFが`4.262210`秒です。Step 109は数値経路を変えず、このbatched経路を
+次のactionable親区間はELECTF NONLOCF `5.076909`秒で、そのうちSEPPOTF親区間が
+`4.262210`秒です。Step 109は数値経路を変えず、Step 107で意図したbatch経路を
 projector、s/p reduction、最終GPU集計、download、MPI、gapへ分解します。
 
 Step 109は両checkにPASSしましたが、実際には旧SEPPOTF経路が動いていました。

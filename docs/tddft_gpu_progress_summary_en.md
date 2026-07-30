@@ -366,8 +366,14 @@ Expected validation:
 
 ```text
 LABEL=nvhpc_cufft_1rank_02_STEP10_01 ./tools/archive_tddft_result.sh ./run/Si111-H_nvhpc/
-python3 ./tools/check_tddft_result.py check ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.err
-python3 ./tools/check_tddft_result.py compare ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.err
+python3 ./tools/check_tddft_result.py check \
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.out \
+  --err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.err \
+  --expected-steps 100
+python3 ./tools/check_tddft_result.py compare \
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.out \
+  --test-err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP10_01/tddft.err \
+  --expected-steps 100
 ```
 
 The main expected performance signal is that `s2_p_enter` and `s2_p_exit`
@@ -426,8 +432,14 @@ Expected validation:
 
 ```text
 LABEL=nvhpc_cufft_1rank_02_STEP11_01 ./tools/archive_tddft_result.sh ./run/Si111-H_nvhpc/
-python3 ./tools/check_tddft_result.py check ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.err
-python3 ./tools/check_tddft_result.py compare ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.err
+python3 ./tools/check_tddft_result.py check \
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.out \
+  --err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.err \
+  --expected-steps 100
+python3 ./tools/check_tddft_result.py compare \
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.out \
+  --test-err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP11_01/tddft.err \
+  --expected-steps 100
 ```
 
 The expected performance signal is that `exnlp_gemm_zero` should disappear
@@ -705,10 +717,14 @@ Expected validation:
 
 ```text
 python3 ./tools/check_tddft_result.py check \
-  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.out \
+  --err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err \
+  --expected-steps 100
 
 python3 ./tools/check_tddft_result.py compare \
-  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err
+  ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.out \
+  --test-err ./run/tddft_archives/nvhpc_cufft_1rank_02_STEP16_01/tddft.err \
+  --expected-steps 100
 ```
 
 ## Step 17: Use Present-Input exnlp GEMM Call Path
@@ -2315,8 +2331,10 @@ require both checks before considering runs 02-03.
 All three Step 107 diagnostic-off runs passed both correctness checks at
 `63.1300778389`, `63.2335109711`, and `63.2135219574` sec. Their median is
 `63.2135219574` sec with a `0.1034331322` sec range. This is
-`0.6252970695` sec (`0.979493%`) faster than Step 102, so the batched
-SEPPOTF path is accepted as the new source and performance baseline.
+`0.6252970695` sec (`0.979493%`) faster than Step 102, so the Step 107
+revision is accepted as the new source and performance baseline. Step 109 later
+proved that the batch path was inactive, so the measured gain came from bounded
+COEF residency.
 
 Step 108 makes no source or numerical change. It re-runs the existing
 default-off timers on accepted Step 107 and prints a compact current-source
@@ -2327,9 +2345,9 @@ Step 108 at revision `4ccf7dc` passed both checks. Its diagnostic wall was
 `70.2021420002` sec and is not a baseline. S2 NONLOCAL remains the largest
 measured parent at `16.045700` sec, but its safe fused-kernel mapping/cache
 variants are already classified. ELECTF NONLOCF is `5.076909` sec, with
-`4.262210` sec in accepted batched SEPPOTF. Step 109 adds default-off timers
-only to split that batched path into projector, s/p reduction, finalization,
-download, MPI, and gap intervals.
+`4.262210` sec in its SEPPOTF parent. Step 109 adds default-off timers only to
+split the batch path proposed in Step 107 into projector, s/p reduction,
+finalization, download, MPI, and gap intervals.
 
 Step 109 passed both checks but proved that the legacy SEPPOTF path still ran.
 The input has `NTYPE=2` and signed `NUMTY=12,-2`; Step 107 rejected the

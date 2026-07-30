@@ -74,12 +74,12 @@ implementation and timer notes are in the bilingual progress summaries.
 | 104 | Precompute the band-independent kinetic phase | 64.0659618378 run 01 | rejected / early stop | `c5bec01` / result rollback |
 | 105 | Split current ELECTF NONLOCF | 70.5463471413 (one diagnostic run) | measurement | `91f27a0` |
 | 106 | Split current SEPPOTF | 70.2937791348 (one diagnostic run) | measurement | `9ef703b` |
-| 107 | Batch nonpartitioned s/p SEPPOTF reductions over atom x local band | 63.2135219574 median | accepted baseline | `c46cfa9` |
+| 107 | Batch nonpartitioned s/p SEPPOTF reductions and bound COEF residency | 63.2135219574 median | accepted baseline; batch later proved inactive, gain attributed to COEF residency | `c46cfa9` |
 | 108 | Re-profile the accepted Step 107 source | 70.2021420002 (one diagnostic run) | measurement | `4ccf7dc` |
 | 109 | Split the batched SEPPOTF path | 69.1963171959 (diagnostic; legacy path observed) | measurement | `f3d6082` |
-| 110 | Enable the batched SEPPOTF path for signed `NUMTY` | 63.7820260525 (run 01) | rejected; early stop and restored | `3536127` |
+| 110 | Enable the batched SEPPOTF path for signed `NUMTY` | 63.7820260525 (run 01) | rejected; early stop and restored | `3536127` / `d8ae16e` |
 | 111 | Split NONLOCF kinetic/current plus MPI | 69.0858860016 (one diagnostic run) | measurement | `2415d30` |
-| 112 | Fuse NONLOCF kinetic/current and A-vector energy passes | 63.6258358955 (run 01) | rejected; early stop and restored | `1aa31fd` |
+| 112 | Fuse NONLOCF kinetic/current and A-vector energy passes | 63.6258358955 (run 01) | rejected; early stop and restored | `1aa31fd` / `330bd1c` |
 
 ## Other Rejected Experiments
 
@@ -2219,13 +2219,14 @@ Step 108 at revision `4ccf7dc` passed both checks. Its diagnostic wall was
 S2 NONLOCAL `16.045700` sec, its GEMM wrapper `10.201628` sec, and the fused
 EXNLP kernel `8.412670` sec. Those paths already have their safe mapping and
 cache variants classified. ELECTF NONLOCF remains `5.076909` sec, of which
-the accepted batched SEPPOTF parent is `4.262210` sec.
+the SEPPOTF parent is `4.262210` sec. Step 109 later proved that the proposed
+Step 107 batch path was inactive for this tutorial input.
 
-Step 109 changes no numerical path. Default-off timers split the accepted
-batched SEPPOTF parent into projector generation, s and p batch reductions,
-final GPU assembly, result download, MPI, and an unclassified gap. This
-identifies whether a further bounded SEPPOTF hypothesis has material ceiling
-before returning to a lower-ranked interval.
+Step 109 changes no numerical path. Default-off timers attempt to split the
+proposed batched SEPPOTF parent into projector generation, s and p batch
+reductions, final GPU assembly, result download, MPI, and an unclassified gap.
+This identifies whether a further bounded SEPPOTF hypothesis has material
+ceiling before returning to a lower-ranked interval.
 
 Step 109 at revision `f3d6082` passed both correctness checks, but its compact
 report stopped because timer IDs 140--144 were absent. The visible parent and
@@ -2263,9 +2264,9 @@ range. Runs 02/03 are therefore skipped under the early-stop rule.
 
 The signed-count batched SEPPOTF path is rejected. Its three source changes and
 one-run helper are removed, restoring the negative-`NUMTY` guard and the
-accepted Step 107 execution path. The accepted gain remains attributed to the
-bounded FRPRMN-to-ELECTF COEF residency change. Do not retry this SEPPOTF batch
-shape for the tutorial input.
+accepted Step 107 execution path in `d8ae16e`. The accepted gain remains
+attributed to the bounded FRPRMN-to-ELECTF COEF residency change. Do not retry
+this SEPPOTF batch shape for the tutorial input.
 
 ## Step 111 Plan
 
@@ -2305,12 +2306,12 @@ official Step 107 median, and `3.986285x` the official run range. Runs 02/03
 are skipped.
 
 The pass fusion is rejected. The original two reductions and their timer
-boundaries are restored, and the Step 112 helper is removed. Together with the
-earlier rejected Step 84 energy-side pass fusion, this closes the same
-COEF-pass fusion strategy for the tutorial input. The remaining large tutorial
-intervals have already had their safe high-impact variants classified; do not
-continue with low-ceiling micro-optimizations without a new production input
-or new profiler evidence.
+boundaries are restored, and the Step 112 helper is removed in `330bd1c`.
+Together with the earlier rejected Step 84 energy-side pass fusion, this closes
+the same COEF-pass fusion strategy for the tutorial input. The remaining large
+tutorial intervals have already had their safe high-impact variants classified;
+do not continue with low-ceiling micro-optimizations without a new production
+input or new profiler evidence.
 
 ## Step 80 H100 Exploratory Run
 

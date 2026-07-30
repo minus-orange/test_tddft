@@ -45,6 +45,13 @@ def to_float(text: str) -> float:
     return float(text.replace("D", "E").replace("d", "e"))
 
 
+def positive_int(text: str) -> int:
+    value = int(text)
+    if value <= 0:
+        raise argparse.ArgumentTypeError("expected a positive integer")
+    return value
+
+
 def read_text(path: Path) -> str:
     return path.read_text(errors="replace")
 
@@ -207,10 +214,20 @@ def finite_or_none(value: float | None) -> bool:
     return value is not None and math.isfinite(value)
 
 
-def check_result(result: TddftResult, require_profile: bool) -> list[str]:
+def check_result(
+    result: TddftResult,
+    require_profile: bool,
+    expected_steps: int | None,
+) -> list[str]:
     failures: list[str] = []
     if result.bad_lines:
         failures.append(f"found suspicious log lines: {len(result.bad_lines)}")
+    if result.steps is None:
+        failures.append("missing 'steps took' completion marker")
+    elif expected_steps is not None and result.steps != expected_steps:
+        failures.append(f"expected {expected_steps} completed steps, found {result.steps}")
+    if not finite_or_none(result.steps_sec) or result.steps_sec <= 0.0:
+        failures.append("missing, non-finite, or non-positive step wall time")
     if not finite_or_none(result.etot):
         failures.append("missing or non-finite TOTAL ENERGY: ETOT")
     if not finite_or_none(result.energy_total):
@@ -266,8 +283,16 @@ def compare(args: argparse.Namespace) -> int:
     }
 
     failures = []
-    failures.extend(f"reference: {msg}" for msg in check_result(ref, args.require_profile))
-    failures.extend(f"test: {msg}" for msg in check_result(test, args.require_profile))
+    failures.extend(
+        f"reference: {msg}"
+        for msg in check_result(ref, args.require_profile, args.expected_steps)
+    )
+    failures.extend(
+        f"test: {msg}"
+        for msg in check_result(test, args.require_profile, args.expected_steps)
+    )
+    if ref.steps is not None and test.steps is not None and ref.steps != test.steps:
+        failures.append(f"steps: reference={ref.steps} test={test.steps}")
 
     comparisons: list[tuple[str, float | None, float, str]] = []
     if finite_or_none(ref.etot) and finite_or_none(test.etot):
@@ -297,6 +322,9 @@ def compare(args: argparse.Namespace) -> int:
         print("  tolerance mode: strict")
     else:
         print("  tolerance mode: relaxed")
+    if ref.steps is not None and test.steps is not None:
+        status = "OK" if ref.steps == test.steps else "FAIL"
+        print(f"  steps: reference={ref.steps} test={test.steps} {status}")
     for name, diff, tol, detail in comparisons:
         if diff is None:
             failures.append(f"{name}: {detail}")
@@ -320,7 +348,7 @@ def compare(args: argparse.Namespace) -> int:
 
 def check(args: argparse.Namespace) -> int:
     result = parse_result(args.output, args.err)
-    failures = check_result(result, args.require_profile)
+    failures = check_result(result, args.require_profile, args.expected_steps)
     print_summary(result)
     if failures:
         print("\nFAIL")
@@ -338,6 +366,11 @@ def build_parser() -> argparse.ArgumentParser:
     check_parser = sub.add_parser("check", help="sanity-check one TDDFT output log")
     check_parser.add_argument("output", type=Path)
     check_parser.add_argument("--err", type=Path, action="append", default=[])
+    check_parser.add_argument(
+        "--expected-steps",
+        type=positive_int,
+        help="require the completion marker to report exactly this many steps",
+    )
     check_parser.add_argument("--require-profile", action=argparse.BooleanOptionalAction, default=True)
     check_parser.set_defaults(func=check)
 
@@ -351,6 +384,11 @@ def build_parser() -> argparse.ArgumentParser:
     compare_parser.add_argument("--reference", type=Path, default=DEFAULT_REFERENCE)
     compare_parser.add_argument("--ref-err", type=Path, action="append", default=[])
     compare_parser.add_argument("--test-err", type=Path, action="append", default=[])
+    compare_parser.add_argument(
+        "--expected-steps",
+        type=positive_int,
+        help="require both completion markers to report exactly this many steps",
+    )
     compare_parser.add_argument("--energy-atol", type=float, default=RELAXED_TOLERANCES["energy"])
     compare_parser.add_argument("--force-atol", type=float, default=RELAXED_TOLERANCES["force"])
     compare_parser.add_argument("--position-atol", type=float, default=RELAXED_TOLERANCES["position"])

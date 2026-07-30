@@ -1,7 +1,8 @@
 module mod_timer
   implicit none
 
-  integer, private, parameter :: num_max_routines = 100
+  ! prof_timer uses IDs 1:151 and the cuFFT wrapper adds six direct names.
+  integer, private, parameter :: num_max_routines = 192
   integer, private, parameter :: num_max_namelen = 100
   integer, private :: num_of_routines = 0
 

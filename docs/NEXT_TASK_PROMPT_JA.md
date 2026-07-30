@@ -590,8 +590,11 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 210. 現在の大区間はsafeな高影響候補を分類済み。新しいproduction入力または新しい
      profiler根拠なしに、上限の小さい微調整を続けない。
 
-次はStep 112の不採用・復元をcommit/pushし、CPU/FFTW fallbackを確認してください。
-その後はproduction入力と対応referenceを受け取るか、正式Step 107 sourceの新しい
+Step 112の不採用・復元は`330bd1c`としてcommit/push済みで、CPU/FFTWの
+diagnostic OFF/ON full buildもPASSしています。現在の数値経路は正式Step 107へ
+復元済みです。
+
+次はproduction入力と対応referenceを受け取るか、正式Step 107 sourceの新しい
 profiler evidenceが得られるまで、tutorial向けsource実験を増やしません。
 
 ---

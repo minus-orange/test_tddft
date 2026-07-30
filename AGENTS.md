@@ -68,11 +68,13 @@ human approval boundaries, adoption, and rollback.
 ```sh
 python3 ./tools/check_tddft_result.py check \
   ./run/tddft_archives/<LABEL>/tddft.out \
-  --err ./run/tddft_archives/<LABEL>/tddft.err
+  --err ./run/tddft_archives/<LABEL>/tddft.err \
+  --expected-steps 100
 
 python3 ./tools/check_tddft_result.py compare \
   ./run/tddft_archives/<LABEL>/tddft.out \
-  --test-err ./run/tddft_archives/<LABEL>/tddft.err
+  --test-err ./run/tddft_archives/<LABEL>/tddft.err \
+  --expected-steps 100
 ```
 
 Archive with:

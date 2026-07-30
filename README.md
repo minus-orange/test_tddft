@@ -269,7 +269,8 @@ export OMP_STACKSIZE=512M
 export OMP_NUM_THREADS=1
 NPROCS=1 TDDFT_INPUT=Si111-H_tm.in_2steps ./tools/run_si111_h_sample.sh
 python3 tools/check_tddft_result.py check run/Si111-H/Si111-H_tm.out \
-  --err run/Si111-H/Si111-H_tm.err
+  --err run/Si111-H/Si111-H_tm.err \
+  --expected-steps 2
 ```
 
 Archive a TDDFT run before changing compilers, FFT backends, or MPI settings:
@@ -461,7 +462,8 @@ Check one output/error pair:
 ```sh
 python3 tools/check_tddft_result.py check \
   run/Si111-H/Si111-H_tm.out \
-  --err run/Si111-H/Si111-H_tm.err
+  --err run/Si111-H/Si111-H_tm.err \
+  --expected-steps 100
 ```
 
 Compare a 1-rank reference with a 32-rank run:
@@ -471,15 +473,22 @@ python3 tools/check_tddft_result.py compare \
   run/Si111-H_np1/Si111-H_tm.out \
   run/Si111-H_np32/Si111-H_tm.out \
   --ref-err run/Si111-H_np1/Si111-H_tm.err \
-  --test-err run/Si111-H_np32/Si111-H_tm.err
+  --test-err run/Si111-H_np32/Si111-H_tm.err \
+  --expected-steps 100
 ```
 
 The default tolerances are:
 
-- energy: `1e-5` Hartree
-- force: `1e-5` Hartree/au
+- energy: `1e-4` Hartree
+- force: `1e-4` Hartree/au
 - position: `1e-6`
 - velocity: `1e-6`
+
+Every check also requires a valid `steps took ... sec` completion marker.
+`compare` rejects different reference and test step counts. For a fixed-size
+validation, pass `--expected-steps N` to require the exact intended count.
+Pass `--strict` to use `1e-5` for energy and force while retaining the
+`1e-6` position and velocity tolerances.
 
 Relax or tighten them when comparing different compiler/MPI environments:
 

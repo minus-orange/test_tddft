@@ -5,11 +5,13 @@ Last updated: 2026-07-30
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `c46cfa9` (`Batch SEPPOTF band reductions on GPU`)
+- Accepted source baseline: `c46cfa9` (bounded FRPRMN-to-ELECTF COEF residency;
+  the proposed SEPPOTF batch path was inactive for the tutorial input)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
-- Accepted result record: this documentation update
-- Current configuration: accepted Step 107 with Step 37 pinned allocation mode
+- Accepted result record: `347718f`
+- Current configuration: accepted Step 107 numerical path with Step 37 pinned
+  allocation mode
 - Current source implementation: Step 107 commit `c46cfa9`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
@@ -17,8 +19,9 @@ Last updated: 2026-07-30
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 107 accepted after three diagnostic-off A100 runs
-  passed both correctness gates
+- Current HEAD status: Step 110 and Step 112 are rejected and restored; the
+  numerical path matches accepted Step 107 after three diagnostic-off A100
+  runs passed both correctness gates
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 107 median `63.2135219574` sec
@@ -940,12 +943,13 @@ wall is not a baseline. S2 NONLOCAL remains `16.045700` sec, with
 `10.201628` sec in its GEMM wrapper and `8.412670` sec in the fused kernel,
 but the safe mapping/cache variants for that kernel are already classified.
 The next actionable parent is ELECTF NONLOCF at `5.076909` sec, including
-`4.262210` sec in accepted batched SEPPOTF.
+`4.262210` sec in the SEPPOTF parent. Step 109 later proved that the proposed
+Step 107 batch path was inactive for this signed-`NUMTY` tutorial input.
 
-Step 109 adds default-off timers only. It splits batched SEPPOTF into projector
-generation, s/p batch reductions, final GPU assembly, result download, MPI,
-and a gap. Run `./tools/run_tddft_step109.sh` once and do not use its
-diagnostic wall as a baseline.
+Step 109 adds default-off timers only. It attempts to split the proposed
+batched SEPPOTF path into projector generation, s/p batch reductions, final GPU
+assembly, result download, MPI, and a gap. Run `./tools/run_tddft_step109.sh`
+once and do not use its diagnostic wall as a baseline.
 
 Step 109 at `f3d6082` passed both checks, but timer IDs 140--144 did not appear
 and the wrapper stopped with its intended count error. Do not rerun yet.
@@ -993,10 +997,11 @@ require both checks before considering `02-03`. Rollback target: `4f4a276`.
 Step 112 run 01 passed both checks but took `63.6258358955` sec,
 `0.4123139381` sec (`0.652256%`) slower than the official Step 107 median and
 `3.986285x` its run range. Runs 02/03 were stopped. The source and helper are
-restored/removed, closing this COEF-pass fusion strategy together with the
-earlier Step 84 rejection. No untried safe tutorial hypothesis now has a
-comparable measured ceiling; require new production input or new profiler
-evidence before more low-ceiling source experiments.
+restored/removed in `330bd1c`, closing this COEF-pass fusion strategy together
+with the earlier Step 84 rejection. Step 110 was likewise restored in
+`d8ae16e`. No untried safe tutorial hypothesis now has a comparable measured
+ceiling; require new production input or new profiler evidence before more
+low-ceiling source experiments.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
