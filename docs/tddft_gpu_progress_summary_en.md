@@ -2322,3 +2322,11 @@ Step 108 makes no source or numerical change. It re-runs the existing
 default-off timers on accepted Step 107 and prints a compact current-source
 ranking across TMEVL/S2, FRPRMN, ELECTF/NONLOCF, HLOCAL, and EWALD. Its
 diagnostic wall is not a performance baseline.
+
+Step 108 at revision `4ccf7dc` passed both checks. Its diagnostic wall was
+`70.2021420002` sec and is not a baseline. S2 NONLOCAL remains the largest
+measured parent at `16.045700` sec, but its safe fused-kernel mapping/cache
+variants are already classified. ELECTF NONLOCF is `5.076909` sec, with
+`4.262210` sec in accepted batched SEPPOTF. Step 109 adds default-off timers
+only to split that batched path into projector, s/p reduction, finalization,
+download, MPI, and gap intervals.

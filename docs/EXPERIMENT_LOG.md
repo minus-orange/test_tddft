@@ -2207,6 +2207,21 @@ TMEVL/S2, FRPRMN, ELECTF/NONLOCF, HLOCAL, and EWALD intervals in one compact
 terminal block. Use the result only to select the next single high-impact
 hypothesis; its diagnostic wall cannot replace the Step 107 baseline.
 
+## Step 108 Result and Step 109 Plan
+
+Step 108 at revision `4ccf7dc` passed both checks. Its diagnostic wall was
+`70.2021420002` sec and is not a baseline. The largest measured intervals are
+S2 NONLOCAL `16.045700` sec, its GEMM wrapper `10.201628` sec, and the fused
+EXNLP kernel `8.412670` sec. Those paths already have their safe mapping and
+cache variants classified. ELECTF NONLOCF remains `5.076909` sec, of which
+the accepted batched SEPPOTF parent is `4.262210` sec.
+
+Step 109 changes no numerical path. Default-off timers split the accepted
+batched SEPPOTF parent into projector generation, s and p batch reductions,
+final GPU assembly, result download, MPI, and an unclassified gap. This
+identifies whether a further bounded SEPPOTF hypothesis has material ceiling
+before returning to a lower-ranked interval.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

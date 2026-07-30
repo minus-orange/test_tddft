@@ -422,5 +422,15 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'seppotf_p_band_reduce'
   case (139)
     name = 'seppotf_mpi'
+  case (140)
+    name = 'seppotf_acc_project'
+  case (141)
+    name = 'seppotf_acc_s_batch'
+  case (142)
+    name = 'seppotf_acc_p_batch'
+  case (143)
+    name = 'seppotf_acc_final'
+  case (144)
+    name = 'seppotf_acc_download'
   end select
 end subroutine fpseid_mod_timer_name

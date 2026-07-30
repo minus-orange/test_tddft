@@ -935,6 +935,18 @@ FRPRMN, ELECTF/NONLOCF, HLOCAL, and EWALD intervals. Run
 `./tools/run_tddft_step108.sh` once. Its diagnostic wall is not a baseline;
 use the timer ranking only to choose one next high-impact hypothesis.
 
+Step 108 at `4ccf7dc` passed both checks. Its `70.2021420002` sec diagnostic
+wall is not a baseline. S2 NONLOCAL remains `16.045700` sec, with
+`10.201628` sec in its GEMM wrapper and `8.412670` sec in the fused kernel,
+but the safe mapping/cache variants for that kernel are already classified.
+The next actionable parent is ELECTF NONLOCF at `5.076909` sec, including
+`4.262210` sec in accepted batched SEPPOTF.
+
+Step 109 adds default-off timers only. It splits batched SEPPOTF into projector
+generation, s/p batch reductions, final GPU assembly, result download, MPI,
+and a gap. Run `./tools/run_tddft_step109.sh` once and do not use its
+diagnostic wall as a baseline.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

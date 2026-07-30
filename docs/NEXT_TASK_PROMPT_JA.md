@@ -546,9 +546,15 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 194. Step 108はsourceを変更せず、正式Step 107 sourceの既存default-off timerを
      再計測する。diagnostic wallはbaselineにせず、主要区間の順位だけを次の
      単一仮説選定に使う。
+195. Step 108はrevision `4ccf7dc`でPASS/PASS、diagnostic wall
+     `70.2021420002`秒。S2 NONLOCAL `16.045700`秒は最大だが、安全なfused-kernel
+     mapping/cache候補は既に分類済みである。
+196. 次のactionable親区間はELECTF NONLOCF `5.076909`秒、その中のbatched
+     SEPPOTF `4.262210`秒。Step 109は数値経路を変えず、projector、s/p batch、
+     final、download、MPI、gapへdefault-off timerだけで分解する。
 
-次は`./tools/run_tddft_step108.sh`を1回実行し、`FPSEID_STEP108_TIMERS_BEGIN`から
-`FPSEID_STEP108_TIMERS_END`までの写真を受け取ってください。diagnostic wallは
-baselineにせず、残る最大のactionable区間を1件だけ選んでください。
+次は`./tools/run_tddft_step109.sh`を1回実行し、
+`FPSEID_SEPPOTF_ACC_SPLIT_BEGIN`から`FPSEID_SEPPOTF_ACC_SPLIT_END`までの写真を
+受け取ってください。diagnostic wallはbaselineに使用しません。
 
 ---

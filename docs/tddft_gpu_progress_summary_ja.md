@@ -2080,3 +2080,10 @@ Step 107はdiagnostic OFFの3 runすべてで両checkにPASSしました。wall�
 Step 108はsourceや数値経路を変更せず、正式Step 107 sourceで既存default-off timerを
 再計測します。TMEVL/S2、FRPRMN、ELECTF/NONLOCF、HLOCAL、EWALDの現行順位を
 小さなterminal summaryへまとめます。diagnostic wallは性能baselineに使用しません。
+
+Step 108はrevision `4ccf7dc`で両checkにPASSしました。diagnostic wall
+`70.2021420002`秒はbaselineではありません。最大親区間はS2 NONLOCAL
+`16.045700`秒ですが、fused kernelの安全なmapping/cache候補は既に分類済みです。
+次のactionable親区間はELECTF NONLOCF `5.076909`秒で、そのうち採用済みbatched
+SEPPOTFが`4.262210`秒です。Step 109は数値経路を変えず、このbatched経路を
+projector、s/p reduction、最終GPU集計、download、MPI、gapへ分解します。
