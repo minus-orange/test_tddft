@@ -81,6 +81,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 111 | Split NONLOCF kinetic/current plus MPI | 69.0858860016 (one diagnostic run) | measurement | `2415d30` |
 | 112 | Fuse NONLOCF kinetic/current and A-vector energy passes | 63.6258358955 (run 01) | rejected; early stop and restored | `1aa31fd` / `330bd1c` |
 | 113 | Screen isolated NVHPC compiler options | 63.7448709011 best one-run wall (`fastmath`) | screening; no baseline change | `05fd3c4` |
+| 114 | Screen NVHPC memory modes | pending | one-run screening planned | pending |
 
 ## Other Rejected Experiments
 
@@ -2377,6 +2378,28 @@ same-session standard run, led IPA by only `0.071769%`, and remained
 This does not satisfy the documented condition for starting a separate
 three-run adoption gate. Close the compiler-option screen without changing the
 standard flags or official baseline.
+
+## Step 114 NVHPC Memory-Mode Screen Plan
+
+Keep the accepted numerical source and all non-memory compiler options fixed.
+Run one same-session control with `-gpu=mem:separate:pinnedalloc`, then one run
+each with `-gpu=mem:managed` and `-gpu=mem:unified`. Do not rerun unpinned
+separate memory: Step 37 already established that pinned allocation improved
+the Step 36 median by `4.4103%`.
+
+The NVIDIA HPC Compilers User's Guide states that managed mode changes
+dynamically allocated Fortran data to CUDA managed allocations, while unified
+mode also permits global and local memory access. Unified mode on Linux x86-64
+requires kernel HMM support, so a build or runtime failure is an
+environment-support result rather than permission to weaken checks. Stop at
+the first build, run, normal-check, or relaxed-compare failure.
+
+Use `tools/run_tddft_step114_memory_modes.sh`. It compiles and links every
+TDDFT translation unit with exactly one memory mode, uses diagnostics off,
+1 A100 / 1 MPI rank / 100 steps, unique archives, normal check, relaxed compare,
+and a direct strict comparison against the same-session control. These are
+one-run screening results only. The standard flags and official Step 107
+baseline cannot change without a later isolated three-run gate.
 
 ## Step 80 H100 Exploratory Run
 

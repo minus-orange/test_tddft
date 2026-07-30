@@ -2176,3 +2176,15 @@ Step 107中央値よりなお`0.5313489437`秒（`0.840562%`）遅い結果で�
 進めずStep 113を終了し、標準flagsと正式baselineを維持します。compiler欄の空欄は
 この環境の`nvfortran -V`先頭空行が原因なので、helperは最初の非空行を読むよう修正
 しました。MPI driverから`nvfortran`使用は確認できており、追加A100実行は不要です。
+
+Step 114では数値sourceとmemory以外のcompiler optionを変えず、NVHPC memory modeを
+screeningします。`tools/run_tddft_step114_memory_modes.sh`は最初に採用済み
+`-gpu=mem:separate:pinnedalloc`を同一session controlとして実行し、次に
+`-gpu=mem:managed`、最後に`-gpu=mem:unified`を実行します。unpinned separateは
+Step 37でpinned化による中央値`4.4103%`改善が確定済みなので再試行しません。
+
+全variantはdiagnostic OFF、A100 1GPU / 1MPI / 100 steps、固有archive、通常check、
+relaxed compare、controlとの直接pairwise strict compareを使います。Linux x86-64の
+unified modeにはkernel HMM対応が必要なので、buildまたはruntime失敗時は早期停止
+結果として扱います。1 run screeningだけでは標準flagsや正式Step 107 baselineを
+変更しません。

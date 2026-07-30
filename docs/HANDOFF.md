@@ -1046,6 +1046,20 @@ an empty line in this environment. The helpers now select its first nonblank
 line. The MPI driver output still established that the wrapper invokes
 `nvfortran`; no rerun is required for the closed Step 113 decision.
 
+Step 114 is an explicit memory-mode screen requested by the user. Keep all
+accepted source and non-memory flags fixed. Run a same-session
+`-gpu=mem:separate:pinnedalloc` control, then `-gpu=mem:managed`, then
+`-gpu=mem:unified`, using `./tools/run_tddft_step114_memory_modes.sh`.
+Unpinned separate memory is not repeated because Step 37 already measured the
+pinned mode as `4.4103%` faster than Step 36.
+
+Each variant is diagnostics off, 1 A100 / 1 MPI rank / 100 steps, with a unique
+archive, normal check, relaxed compare, and direct pairwise strict comparison
+against the control. Linux x86-64 unified mode requires HMM support; if build
+or execution fails, return the compact failure block and do not continue or
+weaken validation. This screen cannot change the standard flags or official
+Step 107 baseline.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

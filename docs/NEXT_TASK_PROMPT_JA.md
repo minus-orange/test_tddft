@@ -610,13 +610,22 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      正式Step 107中央値より`0.840562%`遅い。明確な性能候補ではない。
 220. Step 113は3 run gateへ進めず終了する。標準flags、正式Step 107 baseline、
      数値sourceを維持する。追加A100実行は不要。
+221. Step 114は数値sourceとmemory以外のflagsを固定し、同一sessionで
+     `mem:separate:pinnedalloc`、`mem:managed`、`mem:unified`を各1 run比較する。
+222. unpinned separateはStep 37でpinned版より`4.4103%`遅いことが確定済みなので
+     再試行しない。unifiedはLinux kernel HMM非対応ならその場で早期停止する。
+223. 全variantはdiagnostic OFF、A100 1GPU / 1MPI / 100 steps、通常check、
+     relaxed compare、controlとのpairwise strict compareを必須とする。
 
 Step 112の不採用・復元は`330bd1c`としてcommit/push済みで、CPU/FFTWの
 diagnostic OFF/ON full buildもPASSしています。現在の数値経路は正式Step 107へ
 復元済みです。
 
-Step 113は完了し、追加A100実行はありません。新しいproduction入力または新しい
-profiler根拠が得られるまで、低上限のtutorial micro-optimizationやcompiler flag
-variantを先行実装しないでください。
+次はA100で`./tools/run_tddft_step114_memory_modes.sh`を1回実行し、末尾の
+「FPSEID21 STEP114 NVHPC MEMORY-MODE SCREEN SUMMARY」から
+「One-run screening only; the official flags and baseline are unchanged.」までが
+入る写真1枚を返してください。途中停止時は「FPSEID21 STEP114 NVHPC
+MEMORY-MODE SCREEN FAILURE」から「Stop here; do not run another memory mode.」
+までが入る写真1枚を返してください。
 
 ---

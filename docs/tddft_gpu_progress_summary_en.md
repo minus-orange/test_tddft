@@ -2435,3 +2435,16 @@ The compiler-version field remained blank because `nvfortran -V` starts with a
 blank line in this environment; the two Step 113 helpers now select the first
 nonblank line. MPI-driver provenance already showed that `nvfortran` is used,
 so no additional A100 run is needed.
+
+Step 114 screens NVHPC memory modes without changing the numerical source or
+other compiler options. `tools/run_tddft_step114_memory_modes.sh` first runs
+the accepted `-gpu=mem:separate:pinnedalloc` mode as a same-session control,
+then `-gpu=mem:managed`, then `-gpu=mem:unified`. Unpinned separate memory is
+not repeated because Step 37 already measured a `4.4103%` median advantage
+from pinned allocation.
+
+All variants use diagnostics off, 1 A100 / 1 MPI rank / 100 steps, unique
+archives, normal check, relaxed compare, and a direct pairwise strict
+comparison with the control. Unified mode on Linux x86-64 requires kernel HMM
+support; any build or runtime failure is an early-stop result. This one-run
+screen cannot change the accepted flags or official Step 107 baseline.
