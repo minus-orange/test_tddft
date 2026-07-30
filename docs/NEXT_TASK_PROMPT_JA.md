@@ -508,7 +508,17 @@ CPU/FFTW fallback、fixed-form Fortran、correctness toleranceを維持してく
 性能採否はdiagnostic OFF、normal checkとrelaxed compare、同条件3回中央値で行います。
 production入力と対応referenceはまだ存在しないため、推測で生成しないでください。
 
-初回報告では、Git状態、正式Step 80 baseline、Step 52からの改善、現在確定している比率、
-再診断で取得する指標、簡潔なA100実行コマンド案だけを示し、追加実装へ進まず停止してください。
+180. Step 104 run 01はPASS/PASSでしたが`64.0659618378`秒で、Step 102中央値より
+     `0.2271428109`秒（`0.355807%`）遅く、run 02/03を省略して不採用・復元済みです。
+181. 現行timerの`electf_force=6.249443`秒から`LOCPOTF=1.373461`秒を除いた
+     `4.875982`秒（正式wallの`7.638%`）が最大の未分解候補です。
+182. Step 105は追加最適化せず、現行ELECTF NONLOCFをsetup、係数kinetic/current＋MPI、
+     GETYLM、SEPPOTF、最終集計へdefault-off timerだけで分解します。
+183. A100では`./tools/run_tddft_step105.sh`を1回だけ実行し、両checkを必須とし、
+     `FPSEID_NONLOCF_SPLIT_BEGIN`から`FPSEID_NONLOCF_SPLIT_END`までの写真を返します。
+
+初回報告では、Git状態、正式Step 102 baseline、現在確定している比率、
+Step 105再診断で取得する指標、簡潔なA100実行コマンド案だけを示し、
+追加最適化へ進まず停止してください。
 
 ---

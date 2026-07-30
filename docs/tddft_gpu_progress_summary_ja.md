@@ -2028,3 +2028,15 @@ Step 104 run 01はPASS/PASSでしたが`64.0659618378`秒で、Step 102中央値
 `0.2271428109`秒（`0.355807%`）遅い結果でした。run 02/03は早期停止します。
 phase計算削減よりband方向並列性低下の影響が大きいため不採用とし、Step 102の
 mappingへ復元します。
+
+Step 100の現行timerでは`electf_force=6.249443`秒、
+`electf_locpotf_total=1.373461`秒で、差分`4.875982`秒は正式Step 102 wallの
+`7.638%`です。旧Steps 43/44ではほぼ同じNONLOCF区間をSEPPOTFが支配しましたが、
+Step 47型のtutorial専用s/p全体GPU化は既に不採用なので再試行しません。
+
+次のStep 105は追加最適化ではなく、現行ELECTF NONLOCFの再診断です。default-off
+timerでNONLOCF全体、setup、係数kinetic/current＋MPI、GETYLM、SEPPOTF、最終
+force/energy集計を測り、coverageと未分類gapを導出します。数式、loop順、MPI境界、
+OpenACC ownership、CPU/FFTW、diagnostic-off経路は変更しません。A100では
+`./tools/run_tddft_step105.sh`を1回だけ実行し、両checkを必須とし、diagnostic wallは
+baselineに使用しません。

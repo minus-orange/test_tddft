@@ -2089,6 +2089,23 @@ restored.
 The restored GNU MPI + FFTW fallback full build/link passes with existing
 legacy warnings only.
 
+## Step 105 Plan
+
+The Step 100 current-source timers report `electf_force=6.249443` sec and
+`electf_locpotf_total=1.373461` sec. Their `4.875982` sec difference is
+`7.638%` of the official Step 102 median and closely matches the old
+ELECTF-side NONLOCF interval. Old Steps 43/44 found SEPPOTF dominant, but the
+Step 47 tutorial-specific whole s/p GPU path produced only a noise-level
+`0.0291%` median advantage and must not be repeated.
+
+Step 105 is diagnostic only. Default-off timers measure the complete NONLOCF
+call and exclusive setup, coefficient kinetic/current plus MPI, GETYLM,
+SEPPOTF, and final force/energy assembly sections. The helper derives their
+coverage and unclassified gap. It changes no equation, loop order, MPI
+boundary, OpenACC ownership, CPU/FFTW behavior, or diagnostic-off execution.
+Run `tools/run_tddft_step105.sh` once, require normal check and relaxed
+compare, and do not use its diagnostic wall as a performance baseline.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

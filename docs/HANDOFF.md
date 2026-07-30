@@ -17,8 +17,8 @@ Last updated: 2026-07-30
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 102 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 104 kinetic-phase mapping rejected and restored
+- Current HEAD status: Step 102 accepted; Step 104 kinetic-phase mapping
+  rejected and restored; Step 105 diagnostic prepared and awaiting A100
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 102 median `63.8388190269` sec
@@ -865,6 +865,22 @@ are skipped. The reduced phase count did not offset the lost band-direction
 parallelism, so the implementation and helper are removed and Step 102 is
 restored.
 The restored GNU MPI + FFTW fallback full build/link passes.
+
+The next bounded action is diagnostic-only Step 105. The Step 100 current
+timers imply `6.249443 - 1.373461 = 4.875982` sec inside ELECTF but outside
+LOCPOTF, or `7.638%` of the official Step 102 wall. Old Steps 43/44 attributed
+almost the same interval to NONLOCF and mainly SEPPOTF, but Step 47 already
+rejected the tutorial-specific whole s/p SEPPOTF offload. Re-measure the
+current source before selecting any new implementation.
+
+Step 105 adds default-off timers for the complete ELECTF NONLOCF call, setup,
+coefficient kinetic/current plus MPI, GETYLM, SEPPOTF, and final force/energy
+assembly. Equations, loop order, MPI boundaries, OpenACC ownership, and the
+diagnostic-off path are unchanged. Run `./tools/run_tddft_step105.sh` once.
+Require both correctness checks and use the diagnostic wall only for
+classification. If SEPPOTF still dominates, do not repeat the Step 47 form;
+select a new structurally different hypothesis only if one current child has a
+material ceiling.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

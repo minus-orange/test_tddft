@@ -398,5 +398,17 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'ewald_r_space'
   case (127)
     name = 'ewald_mpi'
+  case (128)
+    name = 'electf_nonlocf_total'
+  case (129)
+    name = 'nonlocf_setup'
+  case (130)
+    name = 'nonlocf_kinetic_mpi'
+  case (131)
+    name = 'nonlocf_getylm'
+  case (132)
+    name = 'nonlocf_seppotf'
+  case (133)
+    name = 'nonlocf_finalize'
   end select
 end subroutine fpseid_mod_timer_name

@@ -192,6 +192,9 @@ c      stop
 c      endif
 c **** temp check
 C
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(128)
+#endif
       CALL NONLOCF( MXBND, MBLK, NXYZ, NG2, NG2Q,NBNDQ,NBND,
      &              NUMK, NUMKQ, NBSEQ,IOVP,
      &              RHO4, COEF, DCOEF, YLM, G2, RHO2, TPIBA,
@@ -208,6 +211,9 @@ c +++ for macroscopic current
      &   ,RHOAX,RHOAY,RHOAZ,PX,PY,PZ,PXTOT,PYTOT,PZTOT
 c
      &  ,nbegin,nend,ncpuq,ncpu  )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(128)
+#endif
 C
       if ( mod(itstep,itmod).eq.0 .and. my_rank.eq.0 ) then
       CALL CLOCK(TIM)
@@ -357,6 +363,9 @@ c
 c
       call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
 c
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(129)
+#endif
       PI=4.D0*ATAN(1.D0)
       TPI=2.D0*PI
       FPI=4.D0*PI
@@ -447,7 +456,13 @@ C
       if (my_rank.eq.0 ) write(6,*)' something wrong in nonlocf'
       stop
       endif
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(129)
+#endif
       DO 580 IK=1,NUMK
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_start(130)
+#endif
 c         DO 910 JJB=1,MBLK
 c            IF(JJB.EQ.MBLK) THEN
 c               NJ=MOD(NBND-1,MXBND)+1
@@ -547,14 +562,26 @@ c **** temp check : end
 C
              DO 588 IG=1,NG2(IK)
   588        RHOA(IG)=SQRT(G2(4,IG,IK))*TPIBA
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(130)
+#endif
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'DO 588 loop end'
 c **** temp check : end
          NG26=NG2(IK)/6
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_start(131)
+#endif
          CALL GETYLM(NG2Q,NG26,G2(1,1,IK),RHOA,YLM,TPIBA,NGcont)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(131)
+#endif
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'after end of GETYLM'
 c **** temp check : end
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_start(132)
+#endif
          CALL SEPPOTF( NG2Q, NG2(IK),NBSEQ(IK),NBNDQ, G2(1,1,IK),
      &   VPJ(1,1,1,1,ik),VPP,YLM,RHO2
 c     &  ,WORK2(1,1),WORK2(1,2),WORK2(1,3),
@@ -567,6 +594,9 @@ c     &  ,WORK2(1,1),WORK2(1,2),WORK2(1,3),
      &  ,NGcont
 c
      &  ,nbegin,nend,ncpuq,ncpu )
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(132)
+#endif
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'after end of SEPPOTF'
 c **** temp check : end
@@ -580,6 +610,9 @@ c      enddo
 c      write(6,*)' WK !! '
 c      write(6,*)( wk(ik),ik=1,numk )
 c ***  temp check : end
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(133)
+#endif
       if ( my_rank.eq.0 ) then
       ENL=0.D0
       EKINE=0.D0
@@ -688,6 +721,9 @@ C
 C
       ETOT = EKINE + ENL + DELTA
       endif   ! end of if my_rank.eq.0 loop
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(133)
+#endif
 C
 c      endif   ! end of if mod(itstep,itmod).eq.0 loop
       RETURN

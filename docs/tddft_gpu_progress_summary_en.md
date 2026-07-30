@@ -2261,3 +2261,17 @@ Step 104 run 01 passed both checks but took `64.0659618378` sec,
 are skipped. Computing fewer phases did not compensate for losing
 band-direction parallelism, so Step 104 is rejected and the accepted Step 102
 mapping is restored.
+
+The Step 100 current timers show `electf_force=6.249443` sec and
+`electf_locpotf_total=1.373461` sec. Their `4.875982` sec difference is
+`7.638%` of the official Step 102 wall. Old Steps 43/44 attributed nearly the
+same NONLOCF interval mainly to SEPPOTF, but the Step 47 tutorial-specific
+whole s/p offload is already rejected and must not be repeated.
+
+Step 105 is diagnostic only. Default-off timers measure complete ELECTF
+NONLOCF, setup, coefficient kinetic/current plus MPI, GETYLM, SEPPOTF, and
+final force/energy assembly, then derive child coverage and an unclassified
+gap. Equations, loop order, MPI boundaries, OpenACC ownership, CPU/FFTW, and
+the diagnostic-off path are unchanged. Run `./tools/run_tddft_step105.sh`
+once, require both correctness checks, and never use its diagnostic wall as a
+performance baseline.
