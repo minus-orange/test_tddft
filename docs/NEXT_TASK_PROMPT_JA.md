@@ -516,9 +516,20 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      GETYLM、SEPPOTF、最終集計へdefault-off timerだけで分解します。
 183. A100では`./tools/run_tddft_step105.sh`を1回だけ実行し、両checkを必須とし、
      `FPSEID_NONLOCF_SPLIT_BEGIN`から`FPSEID_NONLOCF_SPLIT_END`までの写真を返します。
+184. Step 105はrevision `91f27a0`でPASS/PASS。diagnostic wall
+     `70.5463471413`秒はbaselineではない。NONLOCF `4.975987`秒のうちSEPPOTFは
+     `4.061892`秒（`81.630%`）、係数kinetic/current＋MPIは`0.898982`秒だった。
+185. SEPPOTFは正式Step 102 wallの`6.362730%`で最大のactionable child。ただし
+     Step 47型s/p全体GPU化は既却下で、同形を再試行しない。
+186. 旧Step 47 GPU形は、現行host形がband間で再利用するWORK/DCOEF投影量生成を
+     band reduction内で再計算していた。Step 106は最適化せず、現行SEPPOTFを
+     位相生成、非partition s/pの投影量生成・band reduction、MPI、gapへ分解する。
+187. A100では`./tools/run_tddft_step106.sh`を1回だけ実行し、両checkを必須とし、
+     `FPSEID_SEPPOTF_DETAIL_BEGIN`から`FPSEID_SEPPOTF_DETAIL_END`までの写真を返す。
+     diagnostic wallはbaselineに使用しない。
 
 初回報告では、Git状態、正式Step 102 baseline、現在確定している比率、
-Step 105再診断で取得する指標、簡潔なA100実行コマンド案だけを示し、
+Step 106再診断で取得する指標、簡潔なA100実行コマンド案だけを示し、
 追加最適化へ進まず停止してください。
 
 ---

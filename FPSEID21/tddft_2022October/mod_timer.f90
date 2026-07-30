@@ -410,5 +410,17 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'nonlocf_seppotf'
   case (133)
     name = 'nonlocf_finalize'
+  case (134)
+    name = 'seppotf_phase'
+  case (135)
+    name = 'seppotf_s_projector'
+  case (136)
+    name = 'seppotf_s_band_reduce'
+  case (137)
+    name = 'seppotf_p_projector'
+  case (138)
+    name = 'seppotf_p_band_reduce'
+  case (139)
+    name = 'seppotf_mpi'
   end select
 end subroutine fpseid_mod_timer_name

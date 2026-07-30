@@ -2040,3 +2040,17 @@ force/energy集計を測り、coverageと未分類gapを導出します。数式
 OpenACC ownership、CPU/FFTW、diagnostic-off経路は変更しません。A100では
 `./tools/run_tddft_step105.sh`を1回だけ実行し、両checkを必須とし、diagnostic wallは
 baselineに使用しません。
+
+Step 105はrevision `91f27a0`でPASS/PASSでした。diagnostic wall
+`70.5463471413`秒はbaselineではありません。ELECTF NONLOCF `4.975987`秒のうち、
+setup `0.000899`、係数kinetic/current＋MPI `0.898982`、GETYLM `0.011795`、
+SEPPOTF `4.061892`、最終集計`0.000562`、未分類gap `0.001857`秒でした。
+SEPPOTFはNONLOCFの`81.630%`、正式Step 102 wallの`6.362730%`で最大の
+actionable childです。
+
+Step 47型s/p全体GPU化は再試行しません。旧GPU形は現行host形がband間で再利用する
+WORK/DCOEF投影量生成をband reduction内で再計算していました。Step 106は数値経路を
+変えず、現行SEPPOTFを位相生成、非partition s/pの投影量生成とband reduction、MPI、
+未分類gapへ分解します。A100では`./tools/run_tddft_step106.sh`を1回だけ実行し、
+両checkを必須とします。band reductionに実質的な上限が確認できた場合だけ、投影量を
+一度生成してbandへ適用する別構造の二段GPU化を検討します。

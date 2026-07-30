@@ -820,12 +820,18 @@ C *****
       FX=0.D0
       FY=0.D0
       FZ=0.D0
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(134)
+#endif
 c        DO 22 IG=1,NG2
         DO 22 IG=1,NGNL(ITY)
         TEMP=TPIBA*(G2K(1,IG)*TAU(1,ITAU)+G2K(2,IG)*TAU(2,ITAU)
      &             +G2K(3,IG)*TAU(3,ITAU))
         EXTAU(IG)=DCMPLX(COS(TEMP),SIN(TEMP))
    22   CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(134)
+#endif
 C
       DO 30 LI=1,LMAX
 cccc      READ(82,REC=IOVP(LI,ITY))  VPP, VPJ
@@ -838,6 +844,9 @@ C    &WRITE(6,*) ' VPJ ',IG,VPJ(IG,1)-VPJ(IG,2)-VPJ(IG,3)
 C
       L=LI-1
       IF(L.EQ.0.AND.IBUN(1,ITY).NE.1) THEN
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_start(135)
+#endif
 c         DO 50 IG=1,NG2
          DO 50 IG=1,NGNL(ITY)
 c         Y00=DCMPLX(YLM(IG,1),0.D0)
@@ -848,6 +857,10 @@ c         Y00=DCMPLX(YLM(IG,1),0.D0)
          DCOEF(IG,2)=SUKA1*G2K(2,IG)
          DCOEF(IG,3)=SUKA1*G2K(3,IG)
    50    CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(135)
+         call prof_start(136)
+#endif
 c         DO 52 IB=1,NBND
          DO 52 IB=nbegin(my_rank),nend(my_rank)
           iib=ib-nbegin(my_rank)+1
@@ -874,6 +887,9 @@ c            CD(3,1)=CD(3,1)+COEF(IG,IB)*DCOEF(IG,3)
             FZNL(ITAU,IB)=FZNL(ITAU,IB)+IMAG(CD(3,1)*DCONJG(CT(1)))
      &              /VPP(1,li,ity)
    52    CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(136)
+#endif
       ELSEIF(L.EQ.0) THEN
 C           PARTITIONING
          DO 1250 IP=2,3
@@ -934,6 +950,9 @@ c            CD(3,1)=CD(3,1)+COEF(IG,IB)*DCOEF(IG,3)
  1250    CONTINUE
       ELSEIF(L.EQ.1.AND.IBUN(2,ITY).NE.1) THEN
          sq2=dsqrt(2.d0)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_start(137)
+#endif
 c         DO 60 IG=1,NG2
          DO 60 IG=1,NGNL(ITY)
 c         Y11=DCMPLX( YLM(IG,2), 0.D0)
@@ -958,6 +977,10 @@ c         Y13=DCMPLX( YLM(IG,3),YLM(IG,4))
          DCOEF(IG,8)=SUKA3*G2K(2,IG)
          DCOEF(IG,9)=SUKA3*G2K(3,IG)
    60    CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(137)
+         call prof_start(138)
+#endif
 c         DO 62 IB=1,NBND
          DO 62 IB=nbegin(my_rank),nend(my_rank)
           iib=ib-nbegin(my_rank)+1
@@ -1016,6 +1039,9 @@ c            CD(3,3)=CD(3,3)+COEF(IG,IB)*DCOEF(IG,9)
      &                +CD(3,3)*DCONJG(CT(3)))
      &              /VPP(1,li,ity)
    62    CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(138)
+#endif
       ELSEIF(L.EQ.1) THEN
          sq2=dsqrt(2.d0)
          DO 1261 IP=2,3
@@ -1618,6 +1644,9 @@ c ****  temp check
 c      write(6,*)'my_rank=',my_rank,' end of DO 10 loop in SEPPOTF'
 c ****  temp check : end
    10 CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_start(139)
+#endif
       if (my_rank.ne.0 ) then
       nbleng=nend(my_rank)-nbegin(my_rank)+1
       call MPI_Send(EENL(nbegin(my_rank)),nbleng,
@@ -1641,6 +1670,9 @@ c ****  temp check : end
      &  MPI_DOUBLE_PRECISION,icpu,tag+3,MPI_COMM_WORLD,status,ierr)
       enddo
       endif
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+      call prof_stop(139)
+#endif
 C     WRITE(6,*) ' COEF CHECK ',COEF(1,1),COEF(1,2)
 C     WRITE(6,*) ' ##NON-LOCAL##',ENL
 CC      CALL CLOCK(TIM1)

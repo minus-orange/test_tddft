@@ -18,7 +18,8 @@ Last updated: 2026-07-30
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - Current HEAD status: Step 102 accepted; Step 104 kinetic-phase mapping
-  rejected and restored; Step 105 diagnostic prepared and awaiting A100
+  rejected and restored; Step 105 confirms current ELECTF SEPPOTF dominance;
+  Step 106 diagnostic prepared and awaiting A100
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 102 median `63.8388190269` sec
@@ -881,6 +882,23 @@ Require both correctness checks and use the diagnostic wall only for
 classification. If SEPPOTF still dominates, do not repeat the Step 47 form;
 select a new structurally different hypothesis only if one current child has a
 material ceiling.
+
+Step 105 at `91f27a0` passed both checks. Its diagnostic wall was
+`70.5463471413` sec and is not a baseline. ELECTF NONLOCF used `4.975987`
+sec: setup `0.000899`, coefficient kinetic/current plus MPI `0.898982`, GETYLM
+`0.011795`, SEPPOTF `4.061892`, finalization `0.000562`, and an unclassified
+gap of `0.001857` sec. SEPPOTF is `81.630%` of NONLOCF and `6.362730%` of the
+official Step 102 median, so it is the largest actionable child.
+
+Do not repeat Step 47's tutorial-specific fused s/p GPU path. Source review
+shows that it moved projector generation inside each band reduction, whereas
+the current host path generates WORK/DCOEF once and reuses them across local
+bands. Step 106 is diagnostic only and separates current SEPPOTF phase
+generation, nonpartitioned s/p projector generation, nonpartitioned s/p band
+reductions, MPI, and an unclassified gap. Run
+`./tools/run_tddft_step106.sh` once, require both checks, and do not use the
+diagnostic wall as a baseline. A structurally different two-stage GPU path is
+considered only if the band-reduction children have a material ceiling.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

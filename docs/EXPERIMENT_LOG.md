@@ -2106,6 +2106,41 @@ boundary, OpenACC ownership, CPU/FFTW behavior, or diagnostic-off execution.
 Run `tools/run_tddft_step105.sh` once, require normal check and relaxed
 compare, and do not use its diagnostic wall as a performance baseline.
 
+## Step 105 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP105_STEP102_NONLOCF_SPLIT_01`
+- Tested revision: `91f27a0c3c94a5ec1e5a9d4a82600c9837852a95`
+- Diagnostic wall: `70.5463471413` sec (not a baseline)
+- Correctness: normal check PASS; relaxed compare PASS
+- ELECTF NONLOCF: `4.975987` sec over 101 calls
+- setup: `0.000899` sec (`0.018%`)
+- coefficient kinetic/current plus MPI: `0.898982` sec (`18.066%`)
+- GETYLM: `0.011795` sec (`0.237%`)
+- SEPPOTF: `4.061892` sec (`81.630%`)
+- finalization: `0.000562` sec (`0.011%`)
+- unclassified gap: `0.001857` sec (`0.037%`)
+
+SEPPOTF is also `6.362730%` of the official Step 102 median, so it is the
+largest actionable child. The diagnostic wall is not a performance baseline.
+
+## Step 106 Plan
+
+Step 47's rejected tutorial-specific s/p GPU path must not be repeated. A
+source comparison found a structural problem in that form: the current host
+path generates WORK/DCOEF projector values once per atom/orbital/G vector and
+reuses them across local bands, while the Step 47 GPU path recomputed the
+projector expressions inside each band reduction.
+
+Step 106 is diagnostic only. Default-off timers split current SEPPOTF into
+phase generation, nonpartitioned s projector generation, nonpartitioned s
+band reduction, nonpartitioned p projector generation, nonpartitioned p band
+reduction, MPI, and an unclassified gap. No equation, loop order, MPI boundary,
+OpenACC ownership, CPU/FFTW path, or diagnostic-off execution changes. Run
+`tools/run_tddft_step106.sh` once and require both correctness checks. Its wall
+is diagnostic only. Consider a structurally different two-stage GPU path only
+if the band reductions have a material ceiling; otherwise close or redirect
+the SEPPOTF path according to the measured dominant child.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

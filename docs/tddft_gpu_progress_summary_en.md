@@ -2275,3 +2275,20 @@ gap. Equations, loop order, MPI boundaries, OpenACC ownership, CPU/FFTW, and
 the diagnostic-off path are unchanged. Run `./tools/run_tddft_step105.sh`
 once, require both correctness checks, and never use its diagnostic wall as a
 performance baseline.
+
+Step 105 at revision `91f27a0` passed both checks. Its `70.5463471413` sec
+diagnostic wall is not a baseline. Of the `4.975987` sec ELECTF NONLOCF
+interval, setup used `0.000899`, coefficient kinetic/current plus MPI
+`0.898982`, GETYLM `0.011795`, SEPPOTF `4.061892`, finalization `0.000562`,
+and the unclassified gap `0.001857` sec. SEPPOTF is `81.630%` of NONLOCF and
+`6.362730%` of the official Step 102 wall, making it the largest actionable
+child.
+
+The rejected Step 47 whole s/p GPU form is not retried. That GPU path moved
+projector expressions inside each band reduction, while the current host path
+generates WORK/DCOEF once and reuses them across local bands. Step 106 changes
+no numerical path and splits current SEPPOTF into phase generation,
+nonpartitioned s/p projector generation and band reductions, MPI, and a gap.
+Run `./tools/run_tddft_step106.sh` once and require both checks. Consider a
+structurally different two-stage GPU path only if the band-reduction children
+show a material ceiling.
