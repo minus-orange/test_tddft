@@ -1074,6 +1074,19 @@ different ownership or hardware evidence. The large regression is consistent
 with migration/access-transition overhead, but it was not profiled and should
 not be attributed more narrowly.
 
+Step 115 establishes a separate H100 baseline candidate from the latest
+accepted numerical source. Run
+`./tools/run_tddft_step115_h100_baseline.sh` on exactly one H100. The helper
+requires an H100 device name, builds once for `cc90` with the accepted
+`mem:separate:pinnedalloc` mode and diagnostics off, then collects three
+Si111-H 100-step runs with 1 MPI rank.
+
+Every run must pass normal check and relaxed compare; runs 02/03 are also
+strictly compared directly with run 01. The report captures exact device,
+driver, compiler, kernel, revision, flags, median, and range. Treat the result
+as an H100-only baseline candidate. The A100 Step 107 baseline remains
+independent and cannot be replaced or mixed with this series.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

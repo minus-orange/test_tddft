@@ -258,6 +258,13 @@ It is not a formal H100 baseline because only one run is available and the
 exact H100 model, Git revision, compiler version, and GPU architecture target
 were not captured. The official baseline above remains A100-only.
 
+Step 115 will replace this incomplete observation with a controlled H100
+baseline candidate using the latest accepted numerical path, an explicit
+`cc90` build, `mem:separate:pinnedalloc`, diagnostics off, and three Si111-H
+100-step runs. It records exact provenance and a device-specific median and
+range. Even if accepted, that result remains an H100-only baseline and does not
+replace or mix with the A100 Step 107 series.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

@@ -82,6 +82,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 112 | Fuse NONLOCF kinetic/current and A-vector energy passes | 63.6258358955 (run 01) | rejected; early stop and restored | `1aa31fd` / `330bd1c` |
 | 113 | Screen isolated NVHPC compiler options | 63.7448709011 best one-run wall (`fastmath`) | screening; no baseline change | `05fd3c4` |
 | 114 | Screen NVHPC memory modes | 130.1395111080 best alternative (`managed`) | rejected; >2x control wall | `3fe68c1` |
+| 115 | Establish current-source H100 cc90 baseline | pending | three-run measurement planned | pending |
 
 ## Other Rejected Experiments
 
@@ -2424,6 +2425,25 @@ new hardware evidence.
 The result is consistent with automatic page migration or host/device access
 transitions overwhelming this path, but no profiler trace was collected, so
 that mechanism remains an inference rather than a measured attribution.
+
+## Step 115 Current-Source H100 cc90 Baseline Plan
+
+Measure the latest accepted numerical path (`c46cfa9`, plus current
+default-off validation/timer infrastructure) on H100 without changing the A100
+baseline. Build TDDFT once with diagnostics off and the exact flags
+`-O2 -acc -gpu=cc90 -mp -Msave -Mlarge_arrays -gpu=mem:separate:pinnedalloc`.
+Then run the Si111-H 100-step case three times with 1 H100 and 1 MPI rank.
+
+Use `tools/run_tddft_step115_h100_baseline.sh`. It refuses to build on a device
+whose reported name does not contain H100, records the exact model, driver,
+compiler, kernel, revision, and flags, creates three unique archives, and
+requires normal check plus relaxed compare for every run. Runs 02 and 03 also
+receive a direct strict comparison with run 01 as a reproducibility signal.
+
+The compact report prints the H100 median and range. It also prints the
+same-source A100 Step 107 median ratio only as a cross-device observation.
+Never mix H100 results into the A100 series. A correct three-run result is an
+H100-only baseline candidate and still requires result review before adoption.
 
 ## Step 80 H100 Exploratory Run
 

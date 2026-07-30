@@ -2462,3 +2462,16 @@ rejection without runs 02/03. Keep `-gpu=mem:separate:pinnedalloc` and do not
 retry whole-build managed or unified memory for this tutorial path without
 materially different ownership or hardware evidence. Automatic migration or
 access transitions are a plausible explanation, not a measured attribution.
+
+Step 115 measures the latest accepted numerical path as a separate H100
+baseline candidate. `tools/run_tddft_step115_h100_baseline.sh` verifies that
+the selected device reports H100, builds TDDFT once with diagnostics off,
+`-gpu=cc90`, and the accepted `mem:separate:pinnedalloc` mode, then runs the
+Si111-H 100-step case three times with 1 GPU and 1 MPI rank.
+
+All runs require normal check and relaxed compare; runs 02/03 are additionally
+strictly compared with run 01. The terminal summary records the exact H100
+model, driver, compiler, kernel, revision, flags, three walls, median, and
+range. The A100 Step 107 ratio is cross-device context only. A correct result
+is an H100-only baseline candidate and never changes or mixes with the A100
+baseline.

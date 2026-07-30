@@ -623,14 +623,21 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      run 02/03へ進めず両方不採用とする。
 226. 標準`-gpu=mem:separate:pinnedalloc`と正式Step 107 baselineを維持する。
      ownership/hardware条件が本質的に変わらない限りmanaged/unifiedを再試行しない。
+227. Step 115は最新採用数値sourceをH100向け`cc90`、diagnostic OFF、
+     `mem:separate:pinnedalloc`で1回buildし、1GPU / 1MPI / 100 stepsを3回測る。
+228. exact H100 model、driver、compiler、kernel、revision、flags、各wall、中央値、
+     rangeを記録し、全runで通常checkとrelaxed compareを必須とする。
+229. H100結果は独立baseline候補とし、A100 Step 107系列と混合・置換しない。
 
 Step 112の不採用・復元は`330bd1c`としてcommit/push済みで、CPU/FFTWの
 diagnostic OFF/ON full buildもPASSしています。現在の数値経路は正式Step 107へ
 復元済みです。
 
-Step 114は完了し、追加A100実行はありません。新しいproduction入力、新しい
-profiler根拠、または本質的に異なるhardware/ownership条件が得られるまで、追加の
-whole-build memory modeや低上限tutorial micro-optimizationを先行実装しないで
-ください。
+次はH100環境で`./tools/run_tddft_step115_h100_baseline.sh`を1回実行し、末尾の
+「FPSEID21 STEP115 H100 CC90 BASELINE CANDIDATE SUMMARY」から
+「H100-only baseline candidate; do not replace or mix with the A100 baseline.」
+までが入る写真1枚を返してください。途中停止時は
+「FPSEID21 STEP115 H100 CC90 BASELINE FAILURE」から最後の停止文までが入る
+写真1枚を返してください。
 
 ---

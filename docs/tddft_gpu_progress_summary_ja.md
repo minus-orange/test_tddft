@@ -2200,3 +2200,14 @@ PASSしました。数値正しさでは除外されませんが、明確な大�
 hardware条件が本質的に変わらない限りtutorial経路でwhole-build managed/unifiedを
 再試行しません。自動migrationまたはhost/device access transitionは考えられる説明
 ですが、profiler未取得のため測定済み原因とは断定しません。
+
+Step 115では最新の採用済み数値経路を独立したH100 baseline候補として測定します。
+`tools/run_tddft_step115_h100_baseline.sh`は選択device名がH100を含むことを確認し、
+diagnostic OFF、`-gpu=cc90`、採用済み`mem:separate:pinnedalloc`でTDDFTを1回buildした
+後、Si111-H 100 stepsを1GPU / 1MPIで3回実行します。
+
+全runは通常checkとrelaxed compare必須で、run 02/03はrun 01との直接strict compareも
+行います。summaryは正確なH100型式、driver、compiler、kernel、revision、flags、
+3つのwall、中央値、rangeを記録します。A100 Step 107との比率はcross-device参考値
+だけです。正しい結果はH100専用baseline候補であり、A100 baselineとは混合・置換
+しません。
