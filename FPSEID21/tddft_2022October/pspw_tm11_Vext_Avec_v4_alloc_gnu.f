@@ -163,7 +163,7 @@ c      COMPLEX*16  COEF(NG2Q,MXBND2,NUMKQ),DCOEF(NG2Q,10),
 c      COMPLEX*16  COEF(NG2Q,MXBND2,NUMKQ),DCOEF(NG2Q,15),
 c      COMPLEX*16  COEF(NG2Q,MXBND2,NUMKQ),DCOEF(NG2Q,21),
 c     &            COEF0(NG2Q,MXBND2,NUMKQ),CMAT(NBNDQ,NBNDQ)
-      complex*16,allocatable,save,dimension(:,:,:)::coef,coef0
+      complex*16,allocatable,save,dimension(:,:,:)::coef,coef0,SEPRED
       complex*16,allocatable,save,dimension(:,:)::DCOEF,CMAT
 c **  attension ! for local pseudo potential
       real*8, allocatable,save,dimension(:,:)::VGA,FORCE,TAU,
@@ -334,7 +334,8 @@ c  *** LY2,LZ1,LZ2 are still necessary for ROTRA
       allocate(  NGNL(NTYQ,NUMKQ) )
 c ***
       allocate(  COEF(NG2Q,MXBND2,NUMKQ),DCOEF(NG2Q,21),
-     &            COEF0(NG2Q,MXBND2,NUMKQ),CMAT(NBNDQ,NBNDQ) )
+     &            COEF0(NG2Q,MXBND2,NUMKQ),CMAT(NBNDQ,NBNDQ),
+     &            SEPRED(16,NTAUQ,MXBND2) )
 c
 c **  attension ! for local pseudo potential
       allocate(  VGA(NGQ,NTYQ),
@@ -1710,10 +1711,12 @@ c *** for Kokubo FFTW
      &                  ,plancfp,plancbp
      &                  ,REXT,WEXT,ft,dft,DELTAd,CWORK
 c
-     &                  ,NGcont
+     &                  ,NGcont,EXTAU,SEPRED
 c
      &   ,nbegin,nend,nbegint,nendt,nbegintt,nendtt,ncpuq,ncpu)
        call prof_stop(5)
+! FRPRMN keeps COEF resident only through this immediately following ELECTF.
+!$acc exit data delete(COEF(1:NG2Q,1:MXBND2,1:NUMKQ))
 c
 cc
 c *** include vector potential contribution

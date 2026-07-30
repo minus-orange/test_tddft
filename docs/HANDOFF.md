@@ -900,6 +900,30 @@ reductions, MPI, and an unclassified gap. Run
 diagnostic wall as a baseline. A structurally different two-stage GPU path is
 considered only if the band-reduction children have a material ceiling.
 
+Step 106 at `9ef703b` passed both checks. Its diagnostic wall was
+`70.2937791348` sec and is not a baseline. SEPPOTF used `4.101524` sec:
+phase `0.091686`, s-projector generation `0.047953`, s-band reduction
+`1.270594`, p-projector generation `0.122658`, p-band reduction `2.537915`,
+MPI `0.000391`, and unclassified gap `0.030327` sec. The two band reductions
+total `3.808509` sec (`92.856%` of SEPPOTF and `5.965820%` of the official
+Step 102 wall), establishing a material ceiling for a different GPU shape.
+
+Step 107 is one bounded performance hypothesis. It generates each atom's
+nonpartitioned s/p projector values once, then launches reductions over atom x
+local-band gangs and performs final type/atom/s-then-p accumulation in the
+original order. It reuses the existing `EXTAU(NGcont,5,NTAUQ)` allocation and
+adds only `SEPRED(16,NTAUQ,MXBND2)`. `COEF` remains resident only from FRPRMN
+through the immediately following ELECTF call in the same time step; it is
+deleted before the next time step, so this is not the rejected Step 45
+whole-time-step ownership. Partitioned or d/f projector shapes retain the
+host path. The GNU MPI + FFTW fallback full build/link passes.
+
+Run `./tools/run_tddft_step107.sh 01` first with diagnostics off. Require both
+checks and compare its wall with the official Step 102 median
+`63.8388190269` sec. Stop after run 01 if correctness fails or the result is
+not promising; only then use `02-03` for the adoption median. Rollback target
+for the experiment is `9ef703b`.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

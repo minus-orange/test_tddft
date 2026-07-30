@@ -1528,6 +1528,12 @@ c
       call prof_stop(55)
 #endif
       if (IOK.eq.1 ) goto 9899  ! quit the Predictor-correcter loop
+! Keep COEF allocated until the immediately following ELECTF call.  The
+! initial-step path returns before the predictor-corrector data region, so the
+! ownership starts here for every time step.
+      if (iscf.eq.1) then
+!$acc enter data copyin(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+      endif
       if ( itstep.eq.0 ) then
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_start(56)
@@ -1605,8 +1611,7 @@ c *** for CPU/FFTW.  OpenACC initializes COEF0 from resident COEF on device.
 #endif
       if (iscf.eq.1) then
 #ifdef _OPENACC
-!$acc enter data copyin(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
-!$acc& create(COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc enter data create(COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
 !$acc parallel loop collapse(3)
 !$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
 !$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
@@ -2311,8 +2316,7 @@ C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_start(61)
 #endif
-!$acc exit data delete(COEF(1:NG2Q,1:MXBND,1:NUMKQ),
-!$acc& COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc exit data delete(COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(61)
 #endif

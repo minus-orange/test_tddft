@@ -527,9 +527,20 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 187. A100では`./tools/run_tddft_step106.sh`を1回だけ実行し、両checkを必須とし、
      `FPSEID_SEPPOTF_DETAIL_BEGIN`から`FPSEID_SEPPOTF_DETAIL_END`までの写真を返す。
      diagnostic wallはbaselineに使用しない。
+188. Step 106はrevision `9ef703b`でPASS/PASS、diagnostic wall
+     `70.2937791348`秒。SEPPOTF `4.101524`秒のうちs/p band reductionは
+     `1.270594`＋`2.537915`=`3.808509`秒（`92.856%`）だった。
+189. band reduction合計は正式Step 102 wallの`5.965820%`で、別構造GPU化に十分な
+     上限がある。projector生成とMPIは直接targetにしない。
+190. Step 107は原子ごとの非partition s/p投影量を一度生成し、原子×local-bandを
+     GPU gangへ展開する。最終type→atom→s→p順を維持し、partition/d/fはhost fallback、
+     COEF常駐は同一time-stepのFRPRMN→直後ELECTFだけとする。
+191. GNU MPI＋FFTW full build/linkはPASS。A100ではdiagnostic OFFの
+     `./tools/run_tddft_step107.sh 01`だけを先に実行し、両checkとwallを返す。
+     不正解または明確に遅ければrun 02/03を早期停止する。
 
-初回報告では、Git状態、正式Step 102 baseline、現在確定している比率、
-Step 106再診断で取得する指標、簡潔なA100実行コマンド案だけを示し、
-追加最適化へ進まず停止してください。
+次はStep 107 run 01のA100結果を受け取り、PASS/PASSと正式Step 102中央値
+`63.8388190269`秒との差を判定してください。良好な場合だけrun 02/03を案内し、
+不良ならrollback target `9ef703b`へsourceを戻して結果を記録してください。
 
 ---

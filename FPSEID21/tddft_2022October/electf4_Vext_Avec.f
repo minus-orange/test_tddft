@@ -38,7 +38,7 @@ c     &      ,WSAVE_XYZ,IFAC_XYZ,REXT,WEXT,ft,dft,DELTAd,CWORK)
 c *** for Kokubo FFTW
      &                  ,plancfp,plancbp,REXT,WEXT,ft,dft,DELTAd,CWORK
 c
-     &     ,NGcont
+     &     ,NGcont,SEPWORK,SEPRED
 c
      &   ,nbegin,nend,nbegint,nendt,nbegintt,nendtt,ncpuq,ncpu)
 C
@@ -65,6 +65,8 @@ c      COMPLEX*16 COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,MXBND)
 c      COMPLEX*16 COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,10)
 c      COMPLEX*16 COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,15)
       COMPLEX*16 COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,21)
+      COMPLEX*16 SEPWORK(NGcont,5,NTAUQ),
+     &           SEPRED(16,NTAUQ,MXBND)
 c      DIMENSION VPJ(NG2Q,3),VPP(3),IOWF(MBLK,NUMKQ)
 c      DIMENSION VPJ(NG2Q,3,2,NTYQ,NUMKQ),VPP(3,2,NTYQ)
 c      DIMENSION VPJ(NG2Q/3,3,3,NTYQ,NUMKQ),VPP(3,3,NTYQ)
@@ -206,7 +208,7 @@ c +++ A-vec Y. Miyamoto
      &              GDUMPd,EEd,EKINEd,
      &              NSY, FXNL, FYNL, FZNL,
      &  TAU, NUMTY,NIDN,EKINE,ENL,NPFL,MXOFL,OCC,itstep,GDUMP,NGNL
-     &  ,NGcont
+     &  ,NGcont,SEPWORK,SEPRED
 c +++ for macroscopic current
      &   ,RHOAX,RHOAY,RHOAZ,PX,PY,PZ,PXTOT,PYTOT,PZTOT
 c
@@ -294,6 +296,333 @@ C         FORCE(2,5) = FORCE(2,5) - FFF
 C CARE TEMP END
       RETURN
       END
+
+C********************************************************************
+C Step 107: batched nonpartitioned s/p projector reductions.
+C Projectors are generated once per atom, then each reduction kernel
+C exposes atom x local-band gangs.  The final kernel keeps the original
+C type, atom, and s-then-p accumulation order for every band.
+      SUBROUTINE SEPPOTF_ACC(NG2Q,NBNDQ,G2K,VPJ,VPP,YLM,COEF,
+     & TPIBA,TAU,EENL,FXNL,FYNL,FZNL,NTAUQ,NTYQ,NTYPE,NUMTY,NIDN,
+     & MXOFL,NGNL,NGCONT,SEPWORK,SEPRED,MXBND,NB0,NB1)
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION G2K(4,NG2Q),VPJ(NGCONT,3,4,NTYQ),
+     & VPP(3,4,NTYQ),YLM(NGCONT,16),NUMTY(NTYQ),
+     & NIDN(NTAUQ,NTYQ),MXOFL(NTYQ),NGNL(NTYQ),TAU(3,NTAUQ)
+      DIMENSION EENL(NBNDQ),FXNL(NTAUQ,NBNDQ),
+     & FYNL(NTAUQ,NBNDQ),FZNL(NTAUQ,NBNDQ)
+      COMPLEX*16 COEF(NG2Q,MXBND),SEPWORK(NGCONT,5,NTAUQ),
+     & SEPRED(16,NTAUQ,MXBND)
+      NBLENG=NB1-NB0+1
+      DO ITY=1,NTYPE
+       NATM=NUMTY(ITY)
+       CALL SEPPOTF_PROJECT_ACC(NG2Q,NGNL(ITY),NGCONT,NTAUQ,
+     &  NTYQ,NATM,ITY,G2K,YLM,VPJ,TAU,TPIBA,NIDN,
+     &  MXOFL(ITY),SEPWORK)
+       CALL SEPPOTF_S_BATCH_ACC(NG2Q,NGNL(ITY),NGCONT,NTAUQ,
+     &  NTYQ,NATM,ITY,NBLENG,MXBND,G2K,COEF,NIDN,
+     &  SEPWORK,SEPRED)
+       IF (MXOFL(ITY).GE.2) THEN
+        CALL SEPPOTF_P_BATCH_ACC(NG2Q,NGNL(ITY),NGCONT,NTAUQ,
+     &   NTYQ,NATM,ITY,NBLENG,MXBND,G2K,COEF,NIDN,
+     &   SEPWORK,SEPRED)
+       ENDIF
+      ENDDO
+      CALL SEPPOTF_FINAL_ACC(NBNDQ,NTAUQ,NTYQ,NTYPE,NUMTY,NIDN,
+     & MXOFL,VPP,EENL,FXNL,FYNL,FZNL,SEPRED,MXBND,
+     & NBLENG,NB0)
+!$acc update self(EENL(NB0:NB1))
+!$acc update self(FXNL(1:NTAUQ,NB0:NB1))
+!$acc update self(FYNL(1:NTAUQ,NB0:NB1))
+!$acc update self(FZNL(1:NTAUQ,NB0:NB1))
+      RETURN
+      END
+
+      SUBROUTINE SEPPOTF_PROJECT_ACC(NG2Q,NGL,NGCONT,NTAUQ,
+     & NTYQ,NATM,ITY,G2K,YLM,VPJ,TAU,TPIBA,NIDN,LMAX,SEPWORK)
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION G2K(4,NG2Q),YLM(NGCONT,16),
+     & VPJ(NGCONT,3,4,NTYQ),TAU(3,NTAUQ),
+     & NIDN(NTAUQ,NTYQ)
+      COMPLEX*16 SEPWORK(NGCONT,5,NTAUQ)
+      SQ2=DSQRT(2.D0)
+!$acc parallel loop gang vector collapse(2) vector_length(128)
+!$acc& present(G2K(1:4,1:NG2Q),YLM(1:NGCONT,1:16),
+!$acc& VPJ(1:NGCONT,1:3,1:4,1:NTYQ),TAU(1:3,1:NTAUQ),
+!$acc& NIDN(1:NTAUQ,1:NTYQ),
+!$acc& SEPWORK(1:NGCONT,1:5,1:NTAUQ))
+      DO IATM=1,NATM
+       DO IG=1,NGL
+        ITAU=NIDN(IATM,ITY)
+        TEMP=TPIBA*(G2K(1,IG)*TAU(1,ITAU)
+     &       +G2K(2,IG)*TAU(2,ITAU)+G2K(3,IG)*TAU(3,ITAU))
+        PHR=COS(TEMP)
+        PHI=SIN(TEMP)
+        WR=PHR*YLM(IG,1)
+        WI=PHI*YLM(IG,1)
+        SEPWORK(IG,2,ITAU)=DCMPLX(WR*VPJ(IG,1,1,ITY),
+     &                                  WI*VPJ(IG,1,1,ITY))
+        IF (LMAX.GE.2) THEN
+         WR=PHR*YLM(IG,3)*SQ2
+         WI=PHI*YLM(IG,3)*SQ2
+         SEPWORK(IG,3,ITAU)=DCMPLX(WR*VPJ(IG,1,2,ITY),
+     &                                    WI*VPJ(IG,1,2,ITY))
+         WR=PHR*YLM(IG,4)*SQ2
+         WI=PHI*YLM(IG,4)*SQ2
+         SEPWORK(IG,4,ITAU)=DCMPLX(WR*VPJ(IG,1,2,ITY),
+     &                                    WI*VPJ(IG,1,2,ITY))
+         WR=PHR*YLM(IG,2)
+         WI=PHI*YLM(IG,2)
+         SEPWORK(IG,5,ITAU)=DCMPLX(WR*VPJ(IG,1,2,ITY),
+     &                                    WI*VPJ(IG,1,2,ITY))
+        ENDIF
+       ENDDO
+      ENDDO
+      RETURN
+      END
+
+      SUBROUTINE SEPPOTF_S_BATCH_ACC(NG2Q,NGL,NGCONT,NTAUQ,
+     & NTYQ,NATM,ITY,NBLENG,MXBND,G2K,COEF,NIDN,
+     & SEPWORK,SEPRED)
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION G2K(4,NG2Q),NIDN(NTAUQ,NTYQ)
+      COMPLEX*16 COEF(NG2Q,MXBND),SEPWORK(NGCONT,5,NTAUQ),
+     & SEPRED(16,NTAUQ,MXBND)
+!$acc parallel loop gang collapse(2) vector_length(256)
+!$acc& present(G2K(1:4,1:NG2Q),COEF(1:NG2Q,1:MXBND),
+!$acc& NIDN(1:NTAUQ,1:NTYQ),
+!$acc& SEPWORK(1:NGCONT,1:5,1:NTAUQ),
+!$acc& SEPRED(1:16,1:NTAUQ,1:MXBND))
+      DO IATM=1,NATM
+       DO IIB=1,NBLENG
+        ITAU=NIDN(IATM,ITY)
+        CTR=0.D0
+        CTI=0.D0
+        DXR=0.D0
+        DXI=0.D0
+        DYR=0.D0
+        DYI=0.D0
+        DZR=0.D0
+        DZI=0.D0
+!$acc loop vector reduction(+:CTR,CTI,DXR,DXI,DYR,DYI,DZR,DZI)
+        DO IG=1,NGL
+         WR=DBLE(SEPWORK(IG,2,ITAU))
+         WI=DIMAG(SEPWORK(IG,2,ITAU))
+         AR=DBLE(COEF(IG,IIB))
+         AI=DIMAG(COEF(IG,IIB))
+         PR=AR*WR-AI*WI
+         PI=AR*WI+AI*WR
+         CTR=CTR+PR
+         CTI=CTI+PI
+         DWR=WR*G2K(1,IG)
+         DWI=WI*G2K(1,IG)
+         DXR=DXR+AR*DWR-AI*DWI
+         DXI=DXI+AR*DWI+AI*DWR
+         DWR=WR*G2K(2,IG)
+         DWI=WI*G2K(2,IG)
+         DYR=DYR+AR*DWR-AI*DWI
+         DYI=DYI+AR*DWI+AI*DWR
+         DWR=WR*G2K(3,IG)
+         DWI=WI*G2K(3,IG)
+         DZR=DZR+AR*DWR-AI*DWI
+         DZI=DZI+AR*DWI+AI*DWR
+        ENDDO
+        SEPRED(1,ITAU,IIB)=DCMPLX(CTR,CTI)
+        SEPRED(2,ITAU,IIB)=DCMPLX(DXR,DXI)
+        SEPRED(3,ITAU,IIB)=DCMPLX(DYR,DYI)
+        SEPRED(4,ITAU,IIB)=DCMPLX(DZR,DZI)
+       ENDDO
+      ENDDO
+      RETURN
+      END
+
+      SUBROUTINE SEPPOTF_P_BATCH_ACC(NG2Q,NGL,NGCONT,NTAUQ,
+     & NTYQ,NATM,ITY,NBLENG,MXBND,G2K,COEF,NIDN,
+     & SEPWORK,SEPRED)
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION G2K(4,NG2Q),NIDN(NTAUQ,NTYQ)
+      COMPLEX*16 COEF(NG2Q,MXBND),SEPWORK(NGCONT,5,NTAUQ),
+     & SEPRED(16,NTAUQ,MXBND)
+!$acc parallel loop gang collapse(2) vector_length(256)
+!$acc& present(G2K(1:4,1:NG2Q),COEF(1:NG2Q,1:MXBND),
+!$acc& NIDN(1:NTAUQ,1:NTYQ),
+!$acc& SEPWORK(1:NGCONT,1:5,1:NTAUQ),
+!$acc& SEPRED(1:16,1:NTAUQ,1:MXBND))
+      DO IATM=1,NATM
+       DO IIB=1,NBLENG
+        ITAU=NIDN(IATM,ITY)
+        C1R=0.D0
+        C1I=0.D0
+        X1R=0.D0
+        X1I=0.D0
+        Y1R=0.D0
+        Y1I=0.D0
+        Z1R=0.D0
+        Z1I=0.D0
+        C2R=0.D0
+        C2I=0.D0
+        X2R=0.D0
+        X2I=0.D0
+        Y2R=0.D0
+        Y2I=0.D0
+        Z2R=0.D0
+        Z2I=0.D0
+        C3R=0.D0
+        C3I=0.D0
+        X3R=0.D0
+        X3I=0.D0
+        Y3R=0.D0
+        Y3I=0.D0
+        Z3R=0.D0
+        Z3I=0.D0
+!$acc loop vector reduction(+:C1R,C1I,X1R,X1I,Y1R,Y1I,Z1R,Z1I,
+!$acc& C2R,C2I,X2R,X2I,Y2R,Y2I,Z2R,Z2I,
+!$acc& C3R,C3I,X3R,X3I,Y3R,Y3I,Z3R,Z3I)
+        DO IG=1,NGL
+         AR=DBLE(COEF(IG,IIB))
+         AI=DIMAG(COEF(IG,IIB))
+         W1R=DBLE(SEPWORK(IG,3,ITAU))
+         W1I=DIMAG(SEPWORK(IG,3,ITAU))
+         W2R=DBLE(SEPWORK(IG,4,ITAU))
+         W2I=DIMAG(SEPWORK(IG,4,ITAU))
+         W3R=DBLE(SEPWORK(IG,5,ITAU))
+         W3I=DIMAG(SEPWORK(IG,5,ITAU))
+         P1R=AR*W1R-AI*W1I
+         P1I=AR*W1I+AI*W1R
+         P2R=AR*W2R-AI*W2I
+         P2I=AR*W2I+AI*W2R
+         P3R=AR*W3R-AI*W3I
+         P3I=AR*W3I+AI*W3R
+         C1R=C1R+P1R
+         C1I=C1I+P1I
+         DWR=W1R*G2K(1,IG)
+         DWI=W1I*G2K(1,IG)
+         X1R=X1R+AR*DWR-AI*DWI
+         X1I=X1I+AR*DWI+AI*DWR
+         DWR=W1R*G2K(2,IG)
+         DWI=W1I*G2K(2,IG)
+         Y1R=Y1R+AR*DWR-AI*DWI
+         Y1I=Y1I+AR*DWI+AI*DWR
+         DWR=W1R*G2K(3,IG)
+         DWI=W1I*G2K(3,IG)
+         Z1R=Z1R+AR*DWR-AI*DWI
+         Z1I=Z1I+AR*DWI+AI*DWR
+         C2R=C2R+P2R
+         C2I=C2I+P2I
+         DWR=W2R*G2K(1,IG)
+         DWI=W2I*G2K(1,IG)
+         X2R=X2R+AR*DWR-AI*DWI
+         X2I=X2I+AR*DWI+AI*DWR
+         DWR=W2R*G2K(2,IG)
+         DWI=W2I*G2K(2,IG)
+         Y2R=Y2R+AR*DWR-AI*DWI
+         Y2I=Y2I+AR*DWI+AI*DWR
+         DWR=W2R*G2K(3,IG)
+         DWI=W2I*G2K(3,IG)
+         Z2R=Z2R+AR*DWR-AI*DWI
+         Z2I=Z2I+AR*DWI+AI*DWR
+         C3R=C3R+P3R
+         C3I=C3I+P3I
+         DWR=W3R*G2K(1,IG)
+         DWI=W3I*G2K(1,IG)
+         X3R=X3R+AR*DWR-AI*DWI
+         X3I=X3I+AR*DWI+AI*DWR
+         DWR=W3R*G2K(2,IG)
+         DWI=W3I*G2K(2,IG)
+         Y3R=Y3R+AR*DWR-AI*DWI
+         Y3I=Y3I+AR*DWI+AI*DWR
+         DWR=W3R*G2K(3,IG)
+         DWI=W3I*G2K(3,IG)
+         Z3R=Z3R+AR*DWR-AI*DWI
+         Z3I=Z3I+AR*DWI+AI*DWR
+        ENDDO
+        SEPRED(5,ITAU,IIB)=DCMPLX(C1R,C1I)
+        SEPRED(6,ITAU,IIB)=DCMPLX(X1R,X1I)
+        SEPRED(7,ITAU,IIB)=DCMPLX(Y1R,Y1I)
+        SEPRED(8,ITAU,IIB)=DCMPLX(Z1R,Z1I)
+        SEPRED(9,ITAU,IIB)=DCMPLX(C2R,C2I)
+        SEPRED(10,ITAU,IIB)=DCMPLX(X2R,X2I)
+        SEPRED(11,ITAU,IIB)=DCMPLX(Y2R,Y2I)
+        SEPRED(12,ITAU,IIB)=DCMPLX(Z2R,Z2I)
+        SEPRED(13,ITAU,IIB)=DCMPLX(C3R,C3I)
+        SEPRED(14,ITAU,IIB)=DCMPLX(X3R,X3I)
+        SEPRED(15,ITAU,IIB)=DCMPLX(Y3R,Y3I)
+        SEPRED(16,ITAU,IIB)=DCMPLX(Z3R,Z3I)
+       ENDDO
+      ENDDO
+      RETURN
+      END
+
+      SUBROUTINE SEPPOTF_FINAL_ACC(NBNDQ,NTAUQ,NTYQ,NTYPE,
+     & NUMTY,NIDN,MXOFL,VPP,EENL,FXNL,FYNL,FZNL,SEPRED,
+     & MXBND,NBLENG,NB0)
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION NUMTY(NTYQ),NIDN(NTAUQ,NTYQ),MXOFL(NTYQ),
+     & VPP(3,4,NTYQ),EENL(NBNDQ),FXNL(NTAUQ,NBNDQ),
+     & FYNL(NTAUQ,NBNDQ),FZNL(NTAUQ,NBNDQ)
+      COMPLEX*16 SEPRED(16,NTAUQ,MXBND)
+!$acc parallel loop gang vector_length(1)
+!$acc& present(NUMTY(1:NTYQ),NIDN(1:NTAUQ,1:NTYQ),
+!$acc& MXOFL(1:NTYQ),VPP(1:3,1:4,1:NTYQ),
+!$acc& EENL(1:NBNDQ),FXNL(1:NTAUQ,1:NBNDQ),
+!$acc& FYNL(1:NTAUQ,1:NBNDQ),FZNL(1:NTAUQ,1:NBNDQ),
+!$acc& SEPRED(1:16,1:NTAUQ,1:MXBND))
+      DO IIB=1,NBLENG
+       IB=NB0+IIB-1
+       EVAL=0.D0
+       DO ITAU=1,NTAUQ
+        FXNL(ITAU,IB)=0.D0
+        FYNL(ITAU,IB)=0.D0
+        FZNL(ITAU,IB)=0.D0
+       ENDDO
+       DO ITY=1,NTYPE
+        DO IATM=1,NUMTY(ITY)
+         ITAU=NIDN(IATM,ITY)
+         CTR=DBLE(SEPRED(1,ITAU,IIB))
+         CTI=DIMAG(SEPRED(1,ITAU,IIB))
+         DXR=DBLE(SEPRED(2,ITAU,IIB))
+         DXI=DIMAG(SEPRED(2,ITAU,IIB))
+         DYR=DBLE(SEPRED(3,ITAU,IIB))
+         DYI=DIMAG(SEPRED(3,ITAU,IIB))
+         DZR=DBLE(SEPRED(4,ITAU,IIB))
+         DZI=DIMAG(SEPRED(4,ITAU,IIB))
+         DEN=VPP(1,1,ITY)
+         EVAL=EVAL+(CTR*CTR+CTI*CTI)/DEN
+         FXNL(ITAU,IB)=FXNL(ITAU,IB)+(DXI*CTR-DXR*CTI)/DEN
+         FYNL(ITAU,IB)=FYNL(ITAU,IB)+(DYI*CTR-DYR*CTI)/DEN
+         FZNL(ITAU,IB)=FZNL(ITAU,IB)+(DZI*CTR-DZR*CTI)/DEN
+         IF (MXOFL(ITY).GE.2) THEN
+          PEVAL=0.D0
+          PFX=0.D0
+          PFY=0.D0
+          PFZ=0.D0
+          DO IP=0,2
+           JC=5+4*IP
+           CTR=DBLE(SEPRED(JC,ITAU,IIB))
+           CTI=DIMAG(SEPRED(JC,ITAU,IIB))
+           DXR=DBLE(SEPRED(JC+1,ITAU,IIB))
+           DXI=DIMAG(SEPRED(JC+1,ITAU,IIB))
+           DYR=DBLE(SEPRED(JC+2,ITAU,IIB))
+           DYI=DIMAG(SEPRED(JC+2,ITAU,IIB))
+           DZR=DBLE(SEPRED(JC+3,ITAU,IIB))
+           DZI=DIMAG(SEPRED(JC+3,ITAU,IIB))
+           PEVAL=PEVAL+CTR*CTR+CTI*CTI
+           PFX=PFX+DXI*CTR-DXR*CTI
+           PFY=PFY+DYI*CTR-DYR*CTI
+           PFZ=PFZ+DZI*CTR-DZR*CTI
+          ENDDO
+          DEN=VPP(1,2,ITY)
+          EVAL=EVAL+PEVAL/DEN
+          FXNL(ITAU,IB)=FXNL(ITAU,IB)+PFX/DEN
+          FYNL(ITAU,IB)=FYNL(ITAU,IB)+PFY/DEN
+          FZNL(ITAU,IB)=FZNL(ITAU,IB)+PFZ/DEN
+         ENDIF
+        ENDDO
+       ENDDO
+       EENL(IB)=EVAL
+      ENDDO
+      RETURN
+      END
 C*****************************************************************
       SUBROUTINE NONLOCF( MXBND, MBLK, NXYZ, NG2, NG2Q, NBNDQ,NBND,
      &                    NUMK, NUMKQ, NBSEQ,IOVP,
@@ -307,7 +636,8 @@ c +++ for A-vector Y. Miyamoto 2020
      &                    GDUMPd,EEd,EKINEd,
      &                    NSY, FXNL, FYNL, FZNL,
      &                    TAU, NUMTY, NIDN, EKINE, ENL, NPFL, MXOFL, 
-     &                    OCC,itstep,GDUMP,NGNL,NGcont
+     &                    OCC,itstep,GDUMP,NGNL,NGcont,
+     &                    SEPWORK,SEPRED
 c +++ for macroscopic current
      &        ,RHOAX,RHOAY,RHOAZ,PX,PY,PZ,PXTOT,PYTOT,PZTOT
 c
@@ -327,6 +657,8 @@ c     &  COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,MXBND),WORK2(NG2Q,3)
 c     &  COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,10),WORK2(NG2Q,3)
 c     &  COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,15),WORK2(NG2Q,5)
      &  COEF(NG2Q,MXBND,NUMKQ),DCOEF(NG2Q,21),WORK2(NG2Q,7)
+      COMPLEX*16 SEPWORK(NGcont,5,NTAUQ),
+     &           SEPRED(16,NTAUQ,MXBND)
       DIMENSION NG2(NUMKQ),RVEC(4,LATQ)
       dimension NGNL(NTYQ,NUMKQ)
       DIMENSION G2(4,NG2Q,NUMKQ), GDUMP(NG2Q,NUMKQ),
@@ -342,6 +674,8 @@ c      DIMENSION VPJ(NG2Q/3,3,3,NTYQ,NUMKQ),VPP(3,3,NTYQ)
      &         ,IOWF(MBLK,NUMKQ),
      &          IOVP(2,NTYQ,NUMKQ)
       COMMON/COMOPT/IOPT(10,5)
+      PARAMETER (NTYQ2=4)
+      COMMON/SAITO2/IBUN(4,NTYQ2)
       PARAMETER (IRLATQ=144,NAS=72)
       DIMENSION EE(NBNDQ,NUMKQ),EENL(NBNDQ,NUMKQ),RCOSIN(NAS,IRLATQ),
      &          WK(NUMKQ),VINT(NBNDQ,IRLATQ),NSY(IRLATQ)
@@ -459,6 +793,36 @@ C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_stop(129)
 #endif
+#ifdef _OPENACC
+      IACCSP=1
+#else
+      IACCSP=0
+#endif
+      NBLACC=nend(my_rank)-nbegin(my_rank)+1
+      if (NBLACC.le.0) IACCSP=0
+      do 579 ITY=1,NTYPE
+       if (NUMTY(ITY).le.0) IACCSP=0
+       if (MXOFL(ITY).lt.1 .or. MXOFL(ITY).gt.2) IACCSP=0
+       if (IBUN(1,ITY).eq.1) IACCSP=0
+       if (MXOFL(ITY).ge.2 .and. IBUN(2,ITY).eq.1) IACCSP=0
+  579 continue
+! Step 107 maps one parent region around the k-point loop.  The accelerated
+! path supports the tutorial nonpartitioned s/p projectors; all other shapes
+! keep the original host implementation below.
+!$acc data if(IACCSP.eq.1)
+!$acc& present(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+!$acc& copyin(G2(1:4,1:NG2Q,1:NUMKQ),
+!$acc& VPJ(1:NGcont,1:3,1:4,1:NTYQ,1:NUMKQ),
+!$acc& VPP(1:3,1:4,1:NTYQ),TAU(1:3,1:NTAUQ),
+!$acc& NUMTY(1:NTYQ),NIDN(1:NTAUQ,1:NTYQ),
+!$acc& MXOFL(1:NTYQ),NGNL(1:NTYQ,1:NUMKQ))
+!$acc& create(YLM(1:NGcont,1:16),
+!$acc& SEPWORK(1:NGcont,1:5,1:NTAUQ),
+!$acc& SEPRED(1:16,1:NTAUQ,1:MXBND),
+!$acc& EENL(1:NBNDQ,1:NUMKQ),
+!$acc& FXNL(1:NTAUQ,1:NBNDQ,1:NUMKQ),
+!$acc& FYNL(1:NTAUQ,1:NBNDQ,1:NUMKQ),
+!$acc& FZNL(1:NTAUQ,1:NBNDQ,1:NUMKQ))
       DO 580 IK=1,NUMK
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
          call prof_start(130)
@@ -573,6 +937,7 @@ c **** temp check : end
          call prof_start(131)
 #endif
          CALL GETYLM(NG2Q,NG26,G2(1,1,IK),RHOA,YLM,TPIBA,NGcont)
+!$acc update device(YLM(1:NGcont,1:16)) if(IACCSP.eq.1)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
          call prof_stop(131)
 #endif
@@ -591,7 +956,7 @@ c     &  ,WORK2(1,1),WORK2(1,2),WORK2(1,3),
      &   EENL(1,IK),FXNL(1,1,IK),FYNL(1,1,IK),
      &   FZNL(1,1,IK),
      &   NTAUQ,NTYQ,LREQ,TAU,NTYPE,NUMTY,NIDN, MXOFL,NGNL(1,IK)
-     &  ,NGcont
+     &  ,NGcont,SEPWORK,SEPRED,MXBND,IACCSP
 c
      &  ,nbegin,nend,ncpuq,ncpu )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
@@ -601,6 +966,7 @@ c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'after end of SEPPOTF'
 c **** temp check : end
   580 CONTINUE   ! end of IK loop
+!$acc end data
 c ***  temp check
 c      write(6,*)' After sub. SEPPOTF '
 c      write(6,*)' EENL '
@@ -736,7 +1102,8 @@ c     &  YLM,EXTAU,WORK1,WORK2,WORK3,COEF,DCOEF,TPIBA,
      &  YLM,EXTAU,WORK1,WORK2,WORK3,WORK4,WORK5,WORK6,WORK7,
      &  COEF,DCOEF,TPIBA,
      &  IOVP,EENL,FXNL,FYNL,FZNL,
-     &  NTAUQ,NTYQ,LREQ,TAU,NTYPE,NUMTY,NIDN, MXOFL,NGNL,NGcont
+     &  NTAUQ,NTYQ,LREQ,TAU,NTYPE,NUMTY,NIDN, MXOFL,NGNL,NGcont,
+     &  SEPWORK,SEPRED,MXBND,IACCSP
 c
      & ,nbegin,nend,ncpuq,ncpu  )
 C
@@ -749,10 +1116,12 @@ c      DIMENSION G2K(4,NG2Q),YLM(NG2Q,9)
       DIMENSION G2K(4,NG2Q),YLM(NGcont,16)
 c      COMPLEX*16 COEF(NG2Q,NBND),DCOEF(NG2Q,10),
 c      COMPLEX*16 COEF(NG2Q,NBND),DCOEF(NG2Q,15),
-      COMPLEX*16 COEF(NG2Q,NBND),DCOEF(NG2Q,21),
+      COMPLEX*16 COEF(NG2Q,MXBND),DCOEF(NG2Q,21),
 c     &           WORK1(NG2Q),WORK2(NG2Q),WORK3(NG2Q),EXTAU(NG2Q)
      &  WORK1(NG2Q),WORK2(NG2Q),WORK3(NG2Q),WORK4(NG2Q),WORK5(NG2Q),
      &  WORK6(NG2Q),WORK7(NG2Q),EXTAU(NG2Q)
+      COMPLEX*16 SEPWORK(NGcont,5,NTAUQ),
+     &           SEPRED(16,NTAUQ,MXBND)
 c      COMPLEX*16 Y00,Y11,Y12,Y13,SUKA1,SUKA2,SUKA3,CT(3),CD(3,3)
 c      COMPLEX*16 SUKA1,SUKA2,SUKA3,CT(3),CD(3,3)
       COMPLEX*16 Y00,Y11,Y12,Y13,Y21,Y22,Y23,Y24,Y25
@@ -801,6 +1170,13 @@ c
       FPI=4.D0*PI
       FPISQ=FPI**2
 CC      CALL CLOCK(TIM0)
+      if (IACCSP.eq.1) then
+       call SEPPOTF_ACC(NG2Q,NBNDQ,G2K,VPJ,VPP,YLM,COEF,TPIBA,TAU,
+     &  EENL,FXNL,FYNL,FZNL,NTAUQ,NTYQ,NTYPE,NUMTY,NIDN,
+     &  MXOFL,NGNL,NGcont,SEPWORK,SEPRED,MXBND,
+     &  nbegin(my_rank),nend(my_rank))
+       goto 900
+      endif
 C
 c ***  temp check
 c      write(6,*)' in sub. SEPPOTF  NBND = ',NBND
@@ -1644,6 +2020,7 @@ c ****  temp check
 c      write(6,*)'my_rank=',my_rank,' end of DO 10 loop in SEPPOTF'
 c ****  temp check : end
    10 CONTINUE
+  900 CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call prof_start(139)
 #endif

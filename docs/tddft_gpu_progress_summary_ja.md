@@ -2054,3 +2054,19 @@ WORK/DCOEF投影量生成をband reduction内で再計算していました。St
 未分類gapへ分解します。A100では`./tools/run_tddft_step106.sh`を1回だけ実行し、
 両checkを必須とします。band reductionに実質的な上限が確認できた場合だけ、投影量を
 一度生成してbandへ適用する別構造の二段GPU化を検討します。
+
+Step 106はrevision `9ef703b`でPASS/PASSでした。diagnostic wall
+`70.2937791348`秒はbaselineではありません。SEPPOTF `4.101524`秒のうち、phase
+`0.091686`、s投影量生成`0.047953`、s band reduction `1.270594`、p投影量生成
+`0.122658`、p band reduction `2.537915`、MPI `0.000391`、gap `0.030327`秒でした。
+s/p band reduction合計は`3.808509`秒でSEPPOTFの`92.856%`、正式Step 102 wallの
+`5.965820%`に相当し、別構造GPU化に十分な上限が確認できました。
+
+Step 107は原子ごとの非partition s/p投影量を一度だけ生成し、原子×local-bandを
+gangとして一括縮約します。最終集計はbandごとにtype、atom、s→pの元順序を維持します。
+既存`EXTAU(NGcont,5,NTAUQ)`をscratchとして再利用し、追加は
+`SEPRED(16,NTAUQ,MXBND2)`だけです。COEF常駐は同一time-stepのFRPRMNから直後の
+ELECTFまでに限定してELECTF後にdeleteし、Step 45型のtime-step全体常駐には戻しません。
+partitioned projectorとd/f形は既存host経路を維持し、GNU MPI＋FFTW fallbackの
+full build/linkはPASSしています。まずdiagnostic OFFで
+`./tools/run_tddft_step107.sh 01`だけを実行し、PASS/PASSとwallを確認します。

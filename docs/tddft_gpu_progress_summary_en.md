@@ -2292,3 +2292,22 @@ nonpartitioned s/p projector generation and band reductions, MPI, and a gap.
 Run `./tools/run_tddft_step106.sh` once and require both checks. Consider a
 structurally different two-stage GPU path only if the band-reduction children
 show a material ceiling.
+
+Step 106 at revision `9ef703b` passed both checks. Its diagnostic wall was
+`70.2937791348` sec and is not a baseline. SEPPOTF used `4.101524` sec: phase
+`0.091686`, s projector generation `0.047953`, s band reduction `1.270594`, p
+projector generation `0.122658`, p band reduction `2.537915`, MPI `0.000391`,
+and gap `0.030327` sec. The two band reductions total `3.808509` sec,
+`92.856%` of SEPPOTF and `5.965820%` of the official Step 102 wall, which is a
+material ceiling for a structurally different GPU path.
+
+Step 107 generates each atom's nonpartitioned s/p projector values once and
+then reduces all atom x local-band pairs on the GPU. Final per-band assembly
+keeps the original type, atom, and s-then-p order. Existing EXTAU storage is
+reused as projector scratch; only `SEPRED(16,NTAUQ,MXBND2)` is added. COEF
+residency extends only from FRPRMN through its immediately following ELECTF
+call in the same time step and is deleted before the next step, rather than
+restoring the rejected Step 45 whole-time-step lifetime. Partitioned and d/f
+shapes retain the host path, and the GNU MPI + FFTW fallback full build/link
+passes. Run `./tools/run_tddft_step107.sh 01` first with diagnostics off and
+require both checks before considering runs 02-03.

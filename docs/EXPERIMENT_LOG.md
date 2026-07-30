@@ -2141,6 +2141,44 @@ is diagnostic only. Consider a structurally different two-stage GPU path only
 if the band reductions have a material ceiling; otherwise close or redirect
 the SEPPOTF path according to the measured dominant child.
 
+## Step 106 Result
+
+- Archive: `nvhpc_cufft_1rank_02_STEP106_STEP102_SEPPOTF_DETAIL_01`
+- Tested revision: `9ef703bd8dd168ed18bfe133d611d383fd557076`
+- Diagnostic wall: `70.2937791348` sec (not a baseline)
+- Correctness: normal check PASS; relaxed compare PASS
+- SEPPOTF: `4.101524` sec over 202 calls
+- phase: `0.091686` sec (`2.235%`)
+- s projector generation: `0.047953` sec (`1.169%`)
+- s band reduction: `1.270594` sec (`30.979%`)
+- p projector generation: `0.122658` sec (`2.991%`)
+- p band reduction: `2.537915` sec (`61.877%`)
+- MPI: `0.000391` sec (`0.010%`)
+- unclassified gap: `0.030327` sec (`0.739%`)
+
+The s/p band reductions total `3.808509` sec, `92.856%` of SEPPOTF and
+`5.965820%` of the official Step 102 wall. This is a material ceiling, while
+projector generation and MPI are not direct targets.
+
+## Step 107 Plan
+
+Implement one structurally different nonpartitioned s/p GPU hypothesis. For
+each type, generate projector values once for all atoms and G vectors, reduce
+all atom x local-band pairs on the GPU, and finalize each band sequentially in
+the original type, atom, and s-then-p order. Reuse the existing EXTAU storage
+as the projector scratch and add only a 16-complex-value reduction record per
+atom/local-band pair. Unsupported partitioned or d/f shapes use the unchanged
+host implementation.
+
+Extend COEF ownership only from FRPRMN through its immediately following
+ELECTF call in the same time step, then delete it before the next time step.
+This is the previously validated Step 46 call boundary, not the rejected Step
+45 whole-time-step lifetime. The GNU MPI + FFTW fallback full build/link must
+pass. Run `tools/run_tddft_step107.sh 01` with diagnostics off and require both
+checks. Stop on failure or an unpromising first wall; run `02-03` only after a
+healthy first result. Compare a completed three-run median with the official
+Step 102 median `63.8388190269` sec. Rollback target: `9ef703b`.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`
