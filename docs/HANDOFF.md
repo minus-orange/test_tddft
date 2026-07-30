@@ -987,7 +987,8 @@ Step 112 reuses the `WFAC=|COEF|^2` already computed in the first band/G loop
 to accumulate A-vector energy in the same G order, removing the later second
 COEF traversal. Keep both MPI exchanges and downstream order unchanged. The
 measured removable ceiling is about `0.287670` sec (`0.455%` of the official
-Step 107 wall). Validate diagnostic-off run 01 before considering runs 02/03.
+Step 107 wall). Run `./tools/run_tddft_step112.sh 01` with diagnostics off and
+require both checks before considering `02-03`. Rollback target: `4f4a276`.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

@@ -888,6 +888,8 @@ c *** temp check : end
              PX(IB,IK)=PX(IB,IK)+RHOAX(IG)*WFAC
              PY(IB,IK)=PY(IB,IK)+RHOAY(IG)*WFAC
              PZ(IB,IK)=PZ(IB,IK)+RHOAZ(IG)*WFAC
+             EEd(IB,IK)=EEd(IB,IK)+
+     &          0.5D0*DBLE(GDUMPd(IG,IK)*TPIBA)*WFAC
   582        CONTINUE
 c *** temp check
 c            write(6,*)'my_rank=',my_rank,
@@ -933,26 +935,6 @@ c
            endif ! end of if my_rank.ne.0 loop
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
          call prof_stop(147)
-         call prof_start(148)
-#endif
-c ++++ for A-vector  Y. Miyamoto 2020 this is still within ik loop
-             do IG=1,NG2(IK)
-              RHOA(IG)=GDUMPd(IG,IK)*TPIBA
-             enddo
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(148)
-         call prof_start(149)
-#endif
-             do IB=nbegin(my_rank),nend(my_rank)
-             iib=ib-nbegin(my_rank)+1
-              do IG=1,NG2(IK)
-               EEd(IB,IK)=EEd(IB,IK)+
-     &           0.5D0*DBLE(RHOA(IG)
-     &         *DCONJG(COEF(IG,IIB,IK))*COEF(IG,IIB,IK))
-              enddo
-             enddo
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(149)
          call prof_start(150)
 #endif
 c

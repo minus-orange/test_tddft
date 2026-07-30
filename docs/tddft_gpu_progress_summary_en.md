@@ -2365,3 +2365,5 @@ to accumulate A-vector energy in the same G order, removing the later second
 full COEF traversal. The two MPI exchanges, downstream order, OpenACC
 ownership, and allocation remain unchanged. Its measured removable ceiling is
 about `0.287670` sec, `0.455%` of the official Step 107 wall.
+Run `./tools/run_tddft_step112.sh 01` first with diagnostics off and require
+both checks. Continue to `02-03` only if run 01 is promising.

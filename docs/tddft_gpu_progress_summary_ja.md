@@ -2117,3 +2117,5 @@ Step 112は最初のband/G loopで既に計算する`WFAC=|COEF|^2`をA-vector e
 同じG順で使用し、後続の2回目COEF全走査を削除します。2つのMPI交換と下流順序、
 OpenACC ownership、allocationは維持します。削減上限は約`0.287670`秒、
 正式Step 107 wallの`0.455%`です。
+まずdiagnostic OFFで`./tools/run_tddft_step112.sh 01`を実行し、両checkとwallを
+確認します。有望な場合だけ`02-03`へ進みます。

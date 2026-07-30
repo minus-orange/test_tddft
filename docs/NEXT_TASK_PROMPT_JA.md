@@ -581,8 +581,11 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      2つのMPI交換、下流順序、ownership、allocationは維持する。
 206. 測定上の削減上限は約`0.287670`秒、正式Step 107 wallの`0.455%`。
      diagnostic OFF run 01がPASS/PASSかつ有望な場合だけ02/03へ進む。
+207. Step 112は追加配列なしで最初のG loopへEEd加算を統合し、後続のEEd用
+     G準備とCOEF再走査だけを削除する。MPI送受信は位置・内容とも維持する。
 
-次はStep 111結果をcommit/pushしてからStep 112を実装し、CPU/FFTW fallbackと
-fixed-formを確認して1コマンドA100 wrapperを登録してください。
+次はA100でdiagnostic OFFの`./tools/run_tddft_step112.sh 01`だけを実行し、
+`FPSEID21 STEP112 KINETIC/EED FUSION PERFORMANCE SUMMARY`全体の写真を
+受け取ってください。PASS/PASSかつ有望な場合だけ`02-03`へ進みます。
 
 ---

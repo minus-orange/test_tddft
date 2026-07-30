@@ -2293,6 +2293,8 @@ full COEF traversal, but preserve the existing two MPI exchanges and all
 downstream ordering. This changes no OpenACC ownership or allocation and has a
 measured removable ceiling of about `0.287670` sec (`0.455%` of the official
 Step 107 wall). Run diagnostic-off performance run 01 first.
+Use `./tools/run_tddft_step112.sh 01`; continue with `02-03` only after a
+correct, promising first result. Rollback target: `4f4a276`.
 
 ## Step 80 H100 Exploratory Run
 
