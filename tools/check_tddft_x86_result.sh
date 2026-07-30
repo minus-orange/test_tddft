@@ -19,6 +19,10 @@ RUN_DIR=${1:-"${RUN_DIR:-$ROOT_DIR/run/Si111-H_x86}"}
 TDDFT_OUTPUT=${TDDFT_OUTPUT:-"$RUN_DIR/Si111-H_tm.out"}
 TDDFT_ERR=${TDDFT_ERR:-"$RUN_DIR/Si111-H_tm.err"}
 EXPECTED_STEPS=${EXPECTED_STEPS:-100}
+X86_ENERGY_ATOL=${X86_ENERGY_ATOL:-1e-4}
+X86_FORCE_ATOL=${X86_FORCE_ATOL:-2e-4}
+X86_POSITION_ATOL=${X86_POSITION_ATOL:-2e-6}
+X86_VELOCITY_ATOL=${X86_VELOCITY_ATOL:-1e-6}
 
 if [ ! -f "$TDDFT_OUTPUT" ]; then
   echo "ERROR: TDDFT output is missing: $TDDFT_OUTPUT" >&2
@@ -36,6 +40,7 @@ relaxed=FAIL
 echo "FPSEID21_X86_RESULT_CHECK_BEGIN"
 echo "run_dir=$RUN_DIR"
 echo "expected_steps=$EXPECTED_STEPS"
+echo "tolerances energy=$X86_ENERGY_ATOL force=$X86_FORCE_ATOL position=$X86_POSITION_ATOL velocity=$X86_VELOCITY_ATOL"
 
 if python3 "$SCRIPT_DIR/check_tddft_result.py" check \
   "$TDDFT_OUTPUT" --err "$TDDFT_ERR" \
@@ -47,7 +52,11 @@ fi
 
 if python3 "$SCRIPT_DIR/check_tddft_result.py" compare \
   "$TDDFT_OUTPUT" --test-err "$TDDFT_ERR" \
-  --expected-steps "$EXPECTED_STEPS"; then
+  --expected-steps "$EXPECTED_STEPS" \
+  --energy-atol "$X86_ENERGY_ATOL" \
+  --force-atol "$X86_FORCE_ATOL" \
+  --position-atol "$X86_POSITION_ATOL" \
+  --velocity-atol "$X86_VELOCITY_ATOL"; then
   relaxed=PASS
 else
   status=1

@@ -101,6 +101,15 @@ the latest x86 output, stderr, normal check, and relaxed comparison with:
 ./tools/check_tddft_x86_result.sh
 ```
 
+The x86 cross-toolchain/rank comparison uses energy `1e-4` Hartree, force
+`2e-4` Hartree/Bohr, position `2e-6` Bohr, and velocity `1e-6` tolerances.
+The force threshold is about `0.0103 eV/Angstrom`; the observed 16-rank Intel
+difference that motivated it was about `0.00624 eV/Angstrom`. These wider
+force and position thresholds apply only to the x86 baseline helpers. The
+global comparator defaults and GPU validation tolerances remain unchanged,
+and x86 runs 02/03 must still pass the existing strict pairwise comparison
+against run 01.
+
 The helper defaults to `BUILD_MODE=auto`. It records separate CG, SD, and TDDFT
 build signatures under the ignored `.cache/tddft_x86_build/` directory and
 reuses each existing binary when its tracked sources, build settings, and

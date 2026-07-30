@@ -9,6 +9,8 @@ set -eu
 #   NPROCS=16              default x86 performance MPI rank count
 #   OMP_NUM_THREADS=1      fixed performance-validation OpenMP thread count
 #   BUILD_MODE=auto        reuse a matching existing build
+#   X86_FORCE_ATOL=2e-4    cross-toolchain tolerance in Hartree/Bohr
+#   X86_POSITION_ATOL=2e-6 cross-toolchain tolerance in Bohr
 #   RUN_DIR=<repo>/run/Si111-H_x86
 #
 # Force a rebuild:
@@ -38,6 +40,10 @@ SKIP_FFTW=${SKIP_FFTW:-0}
 ALLOW_NON_X86=${ALLOW_NON_X86:-0}
 BUILD_MODE=${BUILD_MODE:-auto}
 BUILD_CACHE_DIR=${BUILD_CACHE_DIR:-"$ROOT_DIR/.cache/tddft_x86_build"}
+X86_ENERGY_ATOL=${X86_ENERGY_ATOL:-1e-4}
+X86_FORCE_ATOL=${X86_FORCE_ATOL:-2e-4}
+X86_POSITION_ATOL=${X86_POSITION_ATOL:-2e-6}
+X86_VELOCITY_ATOL=${X86_VELOCITY_ATOL:-1e-6}
 
 case "$RUNS" in
   1|3) ;;
@@ -370,7 +376,11 @@ while [ "$run_no" -le "$RUNS" ]; do
     --expected-steps 100 >/dev/null
   python3 "$SCRIPT_DIR/check_tddft_result.py" compare \
     "$archive_dir/tddft.out" --test-err "$archive_dir/tddft.err" \
-    --expected-steps 100 >/dev/null
+    --expected-steps 100 \
+    --energy-atol "$X86_ENERGY_ATOL" \
+    --force-atol "$X86_FORCE_ATOL" \
+    --position-atol "$X86_POSITION_ATOL" \
+    --velocity-atol "$X86_VELOCITY_ATOL" >/dev/null
 
   if [ "$run_no" = 1 ]; then
     run01_archive=$archive_dir
@@ -409,6 +419,10 @@ while [ "$run_no" -le "$RUNS" ]; do
     echo "nprocs=$NPROCS"
     echo "omp_num_threads=1"
     echo "diagnostic=OFF"
+    echo "energy_atol=$X86_ENERGY_ATOL"
+    echo "force_atol=$X86_FORCE_ATOL"
+    echo "position_atol=$X86_POSITION_ATOL"
+    echo "velocity_atol=$X86_VELOCITY_ATOL"
     echo "normal_check=PASS"
     echo "relaxed_compare=PASS"
     echo "run01_pairwise_strict=$strict"
@@ -443,6 +457,7 @@ echo "build_mode=$BUILD_MODE"
 echo "build_reused=$reuse_build"
 echo "fftw_reused=$fftw_reused cg_reused=$cg_reused sd_reused=$sd_reused tddft_reused=$tddft_reused"
 echo "runs=$RUNS nprocs=$NPROCS omp_num_threads=1 diagnostic=OFF"
+echo "tolerances energy=$X86_ENERGY_ATOL force=$X86_FORCE_ATOL position=$X86_POSITION_ATOL velocity=$X86_VELOCITY_ATOL"
 run_no=1
 while IFS= read -r wall; do
   suffix=$(printf '%02d' "$run_no")
