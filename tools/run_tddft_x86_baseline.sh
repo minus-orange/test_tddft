@@ -4,14 +4,14 @@ set -eu
 # Build and measure the CPU/FFTW TDDFT path on x86-64 Linux.
 #
 # Defaults:
-#   TOOLCHAIN=gnu          GNU/OpenMPI (gfortran, mpifort, mpicc)
+#   TOOLCHAIN=intel        Intel oneAPI (ifx, mpiifx, mpiicx)
 #   RUNS=3                 independent CG -> SD -> 100-step TDDFT runs
 #   NPROCS=16              default x86 performance MPI rank count
 #   OMP_NUM_THREADS=1      fixed performance-validation OpenMP thread count
 #   RUN_DIR=<repo>/run/Si111-H_x86
 #
-# Intel oneAPI example:
-#   TOOLCHAIN=intel ./tools/run_tddft_x86_baseline.sh
+# GNU/OpenMPI override:
+#   TOOLCHAIN=gnu ./tools/run_tddft_x86_baseline.sh
 #
 # Existing FFTW installation example:
 #   SKIP_FFTW=1 FFTW_ROOT=/opt/fftw \
@@ -20,7 +20,7 @@ set -eu
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 
-TOOLCHAIN=${TOOLCHAIN:-gnu}
+TOOLCHAIN=${TOOLCHAIN:-intel}
 RUNS=${RUNS:-3}
 NPROCS=${NPROCS:-16}
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}

@@ -66,10 +66,18 @@ run 01, and prints the median and range:
 ./tools/run_tddft_x86_baseline.sh
 ```
 
-The default toolchain is GNU/OpenMPI. Intel oneAPI can be selected with:
+The default toolchain is Intel oneAPI: CG and SD use `ifx`, TDDFT uses
+`mpiifx`, the MPI C wrapper is `mpiicx`, and the local FFTW build uses
+`icx`/`ifx`. Run it with:
 
 ```sh
-TOOLCHAIN=intel ./tools/run_tddft_x86_baseline.sh
+./tools/run_tddft_x86_baseline.sh
+```
+
+GNU/OpenMPI remains available as an explicit fallback:
+
+```sh
+TOOLCHAIN=gnu ./tools/run_tddft_x86_baseline.sh
 ```
 
 To use an existing FFTW installation instead of building a local copy:
