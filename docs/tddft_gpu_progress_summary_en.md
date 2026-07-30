@@ -2367,3 +2367,11 @@ ownership, and allocation remain unchanged. Its measured removable ceiling is
 about `0.287670` sec, `0.455%` of the official Step 107 wall.
 Run `./tools/run_tddft_step112.sh 01` first with diagnostics off and require
 both checks. Continue to `02-03` only if run 01 is promising.
+
+Step 112 run 01 passed both checks but took `63.6258358955` sec,
+`0.4123139381` sec (`0.652256%`) slower than the official Step 107 median and
+`3.986285x` its run range. Runs 02/03 are stopped. The original loops and timer
+boundaries are restored and the helper is removed. Together with the rejected
+Step 84 energy-side fusion, this closes the same COEF-pass fusion strategy for
+the tutorial input. Do not continue low-ceiling micro-optimization without a
+new production input or new profiler evidence.

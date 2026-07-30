@@ -79,6 +79,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 109 | Split the batched SEPPOTF path | 69.1963171959 (diagnostic; legacy path observed) | measurement | `f3d6082` |
 | 110 | Enable the batched SEPPOTF path for signed `NUMTY` | 63.7820260525 (run 01) | rejected; early stop and restored | `3536127` |
 | 111 | Split NONLOCF kinetic/current plus MPI | 69.0858860016 (one diagnostic run) | measurement | `2415d30` |
+| 112 | Fuse NONLOCF kinetic/current and A-vector energy passes | 63.6258358955 (run 01) | rejected; early stop and restored | `1aa31fd` |
 
 ## Other Rejected Experiments
 
@@ -2295,6 +2296,21 @@ measured removable ceiling of about `0.287670` sec (`0.455%` of the official
 Step 107 wall). Run diagnostic-off performance run 01 first.
 Use `./tools/run_tddft_step112.sh 01`; continue with `02-03` only after a
 correct, promising first result. Rollback target: `4f4a276`.
+
+## Step 112 Result and Rejection
+
+Run 01 at revision `1aa31fd` passed both checks with diagnostics off but took
+`63.6258358955` sec. This is `0.4123139381` sec (`0.652256%`) slower than the
+official Step 107 median, and `3.986285x` the official run range. Runs 02/03
+are skipped.
+
+The pass fusion is rejected. The original two reductions and their timer
+boundaries are restored, and the Step 112 helper is removed. Together with the
+earlier rejected Step 84 energy-side pass fusion, this closes the same
+COEF-pass fusion strategy for the tutorial input. The remaining large tutorial
+intervals have already had their safe high-impact variants classified; do not
+continue with low-ceiling micro-optimizations without a new production input
+or new profiler evidence.
 
 ## Step 80 H100 Exploratory Run
 

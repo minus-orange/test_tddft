@@ -990,6 +990,14 @@ measured removable ceiling is about `0.287670` sec (`0.455%` of the official
 Step 107 wall). Run `./tools/run_tddft_step112.sh 01` with diagnostics off and
 require both checks before considering `02-03`. Rollback target: `4f4a276`.
 
+Step 112 run 01 passed both checks but took `63.6258358955` sec,
+`0.4123139381` sec (`0.652256%`) slower than the official Step 107 median and
+`3.986285x` its run range. Runs 02/03 were stopped. The source and helper are
+restored/removed, closing this COEF-pass fusion strategy together with the
+earlier Step 84 rejection. No untried safe tutorial hypothesis now has a
+comparable measured ceiling; require new production input or new profiler
+evidence before more low-ceiling source experiments.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

@@ -2119,3 +2119,10 @@ OpenACC ownership、allocationは維持します。削減上限は約`0.287670`�
 正式Step 107 wallの`0.455%`です。
 まずdiagnostic OFFで`./tools/run_tddft_step112.sh 01`を実行し、両checkとwallを
 確認します。有望な場合だけ`02-03`へ進みます。
+
+Step 112 run 01はPASS/PASSでしたが`63.6258358955`秒で、正式Step 107中央値より
+`0.4123139381`秒（`0.652256%`）、run rangeの`3.986285x`遅い結果でした。
+run 02/03は早期停止し、2本の元loopとtimer境界へ復元してhelperを削除します。
+Step 84のenergy側pass融合も既に不採用なので、tutorial入力で同じCOEF-pass融合を
+閉じます。新しいproduction入力またはprofiler根拠なしに、上限の小さい微調整を
+続けません。

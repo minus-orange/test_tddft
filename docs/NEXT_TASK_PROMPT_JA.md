@@ -583,9 +583,15 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      diagnostic OFF run 01がPASS/PASSかつ有望な場合だけ02/03へ進む。
 207. Step 112は追加配列なしで最初のG loopへEEd加算を統合し、後続のEEd用
      G準備とCOEF再走査だけを削除する。MPI送受信は位置・内容とも維持する。
+208. Step 112 run 01はPASS/PASSだが`63.6258358955`秒で、正式Step 107中央値より
+     `0.4123139381`秒（`0.652256%`）、run rangeの`3.986285x`遅かった。
+209. run 02/03は早期停止し、元loop・timer境界を復元してhelperを削除する。
+     Step 84と合わせてtutorial入力で同じCOEF-pass融合を閉じる。
+210. 現在の大区間はsafeな高影響候補を分類済み。新しいproduction入力または新しい
+     profiler根拠なしに、上限の小さい微調整を続けない。
 
-次はA100でdiagnostic OFFの`./tools/run_tddft_step112.sh 01`だけを実行し、
-`FPSEID21 STEP112 KINETIC/EED FUSION PERFORMANCE SUMMARY`全体の写真を
-受け取ってください。PASS/PASSかつ有望な場合だけ`02-03`へ進みます。
+次はStep 112の不採用・復元をcommit/pushし、CPU/FFTW fallbackを確認してください。
+その後はproduction入力と対応referenceを受け取るか、正式Step 107 sourceの新しい
+profiler evidenceが得られるまで、tutorial向けsource実験を増やしません。
 
 ---
