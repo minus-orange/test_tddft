@@ -2330,3 +2330,10 @@ variants are already classified. ELECTF NONLOCF is `5.076909` sec, with
 `4.262210` sec in accepted batched SEPPOTF. Step 109 adds default-off timers
 only to split that batched path into projector, s/p reduction, finalization,
 download, MPI, and gap intervals.
+
+Step 109 passed both checks but proved that the legacy SEPPOTF path still ran.
+The input has `NTYPE=2` and signed `NUMTY=12,-2`; Step 107 rejected the
+negative count even though legacy SEPPOTF consistently uses `ABS(NUMTY)`.
+Thus Step 107's accepted improvement came from its bounded COEF residency
+change, not the inactive batch path. Step 110 changes only the batch guard and
+atom-loop bounds to use the same signed-count convention as legacy SEPPOTF.

@@ -2087,3 +2087,9 @@ Step 108はrevision `4ccf7dc`で両checkにPASSしました。diagnostic wall
 次のactionable親区間はELECTF NONLOCF `5.076909`秒で、そのうち採用済みbatched
 SEPPOTFが`4.262210`秒です。Step 109は数値経路を変えず、このbatched経路を
 projector、s/p reduction、最終GPU集計、download、MPI、gapへ分解します。
+
+Step 109は両checkにPASSしましたが、実際には旧SEPPOTF経路が動いていました。
+入力は`NTYPE=2`、符号付き`NUMTY=12,-2`で、旧SEPPOTFは一貫して
+`ABS(NUMTY)`を使いますが、Step 107 guardだけが負値を未対応扱いしていました。
+したがってStep 107の採用済み改善は限定COEF常駐によるもので、batch経路は未実行です。
+Step 110はguardとatom loopだけを旧経路と同じ`ABS(NUMTY)`規約へ合わせます。

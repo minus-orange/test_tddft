@@ -555,8 +555,14 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 197. Step 109はPASS/PASSだったがtimer IDs 140--144が表示されず、wrapperのcount
      checkで停止した。親`4.263925`秒、MPI `0.000369`秒までは確認済み。100-stepを
      再実行せず、既存archive reportで旧IDs 134--138の有無を先に確認する。
+198. 既存archive reportはlegacy経路を確認した。入力は`NTYPE=2`、
+     `NUMTY=12,-2`でpartition表示なし。旧SEPPOTFは`ABS(NUMTY)`を使うが、Step 107
+     guardだけが負値を未対応扱いした。
+199. Step 107の採用済み改善は限定COEF常駐によるものでbatch経路は未実行だった。
+     Step 110はzeroだけを未対応とし、projector/final atom loopを旧経路と同じ
+     `ABS(NUMTY)`へ合わせる。数式、順序、MPI、fallback、ownershipは変えない。
 
-次は`./tools/report_tddft_step109.sh`を実行し、`FPSEID_STEP109_DEBUG_BEGIN`から
-`FPSEID_STEP109_DEBUG_END`までの写真を受け取ってください。build・再runはしません。
+次はdiagnostic OFFで`./tools/run_tddft_step110.sh 01`を実行し、summary写真を
+受け取ってください。PASS/PASSかつ良好な場合だけ`02-03`へ進みます。
 
 ---

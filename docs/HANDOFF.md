@@ -952,6 +952,17 @@ and the wrapper stopped with its intended count error. Do not rerun yet.
 First run `./tools/report_tddft_step109.sh`; it reads the existing archive
 only and reports whether legacy IDs 134--138 were active.
 
+The report confirms the legacy path. Startup output shows `NTYPE=2`,
+`NUMTY=12,-2`, and no partition message. Existing SEPPOTF uses
+`ABS(NUMTY)`; the Step 107 guard alone rejected the negative signed count.
+Consequently the accepted Step 107 gain is attributed to its bounded COEF
+residency change, while the batched path was inactive.
+
+Step 110 changes only this signed-count handling: zero remains unsupported and
+the batched projector/final loops use `ABS(NUMTY)` like the legacy path. Run
+`./tools/run_tddft_step110.sh 01` with diagnostics off. Require both checks and
+stop on failure or an unpromising wall; only then run `02-03`.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

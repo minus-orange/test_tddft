@@ -75,6 +75,8 @@ implementation and timer notes are in the bilingual progress summaries.
 | 105 | Split current ELECTF NONLOCF | 70.5463471413 (one diagnostic run) | measurement | `91f27a0` |
 | 106 | Split current SEPPOTF | 70.2937791348 (one diagnostic run) | measurement | `9ef703b` |
 | 107 | Batch nonpartitioned s/p SEPPOTF reductions over atom x local band | 63.2135219574 median | accepted baseline | `c46cfa9` |
+| 108 | Re-profile the accepted Step 107 source | 70.2021420002 (one diagnostic run) | measurement | `4ccf7dc` |
+| 109 | Split the batched SEPPOTF path | 69.1963171959 (diagnostic; legacy path observed) | measurement | `f3d6082` |
 
 ## Other Rejected Experiments
 
@@ -2228,6 +2230,25 @@ MPI values were `4.263925` and `0.000369` sec. Before rerunning, use
 `tools/report_tddft_step109.sh` to read the existing archive and determine
 whether legacy timer IDs 134--138 ran instead. The report performs no build or
 simulation.
+
+The existing-archive report proves that the legacy path ran. Its phase,
+s-projector, s-band reduction, p-projector, and p-band reduction values were
+`0.091407`, `0.048610`, `1.272016`, `0.123364`, and `2.698033` sec.
+Startup output reports `NTYPE=2` and signed `NUMTY=12,-2`, with no real-space
+partition message. The Step 107 guard incorrectly treated the negative atom
+count as unsupported even though the legacy SEPPOTF loops consistently use
+`ABS(NUMTY)`. Therefore the accepted Step 107 improvement came from the
+FRPRMN-to-ELECTF COEF residency boundary, not from the inactive batch path.
+
+## Step 110 Plan
+
+Change only signed atom-count handling in the batched path: reject zero atom
+counts, but use `ABS(NUMTY)` in projector generation and final assembly exactly
+as the legacy SEPPOTF path does. Type, atom, and s-then-p accumulation order,
+formulas, MPI, partition fallback, d/f fallback, and COEF ownership remain
+unchanged. Run diagnostic-off performance run 01 first and require both
+correctness checks. Continue to runs 02/03 only if it is correct and promising.
+Rollback target: `94bd29e`.
 
 ## Step 80 H100 Exploratory Run
 
