@@ -2222,3 +2222,9 @@ All three Step 98 runs passed both checks. Their median is `66.1477772789` sec
 with a `0.27479244077` sec range, `0.532642%` faster than Step 86, so Step 98
 is accepted. Step 99 retains the same data region and arithmetic while mapping
 atom pairs to gangs and the inner G-vector loop to a vector reduction.
+
+All three Step 99 runs passed both checks. Their median is `64.3024969101` sec
+with a `0.2340140343` sec range. This is `2.789633%` faster than Step 98 and
+`3.307417%` faster than Step 86, so Step 99 is accepted. Step 100 performs one
+diagnostic-only current-source timer run to rank the largest remaining
+actionable interval before selecting another implementation.

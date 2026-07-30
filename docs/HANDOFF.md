@@ -1,27 +1,27 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-07-29
+Last updated: 2026-07-30
 
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `6ef8676` (`Offload TDDFT EWALD G-space pairs`)
+- Accepted source baseline: `6b4099f` (`Vectorize TDDFT EWALD G-space reduction`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 98 with Step 37 pinned allocation mode
-- Current source implementation: Step 98 commit `6ef8676`
+- Current configuration: accepted Step 99 with Step 37 pinned allocation mode
+- Current source implementation: Step 99 commit `6b4099f`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 98 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 99 EWALD gang/vector performance test prepared
+- Current HEAD status: Step 99 accepted; Steps 92/93 close phase-keyed
+  nonlocal reuse; Step 100 current-source timer profile prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 98 median `66.1477772789` sec
+- Performance baseline: Step 99 median `64.3024969101` sec
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -820,6 +820,13 @@ accepted baseline. Step 99 retains its ownership and arithmetic but maps each
 pair to a gang and the inner G loop to a vector reduction. Run
 `./tools/run_tddft_step99.sh 01` first.
 
+All Step 99 runs passed both checks. The walls were `64.5138220787`,
+`64.2798080444`, and `64.3024969101` sec; median `64.3024969101`, range
+`0.2340140343`. This is `2.789633%` faster than Step 98 and `3.307417%`
+faster than Step 86, so Step 99 is the accepted baseline. Step 100 performs
+one diagnostic-only current-source timer run to rank the largest remaining
+intervals before choosing another implementation.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
@@ -851,7 +858,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `66.1477772789` sec.
+6. Compare the three-run median with `64.3024969101` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

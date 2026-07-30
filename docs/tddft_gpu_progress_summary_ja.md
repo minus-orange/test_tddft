@@ -1996,3 +1996,9 @@ Step 98は3 runすべてPASS/PASSで、中央値`66.1477772789`秒、range
 `0.27479244077`秒でした。Step 86比`0.532642%`高速なため正式採用します。Step 99は
 同じdata regionと演算を維持し、atom pairをgang、内側G-vectorをvector reductionへ
 割り当てて、残る逐次G loopを直接短縮します。
+
+Step 99は3 runすべてPASS/PASSで、中央値`64.3024969101`秒、range
+`0.2340140343`秒でした。Step 98比`2.789633%`、Step 86比`3.307417%`高速なため
+正式採用します。Step 100では数値経路を変えず、現行sourceの主要timerを診断ONで
+1回だけ再計測し、次の実装対象を最大のactionable区間から選びます。診断wallは
+baselineに使用しません。

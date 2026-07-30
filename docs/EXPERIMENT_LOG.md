@@ -1,6 +1,6 @@
 # TDDFT GPU Experiment Log
 
-Last updated: 2026-07-29
+Last updated: 2026-07-30
 
 The performance baseline is defined in `PERFORMANCE_BASELINE.md`. Detailed
 implementation and timer notes are in the bilingual progress summaries.
@@ -69,6 +69,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 85 | Split all current HLOCAL stages | 66.9716517925 (one diagnostic run) | measurement | `0494fe5` |
 | 86 | Keep HLOCAL transforms and loops on device | 66.5019950867 median | accepted baseline | `9dd8c20` |
 | 98 | Offload EWALD G-space atom pairs | 66.1477772789 median | accepted baseline | `6ef8676` |
+| 99 | Map EWALD pairs to gangs and G vectors to vector reduction | 64.3024969101 median | accepted baseline | `6b4099f` |
 
 ## Other Rejected Experiments
 
@@ -2001,6 +2002,19 @@ The gain is much smaller than the original `2.795064` sec G-space host timer.
 Step 99 keeps the accepted data region, atomic force updates, MPI assignment,
 and pair-local arithmetic, but maps one atom pair to a gang and its G-vector
 loop to a vector reduction. Run 01 first and compare against Step 98.
+
+## Step 99 Result and Step 100 Plan
+
+All Step 99 runs passed both checks at `64.5138220787`, `64.2798080444`, and
+`64.3024969101` sec. The median is `64.3024969101` sec with a
+`0.2340140343` sec range. This improves on Step 98 by `1.8452803688` sec
+(`2.789633%`) and on Step 86 by `2.1994981766` sec (`3.307417%`).
+Step 99 is accepted as the source and performance baseline.
+
+Step 100 makes no numerical or ownership change. It runs the existing
+default-off timers once on the accepted source and prints a compact selection
+of the major current intervals. Use the diagnostic result only to choose the
+largest remaining actionable hotspot; its wall is not a performance baseline.
 
 ## Step 80 H100 Exploratory Run
 

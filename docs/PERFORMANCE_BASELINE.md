@@ -1,11 +1,11 @@
 # TDDFT GPU Performance Baseline
 
-Last updated: 2026-07-29
+Last updated: 2026-07-30
 
 ## Official Baseline
 
-- Logical step: Step 98
-- Source implementation commit: `6ef8676`
+- Logical step: Step 99
+- Source implementation commit: `6b4099f`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,12 +16,12 @@ Last updated: 2026-07-29
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP98_EWALD_G_ACC_01` | 66.1477772789 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP98_EWALD_G_ACC_02` | 66.14293359913 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP98_EWALD_G_ACC_03` | 66.4177260399 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP99_EWALD_G_GANG_VECTOR_01` | 64.5138220787 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP99_EWALD_G_GANG_VECTOR_02` | 64.2798080444 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP99_EWALD_G_GANG_VECTOR_03` | 64.3024969101 | PASS | PASS |
 
-Official three-run median: `66.1477772789` sec.
-Run-to-run range: `0.27479244077` sec.
+Official three-run median: `64.3024969101` sec.
+Run-to-run range: `0.2340140343` sec.
 
 ## Step 86 Median-Wall Run 01 Profile
 
@@ -89,6 +89,7 @@ control loop and a dominant array kernel equally.
 | 82 | 20 | 83.3% | 51.3% |
 | 86 | 24 | 100.0% | 61.5% |
 | 98 | 26 | 108.3% | 66.7% |
+| 99 | 26 | 108.3% | 66.7% |
 
 Regenerate this table with `tools/report_tddft_source_gpu_index.sh`.
 

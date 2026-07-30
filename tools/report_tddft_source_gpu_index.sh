@@ -39,7 +39,8 @@ printf '%s\n' \
   '80 59686f0' \
   '82 2b7f5ba' \
   '86 9dd8c20' \
-  '98 6ef8676' |
+  '98 6ef8676' \
+  '99 6b4099f' |
 while read -r step commit
 do
   count=$(
