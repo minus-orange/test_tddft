@@ -8,7 +8,8 @@ Last updated: 2026-07-30
 - Accepted source baseline: `c46cfa9` (bounded FRPRMN-to-ELECTF COEF residency;
   the proposed SEPPOTF batch path was inactive for the tutorial input)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
-- Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
+- Required current A100 NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
+- Required current H100 NVHPC TDDFT flags: `-O2 -acc -gpu=cc90 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: `347718f`
 - Current configuration: accepted Step 107 numerical path with Step 37 pinned
   allocation mode
@@ -19,14 +20,15 @@ Last updated: 2026-07-30
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 110 and Step 112 are rejected and restored; the
-  numerical path matches accepted Step 107 after three diagnostic-off A100
-  runs passed both correctness gates
+- H100 baseline-adoption record: `7fc0c6d`
+- Current HEAD source status: the numerical path matches accepted Step 107
+  source `c46cfa9`; Step 110 and Step 112 are rejected and restored
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Official A100 baseline: Step 107 median `63.2135219574` sec
 - Official H100 baseline: Step 115 median `34.1089649200` sec, range
   `0.0905621052` sec, explicitly approved by the user on 2026-07-30
+- Pending human-operated GPU action: none
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -1100,6 +1102,25 @@ The H100 median is `34.1089649200` sec with a `0.0905621052` sec range. It is
 relative to the A100 Step 107 median. The user explicitly approved this as the
 H100-only formal baseline on 2026-07-30. Keep the A100 baseline unchanged and
 do not mix the two device series.
+
+After Step 115, NVIDIA MPS was considered only as a read-only investigation.
+The code distributes bands across MPI ranks, so multiple ranks on one GPU
+could in principle provide separate CUDA clients for MPS concurrency.
+However, the Si111-H tutorial has only 32 bands: two ranks would have about
+16 bands each and four ranks about 8 each, without reducing total GPU work.
+Additional MPI reduction/broadcast, CUDA-context, and duplicated host-work
+costs make a large single-job wall-time improvement unlikely. The user
+explicitly decided not to run an MPS or multi-rank experiment. Do not create
+an MPS wrapper, change MPI rank count, or request MPS execution unless the
+user later reopens that scope.
+
+There is no pending A100 or H100 command and no selected Step 116 performance
+hypothesis. A new task must first reconstruct Git and the two device-specific
+baselines. If further optimization is requested, perform read-only
+investigation and present one bounded hypothesis for explicit approval before
+editing source or requesting GPU execution. Do not infer that H100 results
+replace the A100 series, and do not resume low-upside tutorial micro-tuning
+without new profiler evidence or a production input.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

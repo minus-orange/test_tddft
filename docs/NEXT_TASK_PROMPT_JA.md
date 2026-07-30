@@ -25,7 +25,9 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 107です。
+正式baselineはGPU機種ごとに独立した2系列です。混合・置換しないでください。
+
+正式A100 baselineは論理Step 107です。
 
 - source implementation: `c46cfa9`
 - pinned build mode: `9cbb6bc`
@@ -37,6 +39,20 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 - 3回range: `0.1034331322 sec`
 - 実行幅: `0.1034331322 sec`
 - 全runでnormal checkとrelaxed compare PASS
+
+正式H100 baselineは論理Step 115です。
+
+- accepted numerical source: `c46cfa9`
+- tested revision: `e6ad059fc4ea65dda8ad19383ea32a5da37065ed`
+- NVIDIA H100 PCIe、1 GPU / 1 MPI rank
+- NVHPC `26.5-0` + OpenACC + cuFFT
+- `-O2 -acc -gpu=cc90 -mp -Msave -Mlarge_arrays`
+- `-gpu=mem:separate:pinnedalloc`
+- Si111-H、100 steps
+- diagnostic OFF 3回中央値: `34.1089649200 sec`
+- 3回range: `0.0905621052 sec`
+- 全runでnormal check、relaxed compare、run 01とのpairwise strict compare PASS
+- 2026-07-30にユーザーがH100専用正式baselineとして明示承認
 
 Step 86はStep 82までの採用済みGPU化を保持し、HLOCALのzero、scatter、cuFFT往復、
 局所ポテンシャル積、gatherを1個の一時device data region内で完結させています。
@@ -635,6 +651,13 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 232. ユーザーは2026-07-30にStep 115をH100専用正式baselineとして明示承認した。
      正式値は中央値`34.1089649200`秒、range `0.0905621052`秒。A100 Step 107
      baselineは独立して維持し、両device系列を混合しない。
+233. NVIDIA MPSは読取り調査だけを行った。コードはbandをMPI rankへ分配するため
+     複数rankのCUDA clientをMPSで重ねる余地はあるが、Si111-Hは32 bandsのみで、
+     2 ranksなら約16 bands/rank、4 ranksなら約8 bands/rankとなる。総GPU仕事量は
+     減らず、MPI reduction/broadcast、複数context、重複host処理が増えるため、
+     1計算wallの大幅改善は期待しにくいと判断した。
+234. ユーザーはMPSおよびMPI rank増加の実行を行わないと明示決定した。MPS wrapperを
+     作成せず、MPI rank数を変更せず、ユーザーが範囲を再度開かない限り再提案しない。
 
 Step 112の不採用・復元は`330bd1c`としてcommit/push済みで、CPU/FFTWの
 diagnostic OFF/ON full buildもPASSしています。現在の数値経路は正式Step 107へ
@@ -643,5 +666,11 @@ diagnostic OFF/ON full buildもPASSしています。現在の数値経路は正
 Step 115の追加H100実行はありません。H100専用正式baselineは
 `34.1089649200`秒、range `0.0905621052`秒として採用済みです。A100 baselineは
 独立して維持します。
+
+現在、保留中のA100/H100実行コマンドも、選定済みStep 116性能仮説もありません。
+次タスクはまずGitとデバイス別baselineを再構築し、追加高速化を求められた場合だけ
+読取り調査から開始して、単一のbounded hypothesisをユーザー承認前に提示してください。
+新しいprofiler根拠またはproduction入力なしに、上限の小さいtutorial微調整を自動再開
+しないでください。
 
 ---
