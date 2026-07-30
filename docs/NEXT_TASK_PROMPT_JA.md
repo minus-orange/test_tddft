@@ -567,8 +567,14 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 201. signed-`NUMTY` batch経路は不採用とし、sourceとhelperを削除して負値を除外する
      guardへ復元する。正式Step 107 baselineと限定COEF常駐は維持し、このSEPPOTF
      batch形を再試行しない。
+202. Step 111は`nonlocf_kinetic_mpi`を2つのG-vector準備、kinetic/currentと
+     A-vectorのhost band reduction、各MPI交換、YLM半径準備へdefault-off timerだけで
+     分解する。数式、順序、MPI、ownership、diagnostic-off経路は変更しない。
+203. 親はStep 108で`0.799754`秒、正式Step 107 wallの約`1.265%`なので、compute子が
+     大半を占める場合だけ次の実装候補にする。diagnostic wallはbaselineにしない。
 
-次はStep 110の復元commit/pushとCPU/FFTW fallback確認を完了してから、現行timerで
-約`0.799754`秒だったNONLOCFの係数kinetic/current＋MPI区間を優先して再分解します。
+次はA100で`./tools/run_tddft_step111.sh`を1回だけ実行し、
+`FPSEID_NONLOCF_KINETIC_SPLIT_BEGIN`から`FPSEID_NONLOCF_KINETIC_SPLIT_END`までの
+写真を受け取ってください。両checkを必須とし、diagnostic wallはbaselineにしません。
 
 ---

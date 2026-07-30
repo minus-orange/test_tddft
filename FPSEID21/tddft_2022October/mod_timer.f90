@@ -432,5 +432,19 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'seppotf_acc_final'
   case (144)
     name = 'seppotf_acc_download'
+  case (145)
+    name = 'nonlocf_k_gprep'
+  case (146)
+    name = 'nonlocf_k_reduce'
+  case (147)
+    name = 'nonlocf_k_comm'
+  case (148)
+    name = 'nonlocf_eed_gprep'
+  case (149)
+    name = 'nonlocf_eed_reduce'
+  case (150)
+    name = 'nonlocf_eed_comm'
+  case (151)
+    name = 'nonlocf_ylm_radius'
   end select
 end subroutine fpseid_mod_timer_name

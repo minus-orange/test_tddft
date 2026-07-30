@@ -971,6 +971,13 @@ and helper are removed. The accepted negative-`NUMTY` guard is restored, and
 the Step 107 baseline remains valid because its measured gain came from bounded
 COEF residency. Do not retry this SEPPOTF batch shape for the tutorial input.
 
+Step 111 is diagnostic only. It splits the current `nonlocf_kinetic_mpi`
+interval into two G-vector setup loops, two host band reductions, their two MPI
+exchanges, and YLM-radius setup. Run `./tools/run_tddft_step111.sh` once,
+require both checks, and return the compact split block. Its diagnostic wall is
+not a performance baseline. Proceed to an implementation only if one compute
+child dominates the `0.799754` sec Step 108 parent.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

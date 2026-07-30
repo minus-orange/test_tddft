@@ -852,6 +852,7 @@ C
       DO 580 IK=1,NUMK
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
          call prof_start(130)
+         call prof_start(145)
 #endif
 c         DO 910 JJB=1,MBLK
 c            IF(JJB.EQ.MBLK) THEN
@@ -870,6 +871,10 @@ cc             RHOA(IG)=G2(4,IG,IK)*TPIBA2
              RHOAY(IG)=G2(2,IG,IK)*TPIBA
              RHOAZ(IG)=G2(3,IG,IK)*TPIBA
   581        CONTINUE
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(145)
+         call prof_start(146)
+#endif
 c           DO 583 IB=1,NBSEQ(IK)
            DO 583 IB=nbegin(my_rank),nend(my_rank)
            iib=ib-nbegin(my_rank)+1
@@ -894,6 +899,10 @@ c            enddo
 c            write(6,*)'norm of ',ib,',',ik,'=',temp
 c *** temp check ; end
   583      CONTINUE  ! IB loop end
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(146)
+         call prof_start(147)
+#endif
 c
            if ( my_rank.ne.0 ) then
             nbleng=nend(my_rank)-nbegin(my_rank)+1
@@ -922,10 +931,18 @@ c
             endif
             enddo
            endif ! end of if my_rank.ne.0 loop
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(147)
+         call prof_start(148)
+#endif
 c ++++ for A-vector  Y. Miyamoto 2020 this is still within ik loop
              do IG=1,NG2(IK)
               RHOA(IG)=GDUMPd(IG,IK)*TPIBA
              enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(148)
+         call prof_start(149)
+#endif
              do IB=nbegin(my_rank),nend(my_rank)
              iib=ib-nbegin(my_rank)+1
               do IG=1,NG2(IK)
@@ -934,6 +951,10 @@ c ++++ for A-vector  Y. Miyamoto 2020 this is still within ik loop
      &         *DCONJG(COEF(IG,IIB,IK))*COEF(IG,IIB,IK))
               enddo
              enddo
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(149)
+         call prof_start(150)
+#endif
 c
            if ( my_rank.ne.0 ) then
             nbleng=nend(my_rank)-nbegin(my_rank)+1
@@ -946,6 +967,10 @@ c
      &    MPI_DOUBLE_PRECISION,icpu,tag,MPI_COMM_WORLD,status,ierr)
             enddo
            endif ! end of if my_rank.ne.0 loop
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(150)
+         call prof_start(151)
+#endif
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'DO 583 loop end'
 c **** temp check : end
@@ -953,6 +978,7 @@ C
              DO 588 IG=1,NG2(IK)
   588        RHOA(IG)=SQRT(G2(4,IG,IK))*TPIBA
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
+         call prof_stop(151)
          call prof_stop(130)
 #endif
 c **** temp check

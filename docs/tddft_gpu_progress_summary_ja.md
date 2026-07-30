@@ -2100,3 +2100,9 @@ Step 110 run 01はdiagnostic OFFでPASS/PASSでしたが、wall
 符号付き`NUMTY`で有効化したbatch経路は不採用とし、sourceとhelperを削除して
 負値を除外するguardへ復元します。Step 107 baselineと限定COEF常駐は維持します。
 このtutorial入力で同じSEPPOTF batch形を再試行しません。
+
+次のStep 111は追加最適化ではなく、Step 108で`0.799754`秒だった
+NONLOCF係数kinetic/current＋MPI区間を、2つのG-vector準備、2つのhost band reduction、
+各MPI交換、YLM半径準備へdefault-off timerだけで分解します。数式、loop順、MPI、
+OpenACC ownership、diagnostic-off経路は変更しません。親区間は正式Step 107 wallの
+約`1.265%`なので、compute子区間が大半を占める場合だけ実装候補にします。

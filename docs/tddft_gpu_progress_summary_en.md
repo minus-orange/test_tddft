@@ -2345,3 +2345,11 @@ range, so runs 02/03 are stopped. The signed-`NUMTY` batch path is rejected,
 its source changes and helper are removed, and the negative-count guard is
 restored. The Step 107 baseline and bounded COEF residency remain accepted.
 Do not retry this SEPPOTF batch shape for the tutorial input.
+
+Step 111 makes no optimization. Default-off timers split the
+`0.799754` sec Step 108 NONLOCF coefficient kinetic/current plus MPI interval
+into two G-vector setup loops, two host band reductions, their MPI exchanges,
+and YLM-radius setup. Equations, loop order, MPI, OpenACC ownership, and the
+diagnostic-off path are unchanged. The parent is about `1.265%` of the
+official Step 107 wall, so consider implementation only if a compute child
+owns a material majority.

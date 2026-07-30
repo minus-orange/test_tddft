@@ -2265,6 +2265,17 @@ accepted Step 107 execution path. The accepted gain remains attributed to the
 bounded FRPRMN-to-ELECTF COEF residency change. Do not retry this SEPPOTF batch
 shape for the tutorial input.
 
+## Step 111 Plan
+
+Add default-off timers only inside `nonlocf_kinetic_mpi`, which used
+`0.799754` sec in Step 108. Split it into kinetic/current G-vector setup,
+kinetic/current band reduction, its MPI exchange, A-vector G-vector setup,
+A-vector band reduction, its MPI exchange, and YLM-radius setup. Do not change
+equations, loop order, MPI calls, OpenACC ownership, or the diagnostic-off
+path. The parent is only `1.265%` of the official Step 107 wall, so consider
+an implementation only if one compute child owns a material majority. The
+diagnostic wall cannot replace the performance baseline.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`
