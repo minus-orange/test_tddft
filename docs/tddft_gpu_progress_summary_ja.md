@@ -2211,3 +2211,14 @@ diagnostic OFF、`-gpu=cc90`、採用済み`mem:separate:pinnedalloc`でTDDFTを
 3つのwall、中央値、rangeを記録します。A100 Step 107との比率はcross-device参考値
 だけです。正しい結果はH100専用baseline候補であり、A100 baselineとは混合・置換
 しません。
+
+Step 115はrevision `e6ad059`、NVIDIA H100 PCIe、`nvfortran 26.5-0`、driver
+`595.45.04`、kernel `6.12.0-124.8.1.el10_1.x86_64`、明示的`cc90`、
+pinned separate memoryで完了しました。diagnostic OFFの3 runは
+`34.1089649200`、`34.1246850491`、`34.0341229439`秒で、全runが通常check、
+relaxed compare、run 01との直接strict compareにPASSしました。
+
+H100中央値は`34.1089649200`秒、rangeは`0.0905621052`秒です。A100 Step 107中央値との
+wall比は`1.853282x`、H100 wall短縮率は`46.041663%`です。H100専用正式baselineの
+証拠gateを満たしますが、ユーザーの明示承認までは採用候補として扱います。A100
+baselineは変更せず、両device系列を混合しません。

@@ -628,16 +628,19 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 228. exact H100 model、driver、compiler、kernel、revision、flags、各wall、中央値、
      rangeを記録し、全runで通常checkとrelaxed compareを必須とする。
 229. H100結果は独立baseline候補とし、A100 Step 107系列と混合・置換しない。
+230. Step 115はrevision `e6ad059`、NVIDIA H100 PCIe、明示的`cc90`で3 run完了。
+     wallは`34.1089649200`、`34.1246850491`、`34.0341229439`秒。
+231. 全runはcheck/relaxed/run01 pairwise strict PASS。中央値`34.1089649200`秒、
+     range `0.0905621052`秒、A100/H100比`1.853282x`、短縮率`46.041663%`。
+232. H100専用正式baselineの証拠gateは満たすが、正式採用はユーザー明示承認待ち。
+     A100 Step 107 baselineは変更しない。
 
 Step 112の不採用・復元は`330bd1c`としてcommit/push済みで、CPU/FFTWの
 diagnostic OFF/ON full buildもPASSしています。現在の数値経路は正式Step 107へ
 復元済みです。
 
-次はH100環境で`./tools/run_tddft_step115_h100_baseline.sh`を1回実行し、末尾の
-「FPSEID21 STEP115 H100 CC90 BASELINE CANDIDATE SUMMARY」から
-「H100-only baseline candidate; do not replace or mix with the A100 baseline.」
-までが入る写真1枚を返してください。途中停止時は
-「FPSEID21 STEP115 H100 CC90 BASELINE FAILURE」から最後の停止文までが入る
-写真1枚を返してください。
+Step 115の追加H100実行はありません。次はH100専用正式baselineとして
+`34.1089649200`秒、range `0.0905621052`秒を採用するか、ユーザーの明示判断を
+待ってください。A100 baselineは独立して維持します。
 
 ---

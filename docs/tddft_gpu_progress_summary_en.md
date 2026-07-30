@@ -2475,3 +2475,16 @@ model, driver, compiler, kernel, revision, flags, three walls, median, and
 range. The A100 Step 107 ratio is cross-device context only. A correct result
 is an H100-only baseline candidate and never changes or mixes with the A100
 baseline.
+
+Step 115 at revision `e6ad059` completed on an NVIDIA H100 PCIe using
+`nvfortran 26.5-0`, driver `595.45.04`, kernel
+`6.12.0-124.8.1.el10_1.x86_64`, explicit `cc90`, and pinned separate memory.
+The three diagnostic-off walls were `34.1089649200`, `34.1246850491`, and
+`34.0341229439` sec. Every run passed normal check, relaxed compare, and direct
+strict comparison with run 01.
+
+The H100 median is `34.1089649200` sec and the range is `0.0905621052` sec.
+Relative to the A100 Step 107 median, the A100/H100 wall ratio is `1.853282x`
+and the H100 wall reduction is `46.041663%`. The result meets the evidence
+gates for an H100-only formal baseline, but remains an acceptance candidate
+until explicit user approval. It does not change or mix with the A100 baseline.

@@ -82,7 +82,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 112 | Fuse NONLOCF kinetic/current and A-vector energy passes | 63.6258358955 (run 01) | rejected; early stop and restored | `1aa31fd` / `330bd1c` |
 | 113 | Screen isolated NVHPC compiler options | 63.7448709011 best one-run wall (`fastmath`) | screening; no baseline change | `05fd3c4` |
 | 114 | Screen NVHPC memory modes | 130.1395111080 best alternative (`managed`) | rejected; >2x control wall | `3fe68c1` |
-| 115 | Establish current-source H100 cc90 baseline | pending | three-run measurement planned | pending |
+| 115 | Establish current-source H100 cc90 baseline | 34.1089649200 median | acceptance candidate; human approval pending | `e6ad059` |
 
 ## Other Rejected Experiments
 
@@ -2444,6 +2444,32 @@ The compact report prints the H100 median and range. It also prints the
 same-source A100 Step 107 median ratio only as a cross-device observation.
 Never mix H100 results into the A100 series. A correct three-run result is an
 H100-only baseline candidate and still requires result review before adoption.
+
+## Step 115 H100 cc90 Baseline Candidate Result
+
+Step 115 ran the current accepted numerical path at revision
+`e6ad059fc4ea65dda8ad19383ea32a5da37065ed` on an NVIDIA H100 PCIe:
+
+| archive suffix | wall_sec | normal check | relaxed compare | run-01 pairwise strict |
+|---|---:|---|---|---|
+| `01` | 34.1089649200 | PASS | PASS | PASS |
+| `02` | 34.1246850491 | PASS | PASS | PASS |
+| `03` | 34.0341229439 | PASS | PASS | PASS |
+
+- H100 median: `34.1089649200` sec
+- H100 range: `0.0905621052` sec
+- A100 Step 107 median: `63.2135219574` sec
+- A100/H100 median ratio: `1.853282x`
+- H100 wall reduction versus A100: `46.041663%`
+- Compiler: `nvfortran 26.5-0`, x86-64 Linux, `-tp sapphirerapids`
+- Device/driver: NVIDIA H100 PCIe, `595.45.04`
+- Kernel: `6.12.0-124.8.1.el10_1.x86_64`
+- Flags: `-O2 -acc -gpu=cc90 -mp -Msave -Mlarge_arrays -gpu=mem:separate:pinnedalloc`
+
+The three-run result satisfies the H100 correctness, reproducibility, and
+measurement gates. It is an H100-only formal-baseline acceptance candidate.
+Do not update formal baseline status until the user explicitly approves it.
+The A100 Step 107 baseline remains independent and unchanged.
 
 ## Step 80 H100 Exploratory Run
 

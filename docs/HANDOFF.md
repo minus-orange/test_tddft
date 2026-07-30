@@ -1087,6 +1087,19 @@ driver, compiler, kernel, revision, flags, median, and range. Treat the result
 as an H100-only baseline candidate. The A100 Step 107 baseline remains
 independent and cannot be replaced or mixed with this series.
 
+Step 115 at full revision `e6ad059fc4ea65dda8ad19383ea32a5da37065ed`
+completed on an NVIDIA H100 PCIe with driver `595.45.04`, `nvfortran 26.5-0`,
+kernel `6.12.0-124.8.1.el10_1.x86_64`, and explicit `cc90`. All three runs
+passed normal check, relaxed compare, and run-01 pairwise strict comparison.
+Walls were `34.1089649200`, `34.1246850491`, and `34.0341229439` sec.
+
+The H100 median is `34.1089649200` sec with a `0.0905621052` sec range. It is
+`1.853282x` faster by A100/H100 wall ratio and reduces wall by `46.041663%`
+relative to the A100 Step 107 median. This satisfies the evidence gates for an
+H100-only formal baseline, but formal acceptance requires explicit user
+approval. Keep the A100 baseline unchanged and do not mix the two device
+series.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
