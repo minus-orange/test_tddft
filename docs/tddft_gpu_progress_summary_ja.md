@@ -2093,3 +2093,10 @@ Step 109は両checkにPASSしましたが、実際には旧SEPPOTF経路が動�
 `ABS(NUMTY)`を使いますが、Step 107 guardだけが負値を未対応扱いしていました。
 したがってStep 107の採用済み改善は限定COEF常駐によるもので、batch経路は未実行です。
 Step 110はguardとatom loopだけを旧経路と同じ`ABS(NUMTY)`規約へ合わせます。
+
+Step 110 run 01はdiagnostic OFFでPASS/PASSでしたが、wall
+`63.7820260525`秒は正式Step 107中央値より`0.5685040951`秒（`0.899339%`）遅く、
+差はStep 107 run rangeの`5.496344x`でした。run 02/03は早期停止します。
+符号付き`NUMTY`で有効化したbatch経路は不採用とし、sourceとhelperを削除して
+負値を除外するguardへ復元します。Step 107 baselineと限定COEF常駐は維持します。
+このtutorial入力で同じSEPPOTF batch形を再試行しません。

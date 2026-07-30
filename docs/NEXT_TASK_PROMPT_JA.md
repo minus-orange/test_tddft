@@ -561,8 +561,14 @@ production入力と対応referenceはまだ存在しないため、推測で生�
 199. Step 107の採用済み改善は限定COEF常駐によるものでbatch経路は未実行だった。
      Step 110はzeroだけを未対応とし、projector/final atom loopを旧経路と同じ
      `ABS(NUMTY)`へ合わせる。数式、順序、MPI、fallback、ownershipは変えない。
+200. Step 110 run 01はdiagnostic OFFでPASS/PASSだが`63.7820260525`秒で、
+     正式Step 107中央値より`0.5685040951`秒（`0.899339%`）遅く、差はbaseline
+     rangeの`5.496344x`だった。run 02/03は早期停止する。
+201. signed-`NUMTY` batch経路は不採用とし、sourceとhelperを削除して負値を除外する
+     guardへ復元する。正式Step 107 baselineと限定COEF常駐は維持し、このSEPPOTF
+     batch形を再試行しない。
 
-次はdiagnostic OFFで`./tools/run_tddft_step110.sh 01`を実行し、summary写真を
-受け取ってください。PASS/PASSかつ良好な場合だけ`02-03`へ進みます。
+次はStep 110の復元commit/pushとCPU/FFTW fallback確認を完了してから、現行timerで
+約`0.799754`秒だったNONLOCFの係数kinetic/current＋MPI区間を優先して再分解します。
 
 ---

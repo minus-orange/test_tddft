@@ -77,6 +77,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 107 | Batch nonpartitioned s/p SEPPOTF reductions over atom x local band | 63.2135219574 median | accepted baseline | `c46cfa9` |
 | 108 | Re-profile the accepted Step 107 source | 70.2021420002 (one diagnostic run) | measurement | `4ccf7dc` |
 | 109 | Split the batched SEPPOTF path | 69.1963171959 (diagnostic; legacy path observed) | measurement | `f3d6082` |
+| 110 | Enable the batched SEPPOTF path for signed `NUMTY` | 63.7820260525 (run 01) | rejected; early stop and restored | `3536127` |
 
 ## Other Rejected Experiments
 
@@ -2249,6 +2250,20 @@ formulas, MPI, partition fallback, d/f fallback, and COEF ownership remain
 unchanged. Run diagnostic-off performance run 01 first and require both
 correctness checks. Continue to runs 02/03 only if it is correct and promising.
 Rollback target: `94bd29e`.
+
+## Step 110 Result and Rejection
+
+Run 01 at revision `3536127` passed both the normal check and relaxed compare
+with diagnostics off, but took `63.7820260525` sec. This is
+`0.5685040951` sec (`0.899339%`) slower than the official Step 107 median
+`63.2135219574` sec, and the difference is `5.496344x` the Step 107 three-run
+range. Runs 02/03 are therefore skipped under the early-stop rule.
+
+The signed-count batched SEPPOTF path is rejected. Its three source changes and
+one-run helper are removed, restoring the negative-`NUMTY` guard and the
+accepted Step 107 execution path. The accepted gain remains attributed to the
+bounded FRPRMN-to-ELECTF COEF residency change. Do not retry this SEPPOTF batch
+shape for the tutorial input.
 
 ## Step 80 H100 Exploratory Run
 

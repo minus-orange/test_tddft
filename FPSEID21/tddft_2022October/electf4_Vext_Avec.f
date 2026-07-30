@@ -315,7 +315,7 @@ C type, atom, and s-then-p accumulation order for every band.
      & SEPRED(16,NTAUQ,MXBND)
       NBLENG=NB1-NB0+1
       DO ITY=1,NTYPE
-       NATM=ABS(NUMTY(ITY))
+       NATM=NUMTY(ITY)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
        CALL PROF_START(140)
 #endif
@@ -602,8 +602,7 @@ C type, atom, and s-then-p accumulation order for every band.
         FZNL(ITAU,IB)=0.D0
        ENDDO
        DO ITY=1,NTYPE
-        NATM=ABS(NUMTY(ITY))
-        DO IATM=1,NATM
+        DO IATM=1,NUMTY(ITY)
          ITAU=NIDN(IATM,ITY)
          CTR=DBLE(SEPRED(1,ITAU,IIB))
          CTI=DIMAG(SEPRED(1,ITAU,IIB))
@@ -828,7 +827,7 @@ C
       NBLACC=nend(my_rank)-nbegin(my_rank)+1
       if (NBLACC.le.0) IACCSP=0
       do 579 ITY=1,NTYPE
-       if (NUMTY(ITY).eq.0) IACCSP=0
+       if (NUMTY(ITY).le.0) IACCSP=0
        if (MXOFL(ITY).lt.1 .or. MXOFL(ITY).gt.2) IACCSP=0
        if (IBUN(1,ITY).eq.1) IACCSP=0
        if (MXOFL(ITY).ge.2 .and. IBUN(2,ITY).eq.1) IACCSP=0

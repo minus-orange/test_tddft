@@ -2337,3 +2337,11 @@ negative count even though legacy SEPPOTF consistently uses `ABS(NUMTY)`.
 Thus Step 107's accepted improvement came from its bounded COEF residency
 change, not the inactive batch path. Step 110 changes only the batch guard and
 atom-loop bounds to use the same signed-count convention as legacy SEPPOTF.
+
+Step 110 run 01 passed both checks with diagnostics off, but its
+`63.7820260525` sec wall is `0.5685040951` sec (`0.899339%`) slower than the
+official Step 107 median. That difference is `5.496344x` the Step 107 run
+range, so runs 02/03 are stopped. The signed-`NUMTY` batch path is rejected,
+its source changes and helper are removed, and the negative-count guard is
+restored. The Step 107 baseline and bounded COEF residency remain accepted.
+Do not retry this SEPPOTF batch shape for the tutorial input.

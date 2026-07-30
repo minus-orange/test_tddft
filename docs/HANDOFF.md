@@ -963,6 +963,14 @@ the batched projector/final loops use `ABS(NUMTY)` like the legacy path. Run
 `./tools/run_tddft_step110.sh 01` with diagnostics off. Require both checks and
 stop on failure or an unpromising wall; only then run `02-03`.
 
+Step 110 run 01 passed both checks with diagnostics off but took
+`63.7820260525` sec, `0.5685040951` sec (`0.899339%`) slower than the official
+Step 107 median. The difference is `5.496344x` the Step 107 run range, so runs
+02/03 were stopped. The signed-count batch path is rejected; its source changes
+and helper are removed. The accepted negative-`NUMTY` guard is restored, and
+the Step 107 baseline remains valid because its measured gain came from bounded
+COEF residency. Do not retry this SEPPOTF batch shape for the tutorial input.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
