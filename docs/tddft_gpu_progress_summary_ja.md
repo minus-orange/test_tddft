@@ -2014,3 +2014,8 @@ Step 101ではfused wrapperの大半がkernel `8.402617`秒で、最初の`work2
 `1.551925`秒でした。S2 localは`4.612063`秒で、local phase multiplyが
 `0.917904`秒、elementwise子区間外が`2.277363`秒です。Step 102は同一phase式を
 格子点ごとに1回だけ評価し、その複素factorを全local bandsで再利用します。
+
+Step 102は3 runすべてPASS/PASSで、中央値`63.8388190269`秒、range
+`0.24778998752`秒でした。Step 99比`0.721088%`、Step 86比`4.004656%`高速なため
+正式採用します。Step 103は再build・再runせず既存Step 100 archiveから未変更の
+kinetic phase上限を表示し、同じ前計算を実装する価値があるか判定します。

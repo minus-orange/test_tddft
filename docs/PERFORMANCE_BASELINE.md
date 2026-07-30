@@ -4,8 +4,8 @@ Last updated: 2026-07-30
 
 ## Official Baseline
 
-- Logical step: Step 99
-- Source implementation commit: `6b4099f`
+- Logical step: Step 102
+- Source implementation commit: `d021066`
 - Pinned-allocation build-mode commit: `9cbb6bc`
 - Result record commit: this documentation update
 - Diagnostics: off
@@ -16,12 +16,12 @@ Last updated: 2026-07-30
 
 | archive label | wall_sec | check | relaxed compare |
 |---|---:|---|---|
-| `nvhpc_cufft_1rank_02_STEP99_EWALD_G_GANG_VECTOR_01` | 64.5138220787 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP99_EWALD_G_GANG_VECTOR_02` | 64.2798080444 | PASS | PASS |
-| `nvhpc_cufft_1rank_02_STEP99_EWALD_G_GANG_VECTOR_03` | 64.3024969101 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP102_S2_PHASE_ONCE_01` | 63.8388190269 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP102_S2_PHASE_ONCE_02` | 63.71222411728 | PASS | PASS |
+| `nvhpc_cufft_1rank_02_STEP102_S2_PHASE_ONCE_03` | 63.9600141048 | PASS | PASS |
 
-Official three-run median: `64.3024969101` sec.
-Run-to-run range: `0.2340140343` sec.
+Official three-run median: `63.8388190269` sec.
+Run-to-run range: `0.24778998752` sec.
 
 ## Step 86 Median-Wall Run 01 Profile
 
@@ -90,6 +90,7 @@ control loop and a dominant array kernel equally.
 | 86 | 24 | 100.0% | 61.5% |
 | 98 | 26 | 108.3% | 66.7% |
 | 99 | 26 | 108.3% | 66.7% |
+| 102 | 26 | 108.3% | 66.7% |
 
 Regenerate this table with `tools/report_tddft_source_gpu_index.sh`.
 

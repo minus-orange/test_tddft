@@ -25,17 +25,17 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 開始時にbranch、HEAD、originとの差、tracked/staged/untracked差分を確認し、ユーザー所有の
 未追跡ファイルを変更、削除、stageしないでください。
 
-正式baselineは論理Step 99です。
+正式baselineは論理Step 102です。
 
-- source implementation: `6b4099f`
+- source implementation: `d021066`
 - pinned build mode: `9cbb6bc`
 - A100-PCIE-40GB、1 GPU / 1 MPI rank
 - NVHPC + OpenACC + cuFFT
 - `-gpu=mem:separate:pinnedalloc`
 - Si111-H、100 steps
-- diagnostic OFF 3回中央値: `64.3024969101 sec`
-- 3回range: `0.2340140343 sec`
-- 実行幅: `0.2340140343 sec`
+- diagnostic OFF 3回中央値: `63.8388190269 sec`
+- 3回range: `0.24778998752 sec`
+- 実行幅: `0.24778998752 sec`
 - 全runでnormal checkとrelaxed compare PASS
 
 Step 86はStep 82までの採用済みGPU化を保持し、HLOCALのzero、scatter、cuFFT往復、
@@ -461,6 +461,11 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
 174. Step 102は`VG=VGG+Vloc`と同じphase式を維持し、格子点ごとに複素phaseを1回だけ
      計算して全local bandsで再利用する。逐次ia、MPI、FFT ownership、CPU/FFTW fallback
      は変更せず、diagnostic OFF run 01から性能判定する。
+175. Step 102は3 runすべてPASS/PASS、中央値`63.8388190269`秒、range
+     `0.24778998752`秒。Step 99比`0.4636778832`秒（`0.721088%`）、Step 86比
+     `2.6631760598`秒（`4.004656%`）高速なので正式採用する。
+176. Step 103は再build・再runせず既存Step 100 archiveから`tmevl_exkin`と
+     `exkin_acc_kernel`を表示し、同じband共通phase前計算の上限を確認する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

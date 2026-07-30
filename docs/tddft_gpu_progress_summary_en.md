@@ -2243,3 +2243,9 @@ kernel, while the first-phase `work2_` upload uses `1.551925` sec. S2 local is
 `2.277363` sec outside its elementwise children. Step 102 keeps the identical
 phase formula but evaluates the band-independent complex factor once per grid
 point and reuses it across all local bands.
+
+All three Step 102 runs passed both checks. Their median is `63.8388190269`
+sec with a `0.24778998752` sec range, `0.721088%` faster than Step 99 and
+`4.004656%` faster than Step 86, so Step 102 is accepted. Step 103 reads the
+existing Step 100 archive, without a build or rerun, to determine whether the
+unchanged kinetic phase has enough ceiling for the same transformation.

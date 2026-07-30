@@ -5,23 +5,23 @@ Last updated: 2026-07-30
 ## Current State
 
 - Branch: `tddft-openacc-residency`
-- Accepted source baseline: `6b4099f` (`Vectorize TDDFT EWALD G-space reduction`)
+- Accepted source baseline: `d021066` (`Precompute TDDFT S2 local phase per grid point`)
 - Accepted GPU build mode: `9cbb6bc` with `ENABLE_PINNED_ALLOC=1`
 - Required current NVHPC TDDFT flags: `-O2 -acc -gpu=cc80 -gpu=mem:separate:pinnedalloc -mp -Msave -Mlarge_arrays`
 - Accepted result record: this documentation update
-- Current configuration: accepted Step 99 with Step 37 pinned allocation mode
-- Current source implementation: Step 99 commit `6b4099f`
+- Current configuration: accepted Step 102 with Step 37 pinned allocation mode
+- Current source implementation: Step 102 commit `d021066`
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
   commit `3e2c630`
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
-- Current HEAD status: Step 99 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 102 S2 local-phase performance test prepared
+- Current HEAD status: Step 102 accepted; Steps 92/93 close phase-keyed
+  nonlocal reuse; Step 103 existing-archive kinetic detail prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 99 median `64.3024969101` sec
+- Performance baseline: Step 102 median `63.8388190269` sec
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -845,6 +845,13 @@ Step 102 computes the band-independent complex local phase once per grid point
 and reuses it across bands instead of repeating `COS/SIN` for every band. The
 GNU MPI + FFTW fallback full build/link passes.
 
+All Step 102 runs passed both checks. Their walls were `63.8388190269`,
+`63.71222411728`, and `63.9600141048` sec; median `63.8388190269`, range
+`0.24778998752`. This is `0.721088%` faster than Step 99 and `4.004656%`
+faster than Step 86, so Step 102 is accepted. Step 103 reads only the existing
+Step 100 archive to measure the unchanged kinetic-phase ceiling before any
+similar implementation is attempted.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is
@@ -876,7 +883,7 @@ every performance implementation:
 3. Run one 100-step correctness measurement.
 4. Require normal check and relaxed compare to pass.
 5. If run 01 is healthy, run 02 and 03.
-6. Compare the three-run median with `64.3024969101` sec.
+6. Compare the three-run median with `63.8388190269` sec.
 7. Record and revert a change that has no performance advantage.
 
 The A100 environment is operated by the user. Provide exact commands and wait

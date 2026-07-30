@@ -70,6 +70,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 86 | Keep HLOCAL transforms and loops on device | 66.5019950867 median | accepted baseline | `9dd8c20` |
 | 98 | Offload EWALD G-space atom pairs | 66.1477772789 median | accepted baseline | `6ef8676` |
 | 99 | Map EWALD pairs to gangs and G vectors to vector reduction | 64.3024969101 median | accepted baseline | `6b4099f` |
+| 102 | Precompute the band-independent S2 local phase | 63.8388190269 median | accepted baseline | `d021066` |
 
 ## Other Rejected Experiments
 
@@ -2048,6 +2049,19 @@ formula but computes its complex phase once per grid point, then reuses that
 factor across all local bands. No `ia` order, MPI boundary, FFT ownership, or
 CPU/FFTW fallback is changed. The GNU MPI + FFTW fallback full build/link
 passes with existing legacy warnings only.
+
+## Step 102 Result and Step 103 Existing-Archive Plan
+
+All Step 102 runs passed both checks at `63.8388190269`, `63.71222411728`,
+and `63.9600141048` sec. The median is `63.8388190269` sec with a
+`0.24778998752` sec range. This improves on Step 99 by `0.4636778832` sec
+(`0.721088%`) and on Step 86 by `2.6631760598` sec (`4.004656%`).
+Step 102 is accepted as the source and performance baseline.
+
+Step 103 makes no source or numerical change. It reads the existing Step 100
+archive and prints the unchanged `exkin_` parent/kernel ceiling. This checks
+whether the same band-independent phase precomputation is large enough to
+justify another implementation without spending time on a new diagnostic run.
 
 ## Step 80 H100 Exploratory Run
 
