@@ -397,7 +397,8 @@ while [ "$run_no" -le "$RUNS" ]; do
 
   wall=$(awk '/steps took/ { value=$(NF-1) } END {
     if (value == "") exit 1
-    print value
+    gsub(/[dD]/, "E", value)
+    printf "%.10f\n", value + 0
   }' "$archive_dir/tddft.out")
   printf '%s\n' "$wall" >> "$walls_file"
 
@@ -461,7 +462,12 @@ echo "tolerances energy=$X86_ENERGY_ATOL force=$X86_FORCE_ATOL position=$X86_POS
 run_no=1
 while IFS= read -r wall; do
   suffix=$(printf '%02d' "$run_no")
-  echo "run_$suffix label=${label_prefix}_$suffix wall_sec=$wall check=PASS compare=PASS"
+  if [ "$run_no" = 1 ]; then
+    strict_summary=SELF
+  else
+    strict_summary=PASS
+  fi
+  echo "run_$suffix label=${label_prefix}_$suffix wall_sec=$wall check=PASS compare=PASS strict=$strict_summary"
   run_no=$((run_no + 1))
 done < "$walls_file"
 echo "median_sec=$median"
