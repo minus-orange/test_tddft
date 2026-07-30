@@ -2223,3 +2223,13 @@ H100中央値は`34.1089649200`秒、rangeは`0.0905621052`秒です。A100 Step
 wall比は`1.853282x`、H100 wall短縮率は`46.041663%`です。H100専用正式baselineの
 証拠gateを満たし、ユーザーは2026-07-30に正式採用を明示承認しました。A100
 baselineは変更せず、両device系列を混合しません。
+
+独立したx86 CPU/FFTW baselineはrevision `5dd9962`、Intel Xeon 6980P、
+ifx 2026.1.0、Intel MPI 2021.18.0、16 MPI ranks / 1 OpenMP thread、
+diagnostic OFFで測定しました。3 runは`29.3516199589`、`29.2610769272`、
+`29.4401659966`秒で、全runが通常checkとx86専用relaxed compareにPASSし、
+run 02/03はrun 01との直接strict compareにもPASSしました。正式中央値は
+`29.3516199589`秒、訂正rangeは`0.1790890694`秒です。最初の写真に出た
+`0.0017908907`秒はFortran D指数のreport-only解析誤りで、`e27071e`により
+今後の表示を修正済みです。ユーザーは2026-07-30にx86専用正式baselineとして
+明示承認しました。A100/H100系列とは混合・置換しません。

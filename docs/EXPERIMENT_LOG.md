@@ -2472,6 +2472,31 @@ measurement gates. The user explicitly approved it on 2026-07-30 as the
 H100-only formal baseline. The A100 Step 107 baseline remains independent and
 unchanged.
 
+## x86 Intel 16-rank CPU/FFTW Baseline Result
+
+The independent CPU/FFTW baseline ran at revision
+`5dd9962825fdb47bd09b4caafbc72c1c6782dc80` on an Intel Xeon 6980P using
+ifx 2026.1.0 (20260617), Intel MPI 2021.18.0 build 20260327, Linux
+`5.14.0-427.13.1.el9_4.x86_64`, 16 MPI ranks, one OpenMP thread per rank,
+diagnostics off, and the Si111-H 100-step input. Existing FFTW, CG, SD, and
+TDDFT build artifacts were reused.
+
+| archive suffix | wall_sec | normal check | x86 relaxed compare | run-01 pairwise strict |
+|---|---:|---|---|---|
+| `01` | 29.3516199589 | PASS | PASS | SELF |
+| `02` | 29.2610769272 | PASS | PASS | PASS |
+| `03` | 29.4401659966 | PASS | PASS | PASS |
+
+The x86-only cross-toolchain tolerances were energy `1e-4` Hartree, force
+`2e-4` Hartree/Bohr, position `2e-6` Bohr, and velocity `1e-6`. The wider
+force and position bounds do not alter the global comparator or GPU gates.
+The median is `29.3516199589` sec and the corrected range is
+`0.1790890694` sec. The photographed terminal report's `0.0017908907` range
+was a report-only Fortran D-exponent parsing error; `e27071e` corrects future
+summaries without requiring a rerun. The user explicitly approved the result
+on 2026-07-30 as the x86-only formal baseline. Keep it independent of the
+A100 and H100 series.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

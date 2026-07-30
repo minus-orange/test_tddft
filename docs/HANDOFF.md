@@ -28,6 +28,12 @@ Last updated: 2026-07-30
 - Official A100 baseline: Step 107 median `63.2135219574` sec
 - Official H100 baseline: Step 115 median `34.1089649200` sec, range
   `0.0905621052` sec, explicitly approved by the user on 2026-07-30
+- Official x86 CPU/FFTW baseline: Intel Xeon 6980P, ifx 2026.1.0,
+  Intel MPI 2021.18.0, 16 MPI ranks / 1 OpenMP thread per rank, median
+  `29.3516199589` sec, corrected range `0.1790890694` sec, explicitly
+  approved by the user on 2026-07-30
+- The A100, H100, and x86 CPU baseline series are independent; never replace
+  or mix one series with another
 - Pending human-operated GPU action: none
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
@@ -1117,12 +1123,26 @@ an MPS wrapper, change MPI rank count, or request MPS execution unless the
 user later reopens that scope.
 
 There is no pending A100 or H100 command and no selected Step 116 performance
-hypothesis. A new task must first reconstruct Git and the two device-specific
-baselines. If further optimization is requested, perform read-only
+hypothesis. A new task must first reconstruct Git, the two GPU device-specific
+baselines, and the independent x86 CPU baseline. If further optimization is
+requested, perform read-only
 investigation and present one bounded hypothesis for explicit approval before
 editing source or requesting GPU execution. Do not infer that H100 results
 replace the A100 series, and do not resume low-upside tutorial micro-tuning
 without new profiler evidence or a production input.
+
+The independent x86 CPU/FFTW baseline was measured at revision
+`5dd9962825fdb47bd09b4caafbc72c1c6782dc80` on an Intel Xeon 6980P with
+ifx 2026.1.0, Intel MPI 2021.18.0, 16 MPI ranks, one OpenMP thread per rank,
+and diagnostics off. FFTW, CG, SD, and TDDFT binaries were reused without
+recompilation. The three walls were `29.3516199589`, `29.2610769272`, and
+`29.4401659966` sec; every run passed normal check and the bounded x86 relaxed
+comparison, and runs 02/03 passed direct strict comparison with run 01. The
+median is `29.3516199589` sec and the corrected range is `0.1790890694` sec.
+The original terminal range `0.0017908907` was a report-only D-exponent parsing
+error corrected by `e27071e`; the raw walls and simulation results are
+unchanged. The user explicitly approved this x86-only formal baseline on
+2026-07-30.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

@@ -26,6 +26,7 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 未追跡ファイルを変更、削除、stageしないでください。
 
 正式baselineはGPU機種ごとに独立した2系列です。混合・置換しないでください。
+これらとは別に、x86 CPU/FFTW baselineも独立系列として維持してください。
 
 正式A100 baselineは論理Step 107です。
 
@@ -53,6 +54,24 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 - 3回range: `0.0905621052 sec`
 - 全runでnormal check、relaxed compare、run 01とのpairwise strict compare PASS
 - 2026-07-30にユーザーがH100専用正式baselineとして明示承認
+
+正式x86 CPU/FFTW baseline:
+
+- accepted numerical source: `c46cfa9`
+- tested revision: `5dd9962825fdb47bd09b4caafbc72c1c6782dc80`
+- Intel Xeon 6980P
+- ifx 2026.1.0 (20260617) + Intel MPI 2021.18.0
+- 16 MPI ranks / 1 OpenMP thread per rank
+- Si111-H、100 steps、diagnostic OFF
+- wall: `29.3516199589`、`29.2610769272`、`29.4401659966`秒
+- 正式中央値: `29.3516199589`秒
+- 訂正range: `0.1790890694`秒
+- 全runでnormal checkとx86 relaxed compare PASS、run 02/03はrun 01との
+  pairwise strict compare PASS
+- 既存FFTW、CG、SD、TDDFT buildを再利用
+- 2026-07-30にユーザーがx86専用正式baselineとして明示承認
+- 写真のrange `0.0017908907`はFortran D指数のreport-only解析誤り。
+  `e27071e`で今後の表示を修正済みで再実行は不要
 
 Step 86はStep 82までの採用済みGPU化を保持し、HLOCALのzero、scatter、cuFFT往復、
 局所ポテンシャル積、gatherを1個の一時device data region内で完結させています。
@@ -673,6 +692,6 @@ Step 115の追加H100実行はありません。H100専用正式baselineは
 次タスクはまずGitとデバイス別baselineを再構築し、追加高速化を求められた場合だけ
 読取り調査から開始して、単一のbounded hypothesisをユーザー承認前に提示してください。
 新しいprofiler根拠またはproduction入力なしに、上限の小さいtutorial微調整を自動再開
-しないでください。
+しないでください。x86 baselineもA100/H100と混合・置換せず独立して扱ってください。
 
 ---

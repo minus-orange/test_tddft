@@ -285,6 +285,37 @@ and flags were captured. The user explicitly approved this H100-only formal
 baseline on 2026-07-30. The official A100 baseline remains independent and
 unchanged.
 
+## Official x86 CPU/FFTW Baseline
+
+This CPU series is independent of both GPU series. It uses the accepted
+numerical source and the CPU/FFTW fallback at tested revision
+`5dd9962825fdb47bd09b4caafbc72c1c6782dc80`:
+
+- CPU: Intel Xeon 6980P
+- Compiler: ifx 2026.1.0 (20260617)
+- MPI: Intel MPI 2021.18.0, build 20260327
+- Kernel: Linux `5.14.0-427.13.1.el9_4.x86_64`
+- Execution: 16 MPI ranks, 1 OpenMP thread per rank
+- Diagnostics: off
+- Case: Si111-H, 100 TDDFT time steps
+- Build handling: existing FFTW, CG, SD, and TDDFT artifacts reused
+- x86-only relaxed tolerances: energy `1e-4` Hartree, force `2e-4`
+  Hartree/Bohr, position `2e-6` Bohr, velocity `1e-6`
+
+| archive label | wall_sec | check | x86 relaxed compare | run-01 pairwise strict |
+|---|---:|---|---|---|
+| `x86_fftw_16rank_intel_20260730_184956_5dd9962825fd_01` | 29.3516199589 | PASS | PASS | SELF |
+| `x86_fftw_16rank_intel_20260730_184956_5dd9962825fd_02` | 29.2610769272 | PASS | PASS | PASS |
+| `x86_fftw_16rank_intel_20260730_184956_5dd9962825fd_03` | 29.4401659966 | PASS | PASS | PASS |
+
+Official x86 median: `29.3516199589` sec. Corrected run-to-run range:
+`0.1790890694` sec (`0.610151%` of the median). The first terminal report
+printed `0.0017908907` because its awk calculation treated Fortran `D+02`
+walls as mantissas. Commit `e27071e` normalizes D exponents before calculating
+future summaries; it changes no simulation result. The user explicitly
+approved this x86-only formal baseline on 2026-07-30. It does not replace or
+mix with the A100 or H100 baseline.
+
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
 controlled rebuild and lacked revision/build provenance in the standard

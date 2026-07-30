@@ -2489,3 +2489,15 @@ Relative to the A100 Step 107 median, the A100/H100 wall ratio is `1.853282x`
 and the H100 wall reduction is `46.041663%`. The result meets the evidence
 gates for an H100-only formal baseline, and the user explicitly approved it on
 2026-07-30. It does not change or mix with the A100 baseline.
+
+The independent x86 CPU/FFTW baseline was measured at revision `5dd9962` on
+an Intel Xeon 6980P with ifx 2026.1.0, Intel MPI 2021.18.0, 16 MPI ranks,
+one OpenMP thread per rank, and diagnostics off. The three walls were
+`29.3516199589`, `29.2610769272`, and `29.4401659966` sec. Every run passed
+the normal check and x86-specific relaxed comparison, and runs 02/03 passed
+direct strict comparison with run 01. The official median is
+`29.3516199589` sec and the corrected range is `0.1790890694` sec. The initial
+photographed `0.0017908907` sec range was a report-only Fortran D-exponent
+parsing error fixed for future summaries by `e27071e`. The user explicitly
+approved this x86-only formal baseline on 2026-07-30. It does not replace or
+mix with either GPU series.
