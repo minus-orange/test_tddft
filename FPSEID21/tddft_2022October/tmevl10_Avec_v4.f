@@ -2020,12 +2020,17 @@ C       VGG: HXC POTENTIAL IN R-  SPACE
 C       RHO4:LOCAL PSEUDOPOTENTIAL in R- SPACE
       call prof_start(18)
       call prof_start(21)
+! Build the band-independent local phase once per grid point.
+! The band loop then multiplies by it instead of repeating COS/SIN.
 !$acc parallel loop present(VG(1:NXYZ),VGG(1:NXYZ),Vloc(1:NXYZ))
+!$acc& private(fac)
       do ig=1,nxyz
 c      jg=i2g(ig)
 c      VG(jg)=VGG(jg)+rho4(jg)*fdump(ig)
 c      VG(ig)=VGG(ig)+rho4(ig)
       VG(ig)=VGG(ig)+Vloc(ig)
+      fac=dt*dreal(VG(ig))
+      VG(ig)=dcmplx(dcos(fac),-dsin(fac))
       enddo
       call prof_stop(21)
 C
@@ -2046,13 +2051,12 @@ c **** temp check : end
 ! ==============================================================================
       call prof_start(22)
 !$acc parallel loop present(RHO1_(1:NXYZ,1:nbndloc),
-!$acc& RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ)) private(iib,I,fac)
+!$acc& RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ)) private(iib,I)
       do ib=nbegin,nend
        iib=ib-nbegin+1
 ! ==============================================================================
          DO 300 I=1,NXYZ
-         fac=dt*dreal( vg(i) )
-  300    RHO2_(I,iib)=dcmplx( dcos(fac),-dsin(fac) )*RHO1_(I,iib)
+  300    RHO2_(I,iib)=VG(I)*RHO1_(I,iib)
 ! ==============================================================================
       enddo
       call prof_stop(22)

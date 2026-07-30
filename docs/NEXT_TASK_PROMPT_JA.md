@@ -455,6 +455,12 @@ Step 53による正式Step 52 sourceのNsight Systems再診断は完了済みで
      diagnostic-only全配列reuse比較なので性能targetにしない。
 172. Step 101は再build・再runを行わず、既存Step 100 archiveからnonlocal transferと
      S2 local内部timerを表示する。結果で未分類`4.659178`秒のactionable区間を判定する。
+173. Step 101ではfused kernel `8.402617`秒、work2 upload `1.551925`秒、metadata
+     upload `0.088854`秒、S2 local `4.612063`秒、local phase multiply
+     `0.917904`秒、local gap `2.277363`秒だった。
+174. Step 102は`VG=VGG+Vloc`と同じphase式を維持し、格子点ごとに複素phaseを1回だけ
+     計算して全local bandsで再利用する。逐次ia、MPI、FFT ownership、CPU/FFTW fallback
+     は変更せず、diagnostic OFF run 01から性能判定する。
 
 Step 53-62 helperは完了済みの履歴として保持する。次の実験も長い個別コマンドへ
 展開せず、TDDFTのみのbuild、run、check、compare、要約をまとめた1コマンドhelperを使う。

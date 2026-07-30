@@ -2033,6 +2033,22 @@ archive without rebuilding or rerunning. It prints the nonlocal transfer
 children and the `4.659178` sec S2-local remainder hierarchy before another
 single implementation hypothesis is selected.
 
+## Step 101 Result and Step 102 Plan
+
+The existing-archive report confirms `exnlp_gemm_data=8.455729` sec and
+`exnlp_gemm_dot=8.402617` sec; the fused-kernel wrapper itself adds little.
+The first-phase `work2_` and metadata uploads use `1.551925` and `0.088854`
+sec, respectively. The closed cache/direct-generation paths are not retried.
+
+S2 local uses `4.612063` sec. Its measured elementwise kernels total about
+`2.334380` sec, leaving `2.277363` sec for FFT/runtime work. The local phase
+multiply alone uses `0.917904` sec because the same `COS/SIN` is evaluated for
+every band. Step 102 preserves the existing `VG=VGG+Vloc` value and phase
+formula but computes its complex phase once per grid point, then reuses that
+factor across all local bands. No `ia` order, MPI boundary, FFT ownership, or
+CPU/FFTW fallback is changed. The GNU MPI + FFTW fallback full build/link
+passes with existing legacy warnings only.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

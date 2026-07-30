@@ -2009,3 +2009,8 @@ diagnostic-only全配列reuse比較で、通常性能処理ではありません
 kernel `8.402617`秒が最大ですが、tutorialの32-block制約と安全なmapping/cache候補は
 診断・却下済みです。Step 101は再build・再runせず既存archiveを読み、nonlocal転送と
 S2 local内部timerを表示します。
+
+Step 101ではfused wrapperの大半がkernel `8.402617`秒で、最初の`work2_` uploadは
+`1.551925`秒でした。S2 localは`4.612063`秒で、local phase multiplyが
+`0.917904`秒、elementwise子区間外が`2.277363`秒です。Step 102は同一phase式を
+格子点ごとに1回だけ評価し、その複素factorを全local bandsで再利用します。

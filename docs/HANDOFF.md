@@ -18,7 +18,7 @@ Last updated: 2026-07-30
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - Current HEAD status: Step 99 accepted; Steps 92/93 close phase-keyed
-  nonlocal reuse; Step 101 existing-archive S2 detail prepared
+  nonlocal reuse; Step 102 S2 local-phase performance test prepared
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Performance baseline: Step 99 median `64.3024969101` sec
@@ -835,6 +835,15 @@ diagnostic-only Steps 92/93 full-array reuse observer and is absent from
 performance builds. Do not optimize that artifact. Step 101 reads the existing
 archive only and prints nonlocal transfer plus S2-local child timers; it does
 not build or rerun TDDFT.
+
+Step 101 reports `exnlp_gemm_data=8.455729`, fused kernel
+`exnlp_gemm_dot=8.402617`, `work2_` upload `1.551925`, and metadata upload
+`0.088854` sec. The `s2_fft_local` parent is `4.612063` sec; its five
+elementwise children total about `2.334380` sec and leave `2.277363` sec.
+The local phase multiply is the largest elementwise child at `0.917904` sec.
+Step 102 computes the band-independent complex local phase once per grid point
+and reuses it across bands instead of repeating `COS/SIN` for every band. The
+GNU MPI + FFTW fallback full build/link passes.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

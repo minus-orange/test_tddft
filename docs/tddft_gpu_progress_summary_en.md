@@ -2236,3 +2236,10 @@ performance work. The real fused kernel child remains `8.402617` sec, but its
 tutorial 32-block limit and the safe mapping/cache variants are already
 classified. Step 101 therefore reads the existing archive, without a build or
 rerun, to expose the nonlocal transfer and S2-local children.
+
+Step 101 confirms that the fused wrapper adds little beyond its `8.402617` sec
+kernel, while the first-phase `work2_` upload uses `1.551925` sec. S2 local is
+`4.612063` sec, with `0.917904` sec in the local phase multiply and
+`2.277363` sec outside its elementwise children. Step 102 keeps the identical
+phase formula but evaluates the band-independent complex factor once per grid
+point and reuses it across all local bands.
