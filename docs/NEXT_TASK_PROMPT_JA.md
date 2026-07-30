@@ -604,14 +604,19 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      との差でありoption固有差とは判定できない。compiler表示も空だった。
 217. O3は候補外。既存archiveだけを同一session標準とpairwise比較し、IPAまたは
      fastmathの最大1候補だけを後続3 run候補にする。
+218. pairwise reportはO3、IPA、fastmathすべてrelaxed/strict PASS。ETOT、energy、
+     force、position、velocityの最大observable差は全variantで`0.000000e+00`。
+219. fastmathは同一session標準比`-0.281093%`だが、IPAとの差は`0.071769%`だけで、
+     正式Step 107中央値より`0.840562%`遅い。明確な性能候補ではない。
+220. Step 113は3 run gateへ進めず終了する。標準flags、正式Step 107 baseline、
+     数値sourceを維持する。追加A100実行は不要。
 
 Step 112の不採用・復元は`330bd1c`としてcommit/push済みで、CPU/FFTWの
 diagnostic OFF/ON full buildもPASSしています。現在の数値経路は正式Step 107へ
 復元済みです。
 
-次はA100で`./tools/report_tddft_step113_flags.sh`を1回実行し、末尾の
-「FPSEID21 STEP113 EXISTING-ARCHIVE PAIRWISE SUMMARY」から
-「No build or simulation was run; the official baseline is unchanged.」までが
-入る写真1枚を返してください。build・simulationは実行しません。
+Step 113は完了し、追加A100実行はありません。新しいproduction入力または新しい
+profiler根拠が得られるまで、低上限のtutorial micro-optimizationやcompiler flag
+variantを先行実装しないでください。
 
 ---

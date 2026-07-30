@@ -122,7 +122,8 @@ compare_variant O3
 compare_variant IPA
 compare_variant FASTMATH
 
-compiler=$("$NVFORTRAN" -V 2>&1 | sed -n '1p' || true)
+compiler=$("$NVFORTRAN" -V 2>&1 |
+  sed -n '/[^[:space:]]/{p;q;}' || true)
 mpi_driver=$("$MPI_FC" -show 2>&1 | sed -n '1p' || true)
 device=$(nvidia-smi --query-gpu=name,driver_version \
   --format=csv,noheader 2>/dev/null | sed -n '1p' || true)

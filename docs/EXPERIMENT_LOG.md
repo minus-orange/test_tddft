@@ -2358,6 +2358,26 @@ compares O3, IPA, and `fastmath` directly with the same-session standard
 archive under relaxed and strict tolerances, prints maximum observable
 differences, and recovers compiler/MPI-driver provenance.
 
+## Step 113 Pairwise Result and Disposition
+
+The existing-archive report completed without rebuilding or rerunning. O3,
+IPA, and `fastmath` each passed both relaxed and strict direct comparison with
+the same-session standard archive. Maximum observable differences were
+`0.000000e+00` for ETOT, total energy, force, position, and velocity in every
+variant. The MPI driver identified `nvfortran` and the device remained NVIDIA
+A100-PCIE-40GB with driver `595.45.04`; the compiler-version field was still
+blank because `nvfortran -V` emitted a leading blank line, which the helper now
+skips.
+
+The numerical-risk check therefore does not exclude IPA or `fastmath`.
+Nevertheless, neither is a clear performance finalist. The best screen result,
+`fastmath`, improved only `0.1796872616` sec (`0.281093%`) over its
+same-session standard run, led IPA by only `0.071769%`, and remained
+`0.5313489437` sec (`0.840562%`) slower than the official Step 107 median.
+This does not satisfy the documented condition for starting a separate
+three-run adoption gate. Close the compiler-option screen without changing the
+standard flags or official baseline.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

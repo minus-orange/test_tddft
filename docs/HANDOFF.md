@@ -1031,6 +1031,21 @@ standard archive, prints maximum observable differences plus compiler/MPI
 provenance, and performs no build or simulation. Use that result to choose at
 most one three-run finalist; O3 is already excluded.
 
+The Step 113 existing-archive report then showed relaxed and strict PASS for
+O3, IPA, and `fastmath` against the same-session standard archive. ETOT, total
+energy, force, position, and velocity differences were all
+`0.000000e+00`. This clears the pairwise numerical-risk question but does not
+create a performance finalist: `fastmath` improved only `0.281093%` over the
+same-session standard run, led IPA by only `0.071769%`, and was still
+`0.840562%` slower than the official Step 107 median. Do not spend three more
+runs on this noise-level candidate. Step 113 is closed; retain the standard
+flags and Step 107 baseline.
+
+The report's compiler field remained blank because `nvfortran -V` begins with
+an empty line in this environment. The helpers now select its first nonblank
+line. The MPI driver output still established that the wrapper invokes
+`nvfortran`; no rerun is required for the closed Step 113 decision.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

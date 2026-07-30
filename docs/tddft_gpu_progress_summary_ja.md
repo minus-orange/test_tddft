@@ -2164,3 +2164,15 @@ default GNU referenceと比較した結果なのでoption固有差を示しま�
 再計算なしの`./tools/report_tddft_step113_flags.sh`で同一session標準archiveとの
 pairwise relaxed/strict compareと最大observable差、compiler/MPI provenanceを表示します。
 O3は候補から外し、この結果後にIPAまたはfastmathの最大1候補だけを3 runへ進めます。
+
+再計算なしのpairwise reportでは、O3、IPA、fastmathのすべてが同一session標準archive
+とのrelaxed/strict compareにPASSしました。ETOT、total energy、force、position、
+velocityの最大observable差は全variant・全項目で`0.000000e+00`でした。したがって
+pairwise数値リスクではIPAやfastmathを除外しません。
+
+ただし性能差は採用候補として明確ではありません。fastmathは同一session標準比で
+`0.1796872616`秒（`0.281093%`）だけ高速、IPAとの差は`0.071769%`だけで、正式
+Step 107中央値よりなお`0.5313489437`秒（`0.840562%`）遅い結果です。3 run採用gateへ
+進めずStep 113を終了し、標準flagsと正式baselineを維持します。compiler欄の空欄は
+この環境の`nvfortran -V`先頭空行が原因なので、helperは最初の非空行を読むよう修正
+しました。MPI driverから`nvfortran`使用は確認できており、追加A100実行は不要です。

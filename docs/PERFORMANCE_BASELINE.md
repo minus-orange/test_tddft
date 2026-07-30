@@ -30,6 +30,14 @@ SEPPOTF path inactive in these runs. The accepted gain is therefore attributed
 to Step 107's bounded FRPRMN-to-ELECTF COEF residency change. Step 110 enabled
 the batch path, was slower, and was rejected and restored in `d8ae16e`.
 
+Step 113 screened `-O3`, `-Mipa=fast,inline`, and GPU `fastmath` against a
+same-session standard build. All option archives matched that standard archive
+under both relaxed and strict comparisons, with zero differences in the
+reported observables. The best one-run result, `fastmath`, was only `0.281093%`
+faster than its same-session control and remained `0.840562%` slower than this
+official median. It therefore does not enter a three-run adoption gate, and
+the standard flags and official baseline remain unchanged.
+
 ## Step 86 Median-Wall Run 01 Profile
 
 | timer | total_sec |

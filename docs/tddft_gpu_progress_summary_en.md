@@ -2420,3 +2420,18 @@ no-simulation `./tools/report_tddft_step113_flags.sh` helper to compare each
 option directly with the same-session standard archive and report maximum
 observable differences plus compiler/MPI provenance. O3 is excluded; select at
 most one of IPA or `fastmath` for a three-run gate after this pairwise result.
+
+The no-rerun pairwise report passed both relaxed and strict comparison for O3,
+IPA, and `fastmath` against the same-session standard archive. Every reported
+ETOT, total-energy, force, position, and velocity difference was
+`0.000000e+00`. Thus no observable numerical difference excludes IPA or
+`fastmath`. Performance evidence still closes the screen: `fastmath` improved
+only `0.1796872616` sec (`0.281093%`) over the same-session standard, led IPA
+by only `0.071769%`, and remained `0.5313489437` sec (`0.840562%`) slower than
+the official Step 107 median. It is not a clear finalist and does not justify a
+three-run adoption gate. Keep the standard flags and official baseline.
+
+The compiler-version field remained blank because `nvfortran -V` starts with a
+blank line in this environment; the two Step 113 helpers now select the first
+nonblank line. MPI-driver provenance already showed that `nvfortran` is used,
+so no additional A100 run is needed.

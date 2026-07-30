@@ -126,7 +126,8 @@ run_variant IPA "$BASE_FLAGS -Mipa=fast,inline"
 run_variant FASTMATH \
   "-O2 -acc -gpu=cc80,fastmath -mp -Msave -Mlarge_arrays"
 
-compiler=$("$NVFORTRAN" -V 2>&1 | sed -n '1p' || true)
+compiler=$("$NVFORTRAN" -V 2>&1 |
+  sed -n '/[^[:space:]]/{p;q;}' || true)
 gpu=$(nvidia-smi --query-gpu=name,driver_version \
   --format=csv,noheader 2>/dev/null | sed -n '1p' || true)
 
