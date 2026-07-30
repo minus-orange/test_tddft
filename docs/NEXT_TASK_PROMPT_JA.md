@@ -595,14 +595,23 @@ production入力と対応referenceはまだ存在しないため、推測で生�
      check/relaxed compare必須。strict compareも数値リスクとして表示する。
 213. 1 run結果は正式baselineにしない。同一session標準buildより明確に高速かつ
      正しい単独候補がある場合だけ、後続の3 run採用gateを作る。
+214. Step 113はrevision `05fd3c4`で全4 variantがcheck/relaxed compare PASS。
+     wallは標準`63.9245581627`、O3 `64.3075950146`、IPA `63.7906529903`、
+     fastmath `63.7448709011`秒だった。
+215. 同一session標準比はO3 `+0.599201%`、IPA `-0.209474%`、fastmath
+     `-0.281093%`。全variantとも正式Step 107中央値より遅く、baselineは維持する。
+216. strictは全行FAILだが変更なし標準buildもFAILしたため、default GNU reference
+     との差でありoption固有差とは判定できない。compiler表示も空だった。
+217. O3は候補外。既存archiveだけを同一session標準とpairwise比較し、IPAまたは
+     fastmathの最大1候補だけを後続3 run候補にする。
 
 Step 112の不採用・復元は`330bd1c`としてcommit/push済みで、CPU/FFTWの
 diagnostic OFF/ON full buildもPASSしています。現在の数値経路は正式Step 107へ
 復元済みです。
 
-次はA100で`./tools/run_tddft_step113_flags.sh`を1回実行し、末尾の
-「FPSEID21 STEP113 NVHPC FLAG SCREEN SUMMARY」から
-「One-run screening only; no result here replaces the official baseline.」までが
-入る写真1枚を返してください。
+次はA100で`./tools/report_tddft_step113_flags.sh`を1回実行し、末尾の
+「FPSEID21 STEP113 EXISTING-ARCHIVE PAIRWISE SUMMARY」から
+「No build or simulation was run; the official baseline is unchanged.」までが
+入る写真1枚を返してください。build・simulationは実行しません。
 
 ---

@@ -2151,3 +2151,16 @@ sourceを標準`-O2`、単独`-O3`、`-Mipa=fast,inline`、GPU `fastmath`の順�
 `./tools/run_tddft_step113_flags.sh`を1回実行し、同一session標準buildとの差と正式
 Step 107中央値との差を小さな表で返します。screening結果だけでは正式flagsやbaselineを
 変更せず、正しく明確に高速な単独候補がある場合だけ別の3 run gateへ進めます。
+
+Step 113はrevision `05fd3c4`で4 variantすべて通常check/relaxed compareにPASSしました。
+wallは標準`63.9245581627`、O3 `64.3075950146`、IPA `63.7906529903`、fastmath
+`63.7448709011`秒です。同一session標準比でO3は`0.599201%`遅く、IPAは
+`0.209474%`、fastmathは`0.281093%`高速でした。全variantとも正式Step 107中央値より
+遅く、baselineは変更しません。fastmathのIPAに対する差は`0.0457820892`秒
+（`0.071769%`）だけです。
+
+strict compareは変更なし標準buildを含む全行でFAILしましたが、これは各archiveを
+default GNU referenceと比較した結果なのでoption固有差を示しません。次は再build・
+再計算なしの`./tools/report_tddft_step113_flags.sh`で同一session標準archiveとの
+pairwise relaxed/strict compareと最大observable差、compiler/MPI provenanceを表示します。
+O3は候補から外し、この結果後にIPAまたはfastmathの最大1候補だけを3 runへ進めます。

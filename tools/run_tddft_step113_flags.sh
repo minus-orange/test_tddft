@@ -7,6 +7,7 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_nvhpc"}
 MPI_FC=${MPI_FC:-mpifort}
+NVFORTRAN=${NVFORTRAN:-nvfortran}
 OFFICIAL_MEDIAN=63.2135219574
 BASE_FLAGS="-O2 -acc -gpu=cc80 -mp -Msave -Mlarge_arrays"
 
@@ -125,7 +126,7 @@ run_variant IPA "$BASE_FLAGS -Mipa=fast,inline"
 run_variant FASTMATH \
   "-O2 -acc -gpu=cc80,fastmath -mp -Msave -Mlarge_arrays"
 
-compiler=$("$MPI_FC" --version 2>/dev/null | sed -n '1p' || true)
+compiler=$("$NVFORTRAN" -V 2>&1 | sed -n '1p' || true)
 gpu=$(nvidia-smi --query-gpu=name,driver_version \
   --format=csv,noheader 2>/dev/null | sed -n '1p' || true)
 

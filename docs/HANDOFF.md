@@ -1015,6 +1015,22 @@ from the same-session standard build, and difference from the official Step
 cannot replace the official baseline; only a correct, clearly faster isolated
 variant may proceed to a separate three-run adoption gate.
 
+Step 113 at `05fd3c4` completed all four runs with normal check and relaxed
+compare PASS. Same-session walls were standard `63.9245581627`, O3
+`64.3075950146`, IPA `63.7906529903`, and `fastmath` `63.7448709011` sec.
+Relative to the same-session standard build, O3 regressed `0.599201%`, IPA
+improved `0.209474%`, and `fastmath` improved `0.281093%`. All four remain
+slower than the official Step 107 median, and none changes the baseline.
+`fastmath` is only `0.0457820892` sec (`0.071769%`) faster than IPA.
+
+All rows reported strict FAIL against the default GNU reference, including the
+unchanged standard build, so that column cannot attribute a numerical change
+to one option. Run `./tools/report_tddft_step113_flags.sh` once. It reads only
+the existing archives, directly compares each option with the same-session
+standard archive, prints maximum observable differences plus compiler/MPI
+provenance, and performs no build or simulation. Use that result to choose at
+most one three-run finalist; O3 is already excluded.
+
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
 A100 Step 80 median by ratio, but it is not a formal H100 baseline: there is

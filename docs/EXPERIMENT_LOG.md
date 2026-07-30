@@ -80,6 +80,7 @@ implementation and timer notes are in the bilingual progress summaries.
 | 110 | Enable the batched SEPPOTF path for signed `NUMTY` | 63.7820260525 (run 01) | rejected; early stop and restored | `3536127` / `d8ae16e` |
 | 111 | Split NONLOCF kinetic/current plus MPI | 69.0858860016 (one diagnostic run) | measurement | `2415d30` |
 | 112 | Fuse NONLOCF kinetic/current and A-vector energy passes | 63.6258358955 (run 01) | rejected; early stop and restored | `1aa31fd` / `330bd1c` |
+| 113 | Screen isolated NVHPC compiler options | 63.7448709011 best one-run wall (`fastmath`) | screening; no baseline change | `05fd3c4` |
 
 ## Other Rejected Experiments
 
@@ -2329,6 +2330,33 @@ and deltas from the official Step 107 median. This is one-run screening only.
 Do not update the standard flags or baseline, and do not mix variants into a
 median. Select at most one correct, clearly faster variant for a later
 three-run gate.
+
+## Step 113 Screen Result and Pairwise Check Plan
+
+All four diagnostic-off A100 runs at revision `05fd3c4` passed normal check
+and relaxed compare:
+
+| variant | wall_sec | delta vs same-session `-O2` | percent | vs official Step 107 |
+|---|---:|---:|---:|---:|
+| standard `-O2` | 63.9245581627 | 0.0000000000 | 0.000000% | +1.124817% |
+| `-O3` | 64.3075950146 | +0.3830368519 | +0.599201% | +1.730758% |
+| `-Mipa=fast,inline` | 63.7906529903 | -0.1339051724 | -0.209474% | +0.912987% |
+| GPU `fastmath` | 63.7448709011 | -0.1796872616 | -0.281093% | +0.840562% |
+
+`-O3` is not a finalist. IPA and `fastmath` are modestly faster than the
+same-session control, but `fastmath` is only `0.0457820892` sec (`0.071769%`)
+faster than IPA. Every row reported strict FAIL because that check compared
+each archive independently with the default GNU reference; even the unchanged
+standard build failed, so it does not isolate option-induced numerical change.
+The compiler line was blank because the first wrapper queried the MPI wrapper
+with an unsupported version form; device provenance was NVIDIA
+A100-PCIE-40GB with driver `595.45.04`.
+
+Before selecting one three-run candidate, run
+`tools/report_tddft_step113_flags.sh`. It performs no build or simulation. It
+compares O3, IPA, and `fastmath` directly with the same-session standard
+archive under relaxed and strict tolerances, prints maximum observable
+differences, and recovers compiler/MPI-driver provenance.
 
 ## Step 80 H100 Exploratory Run
 

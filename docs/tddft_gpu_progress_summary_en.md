@@ -2404,3 +2404,19 @@ reported as an extra numerical-risk signal. Run
 variant with the same-session standard build and the official Step 107 median.
 The screen cannot change the official flags or baseline. Only one correct,
 clearly faster isolated candidate may proceed to a separate three-run gate.
+
+Step 113 at revision `05fd3c4` completed all four variants with normal check
+and relaxed compare PASS. Walls were standard `63.9245581627`, O3
+`64.3075950146`, IPA `63.7906529903`, and `fastmath` `63.7448709011` sec.
+Against the same-session standard build, O3 was `0.599201%` slower, IPA was
+`0.209474%` faster, and `fastmath` was `0.281093%` faster. Every variant
+remained slower than the official Step 107 median, so the baseline is
+unchanged. `fastmath` led IPA by only `0.0457820892` sec (`0.071769%`).
+
+Strict compare failed for every row, including the unchanged standard build,
+because each archive was compared with the default GNU reference. It therefore
+does not isolate option-induced numerical change. Next run the no-build,
+no-simulation `./tools/report_tddft_step113_flags.sh` helper to compare each
+option directly with the same-session standard archive and report maximum
+observable differences plus compiler/MPI provenance. O3 is excluded; select at
+most one of IPA or `fastmath` for a three-run gate after this pairwise result.
