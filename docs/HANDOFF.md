@@ -24,7 +24,9 @@ Last updated: 2026-07-30
   runs passed both correctness gates
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
-- Performance baseline: Step 107 median `63.2135219574` sec
+- Official A100 baseline: Step 107 median `63.2135219574` sec
+- Official H100 baseline: Step 115 median `34.1089649200` sec, range
+  `0.0905621052` sec, explicitly approved by the user on 2026-07-30
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -1095,10 +1097,9 @@ Walls were `34.1089649200`, `34.1246850491`, and `34.0341229439` sec.
 
 The H100 median is `34.1089649200` sec with a `0.0905621052` sec range. It is
 `1.853282x` faster by A100/H100 wall ratio and reduces wall by `46.041663%`
-relative to the A100 Step 107 median. This satisfies the evidence gates for an
-H100-only formal baseline, but formal acceptance requires explicit user
-approval. Keep the A100 baseline unchanged and do not mix the two device
-series.
+relative to the A100 Step 107 median. The user explicitly approved this as the
+H100-only formal baseline on 2026-07-30. Keep the A100 baseline unchanged and
+do not mix the two device series.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

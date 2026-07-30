@@ -2486,5 +2486,5 @@ strict comparison with run 01.
 The H100 median is `34.1089649200` sec and the range is `0.0905621052` sec.
 Relative to the A100 Step 107 median, the A100/H100 wall ratio is `1.853282x`
 and the H100 wall reduction is `46.041663%`. The result meets the evidence
-gates for an H100-only formal baseline, but remains an acceptance candidate
-until explicit user approval. It does not change or mix with the A100 baseline.
+gates for an H100-only formal baseline, and the user explicitly approved it on
+2026-07-30. It does not change or mix with the A100 baseline.

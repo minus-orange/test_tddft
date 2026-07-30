@@ -2,7 +2,7 @@
 
 Last updated: 2026-07-30
 
-## Official Baseline
+## Official A100 Baseline
 
 - Logical step: Step 107
 - Source implementation commit: `c46cfa9`
@@ -249,7 +249,9 @@ All three runs passed both checks. Its `66.5019950867` sec median is
 `0.1519150734` sec (`0.22791%`) faster than Step 82, with a
 `0.2952189446` sec range. Step 86 supersedes Step 82 as the official baseline.
 
-## H100 Cross-Device Observation
+## H100 Baseline
+
+### Historical Step 80 Cross-Device Observation
 
 One user-operated Step 80 run on an NVIDIA H100 reported
 `36.492636919` sec and passed both correctness checks. This is `1.847517x`
@@ -258,14 +260,16 @@ It is not a formal H100 baseline because only one run is available and the
 exact H100 model, Git revision, compiler version, and GPU architecture target
 were not captured. The official baseline above remains A100-only.
 
-Step 115 will replace this incomplete observation with a controlled H100
-baseline candidate using the latest accepted numerical path, an explicit
+Step 115 replaced this incomplete observation with a controlled H100
+baseline using the latest accepted numerical path, an explicit
 `cc90` build, `mem:separate:pinnedalloc`, diagnostics off, and three Si111-H
 100-step runs. It records exact provenance and a device-specific median and
-range. Even if accepted, that result remains an H100-only baseline and does not
-replace or mix with the A100 Step 107 series.
+range. This H100-only baseline does not replace or mix with the A100 Step 107
+series.
 
-Step 115 produced the controlled candidate at revision `e6ad059` on an NVIDIA
+### Official Step 115 H100 Baseline
+
+Step 115 produced the controlled baseline at revision `e6ad059` on an NVIDIA
 H100 PCIe with explicit `cc90` and the accepted pinned-separate mode:
 
 | archive label | wall_sec | check | relaxed compare | run-01 pairwise strict |
@@ -274,12 +278,12 @@ H100 PCIe with explicit `cc90` and the accepted pinned-separate mode:
 | `nvhpc_cufft_1rank_02_STEP115_H100_CC90_BASELINE_02` | 34.1246850491 | PASS | PASS | PASS |
 | `nvhpc_cufft_1rank_02_STEP115_H100_CC90_BASELINE_03` | 34.0341229439 | PASS | PASS | PASS |
 
-Candidate H100 median: `34.1089649200` sec. Candidate range:
+Official H100 median: `34.1089649200` sec. Run-to-run range:
 `0.0905621052` sec. The A100/H100 median ratio is `1.853282x`, corresponding
 to a `46.041663%` H100 wall reduction. Exact compiler, driver, kernel, revision,
-and flags were captured. This qualifies for H100-only formal-baseline
-acceptance, but remains a candidate until explicit user approval. The official
-A100 baseline remains unchanged.
+and flags were captured. The user explicitly approved this H100-only formal
+baseline on 2026-07-30. The official A100 baseline remains independent and
+unchanged.
 
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit
