@@ -29,6 +29,7 @@ TDDFT_FC=${TDDFT_FC:-mpiifx}
 OMP_STACKSIZE=${OMP_STACKSIZE:-512M}
 I_MPI_PIN=${I_MPI_PIN:-1}
 I_MPI_PIN_DOMAIN=${I_MPI_PIN_DOMAIN:-omp}
+I_MPI_PIN_ORDER=${I_MPI_PIN_ORDER:-compact}
 KMP_AFFINITY=${KMP_AFFINITY:-granularity=fine,compact,1,0}
 X86_ENERGY_ATOL=${X86_ENERGY_ATOL:-1e-4}
 X86_FORCE_ATOL=${X86_FORCE_ATOL:-2e-4}
@@ -110,6 +111,13 @@ case "$MAX_TOTAL_THREADS" in
     exit 2
     ;;
 esac
+case "$I_MPI_PIN_ORDER" in
+  compact|scatter|spread|bunch|range) ;;
+  *)
+    echo "ERROR: unsupported I_MPI_PIN_ORDER: $I_MPI_PIN_ORDER" >&2
+    exit 2
+    ;;
+esac
 
 machine=$(uname -m)
 case "$machine" in
@@ -167,7 +175,7 @@ printf '%s\n' \
   "mpi_ranks	omp_threads	total_threads	median_sec	range_sec	oversubscribed" \
   > "$summary_tsv"
 
-export OMP_STACKSIZE I_MPI_PIN I_MPI_PIN_DOMAIN KMP_AFFINITY
+export OMP_STACKSIZE I_MPI_PIN I_MPI_PIN_DOMAIN I_MPI_PIN_ORDER KMP_AFFINITY
 
 RUN_DIR="$RUN_DIR" TDDFT_STEPS=100 NPROCS=16 MPIRUN="$MPIRUN" \
   "$SCRIPT_DIR/prepare_si111_h_sample.sh"
@@ -184,7 +192,7 @@ echo "  mpi_counts=$MPI_COUNTS"
 echo "  omp_thread_counts=$OMP_THREAD_COUNTS"
 echo "  max_total_threads=$MAX_TOTAL_THREADS"
 echo "  runs_per_config=$RUNS_PER_CONFIG"
-echo "  I_MPI_PIN=$I_MPI_PIN I_MPI_PIN_DOMAIN=$I_MPI_PIN_DOMAIN"
+echo "  I_MPI_PIN=$I_MPI_PIN I_MPI_PIN_DOMAIN=$I_MPI_PIN_DOMAIN I_MPI_PIN_ORDER=$I_MPI_PIN_ORDER"
 echo "  KMP_AFFINITY=$KMP_AFFINITY"
 
 for mpi_ranks in $MPI_COUNTS; do
@@ -283,6 +291,7 @@ for mpi_ranks in $MPI_COUNTS; do
         echo "omp_stacksize=$OMP_STACKSIZE"
         echo "i_mpi_pin=$I_MPI_PIN"
         echo "i_mpi_pin_domain=$I_MPI_PIN_DOMAIN"
+        echo "i_mpi_pin_order=$I_MPI_PIN_ORDER"
         echo "kmp_affinity=$KMP_AFFINITY"
         echo "normal_check=PASS"
         echo "x86_relaxed_compare=PASS"
@@ -325,7 +334,7 @@ echo "mpi=$mpi"
 echo "logical_cpus=$logical_cpus physical_cores=$physical_cores"
 echo "max_total_threads=$MAX_TOTAL_THREADS"
 echo "runs_per_config=$RUNS_PER_CONFIG"
-echo "binding I_MPI_PIN=$I_MPI_PIN I_MPI_PIN_DOMAIN=$I_MPI_PIN_DOMAIN KMP_AFFINITY=$KMP_AFFINITY"
+echo "binding I_MPI_PIN=$I_MPI_PIN I_MPI_PIN_DOMAIN=$I_MPI_PIN_DOMAIN I_MPI_PIN_ORDER=$I_MPI_PIN_ORDER KMP_AFFINITY=$KMP_AFFINITY"
 echo "tolerances energy=$X86_ENERGY_ATOL force=$X86_FORCE_ATOL position=$X86_POSITION_ATOL velocity=$X86_VELOCITY_ATOL"
 echo "mpi omp total_threads median_sec range_sec oversubscribed"
 sed -n '2,$p' "$ranked_tsv" | while IFS='	' read -r \

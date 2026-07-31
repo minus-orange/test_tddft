@@ -150,6 +150,19 @@ On the Intel Xeon 6980P measurement host this configuration produced a
 `16.5392820835` sec median and `0.0579471588` sec range. The earlier 16 MPI
 x 1 OpenMP baseline remains historical scaling evidence.
 
+To screen Intel MPI rank-domain ordering at the accepted 32 MPI x 8 OpenMP
+configuration without compiling, run:
+
+```sh
+./tools/run_tddft_x86_affinity_screen.sh
+```
+
+The helper runs `compact` as a same-session control, then `scatter` and
+`spread`. Each variant must pass normal check and the x86 relaxed comparison;
+the alternatives must also pass direct strict comparison with the compact
+control. This is a one-run screen only and never changes the formal baseline
+automatically.
+
 ## NVIDIA HPC SDK build
 
 This path uses NVIDIA HPC SDK compilers for a CPU/OpenMP + MPI build. It does

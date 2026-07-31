@@ -72,7 +72,12 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 - 旧16 MPI / 1 OpenMP中央値`29.3516199589`秒比で`43.651212%`高速
 - 2026-07-31にユーザーがx86専用正式baselineとして明示承認
 - 旧16 MPI / 1 OpenMPの3 runは履歴として保持し、GPU系列とは混合しない
-- 保留中のx86実行コマンドなし
+- x86 hostは42または43 CPUからなる6 NUMA nodeを持つ
+- 次のx86実行は`./tools/run_tddft_x86_affinity_screen.sh`による
+  `compact` control、`scatter`、`spread`の各1 run配置screening
+- 既存buildを再利用し、32 MPI / 8 OpenMP、入力、tolerance、diagnostic OFFを固定
+- 全variantでnormal checkとx86 relaxed compare、候補はcompactとのstrict compare必須
+- one-run screenだけでは正式x86 baselineを変更しない
 
 Step 86はStep 82までの採用済みGPU化を保持し、HLOCALのzero、scatter、cuFFT往復、
 局所ポテンシャル積、gatherを1個の一時device data region内で完結させています。

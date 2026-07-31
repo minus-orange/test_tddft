@@ -2552,6 +2552,24 @@ The user explicitly approved it on 2026-07-31 as the new x86-only formal
 baseline. Keep the former baseline as historical scaling evidence and do not
 mix either CPU result with the A100 or H100 series.
 
+## x86 Intel MPI Affinity Screen Plan
+
+The 256-core host exposes six NUMA nodes, each containing 42 or 43 CPUs. The
+distance matrix is consistent with three NUMA nodes per 128-core socket. Since
+an eight-thread MPI domain does not divide a 42/43-core NUMA node evenly,
+rank-domain ordering may affect locality and communication even though all
+256 cores are used.
+
+Run `tools/run_tddft_x86_affinity_screen.sh` once. It keeps the accepted
+32 MPI x 8 OpenMP configuration, binaries, input, tolerances, diagnostics-off
+state, `I_MPI_PIN_DOMAIN=omp`, and compact OpenMP-thread affinity fixed. It
+compares Intel MPI `I_MPI_PIN_ORDER=compact`, `scatter`, and `spread`, using
+compact as the same-session control. Every variant must pass normal check and
+the x86 relaxed comparison; scatter and spread must also pass direct strict
+comparison with the compact control. This screen does not compile and cannot
+change the formal x86 baseline. Only a clearly faster valid order may proceed
+to a separate three-run adoption gate.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`

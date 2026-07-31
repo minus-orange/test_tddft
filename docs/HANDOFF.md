@@ -35,7 +35,9 @@ Last updated: 2026-07-31
 - The A100, H100, and x86 CPU baseline series are independent; never replace
   or mix one series with another
 - Pending human-operated GPU action: none
-- Pending human-operated x86 action: none
+- Pending human-operated x86 action: run the one-command Intel MPI affinity
+  screen with `./tools/run_tddft_x86_affinity_screen.sh`. Return the compact
+  terminal block from `FPSEID21_X86_AFFINITY_SCREEN_BEGIN` through `_END`.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -1155,6 +1157,14 @@ passed direct strict comparison with run 01. This is `12.8123378754` sec
 explicitly approved 32 MPI x 8 OpenMP as the new x86-only formal baseline on
 2026-07-31. Retain the former series as historical scaling evidence and keep
 both CPU results independent of the A100 and H100 baselines.
+
+The 256-core host reports six NUMA nodes of 42 or 43 CPUs. The next bounded
+x86 investigation keeps the accepted 32 MPI x 8 OpenMP configuration fixed
+and screens Intel MPI rank-domain order `compact`, `scatter`, and `spread`
+without compiling. Compact is the same-session control. All variants require
+normal check and the x86 relaxed comparison; alternatives also require direct
+strict comparison with compact. This one-run screen cannot update the formal
+x86 baseline automatically.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the
