@@ -2233,3 +2233,16 @@ run 02/03はrun 01との直接strict compareにもPASSしました。正式中�
 `0.0017908907`秒はFortran D指数のreport-only解析誤りで、`e27071e`により
 今後の表示を修正済みです。ユーザーは2026-07-30にx86専用正式baselineとして
 明示承認しました。A100/H100系列とは混合・置換しません。
+
+その後、revision `7318e5932fdd7652d24f9e620e97a0ae3f692118`で、256 logical /
+256 physical CPUの同じIntel Xeon 6980P上において4/8/16/32 MPI ranksと
+2/4/8/16 OpenMP threadsをscreeningしました。512 threadsとなる32 MPI x
+16 OpenMPだけを除外し、残り15構成は全て通常checkとx86専用relaxed compareに
+PASSしました。最速の32 MPI x 8 OpenMPはone-runで`16.5198910236`秒でした。
+
+この候補の独立3 runはdiagnostic OFFで実施し、全runが通常checkとx86専用relaxed
+compareにPASS、run 02/03はrun 01との直接strict compareにもPASSしました。中央値は
+`16.5392820835`秒、rangeは`0.0579471588`秒です。旧16 MPI x 1 OpenMP中央値比で
+`12.8123378754`秒（`43.651212%`）短縮し、wall比は`1.774661x`です。ユーザーは
+2026-07-31に32 MPI x 8 OpenMPを新しいx86専用正式baselineとして明示承認しました。
+旧結果はscaling履歴として保持し、A100/H100系列とは混合・置換しません。

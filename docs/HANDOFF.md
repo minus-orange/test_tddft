@@ -1,6 +1,6 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 ## Current State
 
@@ -29,17 +29,13 @@ Last updated: 2026-07-30
 - Official H100 baseline: Step 115 median `34.1089649200` sec, range
   `0.0905621052` sec, explicitly approved by the user on 2026-07-30
 - Official x86 CPU/FFTW baseline: Intel Xeon 6980P, ifx 2026.1.0,
-  Intel MPI 2021.18.0, 16 MPI ranks / 1 OpenMP thread per rank, median
-  `29.3516199589` sec, corrected range `0.1790890694` sec, explicitly
-  approved by the user on 2026-07-30
+  Intel MPI 2021.18.0, 32 MPI ranks / 8 OpenMP threads per rank, median
+  `16.5392820835` sec, range `0.0579471588` sec, explicitly approved by
+  the user on 2026-07-31
 - The A100, H100, and x86 CPU baseline series are independent; never replace
   or mix one series with another
 - Pending human-operated GPU action: none
-- Pending human-operated x86 action: run the 15-configuration MPI x OpenMP
-  screening sweep once with `./tools/run_tddft_x86_mpi_omp_sweep.sh`; the
-  256-core limit excludes 32 MPI x 16 OpenMP. It reuses existing binaries and
-  does not compile. Return the compact terminal block from
-  `FPSEID21_X86_MPI_OMP_SWEEP_BEGIN` through `_END`.
+- Pending human-operated x86 action: none
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -1148,6 +1144,17 @@ The original terminal range `0.0017908907` was a report-only D-exponent parsing
 error corrected by `e27071e`; the raw walls and simulation results are
 unchanged. The user explicitly approved this x86-only formal baseline on
 2026-07-30.
+
+The 15-configuration x86 MPI x OpenMP screen at revision
+`7318e5932fdd7652d24f9e620e97a0ae3f692118` selected 32 MPI ranks x 8 OpenMP
+threads on the 256-core Intel Xeon 6980P. A separate diagnostic-off three-run
+series produced a `16.5392820835` sec median and `0.0579471588` sec range.
+Every run passed normal check and the x86 relaxed comparison; runs 02/03 also
+passed direct strict comparison with run 01. This is `12.8123378754` sec
+(`43.651212%`) faster than the former 16 MPI x 1 OpenMP median. The user
+explicitly approved 32 MPI x 8 OpenMP as the new x86-only formal baseline on
+2026-07-31. Retain the former series as historical scaling evidence and keep
+both CPU results independent of the A100 and H100 baselines.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

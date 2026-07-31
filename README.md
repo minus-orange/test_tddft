@@ -53,7 +53,7 @@ The Intel/default and NVIDIA HPC SDK build paths use the original source files.
 GNU Fortran builds use `_gnu.f` source variants only where that compiler needs
 format-statement compatibility fixes.
 
-## One-command x86 CPU/FFTW baseline
+## One-command x86 CPU/FFTW build and reference run
 
 On x86-64 Linux, the following helper performs toolchain checks, builds FFTW,
 CG, SD, and TDDFT, prepares the Si111-H input, runs three independent
@@ -87,12 +87,14 @@ SKIP_FFTW=1 FFTW_ROOT=/path/to/fftw \
   ./tools/run_tddft_x86_baseline.sh
 ```
 
-The default performance configuration is 16 MPI ranks, 1 OpenMP thread per
-rank, diagnostics off, and 100 TDDFT steps. Override the rank count with
-`NPROCS=<count>` when a separate measurement is required. Set `RUNS=1` only
-for a smoke test; the default three-run result is required for a baseline
-median. Immediately before each TDDFT run, the helper prints the effective
-launch as `MPI launch: mpirun -np 16 ...`.
+This build-and-run helper retains its historical reference configuration of
+16 MPI ranks, 1 OpenMP thread per rank, diagnostics off, and 100 TDDFT steps.
+Override the rank count with `NPROCS=<count>` when a separate measurement is
+required. Set `RUNS=1` only for a smoke test; the default three-run result is
+required for a controlled median. Immediately before each TDDFT run, the
+helper prints the effective launch as `MPI launch: mpirun -np 16 ...`. The
+current accepted performance baseline is documented below and uses the
+MPI x OpenMP sweep helper.
 
 If a run returns to the prompt before printing the three-run summary, diagnose
 the latest x86 output, stderr, normal check, and relaxed comparison with:
@@ -135,6 +137,18 @@ threads and whether that count exceeds the online logical CPUs. Set
 `RUNS_PER_CONFIG=3` only for a controlled three-run sweep; the normal workflow
 is to screen once and then repeat only the fastest valid configuration three
 times.
+
+The accepted x86 performance baseline is 32 MPI ranks x 8 OpenMP threads. To
+repeat its controlled three-run measurement without compiling, use:
+
+```sh
+MPI_COUNTS=32 OMP_THREAD_COUNTS=8 RUNS_PER_CONFIG=3 \
+  ./tools/run_tddft_x86_mpi_omp_sweep.sh
+```
+
+On the Intel Xeon 6980P measurement host this configuration produced a
+`16.5392820835` sec median and `0.0579471588` sec range. The earlier 16 MPI
+x 1 OpenMP baseline remains historical scaling evidence.
 
 ## NVIDIA HPC SDK build
 

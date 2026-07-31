@@ -1,6 +1,6 @@
 # TDDFT GPU Performance Baseline
 
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 ## Official A100 Baseline
 
@@ -289,18 +289,33 @@ unchanged.
 
 This CPU series is independent of both GPU series. It uses the accepted
 numerical source and the CPU/FFTW fallback at tested revision
-`5dd9962825fdb47bd09b4caafbc72c1c6782dc80`:
+`7318e5932fdd7652d24f9e620e97a0ae3f692118`:
 
 - CPU: Intel Xeon 6980P
 - Compiler: ifx 2026.1.0 (20260617)
 - MPI: Intel MPI 2021.18.0, build 20260327
-- Kernel: Linux `5.14.0-427.13.1.el9_4.x86_64`
-- Execution: 16 MPI ranks, 1 OpenMP thread per rank
+- Available CPUs: 256 logical / 256 physical
+- Execution: 32 MPI ranks, 8 OpenMP threads per rank
+- Binding: `I_MPI_PIN=1`, `I_MPI_PIN_DOMAIN=omp`,
+  `KMP_AFFINITY=granularity=fine,compact,1,0`
 - Diagnostics: off
 - Case: Si111-H, 100 TDDFT time steps
 - Build handling: existing FFTW, CG, SD, and TDDFT artifacts reused
 - x86-only relaxed tolerances: energy `1e-4` Hartree, force `2e-4`
   Hartree/Bohr, position `2e-6` Bohr, velocity `1e-6`
+
+All three runs passed normal check and the x86 relaxed comparison. Runs 02/03
+also passed direct strict comparison with run 01. Official x86 median:
+`16.5392820835` sec. Run-to-run range: `0.0579471588` sec (`0.350361%` of
+the median). This is `12.8123378754` sec (`43.651212%`) faster than the
+previous 16 MPI rank / 1 OpenMP thread median, a `1.774661x` wall ratio. The
+user explicitly approved this x86-only formal baseline on 2026-07-31. It does
+not replace or mix with the A100 or H100 baseline.
+
+### Historical x86 16 MPI x 1 OpenMP Baseline
+
+The previous formal x86 baseline was measured at revision
+`5dd9962825fdb47bd09b4caafbc72c1c6782dc80`:
 
 | archive label | wall_sec | check | x86 relaxed compare | run-01 pairwise strict |
 |---|---:|---|---|---|
@@ -308,13 +323,11 @@ numerical source and the CPU/FFTW fallback at tested revision
 | `x86_fftw_16rank_intel_20260730_184956_5dd9962825fd_02` | 29.2610769272 | PASS | PASS | PASS |
 | `x86_fftw_16rank_intel_20260730_184956_5dd9962825fd_03` | 29.4401659966 | PASS | PASS | PASS |
 
-Official x86 median: `29.3516199589` sec. Corrected run-to-run range:
-`0.1790890694` sec (`0.610151%` of the median). The first terminal report
-printed `0.0017908907` because its awk calculation treated Fortran `D+02`
-walls as mantissas. Commit `e27071e` normalizes D exponents before calculating
-future summaries; it changes no simulation result. The user explicitly
-approved this x86-only formal baseline on 2026-07-30. It does not replace or
-mix with the A100 or H100 baseline.
+Its median was `29.3516199589` sec and its corrected range was
+`0.1790890694` sec. The first terminal report printed `0.0017908907` because
+its awk calculation treated Fortran `D+02` walls as mantissas. Commit
+`e27071e` corrected future summaries without changing simulation results.
+Retain this controlled result as historical scaling evidence.
 
 The earlier archive `nvhpc_cufft_1rank_02_STEP41_STATIC_METADATA_01` passed
 both correctness checks but took `115.517135143` sec. It preceded the explicit

@@ -2501,3 +2501,21 @@ photographed `0.0017908907` sec range was a report-only Fortran D-exponent
 parsing error fixed for future summaries by `e27071e`. The user explicitly
 approved this x86-only formal baseline on 2026-07-30. It does not replace or
 mix with either GPU series.
+
+A subsequent screen at revision
+`7318e5932fdd7652d24f9e620e97a0ae3f692118` tested 4/8/16/32 MPI ranks
+against 2/4/8/16 OpenMP threads on the same Intel Xeon 6980P with 256 logical
+and 256 physical CPUs. It excluded only 32 MPI x 16 OpenMP because that would
+use 512 threads. All remaining 15 configurations passed normal check and the
+x86-specific relaxed comparison. The fastest one-run result was
+`16.5198910236` sec at 32 MPI x 8 OpenMP.
+
+A fresh diagnostic-off three-run series for that candidate passed normal check
+and the x86-specific relaxed comparison in every run; runs 02/03 also passed
+direct strict comparison with run 01. Its median is `16.5392820835` sec and
+its range is `0.0579471588` sec. This reduces wall by `12.8123378754` sec
+(`43.651212%`) relative to the former 16 MPI x 1 OpenMP median, a
+`1.774661x` wall ratio. The user explicitly approved 32 MPI x 8 OpenMP as the
+new x86-only formal baseline on 2026-07-31. Retain the former result as
+historical scaling evidence and do not replace or mix either CPU result with
+the A100 or H100 series.

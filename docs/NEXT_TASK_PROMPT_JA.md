@@ -58,26 +58,21 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 正式x86 CPU/FFTW baseline:
 
 - accepted numerical source: `c46cfa9`
-- tested revision: `5dd9962825fdb47bd09b4caafbc72c1c6782dc80`
+- tested revision: `7318e5932fdd7652d24f9e620e97a0ae3f692118`
 - Intel Xeon 6980P
 - ifx 2026.1.0 (20260617) + Intel MPI 2021.18.0
-- 16 MPI ranks / 1 OpenMP thread per rank
+- 256 logical / 256 physical CPUs
+- 32 MPI ranks / 8 OpenMP threads per rank
 - Si111-H、100 steps、diagnostic OFF
-- wall: `29.3516199589`、`29.2610769272`、`29.4401659966`秒
-- 正式中央値: `29.3516199589`秒
-- 訂正range: `0.1790890694`秒
+- 正式中央値: `16.5392820835`秒
+- range: `0.0579471588`秒
 - 全runでnormal checkとx86 relaxed compare PASS、run 02/03はrun 01との
   pairwise strict compare PASS
 - 既存FFTW、CG、SD、TDDFT buildを再利用
-- 2026-07-30にユーザーがx86専用正式baselineとして明示承認
-- 写真のrange `0.0017908907`はFortran D指数のreport-only解析誤り。
-  `e27071e`で今後の表示を修正済みで再実行は不要
-- x86の次の実行は
-  `./tools/run_tddft_x86_mpi_omp_sweep.sh` による
-  4/8/16/32 MPI × 2/4/8/16 OpenMPの組合せから、256コアを超える
-  32 MPI × 16 OpenMPだけを除いた15構成1回スクリーニング。
-  既存ifx/mpiifx CPU/FFTW実行ファイルを再利用し、再コンパイルしない。
-  結果確認前に正式x86 baselineを置換しない
+- 旧16 MPI / 1 OpenMP中央値`29.3516199589`秒比で`43.651212%`高速
+- 2026-07-31にユーザーがx86専用正式baselineとして明示承認
+- 旧16 MPI / 1 OpenMPの3 runは履歴として保持し、GPU系列とは混合しない
+- 保留中のx86実行コマンドなし
 
 Step 86はStep 82までの採用済みGPU化を保持し、HLOCALのzero、scatter、cuFFT往復、
 局所ポテンシャル積、gatherを1個の一時device data region内で完結させています。

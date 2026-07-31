@@ -2514,6 +2514,44 @@ summary, measure only the fastest valid candidate three times and apply the
 usual median, range, and run-01 pairwise strict gates before considering any
 x86 baseline change.
 
+## x86 MPI x OpenMP Sweep and Baseline Adoption
+
+The diagnostic-off screen ran at revision
+`7318e5932fdd7652d24f9e620e97a0ae3f692118` on an Intel Xeon 6980P with 256
+logical and physical CPUs, ifx/mpiifx 2026.1.0, and Intel MPI 2021.18.0.
+Existing FFTW, CG, SD, and TDDFT binaries were reused. The 32 MPI x 16 OpenMP
+configuration was skipped because its 512 threads exceeded the 256-thread
+limit. All 15 measured configurations passed normal check and the x86 relaxed
+comparison.
+
+| MPI ranks | OpenMP threads | total threads | one-run wall_sec |
+|---:|---:|---:|---:|
+| 32 | 8 | 256 | 16.5198910236 |
+| 32 | 4 | 128 | 18.4249420166 |
+| 32 | 2 | 64 | 19.9668469429 |
+| 16 | 16 | 256 | 25.5983669758 |
+| 16 | 4 | 64 | 27.2874531746 |
+| 16 | 2 | 32 | 27.4257948399 |
+| 16 | 8 | 128 | 27.4343221188 |
+| 8 | 4 | 32 | 42.6165969372 |
+| 8 | 8 | 64 | 44.8872098923 |
+| 8 | 16 | 128 | 46.1903281212 |
+| 8 | 2 | 16 | 47.2195591927 |
+| 4 | 8 | 32 | 75.0795350075 |
+| 4 | 4 | 16 | 78.1278450489 |
+| 4 | 16 | 64 | 81.5396590233 |
+| 4 | 2 | 8 | 88.7375349998 |
+
+The fastest valid configuration, 32 MPI x 8 OpenMP, was then measured in a
+fresh three-run series. All runs passed normal check and the x86 relaxed
+comparison; runs 02/03 passed direct strict comparison with run 01. Its median
+was `16.5392820835` sec and its range was `0.0579471588` sec. Relative to
+the former 16 MPI x 1 OpenMP median of `29.3516199589` sec, this reduces wall
+by `12.8123378754` sec (`43.651212%`) and gives a `1.774661x` wall ratio.
+The user explicitly approved it on 2026-07-31 as the new x86-only formal
+baseline. Keep the former baseline as historical scaling evidence and do not
+mix either CPU result with the A100 or H100 series.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`
