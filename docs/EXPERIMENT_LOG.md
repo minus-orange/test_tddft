@@ -2499,12 +2499,13 @@ A100 and H100 series.
 
 ## x86 MPI x OpenMP Sweep Plan
 
-Screen the 16 combinations of 4/8/16/32 MPI ranks and 2/4/8/16 OpenMP
-threads with `tools/run_tddft_x86_mpi_omp_sweep.sh`. The helper reuses the
-existing ifx/mpiifx CPU/FFTW executables and does not compile. CG and SD stay
-at one OpenMP thread; only TDDFT receives the requested thread count. Intel
-MPI process domains and Intel OpenMP compact affinity are recorded with every
-run.
+Screen 4/8/16/32 MPI ranks against 2/4/8/16 OpenMP threads with
+`tools/run_tddft_x86_mpi_omp_sweep.sh`. The host has 256 cores, so the
+default `MAX_TOTAL_THREADS=256` excludes only 32 MPI x 16 OpenMP and measures
+the remaining 15 configurations. The helper reuses the existing ifx/mpiifx
+CPU/FFTW executables and does not compile. CG and SD stay at one OpenMP
+thread; only TDDFT receives the requested thread count. Intel MPI process
+domains and Intel OpenMP compact affinity are recorded with every run.
 
 The default is one diagnostic-off run per configuration. Every run must pass
 the normal result check and the x86 relaxed comparison. This first pass is a

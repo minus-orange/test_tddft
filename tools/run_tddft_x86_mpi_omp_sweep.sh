@@ -3,9 +3,10 @@ set -eu
 
 # Screen x86 TDDFT MPI x OpenMP configurations without recompiling.
 #
-# Default grid:
+# Default grid (configurations above MAX_TOTAL_THREADS are skipped):
 #   MPI_COUNTS="4 8 16 32"
 #   OMP_THREAD_COUNTS="2 4 8 16"
+#   MAX_TOTAL_THREADS=256
 #   RUNS_PER_CONFIG=1
 #
 # CG and SD always run with one OpenMP thread so every TDDFT configuration
@@ -17,6 +18,7 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 
 MPI_COUNTS=${MPI_COUNTS:-"4 8 16 32"}
 OMP_THREAD_COUNTS=${OMP_THREAD_COUNTS:-"2 4 8 16"}
+MAX_TOTAL_THREADS=${MAX_TOTAL_THREADS:-256}
 RUNS_PER_CONFIG=${RUNS_PER_CONFIG:-1}
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_x86"}
 SWEEP_ROOT=${SWEEP_ROOT:-"$ROOT_DIR/run/x86_mpi_omp_sweeps"}
@@ -102,6 +104,12 @@ case "$RUNS_PER_CONFIG" in
 esac
 validate_positive_list MPI_COUNTS "$MPI_COUNTS"
 validate_positive_list OMP_THREAD_COUNTS "$OMP_THREAD_COUNTS"
+case "$MAX_TOTAL_THREADS" in
+  ''|*[!0-9]*|0)
+    echo "ERROR: MAX_TOTAL_THREADS must be a positive integer." >&2
+    exit 2
+    ;;
+esac
 
 machine=$(uname -m)
 case "$machine" in
@@ -174,6 +182,7 @@ echo "  mpi=$mpi"
 echo "  logical_cpus=$logical_cpus physical_cores=$physical_cores"
 echo "  mpi_counts=$MPI_COUNTS"
 echo "  omp_thread_counts=$OMP_THREAD_COUNTS"
+echo "  max_total_threads=$MAX_TOTAL_THREADS"
 echo "  runs_per_config=$RUNS_PER_CONFIG"
 echo "  I_MPI_PIN=$I_MPI_PIN I_MPI_PIN_DOMAIN=$I_MPI_PIN_DOMAIN"
 echo "  KMP_AFFINITY=$KMP_AFFINITY"
@@ -181,6 +190,11 @@ echo "  KMP_AFFINITY=$KMP_AFFINITY"
 for mpi_ranks in $MPI_COUNTS; do
   for omp_threads in $OMP_THREAD_COUNTS; do
     total_threads=$((mpi_ranks * omp_threads))
+    if [ "$total_threads" -gt "$MAX_TOTAL_THREADS" ]; then
+      echo
+      echo "SWEEP_SKIP mpi=$mpi_ranks omp=$omp_threads total=$total_threads limit=$MAX_TOTAL_THREADS"
+      continue
+    fi
     oversubscribed=UNKNOWN
     case "$logical_cpus" in
       ''|*[!0-9]*) ;;
@@ -309,6 +323,7 @@ echo "cg_sd_compiler=$cg_sd_compiler"
 echo "tddft_compiler=$tddft_compiler"
 echo "mpi=$mpi"
 echo "logical_cpus=$logical_cpus physical_cores=$physical_cores"
+echo "max_total_threads=$MAX_TOTAL_THREADS"
 echo "runs_per_config=$RUNS_PER_CONFIG"
 echo "binding I_MPI_PIN=$I_MPI_PIN I_MPI_PIN_DOMAIN=$I_MPI_PIN_DOMAIN KMP_AFFINITY=$KMP_AFFINITY"
 echo "tolerances energy=$X86_ENERGY_ATOL force=$X86_FORCE_ATOL position=$X86_POSITION_ATOL velocity=$X86_VELOCITY_ATOL"
