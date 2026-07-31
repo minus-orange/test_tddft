@@ -2246,3 +2246,11 @@ compareにPASS、run 02/03はrun 01との直接strict compareにもPASSしまし
 `12.8123378754`秒（`43.651212%`）短縮し、wall比は`1.774661x`です。ユーザーは
 2026-07-31に32 MPI x 8 OpenMPを新しいx86専用正式baselineとして明示承認しました。
 旧結果はscaling履歴として保持し、A100/H100系列とは混合・置換しません。
+
+続くIntel MPI rank-order screenはrevision `cd36890`で実施しました。compact controlは
+完了しましたが、scatterは100 stepsに`78.1684319973`秒を要し、stderrへIntel
+MPI/Hydra IPL2 domain-size errorを10行出しました。suspicious stderrによりnormal
+checkはFAILし、scatterのrelaxed compareとcompactとのstrict compareは未実行、
+spreadも早期停止により未実行です。scatterを不採用とし、checkerを緩めた再試行は
+行いません。spreadは未測定のまま同screenを終了し、正式compact baselineを維持
+します。使用済みhelperは`tools/history/x86/`へ整理しました。

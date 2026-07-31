@@ -5,7 +5,8 @@ set -eu
 # Existing ifx/mpiifx CPU/FFTW executables are required and never rebuilt.
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+TOOLS_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$TOOLS_DIR/.." && pwd)
 
 PIN_ORDERS=${PIN_ORDERS:-"compact scatter spread"}
 NPROCS=${NPROCS:-32}
@@ -114,7 +115,7 @@ for order in $PIN_ORDERS; do
     MAX_TOTAL_THREADS="$MAX_TOTAL_THREADS" RUNS_PER_CONFIG=1 \
     RUN_DIR="$RUN_DIR" ARCHIVE_ROOT="$ARCHIVE_ROOT" \
     SWEEP_ROOT="$child_root" MPIRUN="$MPIRUN" \
-    "$SCRIPT_DIR/run_tddft_x86_mpi_omp_sweep.sh" > "$log" 2>&1; then
+    "$TOOLS_DIR/run_tddft_x86_mpi_omp_sweep.sh" > "$log" 2>&1; then
     echo "ERROR: affinity run failed: $order" >&2
     tail -n 80 "$log" >&2
     exit 1
@@ -144,7 +145,7 @@ for order in $PIN_ORDERS; do
     mpi=$(awk -F= '/^mpi=/ { value=$2 } END { print value }' "$log")
     cpu_topology=$(awk -F= '/^logical_cpus=/ { value=substr($0, index($0, "=")+1) } END { print value }' "$log")
   else
-    if ! python3 "$SCRIPT_DIR/check_tddft_result.py" compare \
+    if ! python3 "$TOOLS_DIR/check_tddft_result.py" compare \
       "$archive_dir/tddft.out" \
       --reference "$control_archive/tddft.out" \
       --ref-err "$control_archive/tddft.err" \

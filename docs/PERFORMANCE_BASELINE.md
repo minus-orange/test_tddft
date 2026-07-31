@@ -312,6 +312,11 @@ previous 16 MPI rank / 1 OpenMP thread median, a `1.774661x` wall ratio. The
 user explicitly approved this x86-only formal baseline on 2026-07-31. It does
 not replace or mix with the A100 or H100 baseline.
 
+A later one-run Intel MPI rank-order screen did not change this baseline.
+Scatter emitted IPL2 domain-size errors, failed the normal stderr gate, and
+took `78.1684319973` sec. Spread was not run after the required early stop.
+Keep compact placement as the formal configuration.
+
 ### Historical x86 16 MPI x 1 OpenMP Baseline
 
 The previous formal x86 baseline was measured at revision

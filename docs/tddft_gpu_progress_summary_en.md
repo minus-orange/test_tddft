@@ -2519,3 +2519,13 @@ its range is `0.0579471588` sec. This reduces wall by `12.8123378754` sec
 new x86-only formal baseline on 2026-07-31. Retain the former result as
 historical scaling evidence and do not replace or mix either CPU result with
 the A100 or H100 series.
+
+The subsequent Intel MPI rank-order screen ran at revision `cd36890`. The
+compact control completed, but scatter took `78.1684319973` sec for 100 steps
+and emitted ten Intel MPI/Hydra IPL2 domain-size errors on stderr. The normal
+check failed on that suspicious stderr, so scatter did not proceed to relaxed
+or compact-pairwise strict comparison, and spread was not run after the
+required early stop. Reject scatter and do not retry it by weakening the
+checker. Spread remains unmeasured and the screen is closed. Keep the formal
+compact baseline unchanged. The used helper is archived under
+`tools/history/x86/`.

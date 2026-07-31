@@ -35,9 +35,7 @@ Last updated: 2026-07-31
 - The A100, H100, and x86 CPU baseline series are independent; never replace
   or mix one series with another
 - Pending human-operated GPU action: none
-- Pending human-operated x86 action: run the one-command Intel MPI affinity
-  screen with `./tools/run_tddft_x86_affinity_screen.sh`. Return the compact
-  terminal block from `FPSEID21_X86_AFFINITY_SCREEN_BEGIN` through `_END`.
+- Pending human-operated x86 action: none
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 
@@ -1165,6 +1163,16 @@ without compiling. Compact is the same-session control. All variants require
 normal check and the x86 relaxed comparison; alternatives also require direct
 strict comparison with compact. This one-run screen cannot update the formal
 x86 baseline automatically.
+
+The affinity screen ran at revision
+`cd36890576745ee9574f7ac366fde570de35c96e`. Compact completed, but scatter
+emitted 10 Intel MPI/Hydra IPL2 domain-size errors and took
+`78.1684319973` sec. The normal check failed on those suspicious stderr
+lines, so relaxed and compact-pairwise strict comparisons were not run and
+spread was skipped by the required early stop. Scatter is rejected and must
+not be retried by weakening the checker. Spread is untested but closed as part
+of the same domain-ordering screen. Keep the formal compact baseline
+unchanged. The used helper is archived under `tools/history/x86/`.
 
 A user-operated exploratory Step 80 run on an NVIDIA H100 took
 `36.492636919` sec and passed both checks. It is `1.847517x` faster than the

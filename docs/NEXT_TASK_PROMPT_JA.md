@@ -73,11 +73,12 @@ Git、リポジトリ文書、実測archiveを正本として現在地点を再�
 - 2026-07-31にユーザーがx86専用正式baselineとして明示承認
 - 旧16 MPI / 1 OpenMPの3 runは履歴として保持し、GPU系列とは混合しない
 - x86 hostは42または43 CPUからなる6 NUMA nodeを持つ
-- 次のx86実行は`./tools/run_tddft_x86_affinity_screen.sh`による
-  `compact` control、`scatter`、`spread`の各1 run配置screening
-- 既存buildを再利用し、32 MPI / 8 OpenMP、入力、tolerance、diagnostic OFFを固定
-- 全variantでnormal checkとx86 relaxed compare、候補はcompactとのstrict compare必須
-- one-run screenだけでは正式x86 baselineを変更しない
+- revision `cd36890`のaffinity screenではcompact完了後、scatterがIntel MPI/Hydra
+  IPL2 domain-size errorを10行出し、`78.1684319973`秒でnormal check FAIL
+- scatterのrelaxed/compact-pairwise strict比較は未実行、spreadは早期停止で未実行
+- scatterは不採用、spreadは未測定のまま同screenを終了。checkerを緩めて再試行しない
+- 正式compact baselineを維持し、使用済みhelperは`tools/history/x86/`へ整理済み
+- 保留中のx86実行コマンドなし
 
 Step 86はStep 82までの採用済みGPU化を保持し、HLOCALのzero、scatter、cuFFT往復、
 局所ポテンシャル積、gatherを1個の一時device data region内で完結させています。

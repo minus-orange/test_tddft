@@ -2570,6 +2570,25 @@ comparison with the compact control. This screen does not compile and cannot
 change the formal x86 baseline. Only a clearly faster valid order may proceed
 to a separate three-run adoption gate.
 
+## x86 Intel MPI Affinity Screen Result and Rejection
+
+The screen ran at revision
+`cd36890576745ee9574f7ac366fde570de35c96e`. The compact control completed,
+then the scatter variant completed 100 TDDFT steps in `78.1684319973` sec.
+Its stderr contained 10 Intel MPI/Hydra IPL2
+`algorithms_create_order_distribute_bitmaps` errors reporting that the domain
+size was ignored. The normal check therefore failed on suspicious log lines.
+The scatter relaxed comparison and compact-pairwise strict comparison were not
+run, and the helper correctly stopped before spread.
+
+Scatter is rejected for both execution-health and performance reasons. Its
+wall is `61.6291499138` sec (`372.622884%`) slower than the formal compact
+median, a `4.726229x` wall ratio. Do not weaken the stderr gate or rerun this
+placement form. Spread remains untested rather than rejected numerically, but
+is closed with this screen because it uses the same domain-ordering family on
+the uneven six-NUMA topology. Keep the accepted compact x86 baseline
+unchanged. The completed helper is archived under `tools/history/x86/`.
+
 ## Step 80 H100 Exploratory Run
 
 - Archive label: `nvhpc_cufft_1rank_02_STEP80_H100_TEST`
