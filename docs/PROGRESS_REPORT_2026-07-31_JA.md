@@ -35,11 +35,11 @@ TDDFT 100 steps、diagnostic OFF、3回測定の中央値で管理している�
 
 | プラットフォーム | 実行構成 | 中央値 | range | 正常性 |
 |---|---|---:|---:|---|
-| NVIDIA A100-PCIE-40GB | NVHPC/OpenACC/cuFFT、1 GPU / 1 MPI | 63.2135秒 | 0.1034秒 | PASS |
-| NVIDIA H100 PCIe | NVHPC/OpenACC/cuFFT、1 GPU / 1 MPI | 34.1090秒 | 0.0906秒 | PASS |
-| Intel Xeon 6980P | ifx/mpiifx＋FFTW、32 MPI x 8 OpenMP、256コア | 16.5393秒 | 0.0579秒 | PASS |
+| NVIDIA A100-PCIE-40GB | NVHPC/OpenACC/cuFFT、1 GPU / 1 MPI | 63.214秒 | 0.103秒 | PASS |
+| NVIDIA H100 PCIe | NVHPC/OpenACC/cuFFT、1 GPU / 1 MPI | 34.109秒 | 0.091秒 | PASS |
+| Intel Xeon 6980P | ifx/mpiifx＋FFTW、32 MPI x 8 OpenMP、256コア | 16.539秒 | 0.058秒 | PASS |
 
-A100では、初期の採用済みGPU実装の約146.54秒から63.21秒まで短縮した。
+A100では、初期の採用済みGPU実装の146.540秒から63.214秒まで短縮した。
 短縮率は約56.9%、wall比では約2.32倍の高速化である。H100はA100より
 約46.0%短く、wall比で約1.85倍高速だった。
 
@@ -49,11 +49,11 @@ x86とGPUの値は実測wall timeとして掲載するが、プロセッサ単�
 
 ### x86構成最適化
 
-x86ではMPI/OpenMP構成をscreeningし、16 MPI x 1 OpenMPの約29.35秒から、
-32 MPI x 8 OpenMPの約16.54秒へ短縮した。約43.7%の改善である。
+x86ではMPI/OpenMP構成をscreeningし、16 MPI x 1 OpenMPの29.352秒から、
+32 MPI x 8 OpenMPの16.539秒へ短縮した。約43.7%の改善である。
 
 Intel MPIのscatter配置も試したが、IPL2 domain-size errorが発生し、
-約78.17秒まで悪化したため不採用とした。正式設定はcompact配置を維持している。
+78.168秒まで悪化したため不採用とした。正式設定はcompact配置を維持している。
 
 ## 4. 正常性と移植性
 
