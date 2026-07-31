@@ -38,6 +38,9 @@ Last updated: 2026-07-31
 - Pending human-operated x86 action: none
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
+- Progress report dated 2026-07-31:
+  `docs/PROGRESS_REPORT_2026-07-31_BRIEF_JA.md` and
+  `docs/PROGRESS_REPORT_2026-07-31_JA.md`
 
 Step 31 reused `GDUMP1..5` mappings across the five TMEVL kinetic stages. All
 three runs passed correctness, but the median was `129.250354052` sec, about
