@@ -1,454 +1,323 @@
-# FPSEID21 TDDFT GPU化 PowerPoint原稿（簡略版）
+# FPSEID21 TDDFT GPU化 PowerPoint原稿（2026-08-04更新）
 
-この文書は、FPSEID21 TDDFTのOpenACC／cuFFT GPU化をPowerPointへ転記するための
-簡略原稿である。単純なOpenACC loop化、データ常駐化、FFT最適化など、実装方式が
-同じ変更は1枚へ集約した。
+この文書は、FPSEID21 TDDFTのOpenACC／cuFFT GPU化を説明するPowerPoint用の
+詳細原稿である。2026-08-04時点のコード、正式baseline、検証結果に合わせて更新した。
 
-行番号は文書作成時点のHEADに基づく。PowerPointではファイル名とroutine名を主な
-参照情報とし、行番号は補助情報として扱う。
+想定する伝達目標は次のとおりである。
 
-## スライド1: タイトルと成果
+> 発表後、聴衆が「主要計算のGPU化とデータ常駐化によってA100で約2.32倍まで高速化し、
+> H100でも独立baselineを確立した一方、次の改善にはproduction規模入力が必要」と理解する。
 
-### FPSEID21 TDDFTのOpenACC／cuFFTによるGPU化
+PowerPointでは各スライドの「掲載内容」を表示し、「説明メモ」は発表者ノートとして使う。
+実行時間は小数点以下3桁に統一する。A100、H100、x86のbaseline系列は独立して扱う。
+
+## スライド1: GPU化の到達点
+
+### 主要な時間発展処理をGPUへ移し、A100で約2.32倍高速化
+
+掲載内容:
 
 - 対象: FPSEID21 TDDFT 2022 October版
-- GPU: NVIDIA A100-PCIE-40GB
-- 実行条件: 1 GPU / 1 MPI rank
-- 検証ケース: Si111-H、100 time steps
-- 実装: NVIDIA HPC SDK + OpenACC + cuFFT
-- 正式採用ソース: Step 80
+- 手法: NVIDIA HPC SDK、OpenACC、cuFFT
+- 検証: Si111-H、100 time steps、diagnostic OFF
+- 正式GPU経路: 1 GPU / 1 MPI rank
+- A100: `146.540秒 → 63.214秒`（約56.9%短縮、約2.32倍）
+- H100: `34.109秒`の独立baselineを確立
+- CPU/FFTW fallbackも維持
 
-性能:
+説明メモ:
 
-```text
-初期cuFFT host-copy版: 約443.2秒
-現在の正式baseline:    約 67.42秒
-高速化:                約 6.57倍
-実行時間削減:          約84.8%
-```
+- GPU kernelの追加だけでなく、配列常駐、FFT batch化、同期削減を一体で進めた。
+- A100の正式baselineはStep 107、H100はStep 115である。
+- 現在の採用済み数値sourceは`c46cfa9`。文書・測定支援を含む発表原稿更新時HEADは
+  `4ef4d7e`で、数値計算経路は採用sourceと一致している。
 
-全正式採用runで通常checkとrelaxed compareにPASSした。
+## スライド2: 正しさを維持しながらGPU化した
 
-参考値:
+### 性能だけでなく、数値一致とCPU経路を採用条件にした
 
-- H100でのStep 80単発runは`36.492636919秒`、check/compare PASS。
-- A100正式中央値に対して約`1.85倍`だが、H100は3回測定前の参考値である。
+掲載内容:
 
-## スライド2: GPU化の設計方針
+- 数式、配列shape、projector適用順、逐次`ia`更新順を維持
+- CPU/FFTW版を継続してbuild・実行可能
+- performance測定はdiagnostic OFF
+- 同一条件で3回実行し、中央値とrangeで評価
+- normal checkとrelaxed compareを全runで必須化
+- 効果のない変更は記録後にrevert
 
-- 計算量の大きいloopをOpenACC kernel化する。
-- FFTはFFTW互換interfaceを維持したままcuFFTへ置き換える。
-- 大規模配列をGPUへ常駐させ、反復H2D/D2Hを削減する。
-- GPUで生成したデータをhostへ戻さず、次のGPU処理へ渡す。
-- MPIやCPU処理が必要な境界だけhostへ同期する。
-- 数式、配列shape、projector適用順、逐次`ia`更新順序は維持する。
-- CPU/FFTW fallbackを残す。
+説明メモ:
 
-性能採否:
+- H100とx86では反復run間のstrict compareもPASSしている。
+- A100、H100、x86は入力が同じでもハードウェア条件が異なるため、baselineを混合しない。
+- 最新HEADを自動的に正式baselineとせず、採用済み数値sourceと測定系列を分けて管理している。
 
-- diagnostic OFFで3回測定し、中央値で比較する。
-- 通常checkとrelaxed compareを両方必須とする。
-- 効果のない実装は記録後にrevertする。
+## スライド3: GPU化は「計算・データ・FFT」の3層で進めた
 
-## スライド3: ビルド基盤とcuFFT backend
+### GPU上で処理を連結し、Host往復を減らした
 
-変更箇所:
-
-- `FPSEID21/tddft_2022October/mk_ifort.sh`
-- `tools/build_nvhpc.sh`
-- `FPSEID21/tddft_2022October/fft_cufft.f`
-- `FPSEID21/tddft_2022October/fpseid_cufft_wrap.c`
-- `FPSEID21/tddft_2022October/fft_fftw.f`
-
-ビルド条件:
+掲載内容:
 
 ```text
--O2 -acc -gpu=cc80
--gpu=mem:separate:pinnedalloc
--mp -Msave -Mlarge_arrays
+Host入力
+  ↓ 初回転送
+GPU常駐配列（P、COEF、COEF0、metadata）
+  ↓
+OpenACC kernel ─ cuFFT batch ─ OpenACC kernel
+  ↓ 必要な境界だけ同期
+MPI／Host処理
 ```
 
-主な変更:
+- 計算: 主要loopをOpenACC kernel化
+- データ: 大規模配列と静的metadataをGPUへ常駐
+- FFT: OpenACC管理配列のdevice pointerをcuFFTへ直接渡す
+- 境界: MPIやHost consumerの直前だけ同期
 
-- NVHPC + OpenACC + cuFFTビルド経路を追加した。
-- `TDDFT_ONLY=1`でTDDFTだけをビルド可能にした。
-- FFTWとcuFFTをbackendとして切り替え可能にした。
-- OpenACC管理配列のdevice pointerをcuFFTへ直接渡すentryを追加した。
-- `cufftPlanMany`を使うbatch FFT entryを追加した。
-- CPU/FFTW側にも同名fallback entryを追加した。
+説明メモ:
 
-主要entry:
+- 初期版はFFTごとにHost→Device→cuFFT→Hostへ戻していた。
+- 現在は外側routineがdevice mappingを所有し、内側routineは`present`で参照する。
+- separate memoryとpinned host allocationを正式設定としている。
 
-```text
-FFT3BX_fftwASL_ACC
-FFT3FX_fftwASL_ACC
-FFT3BX_fftwASL_ACC_BATCH
-FFT3FX_fftwASL_ACC_BATCH
-```
+## スライド4: 時間発展ループの主要領域をGPU化した
 
-変更前後:
+### ソース上の候補39箇所中26箇所へcompute処理を実装
 
-```text
-変更前: Host -> H2D -> cuFFT -> D2H -> Host
-変更後: Device上の配列 -> cuFFT -> Device上の配列
-```
+掲載内容:
 
-## スライド4: 単純なOpenACC loop化を行った箇所
-
-同じ方式の変更を以下にまとめる。
-
-| 対象 | ファイル／routine | GPU化内容 | 維持した条件 |
-|---|---|---|---|
-| S2 scatter/gather | `tmevl10_Avec_v4.f`、`S2_` | band・Gベクトル間を並列化 | `J2G` mapping |
-| 局所potential | `tmevl10_Avec_v4.f`、`S2_` | `VG`生成とpotential適用 | bandごとの数式 |
-| kinetic phase | `tmevl10_Avec_v4.f`、`exkin_` | coefficient要素間を並列化 | 位相計算式 |
-| VPJ動径積分 | `vpj_gen.f`、`VPJ_GEN_ACC_INTEGRAL` | Gベクトル間を並列化 | 各G内の動径積分順 |
-| LOCPOT | `lib4_ASL_2_check_Vext_SXACE.f`、`LOCPOT` | `G=2..NG`を並列化 | 各G内の`ITY/K/IA`順 |
-| 密度scatter/集約 | `frprmn_tm12_check_Vext_Avec_v4.f`、`RHOOFK_ACC_BATCH` | band・grid間を並列化 | occupation加算順 |
-
-代表的なdirective:
-
-```fortran
-!$acc parallel loop gang vector
-```
-
-主要な効果:
-
-- S2 scatter: 約56秒から約0.46秒
-- VPJ CPU動径積分: 約36.13秒からGPU kernel約1.8秒
-- LOCPOT: 約2.765秒から約0.305秒
-
-CPU版では同じroutineの従来host loopを維持する。
-
-## スライド5: データ常駐化と同期削減
-
-実装方式が同じ変更を以下にまとめる。
-
-| 配列 | 常駐範囲 | 主な変更箇所 |
-|---|---|---|
-| `P` | `TMEVL`全体 | `tmevl10_Avec_v4.f` |
-| `COEF`, `COEF0` | FRPRMN predictor-corrector全体 | `frprmn_tm12_check_Vext_Avec_v4.f` |
-| `work2_`, `cfac_`, `ngnl_` | nonlocal phase間 | `tmevl10_Avec_v4.f` |
-| `J2G`, `OCC` | time-step loop全体 | `pspw_tm11_Vext_Avec_v4_alloc.f` |
-| `RAD`, `PSPOT`, `PSPOT2`, `PHIL` | time-step loop全体 | 同上 |
-
-変更前:
-
-```text
-各routine開始時にcopyin
-各routine終了時にcopyout/delete
-```
-
-変更後:
-
-```text
-外側routineがmappingを所有
-内側routineはpresent参照
-Host consumer直前だけupdate self
-```
-
-主な効果:
-
-- P転送: S2単位約25.2秒からTMEVL単位約5.7秒
-- TMEVLごとのCOEF D2H 944回を削除
-- 必須COEF同期を約103回へ集約
-- metadataの最大5,662回相当の反復copyinをloop外へ移動
-
-## スライド6: FFTと密度再構築のbatch化
-
-変更箇所:
-
-- `fft_cufft.f`
-- `fpseid_cufft_wrap.c`
-- `fft_fftw.f`
-- `tmevl10_Avec_v4.f`、`S2_`
-- `frprmn_tm12_check_Vext_Avec_v4.f`、`RHOOFK_ACC_BATCH`
-
-S2 local FFT:
-
-```text
-変更前: local bandごとにcuFFTを実行
-変更後: nbndloc全体をcufftPlanManyで一括実行
-```
-
-TMEVL後の密度再構築:
-
-- residentな`COEF`をdevice上でscatterする。
-- local bandsをbatch cuFFTで変換する。
-- occupation付きcharge densityをdevice上で集約する。
-- MPIに必要なlocal densityだけhostへ戻す。
-
-効果:
-
-- `s2_fft_local`: 約22.48秒から約5.03秒
-- `frprmn_rhoofk`: 約14.51秒から約0.73秒
-- FFT wrapper呼び出し: 43,949回から14,685回
-- Step 28からStep 33で約10.03%高速化
-
-## スライド7: 非局所projector kernelの最適化
-
-変更箇所:
-
-- `tmevl10_Avec_v4.f`
-  - `exnlp_only_make`
-  - `exnlp_gemm`
-  - `exnlp_gemm_present_inputs`
-  - `exnlp_gemm_body_fused`
-
-変更内容:
-
-- dot productをOpenACC reduction化した。
-- coefficient更新をGPU化した。
-- present-input経路を追加し、内部copyinを削減した。
-- dot productとcoefficient更新を同一kernelへ融合した。
-- 一時配列`ct1`とゼロ初期化kernelを削除した。
-- bandをgangへ割り当て、各band内の`ia`を`seq`実行した。
-- forward phaseのstaging bufferをreverse phaseでも再利用した。
-- `work2_`の列幅を`NGcont`から実使用最大`NGNL`へ縮小した。
-
-維持した条件:
-
-- 各band内の`ia`更新順序
-- reverse phaseの逆順適用
-- 各`ig` reduction
-
-効果:
-
-- kernel起動回数: 約453,120回から9,440回
-- `exnlp_gemm_dot`: 約18.37秒から約8.44秒
-- fused kernelの採用vector length: 256
-
-## スライド8: FRPRMN領域の追加最適化
-
-### VPJ_GEN動径積分
-
-変更箇所:
-
-- `vpj_gen.f`
-- `frprmn_tm12_check_Vext_Avec_v4.f`
-
-変更:
-
-- Gベクトル間をOpenACC並列化した。
-- static pseudopotential表をtime-step loop全体で常駐させた。
-- VPJ kernelの`vector_length`を128へ調整した。
-
-効果:
-
-```text
-Step 41: 107.75秒
-Step 52:  73.44秒
-改善:     約31.85%
-```
-
-### LOCPOT
-
-変更箇所:
-
-- `lib4_ASL_2_check_Vext_SXACE.f`
-- `lib4_ASL_2_check_Vext_SXACE_gnu.f`
-
-変更:
-
-- Gベクトル間だけをOpenACC並列化した。
-- G=0、MPI、各G内の原子・補正項の順序は維持した。
-
-効果:
-
-```text
-LOCPOT: 2.765秒 -> 0.305秒
-Step 52: 73.44秒
-Step 57: 71.29秒
-```
-
-## スライド9: 不要処理の削除と再利用
-
-### 冗長なhost COEF復元の省略
-
-変更箇所:
-
-- `frprmn_tm12_check_Vext_Avec_v4.f`、977～989行付近
-
-OpenACCでは`COEF/COEF0`のdevice側が正本であり、次補正の復元もdevice上で行う。
-そのためGPU経路で不要なhost `COEF0 -> COEF` copyだけを省略した。
-
-```fortran
-#ifndef _OPENACC
-  call coefcp(...)
-#endif
-```
-
-- CPU/FFTWのhost copyは維持した。
-- host復元時間: 約2.159秒から約0.0029秒
-- Step 57からStep 62で約3.81%高速化
-
-### NONLOCのYLM再利用
-
-変更箇所:
-
-- `frprmn_tm12_check_Vext_Avec_v4.f`
-- `tmevl10_Avec_v4.f`
-
-変更:
-
-- 各k-point/eventの最初のbandだけYLMを生成する。
-- 2番目以降のbandでは生成済みYLMを再利用する。
-- coefficient依存の`DCOEF`と`SEPPOT`は毎band実行する。
-
-効果:
-
-- Step 67からStep 74で約0.429%高速化
-- Step 74を正式baselineとして採用
-
-## スライド10: 採用しなかった変更と得られた知見
-
-vector length:
-
-- nonlocal `vector_length(512)`は256より遅く不採用
-- VPJ `vector_length(64)`は128より遅く不採用
-
-常駐範囲の拡大:
-
-- `Vloc`のcorrection間常駐
-- `COEF` allocationのtime-step全体維持
-- `GDUMP` mappingの再利用
-- `COEF0`のdevice初期化
-
-いずれも正しく動作したが、同期・kernel起動・管理overheadを含むwall timeは改善しなかった。
-
-producer側GPU生成:
-
-- 細粒度`work2_` lookup copy
-- ownershipなしのYLM GPU生成
-- EXTAU 5表の一括GPU生成
-
-転送やruntime overheadが増え、全体性能は回帰した。
-
-kernel特殊化:
-
-- forward/reverse別nonlocal kernel
-- tutorial専用SEPPOTF s/p kernel
-
-対象timerまたは3回中央値で有意な改善がなく、不採用とした。
-
-## スライド11: 性能推移
-
-| 段階 | 主な変更 | 100-step wall | time-step候補GPU化率 |
-|---|---|---:|---:|
-| 初期cuFFT host-copy | FFTごとにH2D/D2H | 約443.2秒 | 対象外 |
-| Step 3 | device pointer cuFFT | 約360.3秒 | 対象外 |
-| Step 12 | P常駐＋冗長kernel削除 | 約172.65秒 | 対象外 |
-| Step 21 | local FFT batch化 | 約146.54秒 | 28.2% |
-| Step 25 | nonlocal kernel融合・調整 | 約130.61秒 | 28.2% |
-| Step 33 | charge-density FFT batch化 | 約116.12秒 | 41.0% |
-| Step 34 | coefficient D2H繰延べ | 約113.56秒 | 41.0% |
-| Step 37 | pinned allocation | 約108.10秒 | 41.0% |
-| Step 41 | static metadata常駐 | 約107.75秒 | 41.0% |
-| Step 52 | VPJ動径積分GPU化 | 約73.44秒 | 43.6% |
-| Step 57 | LOCPOT GPU化 | 約71.29秒 | 46.2% |
-| Step 62 | 冗長host復元削除 | 約68.57秒 | 46.2% |
-| Step 67 | VPJ vector length 128 | 約68.36秒 | 46.2% |
-| Step 74 | YLM再利用 | 約68.07秒 | 46.2% |
-| Step 80 | LDA交換相関loop GPU化 | 約67.42秒 | 48.7% |
-| Step 82 | COEF0 seedをGPU内コピー | 約66.65秒 | 51.3% |
-| Step 86 | HLOCALのloop＋cuFFTをGPU内連続実行 | 約66.50秒 | 61.5% |
-
-総合結果:
-
-```text
-443.2秒 -> 66.50秒
-約6.66倍高速化
-実行時間を約85.0%削減
-```
-
-time-step候補GPU化率は、現在GPU化済みの24 siteと、Step 78で確認した未採用の
-残候補15 siteを合わせた39 siteを母数とする暫定値である。全候補を数学的に網羅した
-絶対値ではなく、小さな制御loopと主要配列kernelを同じ1 siteとして数える。
-データ常駐、allocation、vector length、重複処理削減ではsite数が増えないため、
-性能が向上しても率は同じ場合がある。
-
-## スライド12: 現在のソースと残課題
-
-主要ファイル:
-
-| ファイル | GPU化内容 |
+| 計算領域 | 主なGPU化内容 |
 |---|---|
-| `tmevl10_Avec_v4.f` | S2、exkin、nonlocal kernel、P常駐 |
-| `frprmn_tm12_check_Vext_Avec_v4.f` | COEF常駐、密度再構築、YLM再利用 |
+| S2局所項 | scatter、局所potential、cuFFT、gather |
+| 非局所項 | projector dot、係数更新、kernel融合 |
+| 電荷密度 | resident COEFからの再構築、batch FFT |
+| FRPRMN | COEF/COEF0常駐、同期削減、データ再利用 |
+| potential | VPJ、LOCPOT、LDA交換相関、EWALD |
+| HLOCAL | zeroからFFT・multiply・gatherまで連続実行 |
+
+**ソース箇所数ベース: 26 / 39 = 約66.7%**
+
+説明メモ:
+
+- 66.7%はGPU使用率や実行時間比率ではなく、識別したsource candidate siteの対応率である。
+- allocation、常駐範囲、同期削減、重複処理削減は、性能に効いてもsite数には表れない。
+
+## スライド5: FFTをHost往復型からGPU常駐型へ変更した
+
+### device pointerとbatch化でFFT前後の転送・呼出しを削減
+
+掲載内容:
+
+```text
+変更前: Host array → H2D → cuFFT → D2H → Host array
+変更後: OpenACC device array → cuFFT → device array
+```
+
+- `host_data use_device`でOpenACC配列をcuFFTへ渡す
+- `cufftPlanMany`でlocal bandsを一括処理
+- S2局所FFTと電荷密度再構築の両方をbatch化
+- FFTW backendには同名fallback entryを用意
+
+代表的な効果:
+
+- `s2_fft_local`: 約`22.480秒 → 5.030秒`
+- `frprmn_rhoofk`: 約`14.510秒 → 0.730秒`
+- FFT wrapper呼出し: `43,949回 → 14,685回`
+
+## スライド6: 非局所projectorはkernel融合で起動回数を減らした
+
+### band方向を並列化し、原子順序をkernel内で維持
+
+掲載内容:
+
+- dot productをOpenACC reduction化
+- coefficient更新を同じkernelへ融合
+- 一時配列とゼロ初期化kernelを削除
+- bandをgangへ割り当て、band内の`ia`は`seq`
+- forward/reverse phaseでstaging bufferを再利用
+- 実使用最大`NGNL`に合わせてbuffer幅を縮小
+
+代表的な効果:
+
+- kernel起動回数: 約`453,120回 → 9,440回`
+- `exnlp_gemm_dot`: 約`18.370秒 → 8.440秒`
+
+説明メモ:
+
+- 各band内の原子適用順とreverse phaseの逆順適用は変更していない。
+- 最新の採用済みprofilingでも、融合非局所kernelは主要な残存コストである。
+
+## スライド7: FRPRMNとpotential処理もGPU内でつないだ
+
+### 個別kernel化に加え、重複計算と同期を削減
+
+掲載内容:
+
+- `COEF`／`COEF0`をpredictor-corrector区間で常駐
+- seed初期化をHost copy＋H2DからGPU内copyへ変更
+- band非依存のYLMとphase情報を事前計算・再利用
+- VPJ動径積分、LOCPOT、LDA交換相関をOpenACC化
+- EWALDのG-space pairとreductionをGPU化
+- HLOCALを1つのdata領域で連続実行
+
+代表的な効果:
+
+- VPJ CPU積分: 約`36.130秒 → 1.800秒`
+- LOCPOT: 約`2.765秒 → 0.305秒`
+- 不要なHost COEF復元: 約`2.159秒 → 0.003秒`
+
+説明メモ:
+
+- Step 107の正式改善は、FRPRMNからELECTFまでの限定COEF常駐によるものと確認済み。
+- 同Stepで提案したSEPPOTF batch経路はtutorial入力では非活性だったため、採用効果へ数えない。
+
+## スライド8: データ常駐化がGPU化の実効性を高めた
+
+### kernel間で配列を保持し、必要な同期だけを残した
+
+掲載内容:
+
+| 常駐対象 | 常駐範囲・狙い |
+|---|---|
+| `P` | TMEVL全体で保持 |
+| `COEF`, `COEF0` | predictor-correctorからELECTFまで保持 |
+| `work2_`, `cfac_`, `ngnl_` | 非局所phase間で再利用 |
+| `J2G`, `OCC` | time-step loop全体で保持 |
+| pseudopotential表 | static metadataとしてloop外へ移動 |
+
+- TMEVLごとの`COEF` D2H 944回を削除
+- 必須`COEF`同期を約103回へ集約
+- metadataの反復copyinをloop外へ移動
+- pinned host allocationで残る転送を短縮
+
+説明メモ:
+
+- HostとDeviceのどちらが正本かをroutine境界ごとに明示した。
+- managed/unified memoryは正式なpinned separate memoryより2倍以上遅く、不採用とした。
+
+## スライド9: A100では段階的に63.214秒まで短縮した
+
+### 主要な転換点ごとに性能を積み上げた
+
+掲載内容:
+
+| 段階 | 主な変更 | 100-step wall |
+|---|---|---:|
+| 初期採用GPU実装（Step 21） | local FFT batch化 | 146.540秒 |
+| Step 25 | 非局所kernel融合 | 130.608秒 |
+| Step 33 | 電荷密度FFT batch化 | 116.125秒 |
+| Step 37 | pinned allocation | 108.096秒 |
+| Step 52 | VPJ積分GPU化 | 73.437秒 |
+| Step 57 | LOCPOT GPU化 | 71.291秒 |
+| Step 80 | LDA交換相関GPU化 | 67.421秒 |
+| Step 86 | HLOCAL GPU内連続実行 | 66.502秒 |
+| Step 99 | EWALD G-space vector reduction | 64.302秒 |
+| Step 102 | band非依存S2 phase事前計算 | 63.839秒 |
+| Step 107 | 限定COEF常駐 | **63.214秒** |
+
+総合: `146.540秒 → 63.214秒`、約`2.32倍`、約`56.9%`短縮
+
+説明メモ:
+
+- 表はすべてA100、Si111-H、100 stepsの採用系列。診断runは含めない。
+- さらに古いhost-copy cuFFT版の約443秒は実装初期の参考値で、正式採用系列とは分ける。
+
+## スライド10: 各プラットフォームで正式baselineを確立した
+
+### 同じ100-step入力で全系列が正常性PASS
+
+掲載内容:
+
+| プラットフォーム | 実行構成 | 中央値 | range | 正常性 |
+|---|---|---:|---:|---|
+| NVIDIA A100-PCIE-40GB | NVHPC/OpenACC/cuFFT、1 GPU / 1 MPI | 63.214秒 | 0.103秒 | PASS |
+| NVIDIA H100 PCIe | NVHPC/OpenACC/cuFFT、1 GPU / 1 MPI | 34.109秒 | 0.091秒 | PASS |
+| Intel Xeon 6980P | ifx/mpiifx＋FFTW、32 MPI × 8 OpenMP | 16.539秒 | 0.058秒 | PASS |
+
+- H100はA100よりwall timeが約46.0%短く、比率は約1.85倍
+- x86は256 CPUコア使用のため、1 GPUとの直接的な装置性能比較ではない
+
+説明メモ:
+
+- A100はStep 107、H100はStep 115、x86は32 MPI × 8 OpenMPの独立baseline。
+- x86は16 MPI × 1 OpenMPの`29.352秒`から構成最適化で`16.539秒`へ短縮した。
+
+## スライド11: 効果のない最適化も採否を明確にした
+
+### 正しく動いてもwall timeが改善しない変更は残さなかった
+
+掲載内容:
+
+- SEPPOTF batch有効化: 正常だがA100で遅化
+- compiler flags（fastmath／IPA）: 改善がrun幅付近
+- managed／unified memory: 2倍以上遅化
+- 非局所kernelの追加融合・特殊化: 有意な改善なし
+- vector length変更: 256または128の採用値より遅化
+- Intel MPI scatter配置: IPL2 errorと大幅遅化
+
+得られた知見:
+
+- 小さいkernelを増やすだけでは起動・同期overheadが勝つ
+- 常駐範囲を広げてもHost authority境界が残ると効果は限定的
+- tutorial専用micro tuningは改善上限が小さい
+
+## スライド12: 次の課題はproduction規模での再評価
+
+### tutorial入力の小ささが、次のGPU改善判断を難しくしている
+
+掲載内容:
+
+- 融合非局所kernelが主要な残存処理
+- Host処理、MPI境界、同期・転送が一部残存
+- tutorial入力は32 bandsで、GPU並列度とoccupancyが不足
+- production入力と対応する正解referenceが未準備
+- Step 116の性能仮説は未選定
+
+次の方針:
+
+1. production規模入力と正解referenceを準備する
+2. 同一入力でA100／H100の新しいbaselineを作る
+3. profilerでkernel、同期、転送量を再分類する
+4. 根拠が得られた箇所だけを1仮説ずつ最適化する
+
+説明メモ:
+
+- 新しいprofiler根拠またはproduction入力なしに、小規模tutorialの微調整は再開しない。
+- NVIDIA MPSとGPU側MPI rank増加は調査のみで終了し、実行対象にしない。
+- 現在、保留中のA100、H100、x86実行コマンドはない。
+
+# 付録
+
+## 付録A1: 正式baselineの識別情報
+
+| 系列 | logical step | source／tested revision | 条件 |
+|---|---|---|---|
+| A100 | Step 107 | `c46cfa9` | cc80、1 GPU / 1 MPI、diagnostic OFF |
+| H100 | Step 115 | `e6ad059` | cc90、1 GPU / 1 MPI、diagnostic OFF |
+| x86 | x86 formal baseline | `7318e59`系列 | ifx/mpiifx、32 MPI × 8 OpenMP |
+
+発表原稿更新時HEAD: `4ef4d7e`
+
+注意:
+
+- HEADには文書、検証、x86測定支援の更新を含む。
+- GPUの採用済み数値計算経路は`c46cfa9`と一致する。
+- H100とA100のbaselineは混合・置換しない。
+
+## 付録A2: 主な変更ファイル
+
+| ファイル | 主な役割 |
+|---|---|
+| `tmevl10_Avec_v4.f` | S2、exkin、非局所kernel、P常駐 |
+| `frprmn_tm12_check_Vext_Avec_v4.f` | COEF常駐、密度再構築、再利用 |
+| `electf4_Vext_Avec.f` | ELECTF境界、EWALD、限定COEF常駐 |
 | `fft_cufft.f` | device pointer版・batch版cuFFT |
 | `fpseid_cufft_wrap.c` | cuFFT wrapperとplan管理 |
+| `fft_fftw.f` | CPU/FFTW fallback entry |
 | `vpj_gen.f` | VPJ動径積分kernel |
-| `lib4_ASL_2_check_Vext_SXACE.f` | LOCPOT、VOFRHO、LDA交換相関 |
-| `pspw_tm11_Vext_Avec_v4_alloc.f` | time-step loop外metadata常駐 |
-| `tools/build_nvhpc.sh` | NVHPC、pinned allocation設定 |
+| `lib4_ASL_2_check_Vext_SXACE.f` | LOCPOT、交換相関 |
+| `pspw_tm11_Vext_Avec_v4_alloc.f` | loop外metadata常駐 |
+| `tools/build_nvhpc.sh` | NVHPC/OpenACC/cuFFT build |
 
-現在の正式baseline:
-
-```text
-Step 86
-66.5019950867 sec
-```
-
-Step 76で再分類したVRHO:
-
-| 項目 | 時間 |
-|---|---:|
-| VRHO全体 | 1.762396秒 |
-| VOFRHO | 0.956957秒 |
-| seed制御 | 0.549649秒 |
-| smoothing/FFT | 0.156599秒 |
-| corrector | 0.078602秒 |
-| COEF復元 | 0.002889秒 |
-
-Step 80でGPU化した交換相関:
-
-- Si111-Hで実行されるLDA S2VXC2の独立格子点loopだけをGPU化した。
-- 3回中央値でStep 74より`0.951043%`高速化した。
-- 次はStep 81で改善後のFRPRMN残差を再分類する。
-
-Step 82でGPU化したseed初期化:
-
-- predictor-corrector開始時のCOEF→COEF0をhost copy＋H2DからGPU内copyへ変更した。
-- 3回中央値でStep 80より`1.137412%`高速化した。
-- 次はStep 83でVRHO seed/control timerを再確認する。
-
-Step 86でGPU内連続実行したHLOCAL:
-
-- zero、scatter、局所ポテンシャル積、gatherの4 loopとcuFFT往復を1 data領域にまとめた。
-- 3回中央値でStep 82より`0.22791%`高速化した。
-- time-step候補GPU化率は24/39=`61.5%`。
-
-## 正式baselineと文書の位置づけ
-
-- 正式baseline: 論理Step 86
-- source implementation commit: `9dd8c20`
-- pinned build-mode commit: `9cbb6bc`
-- A100 3回中央値: `66.5019950867 sec`
-- Step 87はStep 86 sourceを対象とした診断・分類作業である。
-- PowerPointでは診断wallと正式baselineを混在させない。
-
-# 任意付録: 変更前／変更後の実コード
-
-以下はGit履歴に残る実コードから抜粋した。PowerPointで読みやすくするため、
-宣言や変更のない処理は `...` で省略している。本編は前述の12枚のままとし、
-説明が必要な方式だけを付録として追加する。
-
-## 付録A1: cuFFTをhost copy版からdevice pointer版へ変更
-
-対象:
-
-- `FPSEID21/tddft_2022October/fft_cufft.f`
-- `FPSEID21/tddft_2022October/fpseid_cufft_wrap.c`
-
-変更前:
-
-```fortran
-      SUBROUTINE FFT3BX_fftwASL(...)
-      ...
-      call fpseid_cufft_exec(plancbp,RHOG,NG,1,ierr)
-```
-
-変更後:
+## 付録A3: cuFFTをdevice pointer版へ変更
 
 ```fortran
       SUBROUTINE FFT3BX_fftwASL_ACC(...)
@@ -458,104 +327,30 @@ Step 86でGPU内連続実行したHLOCAL:
 !$acc end host_data
 ```
 
-要点:
+- OpenACC管理配列のdevice pointerをcuFFTへ直接渡す。
+- forward FFTとbatch FFTにも同じ境界を用いる。
+- CPU/FFTW側は互換entryを維持する。
 
-- 変更前はwrapper内でhost/deviceコピーを伴う実行経路だった。
-- 変更後はOpenACC配列のdevice pointerをcuFFTへ直接渡す。
-- 同じ方式でforward FFTとbatch FFTも実装した。
-
-## 付録A2: 単純OpenACC化でscatter loopを平坦化
-
-対象:
-
-- `FPSEID21/tddft_2022October/tmevl10_Avec_v4.f`
-- `S2_`
-
-変更前:
-
-```fortran
-!$acc parallel loop present(P(...),RHO1_(...),J2G(...))
-      do ib=nbegin,nend
-       iib=ib-nbegin+1
-         DO 100 IG=1,NXYZ
-         JG=J2G(IG)
-  100    RHO1_(JG,iib)=P(IG,iib)
-      enddo
-```
-
-変更後:
-
-```fortran
-!$acc parallel loop present(P(...),RHO1_(...),J2G(...))
-      do idx=1,NXYZ*nbndloc
-         IG=mod(idx-1,NXYZ)+1
-         iib=(idx-1)/NXYZ+1
-         JG=J2G(IG)
-         RHO1_(JG,iib)=P(IG,iib)
-      enddo
-```
-
-要点:
-
-- bandと格子点の二重loopを1本のGPU loopへ平坦化した。
-- 小さい外側loopごとのkernel分割を避け、GPU並列度を増やした。
-- 同種の単純OpenACC化は密度生成、LOCPOT、VOFRHO、VPJにも適用した。
-
-## 付録A3: bandごとのFFTをbatch FFTへ集約
-
-対象:
-
-- `FPSEID21/tddft_2022October/tmevl10_Avec_v4.f`
-- `FPSEID21/tddft_2022October/fft_cufft.f`
+## 付録A4: bandごとのFFTをbatch化
 
 変更前:
 
 ```fortran
       do ib=nbegin,nend
-       iib=ib-nbegin+1
-       CALL FFT3BX_fftwASL_ACC(NRX,NRY,NRZ,NXYZ,
-     & RHO1_(1,iib),RHO2_(1,iib),plancfp,plancbp)
+         CALL FFT3BX_fftwASL_ACC(...,RHO1_(1,iib),RHO2_(1,iib),...)
       enddo
 ```
 
 変更後:
 
 ```fortran
-      CALL FFT3BX_fftwASL_ACC_BATCH(NRX,NRY,NRZ,NXYZ,
-     & nbndloc,RHO1_,RHO2_,plancfp,plancbp)
+      CALL FFT3BX_fftwASL_ACC_BATCH(...,nbndloc,RHO1_,RHO2_,...)
 ```
 
-要点:
+- 複数bandを`cufftPlanMany`で一括実行する。
+- wrapper呼出しと同期を削減する。
 
-- 変更前はband数だけcuFFTを呼び出していた。
-- 変更後は複数bandを1回のbatch cuFFTで処理する。
-- forward FFTにも同じ変更を適用し、呼出し回数と同期を削減した。
-
-## 付録A4: nonlocal kernelを原子単位からband単位へ融合
-
-対象:
-
-- `FPSEID21/tddft_2022October/tmevl10_Avec_v4.f`
-- `exnlp_gemm_body_fused`
-
-変更前:
-
-```fortran
-      do ia = 1, loopcnt
-         ja = ia
-         if (reverse_order) ja = loopcnt-ia+1
-!$acc parallel loop gang present(...)
-         do iib = 1, nbndloc
-            ...
-!$acc loop vector reduction(+:sr,si)
-            do ig = 1, ngnl(ja)
-               ...
-            end do
-         end do
-      end do
-```
-
-変更後:
+## 付録A5: 非局所kernelで原子順序を保持
 
 ```fortran
 !$acc parallel loop gang vector_length(256) present(...)
@@ -573,172 +368,32 @@ Step 86でGPU内連続実行したHLOCAL:
       end do
 ```
 
-要点:
+- band間を並列化し、各band内の逐次`ia`適用順を保つ。
+- reverse経路の逆順も維持する。
 
-- 変更前は原子loopごとにGPU kernelを起動していた。
-- 変更後はbandを外側のGPU並列loopとし、原子処理を1 kernel内に融合した。
-- kernel起動回数を減らし、band方向の並列性を利用した。
-
-## 付録A5: OpenACC時の不要なhost COEF復元を除去
-
-対象:
-
-- `FPSEID21/tddft_2022October/frprmn_tm12_check_Vext_Avec_v4.f`
-
-変更前:
-
-```fortran
-       nblng=nend(my_rank)-nbegin(my_rank)+1
-       do ik0=1,numkq
-       call coefcp(coef0(1,1,ik0),coef(1,1,ik0),
-     &             ng2q*nblng)
-       enddo
-```
-
-変更後:
+## 付録A6: OpenACC時の不要なHost復元を省略
 
 ```fortran
 #ifndef _OPENACC
-c *** CPU/FFTW restart state.
-       nblng=nend(my_rank)-nbegin(my_rank)+1
-       do ik0=1,numkq
-       call coefcp(coef0(1,1,ik0),coef(1,1,ik0),
-     &             ng2q*nblng)
-       enddo
+      call coefcp(coef0(1,1,ik0),coef(1,1,ik0),ng2q*nblng)
 #endif
 ```
 
-要点:
+- OpenACC経路ではdevice上の`COEF0`が正本である。
+- CPU/FFTW経路のHost copyは維持する。
 
-- OpenACC経路ではdevice上の `COEF0` が正本であり、host側 `COEF` への復元は不要だった。
-- CPU/FFTW経路の処理はプリプロセッサ条件で維持した。
-- 正しさを保ったまま、反復ごとのhostコピー処理を省いた。
+## 付録A7: PowerPoint作成時の図表案
 
-## 付録A6: band間で不変なYLMを再利用
+- スライド3: Host／Device境界を1本のフロー図で示す。
+- スライド4: 計算領域をTDDFT time-step順に色分けする。
+- スライド9: A100実行時間の段階的短縮を折れ線グラフにする。
+- スライド10: 3プラットフォームの値は表で示し、x86の256コア条件を脚注に置く。
+- 変更前は灰色、GPU上で連続する区間は青、残るHost同期は橙で示す。
 
-対象:
+## 付録A8: 数値の出典
 
-- `FPSEID21/tddft_2022October/frprmn_tm12_check_Vext_Avec_v4.f`
-- `FPSEID21/tddft_2022October/tmevl10_Avec_v4.f`
-- `NONLOC`
-
-変更前:
-
-```fortran
-      do ib=nbegin(my_rank),nend(my_rank)
-         ...
-         CALL NONLOC(...,NGcont)
-      enddo
-
-c --- NONLOC内
-      DO 588 IG=1,NG2
-  588 RHOA(IG)=SQRT(G2(4,IG))*TPIBA
-      CALL GETYLM(NG2Q,NGcont,G2,RHOA,YLM,TPIBA,NGcont)
-      CALL SEPPOT(...)
-```
-
-変更後:
-
-```fortran
-      iylm_reuse=0
-      do ib=nbegin(my_rank),nend(my_rank)
-         ...
-         CALL NONLOC(...,NGcont,iylm_reuse)
-         iylm_reuse=1
-      enddo
-
-c --- NONLOC内
-      IF (IYLM_REUSE.EQ.0) THEN
-         ...
-         CALL GETYLM(NG2Q,NGcont,G2,RHOA,YLM,TPIBA,NGcont)
-      ENDIF
-      CALL SEPPOT(...)
-```
-
-要点:
-
-- `YLM` は同一k点のband間で不変である。
-- 最初のbandだけ計算し、以後のbandでは結果を再利用する。
-- 数値計算の内容を変えず、重複計算を削減した。
-
-## 付録A7: 実行されるLDA交換相関loopをGPU化
-
-対象:
-
-- `FPSEID21/tddft_2022October/lib4_ASL_2_check_Vext_SXACE.f`
-- routine `S2VXC2`
-
-変更前:
-
-```fortran
-      DO 10 IG=1,NXYZ
-      VCSR(IG)=0.D0
-      IF(RHO(IG).GT.0.D0) THEN
-         ...
-      ENDIF
-   10 CONTINUE
-```
-
-変更後:
-
-```fortran
-!$acc parallel loop copyin(RHO(1:NXYZ))
-!$acc& copyout(VCSR(1:NXYZ))
-!$acc& private(RS,EC,VX,CC,VC,VXC2)
-      DO 10 IG=1,NXYZ
-      VCSR(IG)=0.D0
-      IF(RHO(IG).GT.0.D0) THEN
-         ...
-      ENDIF
-   10 CONTINUE
-```
-
-要点:
-
-- 診断によりSi111-HがGGAではなくLDA S2VXC2を通ることを確認してから変更した。
-- 格子点間で独立なloopだけをGPU化し、分岐と各格子点内の数式順序を維持した。
-- Step 74比で3回中央値を`0.951043%`短縮した。
-
-## 付録A8: predictor-corrector seedをGPU内コピー
-
-対象:
-
-- `FPSEID21/tddft_2022October/frprmn_tm12_check_Vext_Avec_v4.f`
-
-変更前:
-
-```fortran
-      do ik0=1,numkq
-        call coefcp(coef(1,1,ik0),coef0(1,1,ik0),ng2q*nblng)
-      enddo
-!$acc enter data copyin(COEF(...),COEF0(...))
-```
-
-変更後:
-
-```fortran
-!$acc enter data copyin(COEF(...)) create(COEF0(...))
-!$acc parallel loop collapse(3) present(COEF,COEF0)
-      do ik0=1,numkq
-        do ib=1,nblng
-          do ig=1,ng2q
-            COEF0(ig,ib,ik0)=COEF(ig,ib,ik0)
-          enddo
-        enddo
-      enddo
-```
-
-要点:
-
-- OpenACC版だけhost seed copyとCOEF0 H2DをGPU内copyへ置換した。
-- predictor-corrector区間の寿命、補正restart、MPI、数式は変更していない。
-- CPU/FFTW版は元のhost copyを維持した。
-- Step 80比で3回中央値を`1.137412%`短縮した。
-
-## 付録コードを載せる場合の推奨構成
-
-- 本編では変更を「単純OpenACC化」「データ常駐」「FFT集約」
-  「kernel融合」「重複処理削減」の5種類に集約する。
-- 発表時間が短い場合は、付録A2、A3、A5だけを使用する。
-- 技術説明を重視する場合は、A1からA8までを末尾へ追加する。
-- PowerPointでは変更前を灰色、変更後の追加行とOpenACC指示行を青色で示す。
+- A100／H100／x86正式値: `docs/PERFORMANCE_BASELINE.md`
+- 採否と各Stepの履歴: `docs/EXPERIMENT_LOG.md`
+- 現在地点と保留事項: `docs/HANDOFF.md`
+- GPU化率と実装履歴: `docs/tddft_gpu_progress_summary_ja.md`
+- 進捗報告用の短縮説明: `docs/PROGRESS_REPORT_2026-07-31_JA.md`
