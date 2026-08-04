@@ -263,12 +263,11 @@ This splits the `fft_wrapper` time into host-to-device copy, cuFFT execution,
 device-to-host copy, and their CUDA-event measured total. Use this to decide
 whether the next optimization should target transfers or FFT execution itself.
 
-The TDDFT cuFFT build also includes `mod_timer.f90`, based on a simple
-`system_clock` timer module. It prints a `[Timer Output]` table for the
-Fortran-side cuFFT wrapper regions:
-
-- `cufft_fft3bx`
-- `cufft_fft3fx`
+Both the TDDFT CPU/FFTW and GPU/cuFFT builds use the ID-based MPI wall-clock
+timers in `mod_timer.f90`. Their common logical regions are emitted in the
+same MPI-aggregated `FPSEID_PROFILE` format. The GPU-only
+`FPSEID_CUFFT_PROFILE` remains available for CUDA-event transfer and cuFFT
+breakdowns.
 
 Compare both correctness and profile regions:
 

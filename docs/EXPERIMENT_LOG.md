@@ -2782,3 +2782,29 @@ is not a property of every OpenACC kernel. Threads/launch is a launch geometry
 count, not simultaneous residency or useful-work count. This post-processing
 changes no source and neither diagnostic timing changes the A100 Step 107 or
 H100 Step 115 formal baseline.
+
+## Step 117 Common CPU/GPU Timer Implementation
+
+The timer implementation is consolidated in `mod_timer.f90`; the separate
+`prof_timer.f` source is removed. Existing fixed-form `prof_init`,
+`prof_start`, `prof_stop`, `prof_report`, and `prof_name` entry points remain
+as compatibility wrappers in that module source, so the 408 existing timer
+calls retain their original locations. The implementation uses `MPI_Wtime`
+and one 151-ID table, then emits the existing MPI-aggregated
+`FPSEID_PROFILE` block for both CPU/FFTW and GPU/cuFFT builds. IDs 41--44,
+which were absent from the former secondary module mapping, are included.
+
+The cuFFT wrappers no longer maintain a second name-based `system_clock`
+table or print the GPU-only `[Timer Output]` block. Their common ID 14
+`fft_wrapper` boundaries remain aligned with the FFTW wrappers; the separate
+C/CUDA-event `FPSEID_CUFFT_PROFILE` remains available for GPU-only transfer
+and cuFFT decomposition. This changes no equation, loop order, MPI
+collective, OpenACC ownership, or numerical path.
+
+Local validation on 2026-08-04 passed the full GNU MPI CPU/FFTW link with
+diagnostics both off and on. A two-rank standalone MPI test verified the
+aggregated format, counts, and names for IDs 1, 41, 44, and 151. The static
+timer-name check found exactly one mapping for every ID 1--151, and the two
+PSPW source variants retain identical timer-call sequences. No A100, H100,
+or official x86 performance run has been performed for this implementation;
+all three formal baselines remain unchanged and independent.

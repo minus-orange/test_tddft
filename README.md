@@ -299,9 +299,10 @@ BUILD_REPORT=1 REPORT_FLAGS="-Minfo=accel -Minfo=mp -Minfo=inline" ./mk_ifort.sh
 cuFFT builds print an additional `FPSEID_CUFFT_PROFILE` block at shutdown. It
 splits the FFT wrapper time into host-to-device copy, cuFFT execution,
 device-to-host copy, and CUDA-event measured total time.
-They also build `mod_timer.f90` and print a `[Timer Output]` table for the
-Fortran-side cuFFT wrapper regions, currently `cufft_fft3bx` and
-`cufft_fft3fx`.
+CPU/FFTW and GPU/cuFFT builds use the same ID-based timers from
+`mod_timer.f90`. The MPI-aggregated `FPSEID_PROFILE` block therefore reports
+the same logical regions on both platforms. The cuFFT C wrapper keeps its
+additional CUDA-event breakdown for GPU-only transfer and execution analysis.
 
 If the MPI C wrapper cannot find CUDA headers, use the NVIDIA C compiler or
 add the CUDA include/library paths supplied by the site module, for example:
@@ -630,7 +631,7 @@ including `MPIRUN`, `CG_EXE`, `SD_EXE`, `TDDFT_EXE`, `OMP_NUM_THREADS`,
 
 Instrumented files:
 
-- `FPSEID21/tddft_2022October/prof_timer.f`
+- `FPSEID21/tddft_2022October/mod_timer.f90`
 - `FPSEID21/tddft_2022October/mk.sh`
 - `FPSEID21/tddft_2022October/mk_ifort.sh`
 - `FPSEID21/tddft_2022October/pspw_tm11_Vext_Avec_v4_alloc.f`

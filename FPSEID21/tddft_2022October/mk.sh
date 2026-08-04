@@ -1,7 +1,7 @@
 mpinfort -O3 -report-format -static  -traceback=verbose -mwork-vector-kind=none \
        	-fno-loop-interchange -minit-stack=zero \
   -o tddft_exe  \
-cpu_block.f  prof_timer.f lib4_ASL_2_check_Vext_SXACE.f \
+mod_timer.f90 cpu_block.f lib4_ASL_2_check_Vext_SXACE.f \
 rarr3.f tm_inputs.f  \
   rexgenDummy.f  dipole.f  orbanly_part_f.f  smatchk2.f  \
 frprmn_tm12_check_Vext_Avec_v4.f pack.f tdep.f vpj_gen.f \

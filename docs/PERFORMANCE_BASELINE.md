@@ -1,6 +1,6 @@
 # TDDFT GPU Performance Baseline
 
-Last updated: 2026-07-31
+Last updated: 2026-08-04
 
 ## Official A100 Baseline
 
@@ -65,6 +65,13 @@ and official Step 107 median remain unchanged.
 - A newer commit or a diagnostic/Nsight run is not a baseline automatically.
 - Correctness requires both `check` and relaxed `compare` to pass for every run.
 - An implementation without a median advantage is recorded and rolled back.
+
+Step 117 consolidates the CPU and GPU timer implementation in
+`mod_timer.f90` and removes the GPU-side duplicate name-based timer. It has no
+formal performance result yet. Do not compare a new Step 117 run against a
+different platform series or adopt it automatically; the A100, H100, and x86
+baselines above remain unchanged until each platform completes its own
+controlled correctness and timing series.
 
 ## Source-Level GPU Coverage History
 

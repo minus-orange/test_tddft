@@ -22,7 +22,9 @@ Last updated: 2026-08-04
 - Step 47 and Step 46 source rollback: `35f8542`
 - H100 baseline-adoption record: `7fc0c6d`
 - Current HEAD source status: the numerical path matches accepted Step 107
-  source `c46cfa9`; Step 110 and Step 112 are rejected and restored
+  source `c46cfa9`; Step 110 and Step 112 are rejected and restored. Step 117
+  consolidates the common CPU/GPU timer in `mod_timer.f90`, removes
+  `prof_timer.f`, and does not change the numerical path
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Official A100 baseline: Step 107 median `63.2135219574` sec
@@ -49,16 +51,15 @@ Last updated: 2026-08-04
   launch, 72 registers/thread, `0.09` waves/SM, `37.50%` theoretical
   occupancy, `12.50%` achieved occupancy, and `355.78` us duration. The same
   32-block parallel-width limit is therefore visible on both A100 and H100.
-- Pending human-operated GPU action: none. Step 116 profiler capture is
-  complete on A100 and H100. Do not select or execute a new tutorial-only
-  optimization without production input or a new bounded profiler hypothesis.
-- Pending profiler post-processing: use
-  `tools/report_tddft_nsys_openacc_launches.sh` on the existing A100 and H100
-  Step 116 NSYS archive directories. It exports SQLite only when needed,
-  performs no build or GPU execution, excludes cuFFT library kernels, and
-  prints each NVHPC OpenACC kernel configuration as Grid, Block,
-  threads/launch, registers/thread, launch count, and aggregate time.
-- Pending human-operated x86 action: none
+- Pending human-operated GPU action: Step 117 timer-output validation has not
+  been run on A100 or H100. It is an instrumentation validation, not a new
+  optimization hypothesis; keep any resulting platform series independent.
+  Step 116 profiler capture is complete on both GPUs.
+- Step 116 profiler post-processing: complete for A100 and H100. The 24
+  non-cuFFT OpenACC launch configurations and interpretation are recorded in
+  `docs/STEP116_OPENACC_LAUNCH_SHAPES.md`.
+- Pending human-operated x86 action: Step 117 timer-output validation has not
+  been run on the official Intel Xeon 6980P configuration
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:

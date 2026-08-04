@@ -194,7 +194,7 @@ esac
 "$FC" $FFLAGS \
   $FFT_INCLUDE \
   -o tddft_exe \
-  mod_timer.f90 cpu_block.f prof_timer.f "$LIB4_SRC" \
+  mod_timer.f90 cpu_block.f "$LIB4_SRC" \
   "$RARR3_SRC" "$TM_INPUTS_SRC" \
   rexgenDummy.f dipole.f orbanly_part_f.f smatchk2.f \
   frprmn_tm12_check_Vext_Avec_v4.f pack.f tdep.f vpj_gen.f \

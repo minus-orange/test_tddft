@@ -9,7 +9,7 @@ TDDFT_DIR="$ROOT_DIR/FPSEID21/tddft_2022October"
   --root pspw \
   --output "$ROOT_DIR/docs/tddft_call_tree.md" \
   "$TDDFT_DIR/cpu_block.f" \
-  "$TDDFT_DIR/prof_timer.f" \
+  "$TDDFT_DIR/mod_timer.f90" \
   "$TDDFT_DIR/lib4_ASL_2_check_Vext_SXACE.f" \
   "$TDDFT_DIR/rarr3.f" \
   "$TDDFT_DIR/tm_inputs.f" \

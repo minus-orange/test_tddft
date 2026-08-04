@@ -1,150 +1,149 @@
 module mod_timer
+  use mpi
   implicit none
 
-  ! prof_timer uses IDs 1:151 and the cuFFT wrapper adds six direct names.
-  integer, private, parameter :: num_max_routines = 192
-  integer, private, parameter :: num_max_namelen = 100
-  integer, private :: num_of_routines = 0
-
-  character(len=num_max_namelen), private, dimension(num_max_routines) :: t_name = ''
-  real(kind=8), private, dimension(num_max_routines) :: ts = 0.0d0
-  real(kind=8), private, dimension(num_max_routines) :: t_value = 0.0d0
-  integer, private, dimension(num_max_routines) :: call_count = 0
-  logical, private, dimension(num_max_routines) :: timer_start = .false.
-
-  private :: wallclock
+  ! Keep one ID-based timer table for both the CPU/FFTW and GPU/cuFFT paths.
+  ! The external prof_* entry points below preserve the fixed-form call sites,
+  ! so both backends measure the same logical source regions.
+  integer, parameter :: num_profile_timers = 151
+  real(kind=8), private :: elapsed(num_profile_timers) = 0.0d0
+  real(kind=8), private :: started_at(num_profile_timers) = 0.0d0
+  integer, private :: call_count(num_profile_timers) = 0
+  integer, private :: profile_rank = -1
 
 contains
 
-  subroutine start_timer(subroutine_name)
-    character(len=*), intent(in) :: subroutine_name
-    integer :: nlen
-    integer :: i
+  subroutine init_timer(rank)
+    integer, intent(in) :: rank
 
-    nlen = min(len_trim(subroutine_name), num_max_namelen)
+    profile_rank = rank
+    elapsed = 0.0d0
+    started_at = 0.0d0
+    call_count = 0
+  end subroutine init_timer
 
-    do i = 1, num_of_routines
-      if (subroutine_name(1:nlen) == trim(t_name(i))) then
-        if (timer_start(i)) then
-          write(0,*) 'Timer for ', trim(subroutine_name), ' is already started!!!'
-          return
-        end if
-        timer_start(i) = .true.
-        call_count(i) = call_count(i) + 1
-        call wallclock(ts(i))
-        return
-      end if
-    end do
+  subroutine start_timer(id)
+    integer, intent(in) :: id
 
-    if (num_of_routines >= num_max_routines) then
-      write(0,*) 'Timer table is full: ', trim(subroutine_name)
-      return
-    end if
-
-    num_of_routines = num_of_routines + 1
-    t_name(num_of_routines) = subroutine_name(1:nlen)
-    timer_start(num_of_routines) = .true.
-    call_count(num_of_routines) = call_count(num_of_routines) + 1
-    call wallclock(ts(num_of_routines))
+    if (id < 1 .or. id > num_profile_timers) return
+    started_at(id) = MPI_Wtime()
   end subroutine start_timer
 
-  subroutine stop_timer(subroutine_name)
-    character(len=*), intent(in) :: subroutine_name
-    integer :: nlen
-    integer :: i
-    real(kind=8) :: te_tmp
+  subroutine stop_timer(id)
+    integer, intent(in) :: id
 
-    call wallclock(te_tmp)
-    nlen = min(len_trim(subroutine_name), num_max_namelen)
-
-    do i = 1, num_of_routines
-      if (subroutine_name(1:nlen) == trim(t_name(i))) then
-        if (.not. timer_start(i)) then
-          write(0,*) 'Timer for ', trim(subroutine_name), ' is NOT started!!!'
-          return
-        end if
-        timer_start(i) = .false.
-        t_value(i) = t_value(i) + (te_tmp - ts(i))
-        return
-      end if
-    end do
-
-    write(0,*) 'Timer for ', trim(subroutine_name), ' is NOT started!!!'
+    if (id < 1 .or. id > num_profile_timers) return
+    elapsed(id) = elapsed(id) + MPI_Wtime() - started_at(id)
+    call_count(id) = call_count(id) + 1
   end subroutine stop_timer
 
   subroutine print_timer()
-    include 'mpif.h'
-    integer :: i
+    real(kind=8) :: elapsed_sum(num_profile_timers)
+    real(kind=8) :: elapsed_max(num_profile_timers)
+    integer :: count_max(num_profile_timers)
+    character(len=24) :: name
+    integer :: id
     integer :: ierr
-    integer :: my_rank
-    integer :: total_count
-    logical :: mpi_ready
-    character(len=31) :: p_name
-    real(kind=8) :: total_value
+    integer :: nproc
 
-    my_rank = -1
-    call MPI_Initialized(mpi_ready, ierr)
-    if (mpi_ready) then
-      call MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-    end if
-    total_count = 0
-    total_value = 0.0d0
+    call MPI_Reduce(elapsed, elapsed_sum, num_profile_timers, &
+      MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
+    call MPI_Reduce(elapsed, elapsed_max, num_profile_timers, &
+      MPI_DOUBLE_PRECISION, MPI_MAX, 0, MPI_COMM_WORLD, ierr)
+    call MPI_Reduce(call_count, count_max, num_profile_timers, &
+      MPI_INTEGER, MPI_MAX, 0, MPI_COMM_WORLD, ierr)
+    call MPI_Comm_size(MPI_COMM_WORLD, nproc, ierr)
 
-    write(6,'(a)') ''
-    write(6,'(a)') '[Timer Output]'
-    write(6,'(a)') '+--------------------------------+------+----------+------------+'
-    write(6,'(a)') '|Timer region                    |Rank  |Called    |Elapsed     |'
-    write(6,'(a)') '|                                |      |          |Time[s]     |'
-    write(6,'(a)') '+--------------------------------+------+----------+------------+'
-    do i = 1, num_of_routines
-      if (timer_start(i)) then
-        write(0,*) 'Timer for ', trim(t_name(i)), ' is NOT stopped!!!'
-        return
-      end if
-      p_name = ''
-      p_name = trim(t_name(i))
-      total_count = total_count + call_count(i)
-      total_value = total_value + t_value(i)
-      write(6,'(a,a31,a,i6,a,i10,a,f12.3,a)') '|', p_name, &
-        '|', my_rank, '|', call_count(i), '|', t_value(i), '|'
+    if (profile_rank /= 0) return
+    write(6,*)
+    write(6,*) 'FPSEID_PROFILE_BEGIN'
+    write(6,*) ' id label                    count', &
+      '      max_rank_sec       avg_rank_sec'
+    do id = 1, num_profile_timers
+      if (count_max(id) <= 0) cycle
+      call fpseid_mod_timer_name(id, name)
+      write(6,100) id, name, count_max(id), elapsed_max(id), &
+        elapsed_sum(id) / dble(nproc)
     end do
-    p_name = 'TOTAL'
-    write(6,'(a)') '+--------------------------------+------+----------+------------+'
-    write(6,'(a,a31,a,i6,a,i10,a,f12.3,a)') '|', p_name, &
-      '|', my_rank, '|', total_count, '|', total_value, '|'
-    write(6,'(a)') '+--------------------------------+------+----------+------------+'
+    write(6,*) 'FPSEID_PROFILE_END'
+    write(6,*)
+100 format(1x,i3,1x,a24,1x,i10,2(1x,f18.6))
   end subroutine print_timer
-
-  subroutine wallclock(t)
-    real(kind=8), intent(out) :: t
-    integer(kind=8) :: c
-    integer(kind=8) :: c_rate
-
-    call system_clock(c, c_rate)
-    t = dble(c) / dble(c_rate)
-  end subroutine wallclock
 
 end module mod_timer
 
-subroutine fpseid_mod_timer_start(id)
+subroutine prof_init(rank)
+  use mod_timer, only: init_timer
+  implicit none
+  integer, intent(in) :: rank
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+  integer :: i
+  integer :: exobs(5), exsame(5), exchanged(5)
+  integer :: exngsame(5), excfsame(5), exwksame(5)
+  integer :: ewobs, ewsame, ewchanged, ewesame, ewforcesame
+  common /exnlpreuse/ exobs, exsame, exchanged
+  common /exnlpparts/ exngsame, excfsame, exwksame
+  common /ewaldreuse/ ewobs, ewsame, ewchanged, ewesame, ewforcesame
+#endif
+
+  call init_timer(rank)
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+  do i = 1, 5
+    exobs(i) = 0
+    exsame(i) = 0
+    exchanged(i) = 0
+    exngsame(i) = 0
+    excfsame(i) = 0
+    exwksame(i) = 0
+  end do
+  ewobs = 0
+  ewsame = 0
+  ewchanged = 0
+  ewesame = 0
+  ewforcesame = 0
+#endif
+end subroutine prof_init
+
+subroutine prof_start(id)
   use mod_timer, only: start_timer
   implicit none
   integer, intent(in) :: id
-  character(len=100) :: name
 
-  call fpseid_mod_timer_name(id, name)
-  if (len_trim(name) > 0) call start_timer(trim(name))
-end subroutine fpseid_mod_timer_start
+  call start_timer(id)
+end subroutine prof_start
 
-subroutine fpseid_mod_timer_stop(id)
+subroutine prof_stop(id)
   use mod_timer, only: stop_timer
   implicit none
   integer, intent(in) :: id
-  character(len=100) :: name
+
+  call stop_timer(id)
+end subroutine prof_stop
+
+subroutine prof_report()
+  use mod_timer, only: print_timer
+  use mpi
+  implicit none
+  integer :: ierr
+  integer :: rank
+
+  call print_timer()
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+  call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
+  if (rank == 0) then
+    call exnlp_reuse_report()
+    call ewald_reuse_report()
+  end if
+#endif
+end subroutine prof_report
+
+subroutine prof_name(id, name)
+  implicit none
+  integer, intent(in) :: id
+  character(len=*), intent(out) :: name
 
   call fpseid_mod_timer_name(id, name)
-  if (len_trim(name) > 0) call stop_timer(trim(name))
-end subroutine fpseid_mod_timer_stop
+end subroutine prof_name
 
 subroutine fpseid_mod_timer_name(id, name)
   implicit none
@@ -233,6 +232,14 @@ subroutine fpseid_mod_timer_name(id, name)
     name = 'exnlp_meta_enter'
   case (40)
     name = 'exnlp_ct1_create'
+  case (41)
+    name = 'frprmn_rhoofk'
+  case (42)
+    name = 'frprmn_sumchr'
+  case (43)
+    name = 'frprmn_rhoget'
+  case (44)
+    name = 'frprmn_coef_sync'
   case (45)
     name = 'frprmn_coef_setup'
   case (46)

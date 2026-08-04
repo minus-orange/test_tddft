@@ -227,8 +227,10 @@ For performance, compare at least:
 - `tmevl_s2`
 - `s2_fft_local`
 - `fft_wrapper`
-- `[Timer Output]` entries for `cufft_fft3bx` and `cufft_fft3fx`
 - `FPSEID_CUFFT_PROFILE` transfer and FFT timings
+
+The CPU/FFTW and GPU/cuFFT executables use the same ID-based regions from
+`mod_timer.f90`; compare their MPI-aggregated `FPSEID_PROFILE` rows directly.
 
 Correctness acceptance remains the relaxed TDDFT comparison policy unless a
 specific strict test is being run.
