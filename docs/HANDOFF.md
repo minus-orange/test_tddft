@@ -42,16 +42,21 @@ Last updated: 2026-08-04
   `12.50%` achieved occupancy, and `914.69` us duration. This confirms the
   small tutorial grid remains unable to fill the 108-SM A100 and does not
   replace the official A100 baseline.
-- Pending human-operated GPU action: run the matching Step 116 current-source
-  profiler helper once on H100 with `TARGET_GPU=H100`. Run
-  `PROFILE_PHASE=nsys` under the normal user, switch with `su`, then run the
-  same `PROFILE_RUN` with `PROFILE_PHASE=ncu`; the NCU phase enforces
-  `BUILD_MODE=never`. Both 100-step application runs require normal check and
-  relaxed compare. H100 archives remain independent from A100, and profiler
-  walls do not replace the formal H100 baseline.
+- Step 116 H100 current-source profiler result: revision `ac71452`, run 01,
+  normal check PASS and relaxed compare PASS for both 100-step runs. The NSYS
+  trace wall was `36.1572990417` sec (diagnostic only); the fused kernel used
+  `3.184705006` sec over 9,440 launches. NCU measured a 32-block by 256-thread
+  launch, 72 registers/thread, `0.09` waves/SM, `37.50%` theoretical
+  occupancy, `12.50%` achieved occupancy, and `355.78` us duration. The same
+  32-block parallel-width limit is therefore visible on both A100 and H100.
+- Pending human-operated GPU action: none. Step 116 profiler capture is
+  complete on A100 and H100. Do not select or execute a new tutorial-only
+  optimization without production input or a new bounded profiler hypothesis.
 - Pending human-operated x86 action: none
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
+- Step 116 A100/H100 profiler-updated editable PowerPoint:
+  `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-04_STEP116.pptx`
 - Progress report dated 2026-07-31:
   `docs/PROGRESS_REPORT_2026-07-31_BRIEF_JA.md` and
   `docs/PROGRESS_REPORT_2026-07-31_JA.md`

@@ -441,3 +441,16 @@ sec. Nsight Compute again measured a 32-block by 256-thread fused launch with
 small tutorial grid remains the limiting parallel-width evidence; none of
 these profiler values replaces the official A100 Step 107 median of
 `63.2135219574` sec.
+
+The matching Step 116 H100 profiler refresh ran at revision
+`ac71452795e83a0c895ade1b9169e34eeb155916`. Both 100-step profiler runs
+passed the normal check and relaxed comparison. Its diagnostic-only Nsight
+Systems wall was `36.1572990417` sec. The fused kernel used `3.184705006` sec
+over 9,440 launches; H2D used 45,670 copies / `28,509.031` MB /
+`0.693232871` sec, and D2H used 7,961 copies / `6,036.959` MB /
+`0.124451121` sec. Nsight Compute measured the same 32-block by 256-thread
+launch with 72 registers/thread, `0.09` waves/SM, `37.50%` theoretical
+occupancy, `12.50%` achieved occupancy, and `355.78` us duration. The A100 and
+H100 current-source captures independently confirm that the 32-band tutorial
+does not provide enough block-level parallelism. None of these profiler values
+replaces the official H100 Step 115 median of `34.1089649200` sec.

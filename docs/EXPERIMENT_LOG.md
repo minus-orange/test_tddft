@@ -2722,3 +2722,34 @@ parallelism to fill the GPU. It is current diagnostic evidence for the
 presentation, not a reason to alter the official Step 107 A100 baseline or to
 resume tutorial-only micro-tuning. The matching H100 Step 116 measurement
 remains pending.
+
+## Step 116 H100 Current-Source NSYS and NCU Result
+
+The H100 measurement completed on 2026-08-04 at revision
+`ac71452795e83a0c895ade1b9169e34eeb155916` with accepted numerical source
+`c46cfa9`. The separate cc90 archives are
+`nvhpc_cufft_1rank_02_STEP116_H100_CURRENT_NSYS_01` and
+`nvhpc_cufft_1rank_02_STEP116_H100_FUSED_NCU_01`. Both 100-step application
+runs passed the normal check and relaxed comparison. The Nsight Systems trace
+wall was `36.1572990417` sec; it includes profiler overhead and is not a
+performance baseline.
+
+The Nsight Systems kernel summary attributed `3.184705006` sec (`57.9%`,
+9,440 launches) to `exnlp_gemm_body_fused_2531_gpu` and `0.718420095` sec
+(`13.1%`, 2,000 launches) to `vpj_gen_acc_integral_429_gpu`. H2D traffic was
+45,670 copies / `28,509.031` MB / `0.693232871` sec, and D2H traffic was
+7,961 copies / `6,036.959` MB / `0.124451121` sec. The displayed CUDA API
+summary contained `5.894474225` sec in 138,810 `cuStreamSynchronize` calls and
+`0.684168928` sec in 14,685 `cudaEventSynchronize` calls. As with A100, these
+are inclusive diagnostic totals and not directly additive wall-time savings.
+
+The selected Nsight Compute fused-kernel launch used 32 blocks of 256 threads
+(8,192 GPU threads), 72 registers/thread, and `0.09` waves/SM. Its duration
+was `355.78` us; theoretical occupancy was `37.50%`, achieved occupancy was
+`12.50%`, Compute (SM) Throughput was `4.54%`, Memory Throughput was `16.45%`,
+and DRAM Throughput was `0.88%`. Relative to the A100 Step 116 capture, the
+fused-kernel aggregate time is about `2.59x` shorter and the selected launch is
+about `2.57x` shorter, but both devices retain the same 32-block grid and
+`12.50%` achieved occupancy. The current tutorial therefore remains limited
+by input-scale parallel width even on H100. This completes the requested
+current-source profiler refresh without changing either formal GPU baseline.

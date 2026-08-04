@@ -170,7 +170,7 @@ MPI／Host処理
 説明メモ:
 
 - 各band内の原子適用順とreverse phaseの逆順適用は変更していない。
-- 最新の採用済みprofilingでも、融合非局所kernelは主要な残存コストである。
+- Step 116の現行source profilingでも、融合非局所kernelは主要な残存コストである。
 
 ## スライド8: FRPRMNとpotential処理もGPU内でつないだ
 
@@ -290,41 +290,47 @@ MPI／Host処理
 
 ## スライド13: 最新profileが現行tutorialの改善限界を示している
 
-### current-source timerとNsight traceを分けて読む
+### A100とH100のcurrent-source Nsight結果を比較する
 
 掲載内容:
 
-最新の採用source timer profile（Step 108、Step 107数値経路）:
+Step 116 current-source Nsight Systems（100 steps、profiler wallは正式値ではない）:
 
 - 実行並列数: 1 GPU × 1 MPI rank × 1 OpenMP thread
+- 両GPUでnormal check、relaxed compare PASS
 
-| 区間 | 診断時間 |
-|---|---:|
-| S2 NONLOCAL | 16.046秒 |
-| GEMM wrapper | 10.202秒 |
-| fused EXNLP kernel | 8.413秒 |
-| ELECTF NONLOCF | 5.077秒 |
-| SEPPOTF | 4.262秒 |
+| 項目 | A100 | H100 |
+|---|---:|---:|
+| profiler wall | 66.954秒 | 36.157秒 |
+| fused EXNLP kernel | 8.254秒 | 3.185秒 |
+| VPJ kernel | 1.565秒 | 0.718秒 |
+| H2D | 45,670回、28,509 MB、2.497秒 | 45,670回、28,509 MB、0.693秒 |
+| D2H | 7,961回、6,037 MB、0.483秒 | 7,961回、6,037 MB、0.124秒 |
 
-最新のNsight Systems転送trace（Step 91、Step 86 source）:
+Step 116 Nsight Compute（融合非局所kernelの1 launch）:
 
-| 項目 | 診断値 |
-|---|---:|
-| H2D | 45,663回、28,361 MB、2.479秒 |
-| D2H | 7,759回、6,037 MB、0.482秒 |
-| stream＋event同期API | 17.236秒 |
+| 項目 | A100 | H100 |
+|---|---:|---:|
+| Grid × Block | 32 × 256 | 32 × 256 |
+| GPU thread数／launch | 8,192 | 8,192 |
+| kernel duration | 914.69 µs | 355.78 µs |
+| registers／thread | 63 | 72 |
+| theoretical occupancy | 50.00% | 37.50% |
+| achieved occupancy | 12.50% | 12.50% |
+| waves／SM | 0.07 | 0.09 |
 
 解釈:
 
-- tutorialは32 bandsで、主要fused kernelは32 blocksしかなくA100の108 SMを満たせない。
+- tutorialは32 bandsで、主要fused kernelは両GPUとも32 blocksしかない。
+- H100はfused kernelがA100より約2.59倍短いが、achieved occupancyは同じ12.50%である。
 - 大きい非局所kernelは残るが、安全なmapping・cache候補は既に診断／却下済み。
-- 同期API時間はoverlapとprofiler overheadを含むため、17.236秒をそのまま削減可能時間としない。
+- profiler wallと同期API時間はoverlapとprofiler overheadを含み、正式baselineへ使用しない。
 - Step 110のSEPPOTF batchとStep 112の追加融合は、正常でもそれぞれ0.899%、0.652%遅化した。
 
 説明メモ:
 
-- Step 108 diagnostic wall `70.202秒`は正式baselineではない。
-- Step 91はStep 107より前のtraceなので、転送・同期の症状を示す診断資料としてのみ使う。
+- A100はrevision `9e67ad0`、H100はrevision `ac71452`で取得し、数値sourceはいずれも`c46cfa9`である。
+- profiler wall `66.954秒`／`36.157秒`は正式baselineではない。
 - 現行入力で「GPU化が不足している」より、「並列幅不足と境界overheadにより追加offloadの
   効果が出にくい」ことを示す。
 
@@ -338,13 +344,13 @@ MPI／Host処理
 - Host処理、MPI境界、同期・転送が一部残存
 - tutorial入力は32 bandsで、GPU並列度とoccupancyが不足
 - production入力と対応する正解referenceが未準備
-- Step 116の性能仮説は未選定
+- Step 116でA100／H100のcurrent-source profiler取得を完了
 
 次の方針:
 
 1. production規模入力と正解referenceを準備する
-2. 同一入力でA100／H100の新しいbaselineを作る
-3. profilerでkernel、同期、転送量を再分類する
+2. 同一production入力でA100／H100の新しいbaselineを作る
+3. production規模でkernel、同期、転送量を再分類する
 4. 根拠が得られた箇所だけを1仮説ずつ最適化する
 
 説明メモ:
@@ -457,7 +463,7 @@ MPI／Host処理
 - スライド4: 計算領域をTDDFT time-step順に色分けする。
 - スライド10: A100実行時間の段階的短縮を折れ線グラフにする。
 - スライド11: 3プラットフォームの値は表で示し、x86の256コア条件を脚注に置く。
-- スライド13: current-source timerと旧Nsight traceを色分けし、測定系列の違いを明記する。
+- スライド13: A100／H100のStep 116 NSYSとNCUを比較し、正式baselineではないと明記する。
 - 変更前は灰色、GPU上で連続する区間は青、残るHost同期は橙で示す。
 
 ## 付録A8: 数値の出典
