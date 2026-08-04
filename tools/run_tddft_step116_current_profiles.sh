@@ -10,15 +10,40 @@ set -eu
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_nvhpc"}
-NSYS_LABEL=${NSYS_LABEL:-nvhpc_cufft_1rank_02_STEP116_CURRENT_NSYS_01}
-NCU_LABEL=${NCU_LABEL:-nvhpc_cufft_1rank_02_STEP116_FUSED_NCU_01}
+TARGET_GPU=${TARGET_GPU:-}
 BUILD_MODE=${BUILD_MODE:-always}
 DRY_RUN=${DRY_RUN:-0}
+GPU_ID=${CUDA_VISIBLE_DEVICES:-0}
+
+case "$TARGET_GPU" in
+  A100)
+    GPU_ARCH=cc80
+    NSYS_LABEL=${NSYS_LABEL:-nvhpc_cufft_1rank_02_STEP116_A100_CURRENT_NSYS_01}
+    NCU_LABEL=${NCU_LABEL:-nvhpc_cufft_1rank_02_STEP116_A100_FUSED_NCU_01}
+    ;;
+  H100)
+    GPU_ARCH=cc90
+    NSYS_LABEL=${NSYS_LABEL:-nvhpc_cufft_1rank_02_STEP116_H100_CURRENT_NSYS_01}
+    NCU_LABEL=${NCU_LABEL:-nvhpc_cufft_1rank_02_STEP116_H100_FUSED_NCU_01}
+    ;;
+  *)
+    echo "ERROR: set TARGET_GPU=A100 or TARGET_GPU=H100." >&2
+    exit 2
+    ;;
+esac
+BASE_FLAGS="-O2 -acc -gpu=$GPU_ARCH -mp -Msave -Mlarge_arrays"
+profile_tag=$(printf '%s' "$TARGET_GPU" | tr '[:upper:]' '[:lower:]')
 
 case "$BUILD_MODE" in
   always|never) ;;
   *)
     echo "ERROR: BUILD_MODE must be always or never." >&2
+    exit 2
+    ;;
+esac
+case "$GPU_ID" in
+  *,*)
+    echo "ERROR: expose exactly one GPU through CUDA_VISIBLE_DEVICES." >&2
     exit 2
     ;;
 esac
@@ -54,16 +79,32 @@ fi
 echo "FPSEID21 STEP116 CURRENT-SOURCE PROFILER PREFLIGHT"
 echo "revision=$(git rev-parse HEAD)"
 echo "numerical_source=c46cfa9"
+echo "target_gpu=$TARGET_GPU gpu_arch=$GPU_ARCH gpu_id=$GPU_ID"
 echo "run_dir=$RUN_DIR"
 echo "build_mode=$BUILD_MODE"
 echo "nsys_label=$NSYS_LABEL"
 echo "ncu_label=$NCU_LABEL"
+echo "flags=$BASE_FLAGS -gpu=mem:separate:pinnedalloc"
 echo "configuration=1_GPU_1_MPI_rank_OMP_1_diagnostic_OFF"
 
-if command -v nvidia-smi >/dev/null 2>&1; then
-  nvidia-smi --query-gpu=name,compute_cap,memory.total,memory.used,utilization.gpu \
-    --format=csv,noheader || nvidia-smi -L || true
-  gpu_processes=$(nvidia-smi --query-compute-apps=pid,process_name,used_memory \
+if ! command -v nvidia-smi >/dev/null 2>&1; then
+  echo "ERROR: nvidia-smi was not found." >&2
+  exit 1
+else
+  device=$(nvidia-smi -i "$GPU_ID" \
+    --query-gpu=name,compute_cap,memory.total,memory.used,utilization.gpu \
+    --format=csv,noheader 2>/dev/null | sed -n '1p' || true)
+  echo "device=$device"
+  case "$TARGET_GPU:$device" in
+    A100:*A100*) ;;
+    H100:*H100*) ;;
+    *)
+      echo "ERROR: detected device does not match TARGET_GPU=$TARGET_GPU." >&2
+      exit 1
+      ;;
+  esac
+  gpu_processes=$(nvidia-smi -i "$GPU_ID" \
+    --query-compute-apps=pid,process_name,used_memory \
     --format=csv,noheader 2>/dev/null || true)
   if [ -n "$gpu_processes" ]; then
     echo "ERROR: GPU has an active compute process; stop before profiling." >&2
@@ -80,6 +121,7 @@ fi
 
 if [ "$BUILD_MODE" = always ]; then
   FPSEID_FRPRMN_DIAGNOSTIC=0 \
+  TDDFT_FFLAGS="$BASE_FLAGS" \
   TDDFT_ONLY=1 ENABLE_GPU_FFT=1 ENABLE_PINNED_ALLOC=1 \
     "$ROOT_DIR/tools/build_nvhpc.sh"
 elif [ ! -x "$ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe" ]; then
@@ -89,9 +131,9 @@ fi
 
 export OMP_NUM_THREADS=1
 export OMP_STACKSIZE=512M
-export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+export CUDA_VISIBLE_DEVICES=$GPU_ID
 
-NSYS_LOG=$ROOT_DIR/run/step116_current_nsys_driver.log
+NSYS_LOG=$ROOT_DIR/run/step116_${profile_tag}_current_nsys_driver.log
 if ! LABEL="$NSYS_LABEL" TDDFT_INPUT=Si111-H_tm.in_100steps \
     NSYS_TRACE=cuda,openacc,nvtx,osrt,mpi \
     "$ROOT_DIR/tools/profile_tddft_nsys.sh" "$RUN_DIR" \
@@ -106,7 +148,7 @@ python3 "$ROOT_DIR/tools/check_tddft_result.py" check \
 python3 "$ROOT_DIR/tools/check_tddft_result.py" compare \
   "$NSYS_DIR/tddft.out" --expected-steps 100 >/dev/null
 
-NCU_LOG=$ROOT_DIR/run/step116_current_ncu_driver.log
+NCU_LOG=$ROOT_DIR/run/step116_${profile_tag}_current_ncu_driver.log
 if ! LABEL="$NCU_LABEL" TDDFT_INPUT=Si111-H_tm.in_100steps \
     NCU_KERNEL_NAME=regex:exnlp_gemm_body_fused \
     NCU_LAUNCH_COUNT=1 NCU_SET=full \
@@ -125,9 +167,10 @@ python3 "$ROOT_DIR/tools/check_tddft_result.py" compare \
   --expected-steps 100 >/dev/null
 
 echo
-echo "FPSEID21 STEP116 CURRENT NSYS + NCU SUMMARY"
+echo "FPSEID21 STEP116 $TARGET_GPU CURRENT NSYS + NCU SUMMARY"
 echo "revision=$(git rev-parse HEAD)"
 echo "numerical_source=c46cfa9"
+echo "target_gpu=$TARGET_GPU gpu_arch=$GPU_ARCH"
 echo "diagnostic=OFF profiler_runs=ON check=PASS compare=PASS"
 echo "nsys_label=$NSYS_LABEL"
 echo "ncu_label=$NCU_LABEL"
@@ -149,4 +192,4 @@ echo "[Nsight Compute: selected fused-kernel launch]"
 cat "$NCU_DIR/ncu-summary.txt"
 echo
 echo "Both profiler walls include profiler overhead and are not baselines."
-echo "Return photographs from STEP116 CURRENT NSYS + NCU SUMMARY through this line."
+echo "Return photographs from STEP116 $TARGET_GPU CURRENT NSYS + NCU SUMMARY through this line."

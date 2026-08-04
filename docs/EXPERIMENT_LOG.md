@@ -2665,10 +2665,12 @@ old Step 91 Nsight Systems evidence and the Step 39 fused-kernel launch-shape
 evidence in the presentation. This is diagnostic-only and changes no numerical
 source, equations, loop ordering, MPI behavior, or OpenACC ownership.
 
-Run `tools/run_tddft_step116_current_profiles.sh` once on A100. The helper
-requires a clean synchronized `tddft-openacc-residency` checkout and builds the
-TDDFT executable exactly once with the accepted cc80 OpenACC/cuFFT pinned
-configuration. It then reuses that executable for:
+Run `tools/run_tddft_step116_current_profiles.sh` independently on A100 with
+`TARGET_GPU=A100` and on H100 with `TARGET_GPU=H100`. The helper requires a
+clean synchronized `tddft-openacc-residency` checkout, validates the selected
+device class, and builds the TDDFT executable exactly once with the accepted
+cc80 or cc90 OpenACC/cuFFT pinned configuration. Each environment then reuses
+its executable for:
 
 1. a 100-step Nsight Systems trace reporting current kernels, H2D/D2H,
    CUDA/OpenACC API, synchronization, allocation, and MPI rows; and
@@ -2677,10 +2679,9 @@ configuration. It then reuses that executable for:
    block, register, occupancy, waves/SM, duration, and throughput data.
 
 Both application runs must pass the normal check and relaxed comparison with
-exactly 100 completed steps. Default archive labels are
-`nvhpc_cufft_1rank_02_STEP116_CURRENT_NSYS_01` and
-`nvhpc_cufft_1rank_02_STEP116_FUSED_NCU_01`. Stop on a build, profiler,
-correctness, archive-collision, revision, or GPU-health error. Neither profiler
-wall is a performance baseline. Do not choose a new optimization hypothesis or
-update the PowerPoint profile values until the compact Step 116 terminal block
-has been reviewed.
+exactly 100 completed steps. Default archive labels include `STEP116_A100` or
+`STEP116_H100` and therefore cannot mix the platform series. Stop on a device
+mismatch, build, profiler, correctness, archive-collision, revision, active-GPU,
+or GPU-health error. Neither profiler wall is a performance baseline. Do not
+choose a new optimization hypothesis or update the PowerPoint profile values
+until both compact Step 116 terminal blocks have been reviewed.
