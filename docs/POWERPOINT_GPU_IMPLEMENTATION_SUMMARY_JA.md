@@ -20,7 +20,8 @@ PowerPointでは各スライドの「掲載内容」を表示し、「説明メ�
 - 対象: FPSEID21 TDDFT 2022 October版
 - 手法: NVIDIA HPC SDK、OpenACC、cuFFT
 - 検証: Si111-H、100 time steps、diagnostic OFF
-- 正式GPU経路: 1 GPU / 1 MPI rank
+- 正式GPU経路: 1 GPU / 1 MPI rank / 1 OpenMP thread
+- 正式x86経路: 32 MPI ranks × 8 OpenMP threads/rank = 256 CPU threads
 - A100: `146.540秒 → 63.214秒`（約56.9%短縮、約2.32倍）
 - H100: `34.109秒`の独立baselineを確立
 - CPU/FFTW fallbackも維持
@@ -254,16 +255,18 @@ MPI／Host処理
 
 | プラットフォーム | 実行構成 | 中央値 | range | 正常性 |
 |---|---|---:|---:|---|
-| NVIDIA A100-PCIE-40GB | NVHPC/OpenACC/cuFFT、1 GPU / 1 MPI | 63.214秒 | 0.103秒 | PASS |
-| NVIDIA H100 PCIe | NVHPC/OpenACC/cuFFT、1 GPU / 1 MPI | 34.109秒 | 0.091秒 | PASS |
-| Intel Xeon 6980P | ifx/mpiifx＋FFTW、32 MPI × 8 OpenMP | 16.539秒 | 0.058秒 | PASS |
+| NVIDIA A100-PCIE-40GB | NVHPC/OpenACC/cuFFT、1 GPU × 1 MPI rank × 1 OpenMP thread | 63.214秒 | 0.103秒 | PASS |
+| NVIDIA H100 PCIe | NVHPC/OpenACC/cuFFT、1 GPU × 1 MPI rank × 1 OpenMP thread | 34.109秒 | 0.091秒 | PASS |
+| Intel Xeon 6980P | ifx/mpiifx＋FFTW、32 MPI ranks × 8 OpenMP threads/rank = 256 threads | 16.539秒 | 0.058秒 | PASS |
 
 - H100はA100よりwall timeが約46.0%短く、比率は約1.85倍
 - x86は256 CPUコア使用のため、1 GPUとの直接的な装置性能比較ではない
 
 説明メモ:
 
-- A100はStep 107、H100はStep 115、x86は32 MPI × 8 OpenMPの独立baseline。
+- A100はStep 107、H100はStep 115で、どちらも`mpirun -np 1`、
+  `OMP_NUM_THREADS=1`の独立baseline。
+- x86は32 MPI ranks × 8 OpenMP threads/rank、合計256 threadsの独立baseline。
 - x86は16 MPI × 1 OpenMPの`29.352秒`から構成最適化で`16.539秒`へ短縮した。
 
 ## スライド12: 効果のない最適化も採否を明確にした
@@ -292,6 +295,8 @@ MPI／Host処理
 掲載内容:
 
 最新の採用source timer profile（Step 108、Step 107数値経路）:
+
+- 実行並列数: 1 GPU × 1 MPI rank × 1 OpenMP thread
 
 | 区間 | 診断時間 |
 |---|---:|
@@ -354,9 +359,9 @@ MPI／Host処理
 
 | 系列 | logical step | source／tested revision | 条件 |
 |---|---|---|---|
-| A100 | Step 107 | `c46cfa9` | cc80、1 GPU / 1 MPI、diagnostic OFF |
-| H100 | Step 115 | `e6ad059` | cc90、1 GPU / 1 MPI、diagnostic OFF |
-| x86 | x86 formal baseline | `7318e59`系列 | ifx/mpiifx、32 MPI × 8 OpenMP |
+| A100 | Step 107 | `c46cfa9` | cc80、1 GPU × 1 MPI rank × 1 OpenMP thread、diagnostic OFF |
+| H100 | Step 115 | `e6ad059` | cc90、1 GPU × 1 MPI rank × 1 OpenMP thread、diagnostic OFF |
+| x86 | x86 formal baseline | `7318e59`系列 | ifx/mpiifx、32 MPI ranks × 8 OpenMP threads/rank = 256 threads |
 
 発表原稿更新時HEAD: `4ef4d7e`
 
