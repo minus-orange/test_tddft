@@ -2254,3 +2254,16 @@ checkはFAILし、scatterのrelaxed compareとcompactとのstrict compareは未�
 spreadも早期停止により未実行です。scatterを不採用とし、checkerを緩めた再試行は
 行いません。spreadは未測定のまま同screenを終了し、正式compact baselineを維持
 します。使用済みhelperは`tools/history/x86/`へ整理しました。
+
+## Step 116: 現行sourceのA100/H100 profiler更新
+
+現行の採用済み数値sourceをA100とH100でNSYS／Nsight Compute測定し、両platformで
+通常checkとrelaxed compareにPASSしました。融合非局所kernelはA100で`8.254`秒、
+H100で`3.185`秒、VPJはA100で`1.565`秒、H100で`0.718`秒でした。profiler wallは
+overheadを含むため正式baselineには使用しません。
+
+cuFFT以外のOpenACC kernelは24構成あり、Grid／BlockはA100とH100で全て同一でした。
+支配的な融合非局所kernelは32 x 256 threads、VPJは42 x 128ですが、他には227、
+7,257、14,513 blocksの広いgridもあります。したがって全GPU kernelが低並列なのでは
+なく、性能上の制約は支配時間の大きい32～42 blocksのkernelに集中しています。
+詳細表は`docs/STEP116_OPENACC_LAUNCH_SHAPES.md`に記録しました。

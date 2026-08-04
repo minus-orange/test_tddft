@@ -1160,6 +1160,15 @@ editing source or requesting GPU execution. Do not infer that H100 results
 replace the A100 series, and do not resume low-upside tutorial micro-tuning
 without new profiler evidence or a production input.
 
+Step 116 current-source profiling and its non-cuFFT OpenACC launch-shape
+post-processing are complete. The A100 and H100 reports contained the same 24
+launch geometries. The dominant fused EXNLP kernel is 32 x 256 threads and VPJ
+is 42 x 128; several other kernels use grids from 196 through 14,513 blocks.
+Therefore the current evidence supports a narrow-grid diagnosis for dominant
+kernels, not a blanket claim that all GPU kernels lack parallelism. See
+`docs/STEP116_OPENACC_LAUNCH_SHAPES.md` for the full table. There is no pending
+profiler command and neither profiler wall changes a formal baseline.
+
 The independent x86 CPU/FFTW baseline was measured at revision
 `5dd9962825fdb47bd09b4caafbc72c1c6782dc80` on an Intel Xeon 6980P with
 ifx 2026.1.0, Intel MPI 2021.18.0, 16 MPI ranks, one OpenMP thread per rank,

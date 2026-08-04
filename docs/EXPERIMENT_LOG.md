@@ -2767,3 +2767,18 @@ creates it from the existing `.nsys-rep`; it never builds or executes TDDFT.
 Run it once against each independent A100 and H100 NSYS archive and return the
 two compact terminal blocks. These results refine the presentation's kernel
 parallelism table but are diagnostic and cannot alter either formal baseline.
+
+Both reports completed on 2026-08-04. All 24 non-cuFFT OpenACC launch
+configurations used identical Grid, Block, threads/launch, and launch counts on
+A100 and H100. The dominant fused kernel used 32 blocks x 256 threads (8,192
+threads/launch), VPJ used 42 x 128 (5,376), and three additional S2 kernels
+used 32 x 128 (4,096). Other kernels were not uniformly narrow: observed grids
+included 196, 227, 7,257, and 14,513 blocks. The complete platform table is in
+`docs/STEP116_OPENACC_LAUNCH_SHAPES.md`.
+
+The result narrows the diagnosis. Low grid width is important in the kernels
+that dominate current non-cuFFT GPU time, especially fused EXNLP and VPJ, but
+is not a property of every OpenACC kernel. Threads/launch is a launch geometry
+count, not simultaneous residency or useful-work count. This post-processing
+changes no source and neither diagnostic timing changes the A100 Step 107 or
+H100 Step 115 formal baseline.

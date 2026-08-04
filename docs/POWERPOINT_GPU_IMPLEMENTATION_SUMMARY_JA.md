@@ -319,9 +319,21 @@ Step 116 Nsight Compute（融合非局所kernelの1 launch）:
 | achieved occupancy | 12.50% | 12.50% |
 | waves／SM | 0.07 | 0.09 |
 
+cuFFT以外のOpenACC kernel launch形状（A100/H100で共通）:
+
+| 代表kernel | Grid x Block | GPU thread数／launch | 性能上の位置づけ |
+|---|---:|---:|---|
+| 融合非局所 | 32 x 256 | 8,192 | 非cuFFT kernel時間の最大成分 |
+| VPJ動径積分 | 42 x 128 | 5,376 | 第2成分 |
+| S2主要3構成 | 32 x 128 | 4,096 | 小さいband幅に連動 |
+| EXKIN／RHO／FFT後処理 | 最大7,257 x 128 | 最大928,896 | grid幅は十分大きい構成あり |
+| FRPRMN | 14,513 x 128 | 1,857,664 | 最大grid、ただし時間寄与は小さい |
+
 解釈:
 
 - tutorialは32 bandsで、主要fused kernelは両GPUとも32 blocksしかない。
+- 非cuFFT 24構成のGrid／BlockはA100とH100で全て一致した。
+- 全kernelが低並列ではなく、性能上の問題は支配時間の大きい32～42 blocksのkernelに集中する。
 - H100はfused kernelがA100より約2.59倍短いが、achieved occupancyは同じ12.50%である。
 - 大きい非局所kernelは残るが、安全なmapping・cache候補は既に診断／却下済み。
 - profiler wallと同期API時間はoverlapとprofiler overheadを含み、正式baselineへ使用しない。
@@ -333,6 +345,8 @@ Step 116 Nsight Compute（融合非局所kernelの1 launch）:
 - profiler wall `66.954秒`／`36.157秒`は正式baselineではない。
 - 現行入力で「GPU化が不足している」より、「並列幅不足と境界overheadにより追加offloadの
   効果が出にくい」ことを示す。
+- `GPU thread数／launch`はGrid x Blockの総起動数であり、同時resident thread数ではない。
+- 全24構成の詳細値は`docs/STEP116_OPENACC_LAUNCH_SHAPES.md`を参照する。
 
 ## スライド14: 次の課題はproduction規模での再評価
 

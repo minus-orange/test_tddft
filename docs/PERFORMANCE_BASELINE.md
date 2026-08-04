@@ -454,3 +454,11 @@ occupancy, `12.50%` achieved occupancy, and `355.78` us duration. The A100 and
 H100 current-source captures independently confirm that the 32-band tutorial
 does not provide enough block-level parallelism. None of these profiler values
 replaces the official H100 Step 115 median of `34.1089649200` sec.
+
+Post-processing of the two Step 116 Nsight Systems archives found 24 non-cuFFT
+OpenACC launch configurations. Grid and Block geometry matched on A100 and
+H100 for every configuration. The dominant fused kernel used 32 x 256 threads,
+VPJ used 42 x 128, while other kernels reached 227, 7,257, or 14,513 blocks.
+Thus narrow launch width is evidence for the dominant kernels, not for the
+entire GPU path. The full diagnostic table is in
+`docs/STEP116_OPENACC_LAUNCH_SHAPES.md`; it does not change either baseline.
