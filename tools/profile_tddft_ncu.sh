@@ -218,7 +218,7 @@ SUMMARY=$ARCHIVE_DIR/ncu-summary.txt
   echo "Diagnostic trace only; do not use its wall time as a baseline."
   echo
   grep -E \
-    'Kernel Name|Grid Size|Block Size|Registers Per Thread|Shared Memory|Achieved Occupancy|Theoretical Occupancy|Waves Per SM|Compute \(SM\) Throughput|Memory Throughput|DRAM Throughput|L1/TEX|L2 Cache' \
+    'Kernel Name|Device Name|SM Count|Grid Size|Block Size|Registers Per Thread|Shared Memory|Duration|Achieved Occupancy|Theoretical Occupancy|Waves Per SM|Compute \(SM\) Throughput|Memory Throughput|DRAM Throughput|L1/TEX|L2 Cache' \
     "$ARCHIVE_DIR/fused-details.txt" || true
 } > "$SUMMARY"
 
@@ -229,7 +229,6 @@ if ! python3 ./tools/check_tddft_result.py check "$TDDFT_OUT" \
     > "$ARCHIVE_DIR/check.txt"; then
   validation_status=1
 fi
-
 cat "$ARCHIVE_DIR/check.txt"
 echo "Nsight Compute archive: $ARCHIVE_DIR"
 echo "Kernel summary: $SUMMARY"

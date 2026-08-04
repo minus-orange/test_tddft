@@ -1,6 +1,6 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-07-31
+Last updated: 2026-08-04
 
 ## Current State
 
@@ -34,7 +34,11 @@ Last updated: 2026-07-31
   the user on 2026-07-31
 - The A100, H100, and x86 CPU baseline series are independent; never replace
   or mix one series with another
-- Pending human-operated GPU action: none
+- Pending human-operated GPU action: run the Step 116 current-source profiler
+  helper once on A100. It builds TDDFT once, then runs a diagnostic-off
+  100-step Nsight Systems trace and a one-launch Nsight Compute capture of the
+  fused nonlocal kernel. Both runs require normal check and relaxed compare.
+  The profiler walls are diagnostic and do not replace the Step 107 baseline.
 - Pending human-operated x86 action: none
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`

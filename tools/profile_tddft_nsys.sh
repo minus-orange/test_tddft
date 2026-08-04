@@ -143,8 +143,10 @@ export OMP_STACKSIZE=${OMP_STACKSIZE:-512M}
 export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
 
 created_at=$(date '+%Y%m%d_%H%M%S')
-git_revision=$(git -C "$ROOT_DIR" rev-parse HEAD 2>/dev/null || true)
-git_branch=$(git -C "$ROOT_DIR" branch --show-current 2>/dev/null || true)
+git_revision=$(git -c safe.directory="$ROOT_DIR" -C "$ROOT_DIR" \
+  rev-parse HEAD 2>/dev/null || true)
+git_branch=$(git -c safe.directory="$ROOT_DIR" -C "$ROOT_DIR" \
+  branch --show-current 2>/dev/null || true)
 nsys_version=$($NSYS --version 2>&1 || true)
 
 {

@@ -2657,3 +2657,30 @@ ownership. The summary reports the parent, VOFRHO, smoothing/FFT, control,
 seed, predictor, corrector, interpolation, convergence, coefficient restore,
 and their three nesting gaps. Run `tools/history/tddft_steps/run_tddft_step76.sh` once. Its wall is
 diagnostic and cannot replace the Step 74 baseline.
+
+## Step 116 Current-Source NSYS and NCU Plan
+
+The user approved a fresh profiler measurement on 2026-08-04 to replace the
+old Step 91 Nsight Systems evidence and the Step 39 fused-kernel launch-shape
+evidence in the presentation. This is diagnostic-only and changes no numerical
+source, equations, loop ordering, MPI behavior, or OpenACC ownership.
+
+Run `tools/run_tddft_step116_current_profiles.sh` once on A100. The helper
+requires a clean synchronized `tddft-openacc-residency` checkout and builds the
+TDDFT executable exactly once with the accepted cc80 OpenACC/cuFFT pinned
+configuration. It then reuses that executable for:
+
+1. a 100-step Nsight Systems trace reporting current kernels, H2D/D2H,
+   CUDA/OpenACC API, synchronization, allocation, and MPI rows; and
+2. a 100-step Nsight Compute run capturing one
+   `exnlp_gemm_body_fused` launch with the full metric set, including grid,
+   block, register, occupancy, waves/SM, duration, and throughput data.
+
+Both application runs must pass the normal check and relaxed comparison with
+exactly 100 completed steps. Default archive labels are
+`nvhpc_cufft_1rank_02_STEP116_CURRENT_NSYS_01` and
+`nvhpc_cufft_1rank_02_STEP116_FUSED_NCU_01`. Stop on a build, profiler,
+correctness, archive-collision, revision, or GPU-health error. Neither profiler
+wall is a performance baseline. Do not choose a new optimization hypothesis or
+update the PowerPoint profile values until the compact Step 116 terminal block
+has been reviewed.
