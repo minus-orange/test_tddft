@@ -40,9 +40,10 @@ Last updated: 2026-08-04
   runs a diagnostic-off 100-step Nsight Systems trace and a one-launch Nsight
   Compute capture of the fused nonlocal kernel. Both application runs require
   normal check and relaxed compare. The A100 and H100 archives remain separate;
-  profiler walls do not replace either formal baseline. Use
-  `NCU_USE_SUDO=1` where hardware performance counters require root, while
-  keeping the outer helper, build, and NSYS run under the normal user.
+  profiler walls do not replace either formal baseline. Where NCU performance
+  counters require root and `sudo` is unavailable, run `PROFILE_PHASE=nsys`
+  under the normal user, switch with `su`, then run the same platform/run with
+  `PROFILE_PHASE=ncu`; the NCU phase enforces `BUILD_MODE=never`.
 - Pending human-operated x86 action: none
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`

@@ -2681,9 +2681,10 @@ its executable for:
 Both application runs must pass the normal check and relaxed comparison with
 exactly 100 completed steps. Default archive labels include `STEP116_A100` or
 `STEP116_H100` plus the two-digit `PROFILE_RUN`, and therefore cannot mix the
-platform series or overwrite an earlier attempt. `NCU_USE_SUDO=1` runs only
-the NCU portion through `sudo -E`; the outer helper, build, and NSYS remain
-under the normal user. Stop on a device
+platform series or overwrite an earlier attempt. Run `PROFILE_PHASE=nsys`
+under the normal user, switch to root with `su`, and run the matching
+`PROFILE_PHASE=ncu`; that phase requires `BUILD_MODE=never` and reuses the
+already-built executable and NSYS archive. Stop on a device
 mismatch, build, profiler, correctness, archive-collision, revision, active-GPU,
 or GPU-health error. Neither profiler wall is a performance baseline. Do not
 choose a new optimization hypothesis or update the PowerPoint profile values

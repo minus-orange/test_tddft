@@ -12,8 +12,8 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_nvhpc"}
 TARGET_GPU=${TARGET_GPU:-}
 PROFILE_RUN=${PROFILE_RUN:-01}
-NCU_USE_SUDO=${NCU_USE_SUDO:-0}
-BUILD_MODE=${BUILD_MODE:-always}
+PROFILE_PHASE=${PROFILE_PHASE:-nsys}
+BUILD_MODE=${BUILD_MODE:-}
 DRY_RUN=${DRY_RUN:-0}
 GPU_ID=${CUDA_VISIBLE_DEVICES:-0}
 
@@ -43,13 +43,20 @@ case "$PROFILE_RUN" in
     exit 2
     ;;
 esac
-case "$NCU_USE_SUDO" in
-  0|1) ;;
+case "$PROFILE_PHASE" in
+  all|nsys|ncu) ;;
   *)
-    echo "ERROR: NCU_USE_SUDO must be 0 or 1." >&2
+    echo "ERROR: PROFILE_PHASE must be all, nsys, or ncu." >&2
     exit 2
     ;;
 esac
+if [ -z "$BUILD_MODE" ]; then
+  if [ "$PROFILE_PHASE" = ncu ]; then
+    BUILD_MODE=never
+  else
+    BUILD_MODE=always
+  fi
+fi
 
 case "$BUILD_MODE" in
   always|never) ;;
@@ -66,15 +73,18 @@ case "$GPU_ID" in
 esac
 
 cd "$ROOT_DIR"
-if [ "$(git branch --show-current)" != tddft-openacc-residency ]; then
+git_repo() {
+  git -c safe.directory="$ROOT_DIR" -C "$ROOT_DIR" "$@"
+}
+if [ "$(git_repo branch --show-current)" != tddft-openacc-residency ]; then
   echo "ERROR: checkout tddft-openacc-residency first." >&2
   exit 1
 fi
-if ! git diff --quiet || ! git diff --cached --quiet; then
+if ! git_repo diff --quiet || ! git_repo diff --cached --quiet; then
   echo "ERROR: tracked worktree or index is not clean." >&2
   exit 1
 fi
-set -- $(git rev-list --left-right --count \
+set -- $(git_repo rev-list --left-right --count \
   origin/tddft-openacc-residency...HEAD)
 if [ "$1" != 0 ] || [ "$2" != 0 ]; then
   echo "ERROR: local branch and origin are not synchronized." >&2
@@ -84,20 +94,27 @@ if [ ! -f "$RUN_DIR/Si111-H_tm.in_100steps" ]; then
   echo "ERROR: prepared 100-step input is missing: $RUN_DIR" >&2
   exit 1
 fi
-if [ -e "$ROOT_DIR/run/nsys_archives/$NSYS_LABEL" ]; then
+if [ "$PROFILE_PHASE" != ncu ] && \
+   [ -e "$ROOT_DIR/run/nsys_archives/$NSYS_LABEL" ]; then
   echo "ERROR: Nsight Systems archive already exists: $NSYS_LABEL" >&2
   exit 1
 fi
-if [ -e "$ROOT_DIR/run/ncu_archives/$NCU_LABEL" ]; then
+if [ "$PROFILE_PHASE" != nsys ] && \
+   [ -e "$ROOT_DIR/run/ncu_archives/$NCU_LABEL" ]; then
   echo "ERROR: Nsight Compute archive already exists: $NCU_LABEL" >&2
+  exit 1
+fi
+if [ "$PROFILE_PHASE" = ncu ] && \
+   [ ! -f "$ROOT_DIR/run/nsys_archives/$NSYS_LABEL/nsys-summary.txt" ]; then
+  echo "ERROR: matching NSYS phase is missing: $NSYS_LABEL" >&2
   exit 1
 fi
 
 echo "FPSEID21 STEP116 CURRENT-SOURCE PROFILER PREFLIGHT"
-echo "revision=$(git rev-parse HEAD)"
+echo "revision=$(git_repo rev-parse HEAD)"
 echo "numerical_source=c46cfa9"
 echo "target_gpu=$TARGET_GPU gpu_arch=$GPU_ARCH gpu_id=$GPU_ID"
-echo "profile_run=$PROFILE_RUN ncu_use_sudo=$NCU_USE_SUDO"
+echo "profile_run=$PROFILE_RUN profile_phase=$PROFILE_PHASE"
 echo "run_dir=$RUN_DIR"
 echo "build_mode=$BUILD_MODE"
 echo "nsys_label=$NSYS_LABEL"
@@ -133,10 +150,14 @@ fi
 
 if [ "$DRY_RUN" = 1 ]; then
   echo "dry_run=1"
-  echo "Would build TDDFT once when BUILD_MODE=always, then run NSYS and NCU."
+  echo "Would execute profile phase: $PROFILE_PHASE"
   exit 0
 fi
 
+if [ "$PROFILE_PHASE" = ncu ] && [ "$BUILD_MODE" != never ]; then
+  echo "ERROR: PROFILE_PHASE=ncu requires BUILD_MODE=never." >&2
+  exit 1
+fi
 if [ "$BUILD_MODE" = always ]; then
   FPSEID_FRPRMN_DIAGNOSTIC=0 \
   TDDFT_FFLAGS="$BASE_FLAGS" \
@@ -151,48 +172,42 @@ export OMP_NUM_THREADS=1
 export OMP_STACKSIZE=512M
 export CUDA_VISIBLE_DEVICES=$GPU_ID
 
-NSYS_LOG=$ROOT_DIR/run/step116_${profile_tag}_current_nsys_driver.log
-if ! LABEL="$NSYS_LABEL" TDDFT_INPUT=Si111-H_tm.in_100steps \
-    NSYS_TRACE=cuda,openacc,nvtx,osrt,mpi \
-    "$ROOT_DIR/tools/profile_tddft_nsys.sh" "$RUN_DIR" \
-    > "$NSYS_LOG" 2>&1; then
-  tail -n 100 "$NSYS_LOG"
-  exit 1
+NSYS_DIR=$ROOT_DIR/run/nsys_archives/$NSYS_LABEL
+if [ "$PROFILE_PHASE" != ncu ]; then
+  NSYS_LOG=$ROOT_DIR/run/step116_${profile_tag}_current_nsys_driver.log
+  if ! LABEL="$NSYS_LABEL" TDDFT_INPUT=Si111-H_tm.in_100steps \
+      NSYS_TRACE=cuda,openacc,nvtx,osrt,mpi \
+      "$ROOT_DIR/tools/profile_tddft_nsys.sh" "$RUN_DIR" \
+      > "$NSYS_LOG" 2>&1; then
+    tail -n 100 "$NSYS_LOG"
+    exit 1
+  fi
+
+  python3 "$ROOT_DIR/tools/check_tddft_result.py" check \
+    "$NSYS_DIR/tddft.out" --expected-steps 100 >/dev/null
+  python3 "$ROOT_DIR/tools/check_tddft_result.py" compare \
+    "$NSYS_DIR/tddft.out" --expected-steps 100 >/dev/null
+
+  if [ "$PROFILE_PHASE" = nsys ]; then
+    echo
+    echo "FPSEID21 STEP116 $TARGET_GPU NSYS PHASE COMPLETE"
+    echo "revision=$(git_repo rev-parse HEAD)"
+    echo "profile_run=$PROFILE_RUN check=PASS compare=PASS"
+    echo "nsys_label=$NSYS_LABEL"
+    echo "Switch to root with su, preserve the profiler environment, then run"
+    echo "the same TARGET_GPU and PROFILE_RUN with PROFILE_PHASE=ncu."
+    exit 0
+  fi
 fi
 
-NSYS_DIR=$ROOT_DIR/run/nsys_archives/$NSYS_LABEL
-python3 "$ROOT_DIR/tools/check_tddft_result.py" check \
-  "$NSYS_DIR/tddft.out" --expected-steps 100 >/dev/null
-python3 "$ROOT_DIR/tools/check_tddft_result.py" compare \
-  "$NSYS_DIR/tddft.out" --expected-steps 100 >/dev/null
-
 NCU_LOG=$ROOT_DIR/run/step116_${profile_tag}_current_ncu_driver.log
-if [ "$NCU_USE_SUDO" = 1 ]; then
-  if ! command -v sudo >/dev/null 2>&1; then
-    echo "ERROR: NCU_USE_SUDO=1 but sudo was not found." >&2
-    exit 1
-  fi
-  if ! sudo -E /usr/bin/env \
-      PATH="$PATH" LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" \
-      LABEL="$NCU_LABEL" TDDFT_INPUT=Si111-H_tm.in_100steps \
-      NCU_KERNEL_NAME=regex:exnlp_gemm_body_fused \
-      NCU_LAUNCH_COUNT=1 NCU_SET=full \
-      OMP_NUM_THREADS=1 OMP_STACKSIZE=512M \
-      CUDA_VISIBLE_DEVICES="$GPU_ID" \
-      "$ROOT_DIR/tools/profile_tddft_ncu.sh" "$RUN_DIR" \
-      > "$NCU_LOG" 2>&1; then
-    tail -n 100 "$NCU_LOG"
-    exit 1
-  fi
-else
-  if ! LABEL="$NCU_LABEL" TDDFT_INPUT=Si111-H_tm.in_100steps \
-      NCU_KERNEL_NAME=regex:exnlp_gemm_body_fused \
-      NCU_LAUNCH_COUNT=1 NCU_SET=full \
-      "$ROOT_DIR/tools/profile_tddft_ncu.sh" "$RUN_DIR" \
-      > "$NCU_LOG" 2>&1; then
-    tail -n 100 "$NCU_LOG"
-    exit 1
-  fi
+if ! LABEL="$NCU_LABEL" TDDFT_INPUT=Si111-H_tm.in_100steps \
+    NCU_KERNEL_NAME=regex:exnlp_gemm_body_fused \
+    NCU_LAUNCH_COUNT=1 NCU_SET=full \
+    "$ROOT_DIR/tools/profile_tddft_ncu.sh" "$RUN_DIR" \
+    > "$NCU_LOG" 2>&1; then
+  tail -n 100 "$NCU_LOG"
+  exit 1
 fi
 
 NCU_DIR=$ROOT_DIR/run/ncu_archives/$NCU_LABEL
@@ -205,10 +220,10 @@ python3 "$ROOT_DIR/tools/check_tddft_result.py" compare \
 
 echo
 echo "FPSEID21 STEP116 $TARGET_GPU CURRENT NSYS + NCU SUMMARY"
-echo "revision=$(git rev-parse HEAD)"
+echo "revision=$(git_repo rev-parse HEAD)"
 echo "numerical_source=c46cfa9"
 echo "target_gpu=$TARGET_GPU gpu_arch=$GPU_ARCH"
-echo "profile_run=$PROFILE_RUN ncu_use_sudo=$NCU_USE_SUDO"
+echo "profile_run=$PROFILE_RUN profile_phase=$PROFILE_PHASE"
 echo "diagnostic=OFF profiler_runs=ON check=PASS compare=PASS"
 echo "nsys_label=$NSYS_LABEL"
 echo "ncu_label=$NCU_LABEL"
