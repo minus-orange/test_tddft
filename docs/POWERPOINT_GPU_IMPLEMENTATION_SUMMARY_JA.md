@@ -100,7 +100,33 @@ MPI／Host処理
 - 66.7%はGPU使用率や実行時間比率ではなく、識別したsource candidate siteの対応率である。
 - allocation、常駐範囲、同期削減、重複処理削減は、性能に効いてもsite数には表れない。
 
-## スライド5: FFTをHost往復型からGPU常駐型へ変更した
+## スライド5: 26/39の残り13は単純な未対応リストではない
+
+### arithmetic gapを、未採用・非活性・Host境界の理由別に管理する
+
+掲載内容:
+
+`26 / 39`はOpenACC compute construct数による暫定indexである。残り`13相当`は、
+現在のsourceに1対1で対応する固定された13個の実装待ちloopではない。
+
+| 区分 | 主な候補 | GPU化しない／残している理由 |
+|---|---|---|
+| memory中心の小loop | density smoothing、配列copy | 演算量よりmapping・同期・転送costが大きい |
+| predictor／履歴更新 | VG0～VG5、VGOLD、interpolation | 分岐とHost authorityがあり、Step 78一括offloadで回帰 |
+| potential／E-field境界 | VG、VPLT、VEXT組立 | 直後のHost consumerによりD2Hが必要 |
+| reduction／行列処理 | energy、CMAT、収束判定 | reduction順序とMPI境界のriskに対して上限が小さい |
+| producer／非活性経路 | EXTAU、GGA G2VXC2 | GPU生成は回帰、GGA経路はSi111-Hで非活性 |
+| 正常だが不採用 | SEPPOTF batch、追加kernel融合 | checkはPASSしたが正式baselineより遅い |
+
+説明メモ:
+
+- 母数39はStep 80時点の採用済み19 siteと、Step 78で一時offloadしてrevertした
+  20 siteから定義した。
+- その後のcompute site追加はStep 78候補と必ずしも1対1対応しないため、`39-26=13`を
+  そのまま13件のbacklogとは解釈しない。
+- 現行tutorialでは、残候補をまとめてoffloadするより転送・同期を増やす場合がある。
+
+## スライド6: FFTをHost往復型からGPU常駐型へ変更した
 
 ### device pointerとbatch化でFFT前後の転送・呼出しを削減
 
@@ -122,7 +148,7 @@ MPI／Host処理
 - `frprmn_rhoofk`: 約`14.510秒 → 0.730秒`
 - FFT wrapper呼出し: `43,949回 → 14,685回`
 
-## スライド6: 非局所projectorはkernel融合で起動回数を減らした
+## スライド7: 非局所projectorはkernel融合で起動回数を減らした
 
 ### band方向を並列化し、原子順序をkernel内で維持
 
@@ -145,7 +171,7 @@ MPI／Host処理
 - 各band内の原子適用順とreverse phaseの逆順適用は変更していない。
 - 最新の採用済みprofilingでも、融合非局所kernelは主要な残存コストである。
 
-## スライド7: FRPRMNとpotential処理もGPU内でつないだ
+## スライド8: FRPRMNとpotential処理もGPU内でつないだ
 
 ### 個別kernel化に加え、重複計算と同期を削減
 
@@ -169,7 +195,7 @@ MPI／Host処理
 - Step 107の正式改善は、FRPRMNからELECTFまでの限定COEF常駐によるものと確認済み。
 - 同Stepで提案したSEPPOTF batch経路はtutorial入力では非活性だったため、採用効果へ数えない。
 
-## スライド8: データ常駐化がGPU化の実効性を高めた
+## スライド9: データ常駐化がGPU化の実効性を高めた
 
 ### kernel間で配列を保持し、必要な同期だけを残した
 
@@ -193,7 +219,7 @@ MPI／Host処理
 - HostとDeviceのどちらが正本かをroutine境界ごとに明示した。
 - managed/unified memoryは正式なpinned separate memoryより2倍以上遅く、不採用とした。
 
-## スライド9: A100では段階的に63.214秒まで短縮した
+## スライド10: A100では段階的に63.214秒まで短縮した
 
 ### 主要な転換点ごとに性能を積み上げた
 
@@ -220,7 +246,7 @@ MPI／Host処理
 - 表はすべてA100、Si111-H、100 stepsの採用系列。診断runは含めない。
 - さらに古いhost-copy cuFFT版の約443秒は実装初期の参考値で、正式採用系列とは分ける。
 
-## スライド10: 各プラットフォームで正式baselineを確立した
+## スライド11: 各プラットフォームで正式baselineを確立した
 
 ### 同じ100-step入力で全系列が正常性PASS
 
@@ -240,7 +266,7 @@ MPI／Host処理
 - A100はStep 107、H100はStep 115、x86は32 MPI × 8 OpenMPの独立baseline。
 - x86は16 MPI × 1 OpenMPの`29.352秒`から構成最適化で`16.539秒`へ短縮した。
 
-## スライド11: 効果のない最適化も採否を明確にした
+## スライド12: 効果のない最適化も採否を明確にした
 
 ### 正しく動いてもwall timeが改善しない変更は残さなかった
 
@@ -259,7 +285,45 @@ MPI／Host処理
 - 常駐範囲を広げてもHost authority境界が残ると効果は限定的
 - tutorial専用micro tuningは改善上限が小さい
 
-## スライド12: 次の課題はproduction規模での再評価
+## スライド13: 最新profileが現行tutorialの改善限界を示している
+
+### current-source timerとNsight traceを分けて読む
+
+掲載内容:
+
+最新の採用source timer profile（Step 108、Step 107数値経路）:
+
+| 区間 | 診断時間 |
+|---|---:|
+| S2 NONLOCAL | 16.046秒 |
+| GEMM wrapper | 10.202秒 |
+| fused EXNLP kernel | 8.413秒 |
+| ELECTF NONLOCF | 5.077秒 |
+| SEPPOTF | 4.262秒 |
+
+最新のNsight Systems転送trace（Step 91、Step 86 source）:
+
+| 項目 | 診断値 |
+|---|---:|
+| H2D | 45,663回、28,361 MB、2.479秒 |
+| D2H | 7,759回、6,037 MB、0.482秒 |
+| stream＋event同期API | 17.236秒 |
+
+解釈:
+
+- tutorialは32 bandsで、主要fused kernelは32 blocksしかなくA100の108 SMを満たせない。
+- 大きい非局所kernelは残るが、安全なmapping・cache候補は既に診断／却下済み。
+- 同期API時間はoverlapとprofiler overheadを含むため、17.236秒をそのまま削減可能時間としない。
+- Step 110のSEPPOTF batchとStep 112の追加融合は、正常でもそれぞれ0.899%、0.652%遅化した。
+
+説明メモ:
+
+- Step 108 diagnostic wall `70.202秒`は正式baselineではない。
+- Step 91はStep 107より前のtraceなので、転送・同期の症状を示す診断資料としてのみ使う。
+- 現行入力で「GPU化が不足している」より、「並列幅不足と境界overheadにより追加offloadの
+  効果が出にくい」ことを示す。
+
+## スライド14: 次の課題はproduction規模での再評価
 
 ### tutorial入力の小ささが、次のGPU改善判断を難しくしている
 
@@ -386,8 +450,9 @@ MPI／Host処理
 
 - スライド3: Host／Device境界を1本のフロー図で示す。
 - スライド4: 計算領域をTDDFT time-step順に色分けする。
-- スライド9: A100実行時間の段階的短縮を折れ線グラフにする。
-- スライド10: 3プラットフォームの値は表で示し、x86の256コア条件を脚注に置く。
+- スライド10: A100実行時間の段階的短縮を折れ線グラフにする。
+- スライド11: 3プラットフォームの値は表で示し、x86の256コア条件を脚注に置く。
+- スライド13: current-source timerと旧Nsight traceを色分けし、測定系列の違いを明記する。
 - 変更前は灰色、GPU上で連続する区間は青、残るHost同期は橙で示す。
 
 ## 付録A8: 数値の出典
