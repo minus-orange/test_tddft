@@ -11,6 +11,8 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_nvhpc"}
 TARGET_GPU=${TARGET_GPU:-}
+PROFILE_RUN=${PROFILE_RUN:-01}
+NCU_USE_SUDO=${NCU_USE_SUDO:-0}
 BUILD_MODE=${BUILD_MODE:-always}
 DRY_RUN=${DRY_RUN:-0}
 GPU_ID=${CUDA_VISIBLE_DEVICES:-0}
@@ -18,13 +20,13 @@ GPU_ID=${CUDA_VISIBLE_DEVICES:-0}
 case "$TARGET_GPU" in
   A100)
     GPU_ARCH=cc80
-    NSYS_LABEL=${NSYS_LABEL:-nvhpc_cufft_1rank_02_STEP116_A100_CURRENT_NSYS_01}
-    NCU_LABEL=${NCU_LABEL:-nvhpc_cufft_1rank_02_STEP116_A100_FUSED_NCU_01}
+    NSYS_LABEL=${NSYS_LABEL:-nvhpc_cufft_1rank_02_STEP116_A100_CURRENT_NSYS_$PROFILE_RUN}
+    NCU_LABEL=${NCU_LABEL:-nvhpc_cufft_1rank_02_STEP116_A100_FUSED_NCU_$PROFILE_RUN}
     ;;
   H100)
     GPU_ARCH=cc90
-    NSYS_LABEL=${NSYS_LABEL:-nvhpc_cufft_1rank_02_STEP116_H100_CURRENT_NSYS_01}
-    NCU_LABEL=${NCU_LABEL:-nvhpc_cufft_1rank_02_STEP116_H100_FUSED_NCU_01}
+    NSYS_LABEL=${NSYS_LABEL:-nvhpc_cufft_1rank_02_STEP116_H100_CURRENT_NSYS_$PROFILE_RUN}
+    NCU_LABEL=${NCU_LABEL:-nvhpc_cufft_1rank_02_STEP116_H100_FUSED_NCU_$PROFILE_RUN}
     ;;
   *)
     echo "ERROR: set TARGET_GPU=A100 or TARGET_GPU=H100." >&2
@@ -33,6 +35,21 @@ case "$TARGET_GPU" in
 esac
 BASE_FLAGS="-O2 -acc -gpu=$GPU_ARCH -mp -Msave -Mlarge_arrays"
 profile_tag=$(printf '%s' "$TARGET_GPU" | tr '[:upper:]' '[:lower:]')
+
+case "$PROFILE_RUN" in
+  [0-9][0-9]) ;;
+  *)
+    echo "ERROR: PROFILE_RUN must be a two-digit run number such as 01." >&2
+    exit 2
+    ;;
+esac
+case "$NCU_USE_SUDO" in
+  0|1) ;;
+  *)
+    echo "ERROR: NCU_USE_SUDO must be 0 or 1." >&2
+    exit 2
+    ;;
+esac
 
 case "$BUILD_MODE" in
   always|never) ;;
@@ -80,6 +97,7 @@ echo "FPSEID21 STEP116 CURRENT-SOURCE PROFILER PREFLIGHT"
 echo "revision=$(git rev-parse HEAD)"
 echo "numerical_source=c46cfa9"
 echo "target_gpu=$TARGET_GPU gpu_arch=$GPU_ARCH gpu_id=$GPU_ID"
+echo "profile_run=$PROFILE_RUN ncu_use_sudo=$NCU_USE_SUDO"
 echo "run_dir=$RUN_DIR"
 echo "build_mode=$BUILD_MODE"
 echo "nsys_label=$NSYS_LABEL"
@@ -149,13 +167,32 @@ python3 "$ROOT_DIR/tools/check_tddft_result.py" compare \
   "$NSYS_DIR/tddft.out" --expected-steps 100 >/dev/null
 
 NCU_LOG=$ROOT_DIR/run/step116_${profile_tag}_current_ncu_driver.log
-if ! LABEL="$NCU_LABEL" TDDFT_INPUT=Si111-H_tm.in_100steps \
-    NCU_KERNEL_NAME=regex:exnlp_gemm_body_fused \
-    NCU_LAUNCH_COUNT=1 NCU_SET=full \
-    "$ROOT_DIR/tools/profile_tddft_ncu.sh" "$RUN_DIR" \
-    > "$NCU_LOG" 2>&1; then
-  tail -n 100 "$NCU_LOG"
-  exit 1
+if [ "$NCU_USE_SUDO" = 1 ]; then
+  if ! command -v sudo >/dev/null 2>&1; then
+    echo "ERROR: NCU_USE_SUDO=1 but sudo was not found." >&2
+    exit 1
+  fi
+  if ! sudo -E /usr/bin/env \
+      PATH="$PATH" LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" \
+      LABEL="$NCU_LABEL" TDDFT_INPUT=Si111-H_tm.in_100steps \
+      NCU_KERNEL_NAME=regex:exnlp_gemm_body_fused \
+      NCU_LAUNCH_COUNT=1 NCU_SET=full \
+      OMP_NUM_THREADS=1 OMP_STACKSIZE=512M \
+      CUDA_VISIBLE_DEVICES="$GPU_ID" \
+      "$ROOT_DIR/tools/profile_tddft_ncu.sh" "$RUN_DIR" \
+      > "$NCU_LOG" 2>&1; then
+    tail -n 100 "$NCU_LOG"
+    exit 1
+  fi
+else
+  if ! LABEL="$NCU_LABEL" TDDFT_INPUT=Si111-H_tm.in_100steps \
+      NCU_KERNEL_NAME=regex:exnlp_gemm_body_fused \
+      NCU_LAUNCH_COUNT=1 NCU_SET=full \
+      "$ROOT_DIR/tools/profile_tddft_ncu.sh" "$RUN_DIR" \
+      > "$NCU_LOG" 2>&1; then
+    tail -n 100 "$NCU_LOG"
+    exit 1
+  fi
 fi
 
 NCU_DIR=$ROOT_DIR/run/ncu_archives/$NCU_LABEL
@@ -171,6 +208,7 @@ echo "FPSEID21 STEP116 $TARGET_GPU CURRENT NSYS + NCU SUMMARY"
 echo "revision=$(git rev-parse HEAD)"
 echo "numerical_source=c46cfa9"
 echo "target_gpu=$TARGET_GPU gpu_arch=$GPU_ARCH"
+echo "profile_run=$PROFILE_RUN ncu_use_sudo=$NCU_USE_SUDO"
 echo "diagnostic=OFF profiler_runs=ON check=PASS compare=PASS"
 echo "nsys_label=$NSYS_LABEL"
 echo "ncu_label=$NCU_LABEL"
