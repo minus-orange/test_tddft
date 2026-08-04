@@ -52,6 +52,12 @@ Last updated: 2026-08-04
 - Pending human-operated GPU action: none. Step 116 profiler capture is
   complete on A100 and H100. Do not select or execute a new tutorial-only
   optimization without production input or a new bounded profiler hypothesis.
+- Pending profiler post-processing: use
+  `tools/report_tddft_nsys_openacc_launches.sh` on the existing A100 and H100
+  Step 116 NSYS archive directories. It exports SQLite only when needed,
+  performs no build or GPU execution, excludes cuFFT library kernels, and
+  prints each NVHPC OpenACC kernel configuration as Grid, Block,
+  threads/launch, registers/thread, launch count, and aggregate time.
 - Pending human-operated x86 action: none
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`

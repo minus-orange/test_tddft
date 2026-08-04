@@ -2753,3 +2753,17 @@ about `2.57x` shorter, but both devices retain the same 32-block grid and
 `12.50%` achieved occupancy. The current tutorial therefore remains limited
 by input-scale parallel width even on H100. This completes the requested
 current-source profiler refresh without changing either formal GPU baseline.
+
+## Step 116 Non-cuFFT Launch-Shape Post-processing
+
+`tools/report_tddft_nsys_openacc_launches.sh` and its SQLite parser report the
+actual launch shape of every NVHPC OpenACC kernel already captured in a Step
+116 Nsight Systems archive. The helper reads `CUPTI_ACTIVITY_KIND_KERNEL`,
+groups by short kernel name, Grid, Block, and registers/thread, and calculates
+threads/launch and launch counts. It includes only NVHPC `_gpu` kernels, so
+cuFFT library kernels are excluded even when their names do not contain the
+literal string `cufft`. If the archive's SQLite export is absent, the helper
+creates it from the existing `.nsys-rep`; it never builds or executes TDDFT.
+Run it once against each independent A100 and H100 NSYS archive and return the
+two compact terminal blocks. These results refine the presentation's kernel
+parallelism table but are diagnostic and cannot alter either formal baseline.
