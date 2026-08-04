@@ -34,16 +34,21 @@ Last updated: 2026-08-04
   the user on 2026-07-31
 - The A100, H100, and x86 CPU baseline series are independent; never replace
   or mix one series with another
-- Pending human-operated GPU action: run the Step 116 current-source profiler
-  helper once on A100 with `TARGET_GPU=A100`, and independently once on H100
-  with `TARGET_GPU=H100`. Each run builds TDDFT once for cc80 or cc90, then
-  runs a diagnostic-off 100-step Nsight Systems trace and a one-launch Nsight
-  Compute capture of the fused nonlocal kernel. Both application runs require
-  normal check and relaxed compare. The A100 and H100 archives remain separate;
-  profiler walls do not replace either formal baseline. Where NCU performance
-  counters require root and `sudo` is unavailable, run `PROFILE_PHASE=nsys`
-  under the normal user, switch with `su`, then run the same platform/run with
-  `PROFILE_PHASE=ncu`; the NCU phase enforces `BUILD_MODE=never`.
+- Step 116 A100 current-source profiler result: revision `9e67ad0`, run 03,
+  normal check PASS and relaxed compare PASS for both 100-step runs. The NSYS
+  trace wall was `66.9540450573` sec (diagnostic only); the fused kernel used
+  `8.253502447` sec over 9,440 launches. NCU measured a 32-block by 256-thread
+  launch, 63 registers/thread, `0.07` waves/SM, `50%` theoretical occupancy,
+  `12.50%` achieved occupancy, and `914.69` us duration. This confirms the
+  small tutorial grid remains unable to fill the 108-SM A100 and does not
+  replace the official A100 baseline.
+- Pending human-operated GPU action: run the matching Step 116 current-source
+  profiler helper once on H100 with `TARGET_GPU=H100`. Run
+  `PROFILE_PHASE=nsys` under the normal user, switch with `su`, then run the
+  same `PROFILE_RUN` with `PROFILE_PHASE=ncu`; the NCU phase enforces
+  `BUILD_MODE=never`. Both 100-step application runs require normal check and
+  relaxed compare. H100 archives remain independent from A100, and profiler
+  walls do not replace the formal H100 baseline.
 - Pending human-operated x86 action: none
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`

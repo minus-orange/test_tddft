@@ -2689,3 +2689,36 @@ mismatch, build, profiler, correctness, archive-collision, revision, active-GPU,
 or GPU-health error. Neither profiler wall is a performance baseline. Do not
 choose a new optimization hypothesis or update the PowerPoint profile values
 until both compact Step 116 terminal blocks have been reviewed.
+
+## Step 116 A100 Current-Source NSYS and NCU Result
+
+The A100 measurement completed on 2026-08-04 at revision
+`9e67ad0a14d63cee2ec0ceeea5d29b98d9a15105` with accepted numerical source
+`c46cfa9`. The separate cc80 archives are
+`nvhpc_cufft_1rank_02_STEP116_A100_CURRENT_NSYS_03` and
+`nvhpc_cufft_1rank_02_STEP116_A100_FUSED_NCU_03`. Both 100-step application
+runs passed the normal check and relaxed comparison. The Nsight Systems trace
+wall was `66.9540450573` sec; it includes profiler overhead and is not a
+performance baseline.
+
+The Nsight Systems kernel summary attributed `8.253502447` sec (`61.1%`,
+9,440 launches) to `exnlp_gemm_body_fused_2531_gpu` and `1.565169961` sec
+(`11.6%`, 2,000 launches) to `vpj_gen_acc_integral_429_gpu`. H2D traffic was
+45,670 copies / `28,509.031` MB / `2.497391517` sec, and D2H traffic was
+7,961 copies / `6,036.959` MB / `0.483328602` sec. The displayed CUDA API
+summary contained `15.204177276` sec in 138,810 `cuStreamSynchronize` calls
+and `1.691766443` sec in 14,685 `cudaEventSynchronize` calls. These API totals
+are inclusive diagnostic attribution and must not be added directly to wall
+time or treated as wholly removable synchronization cost.
+
+The selected Nsight Compute fused-kernel launch used 32 blocks of 256 threads
+(8,192 GPU threads), 63 registers/thread, and `0.07` waves/SM. Its duration
+was `914.69` us; theoretical occupancy was `50%`, achieved occupancy was
+`12.50%`, Compute (SM) Throughput was `4.28%`, Memory Throughput was `16.37%`,
+and DRAM Throughput was `0.45%`. This reproduces the essential Step 39 launch
+shape and occupancy on current source. The 32-block tutorial grid is smaller
+than the A100's 108 SMs, so this input cannot expose enough block-level
+parallelism to fill the GPU. It is current diagnostic evidence for the
+presentation, not a reason to alter the official Step 107 A100 baseline or to
+resume tutorial-only micro-tuning. The matching H100 Step 116 measurement
+remains pending.

@@ -428,3 +428,16 @@ the official baseline remains Step 41 at `107.754213095` sec.
 
 Rollback `35f8542` restored the accepted Step 41 source and the CPU/FFTW
 fallback full link passed afterward.
+
+Step 116 refreshed the A100 profiler evidence on current source revision
+`9e67ad0a14d63cee2ec0ceeea5d29b98d9a15105`. Both 100-step profiler runs
+passed the normal check and relaxed comparison. The Nsight Systems trace wall
+was `66.9540450573` sec and is diagnostic only. It measured the fused kernel at
+`8.253502447` sec over 9,440 launches, H2D at 45,670 copies / `28,509.031` MB /
+`2.497391517` sec, and D2H at 7,961 copies / `6,036.959` MB / `0.483328602`
+sec. Nsight Compute again measured a 32-block by 256-thread fused launch with
+63 registers/thread, `0.07` waves/SM, `50%` theoretical occupancy, and
+`12.50%` achieved occupancy. Its duration was `914.69` us. This confirms the
+small tutorial grid remains the limiting parallel-width evidence; none of
+these profiler values replaces the official A100 Step 107 median of
+`63.2135219574` sec.
