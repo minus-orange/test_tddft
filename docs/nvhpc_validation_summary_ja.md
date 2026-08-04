@@ -267,9 +267,10 @@ device-to-host 転送、CUDA eventで測った合計時間に分解できます�
 転送削減を優先すべきか、FFT実行そのものを優先すべきかを判断する材料にします。
 
 TDDFTのCPU/FFTWビルドとGPU/cuFFTビルドは、どちらも`mod_timer.f90`の
-IDベースMPI wall-clockタイマーを使用します。共通する論理区間は、同じ
-MPI集約済み`FPSEID_PROFILE`形式で出力されます。GPU固有のCUDA event転送・
-cuFFT内訳には、引き続き`FPSEID_CUFFT_PROFILE`を使用します。
+`start_timer('region')` / `stop_timer('region')`をリージョン名で直接呼びます。
+共通する論理区間は、元の`[Timer Output]`表とMPI集約済み
+`FPSEID_PROFILE`形式で出力されます。GPU固有のCUDA event転送・cuFFT内訳には、
+引き続き`FPSEID_CUFFT_PROFILE`を使用します。
 
 正当性比較と同時に、以下のプロファイル領域を比較します。
 

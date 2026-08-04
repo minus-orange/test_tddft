@@ -170,8 +170,9 @@ previous Step 1-3 measurements.
 | 23 | `s2_gather_p` | gather from `RHO2_` back to `P` through `J2G` |
 | 24 | `s2_copyout_p` | final `P` copyout from device to host |
 
-These labels are emitted in `FPSEID_PROFILE` by the common `mod_timer.f90`
-implementation used for CPU/FFTW and GPU/cuFFT builds.
+These directly named labels are emitted in `[Timer Output]` and
+`FPSEID_PROFILE` by the common `mod_timer.f90` implementation used for
+CPU/FFTW and GPU/cuFFT builds.
 
 ## Remaining Host-Copy FFT Calls
 

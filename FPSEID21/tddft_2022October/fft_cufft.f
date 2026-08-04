@@ -39,9 +39,9 @@ C
       integer*8 plancfp,plancbp
       integer ierr
 C
-      call prof_start(14)
+      call start_timer('fft_wrapper')
       call fpseid_cufft_exec(plancbp,RHOG,NG,1,ierr)
-      call prof_stop(14)
+      call stop_timer('fft_wrapper')
       if (ierr.ne.0) then
         write(6,*) 'ERROR: fpseid_cufft_exec backward failed, ierr=',
      &             ierr
@@ -63,11 +63,11 @@ C
       integer*8 plancfp,plancbp
       integer ierr
 C
-      call prof_start(14)
+      call start_timer('fft_wrapper')
 !$acc host_data use_device(RHOG)
       call fpseid_cufft_exec_device(plancbp,RHOG,NG,1,ierr)
 !$acc end host_data
-      call prof_stop(14)
+      call stop_timer('fft_wrapper')
       if (ierr.ne.0) then
         write(6,*) 'ERROR: fpseid_cufft_exec_device backward failed,',
      &             ' ierr=',ierr
@@ -89,11 +89,11 @@ C
       integer*8 plancfp,plancbp
       integer ierr
 C
-      call prof_start(14)
+      call start_timer('fft_wrapper')
 !$acc host_data use_device(RHOG)
       call fpseid_cufft_exec_device_batch(RHOG,NG,NBATCH,1,ierr)
 !$acc end host_data
-      call prof_stop(14)
+      call stop_timer('fft_wrapper')
       if (ierr.ne.0) then
         write(6,*) 'ERROR: batched device backward FFT failed,',
      &             ' ierr=',ierr
@@ -115,11 +115,11 @@ C
       integer*8 plancfp,plancbp
       integer ierr
 C
-      call prof_start(14)
+      call start_timer('fft_wrapper')
 !$acc host_data use_device(RHOG)
       call fpseid_cufft_exec_device(plancfp,RHOG,NG,-1,ierr)
 !$acc end host_data
-      call prof_stop(14)
+      call stop_timer('fft_wrapper')
       if (ierr.ne.0) then
         write(6,*) 'ERROR: fpseid_cufft_exec_device forward failed,',
      &             ' ierr=',ierr
@@ -147,11 +147,11 @@ C
       integer*8 plancfp,plancbp
       integer ierr
 C
-      call prof_start(14)
+      call start_timer('fft_wrapper')
 !$acc host_data use_device(RHOG)
       call fpseid_cufft_exec_device_batch(RHOG,NG,NBATCH,-1,ierr)
 !$acc end host_data
-      call prof_stop(14)
+      call stop_timer('fft_wrapper')
       if (ierr.ne.0) then
         write(6,*) 'ERROR: batched device forward FFT failed,',
      &             ' ierr=',ierr
@@ -180,9 +180,9 @@ C
       integer*8 plancfp,plancbp
       integer ierr
 C
-      call prof_start(14)
+      call start_timer('fft_wrapper')
       call fpseid_cufft_exec(plancfp,RHOG,NG,-1,ierr)
-      call prof_stop(14)
+      call stop_timer('fft_wrapper')
       if (ierr.ne.0) then
         write(6,*) 'ERROR: fpseid_cufft_exec forward failed, ierr=',
      &             ierr

@@ -255,8 +255,8 @@ c *******
 c *******
       call MPI_COMM_SIZE(MPI_COMM_WORLD,ncpu,ierr)
       call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
-      call prof_init(my_rank)
-      call prof_start(15)
+      call init_timer(my_rank)
+      call start_timer('startup_before_steps')
 c ** read size.data here!
       if (my_rank.eq.0 ) then
 
@@ -863,7 +863,7 @@ C
       if (my_rank.eq.0)  then
        write(6,*)' call prenon for nonlocal potential'
       endif
-      call prof_start(7)
+      call start_timer('prenon')
 c      CALL PRENON( 2, NG2Q, NG2, TPIBA, NGQ, NG, G,
       CALL PRENON( 2, NG2Q, NXYZ, TPIBA, NGQ, NXYZ, G,
      &       NUMKQ, NUMK,G2, GG2, RHO2, VGA,RHO3, NUMTY, NTYQ, NTYPE,
@@ -876,7 +876,7 @@ c
      &   ,RAD,PSPOT,PSPOT2,PHIL,NGcont
 c
      &   ,mshbegin,mshend,ncpuq )
-      call prof_stop(7)
+      call stop_timer('prenon')
 C
       CALL CLOCK(TIM)
 c      CALL cpu_time(TIM)
@@ -1046,7 +1046,7 @@ c        write(6,'(4f22.16)')( RAD(K,ITY),K=1,MESHQ,100)
 c       enddo
 c      endif
 c *** temp check : end
-      call prof_stop(15)
+      call stop_timer('startup_before_steps')
 ! Keep static reciprocal-grid and occupation metadata resident for the
 ! complete time-step loop.  Both arrays are initialized during setup and
 ! remain host-read-only until time evolution finishes.
@@ -1056,7 +1056,7 @@ c *** temp check : end
 !$acc& PSPOT2(1:MESHQ,1:ISPD,1:NTYQ),
 !$acc& PHIL(1:MESHQ,1:4,1:NTYQ))
       do 100 itstep=0,ntstep
-      call prof_start(1)
+      call start_timer('time_step_total')
       time=time0+dtfsec*itstep
 cc ** need for work on ions (vector potential version)
       if ( itstep.eq.0.and.my_rank.eq.0 ) then
@@ -1198,7 +1198,7 @@ c       write(99,2992)time, AVX ,AVY , AVZ
 c      endif
 c 2992 format(4f22.16)
 c *** remake GDUMP for next time sttep
-      call prof_start(2)
+      call start_timer('g_vector_update')
        DO IK=1,NUMK
 c *** for YLM under P-A
        if (itstep.gt.0 ) then
@@ -1257,15 +1257,15 @@ c        AVE=-2*( (GFAQ3-AVX)*ExtX +(GFAQ3-AVY)*ExtY
 c     &          +(GFAQ3-AVZ)*ExtZ )
 c       endif
        ENDDO  ! end of IK loop
-      call prof_stop(2)
+      call stop_timer('g_vector_update')
 c 
 c   *****  A subroutine for lattice dynamics is necessary here !
 c
-      call prof_start(3)
+      call start_timer('ion_md')
       if ( itstep.eq.0 ) call nkin(velo,atmss,ntauq,Ekin)
       if ( itstep.ne.0 ) call md(tau,fold,velo,atmss,ntauq,dt
      &            ,tau1,tau2,tau3,tau4,tau5)
-      call prof_stop(3)
+      call stop_timer('ion_md')
 c      call MPI_Barrier(MPI_COMM_WORLD,ierr)
 c *** temp check
 c      miya=13
@@ -1294,7 +1294,7 @@ c       write(6,*)' GDUMP5 '
 c       write(6,'(4F22.16)')(GDUMP5(IG,1),IG=1,NXYZ,5000)
 c      endif
 c
-      call prof_start(4)
+      call start_timer('frprmn')
       CALL FRPRMN( 1, NRX, NRY, NRZ, NXYZ, NG, NGQ, NG2, NG2Q,
      &        NBNDQ, NBNDQ,NBSEQ,NBSEQ2,NFL, NPFL, NDX, NDY, NDZ,
      &             NUMK, NUMKQ, COEF, DCOEF, COEF0,CMAT,
@@ -1342,7 +1342,7 @@ c
      &  ,ncpuq,ncpu
 c
      &  ,NVIRTQ)
-      call prof_stop(4)
+      call stop_timer('frprmn')
 C
 c  ****  temp
       if ( mod(itstep,itmod).eq.0  ) then
@@ -1689,7 +1689,7 @@ cc       write(6,*)' check REXT before ELECTF '
 cc       write(6,*)( REXT(IG),IG=1,NXYZ,100 )
 c       endif
 c ** temp check : end
-       call prof_start(5)
+       call start_timer('electf_force')
        CALL ELECTF( MXBND2,MXBND0,1, NXYZ, NG, NGQ, NG2, NG2Q,
      &       NBNDQ, NBNDQ, NUMK, NUMKQ, NBSEQ,COEF, DCOEF,
 c     &              YLM, G, EXPG, G2, RHO, RHO4, RHO1, RHO2, RHOG,
@@ -1722,7 +1722,7 @@ c
      &                  ,NGcont,EXTAU,SEPRED
 c
      &   ,nbegin,nend,nbegint,nendt,nbegintt,nendtt,ncpuq,ncpu)
-       call prof_stop(5)
+       call stop_timer('electf_force')
 ! FRPRMN keeps COEF resident only through this immediately following ELECTF.
 !$acc exit data delete(COEF(1:NG2Q,1:MXBND2,1:NUMKQ))
 c
@@ -1735,7 +1735,7 @@ c *** temp check
        enddo
 	      endif
 c *** temp check: end
-      call prof_start(6)
+      call start_timer('force_energy_update')
       do it=1,ntauq
        force_ex(1,it)=-ZZ(it)*ExtX  ! ZZ negative
        force_ex(2,it)=-ZZ(it)*ExtY
@@ -1776,7 +1776,7 @@ c
       endif
 c
       call fsave(force,fold,ntauq)
-      call prof_stop(6)
+      call stop_timer('force_energy_update')
 c
 c      call MPI_Barrier(MPI_COMM_WORLD,ierr)
 c
@@ -1856,7 +1856,7 @@ c      write(6,*)' Time (fsec) = ',time
       enddo
       endif
 c
-      call prof_stop(1)
+      call stop_timer('time_step_total')
   100 continue
 !$acc exit data delete(J2G(1:NG2Q,1:NUMKQ),
 !$acc& OCC(1:NBNDQ,1:NUMKQ),RAD(1:MESHQ,1:NTYQ),
@@ -1935,7 +1935,7 @@ c      CALL cpu_time(TIM)
  7008 FORMAT(23X,'****  CPU TIME AFT FRPRMN: ',F15.7,' SEC'///)
       endif
 C
-      call prof_report()
+      call print_timer()
 c      STOP
 c *****
       call ENDFFT_fftwASL(NRX,NRY,NRZ)
@@ -3499,9 +3499,9 @@ c      CALL PREFFT_ASL(NRX,NRY,NRZ,WSAVE_XYZ,IFAC_XYZ)
 c *** for Kokubo FFTW
 c       call PREFFT_fftw(NRX,NRY,NRZ,rhog,plancfp,plancbp)
 c *** for Kokubo fftw ASL compatible
-      call prof_start(16)
+      call start_timer('fft_plan_init')
       CALL PREFFT_fftwASL(NRX,NRY,NRZ,RHOG,plancfp,plancbp)
-      call prof_stop(16)
+      call stop_timer('fft_plan_init')
 c ** temp check
 c      if (my_rank.eq.0 ) then
 c       write(6,*)' in sub INITPW: point 2'

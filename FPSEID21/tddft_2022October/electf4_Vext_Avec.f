@@ -155,7 +155,7 @@ c         enddo
 c       enddo
 c +++ temp check; end
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(119)
+      call start_timer('electf_locpotf_total')
 #endif
       CALL LOCPOTF(NXYZ,NG,NGQ,G,EXPG,RHO1,TPIBA,OMEGA,
 cc     &             DELTA,VG,RHO,RHOG,I2G,FORCE,RHO2,
@@ -182,7 +182,7 @@ c *** for Kokubo FFTW
 c
      &   ,nbegint,nendt,nbegintt,nendtt,ncpuq,ncpu )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(119)
+      call stop_timer('electf_locpotf_total')
 #endif
 C
 C     CALCULATE NON-LOCAL POTENTIAL CONTRIBUTION
@@ -195,7 +195,7 @@ c      endif
 c **** temp check
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(128)
+      call start_timer('electf_nonlocf_total')
 #endif
       CALL NONLOCF( MXBND, MBLK, NXYZ, NG2, NG2Q,NBNDQ,NBND,
      &              NUMK, NUMKQ, NBSEQ,IOVP,
@@ -214,7 +214,7 @@ c +++ for macroscopic current
 c
      &  ,nbegin,nend,ncpuq,ncpu  )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(128)
+      call stop_timer('electf_nonlocf_total')
 #endif
 C
       if ( mod(itstep,itmod).eq.0 .and. my_rank.eq.0 ) then
@@ -317,49 +317,49 @@ C type, atom, and s-then-p accumulation order for every band.
       DO ITY=1,NTYPE
        NATM=NUMTY(ITY)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       CALL PROF_START(140)
+       call start_timer('seppotf_acc_project')
 #endif
        CALL SEPPOTF_PROJECT_ACC(NG2Q,NGNL(ITY),NGCONT,NTAUQ,
      &  NTYQ,NATM,ITY,G2K,YLM,VPJ,TAU,TPIBA,NIDN,
      &  MXOFL(ITY),SEPWORK)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       CALL PROF_STOP(140)
-       CALL PROF_START(141)
+       call stop_timer('seppotf_acc_project')
+       call start_timer('seppotf_acc_s_batch')
 #endif
        CALL SEPPOTF_S_BATCH_ACC(NG2Q,NGNL(ITY),NGCONT,NTAUQ,
      &  NTYQ,NATM,ITY,NBLENG,MXBND,G2K,COEF,NIDN,
      &  SEPWORK,SEPRED)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       CALL PROF_STOP(141)
+       call stop_timer('seppotf_acc_s_batch')
 #endif
        IF (MXOFL(ITY).GE.2) THEN
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-        CALL PROF_START(142)
+        call start_timer('seppotf_acc_p_batch')
 #endif
         CALL SEPPOTF_P_BATCH_ACC(NG2Q,NGNL(ITY),NGCONT,NTAUQ,
      &   NTYQ,NATM,ITY,NBLENG,MXBND,G2K,COEF,NIDN,
      &   SEPWORK,SEPRED)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-        CALL PROF_STOP(142)
+        call stop_timer('seppotf_acc_p_batch')
 #endif
        ENDIF
       ENDDO
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      CALL PROF_START(143)
+      call start_timer('seppotf_acc_final')
 #endif
       CALL SEPPOTF_FINAL_ACC(NBNDQ,NTAUQ,NTYQ,NTYPE,NUMTY,NIDN,
      & MXOFL,VPP,EENL,FXNL,FYNL,FZNL,SEPRED,MXBND,
      & NBLENG,NB0)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      CALL PROF_STOP(143)
-      CALL PROF_START(144)
+      call stop_timer('seppotf_acc_final')
+      call start_timer('seppotf_acc_download')
 #endif
 !$acc update self(EENL(NB0:NB1))
 !$acc update self(FXNL(1:NTAUQ,NB0:NB1))
 !$acc update self(FYNL(1:NTAUQ,NB0:NB1))
 !$acc update self(FZNL(1:NTAUQ,NB0:NB1))
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      CALL PROF_STOP(144)
+      call stop_timer('seppotf_acc_download')
 #endif
       RETURN
       END
@@ -724,7 +724,7 @@ c
       call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(129)
+      call start_timer('nonlocf_setup')
 #endif
       PI=4.D0*ATAN(1.D0)
       TPI=2.D0*PI
@@ -817,7 +817,7 @@ C
       stop
       endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(129)
+      call stop_timer('nonlocf_setup')
 #endif
 #ifdef _OPENACC
       IACCSP=1
@@ -851,8 +851,8 @@ C
 !$acc& FZNL(1:NTAUQ,1:NBNDQ,1:NUMKQ))
       DO 580 IK=1,NUMK
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_start(130)
-         call prof_start(145)
+         call start_timer('nonlocf_kinetic_mpi')
+         call start_timer('nonlocf_k_gprep')
 #endif
 c         DO 910 JJB=1,MBLK
 c            IF(JJB.EQ.MBLK) THEN
@@ -872,8 +872,8 @@ cc             RHOA(IG)=G2(4,IG,IK)*TPIBA2
              RHOAZ(IG)=G2(3,IG,IK)*TPIBA
   581        CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(145)
-         call prof_start(146)
+         call stop_timer('nonlocf_k_gprep')
+         call start_timer('nonlocf_k_reduce')
 #endif
 c           DO 583 IB=1,NBSEQ(IK)
            DO 583 IB=nbegin(my_rank),nend(my_rank)
@@ -900,8 +900,8 @@ c            write(6,*)'norm of ',ib,',',ik,'=',temp
 c *** temp check ; end
   583      CONTINUE  ! IB loop end
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(146)
-         call prof_start(147)
+         call stop_timer('nonlocf_k_reduce')
+         call start_timer('nonlocf_k_comm')
 #endif
 c
            if ( my_rank.ne.0 ) then
@@ -932,16 +932,16 @@ c
             enddo
            endif ! end of if my_rank.ne.0 loop
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(147)
-         call prof_start(148)
+         call stop_timer('nonlocf_k_comm')
+         call start_timer('nonlocf_eed_gprep')
 #endif
 c ++++ for A-vector  Y. Miyamoto 2020 this is still within ik loop
              do IG=1,NG2(IK)
               RHOA(IG)=GDUMPd(IG,IK)*TPIBA
              enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(148)
-         call prof_start(149)
+         call stop_timer('nonlocf_eed_gprep')
+         call start_timer('nonlocf_eed_reduce')
 #endif
              do IB=nbegin(my_rank),nend(my_rank)
              iib=ib-nbegin(my_rank)+1
@@ -952,8 +952,8 @@ c ++++ for A-vector  Y. Miyamoto 2020 this is still within ik loop
               enddo
              enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(149)
-         call prof_start(150)
+         call stop_timer('nonlocf_eed_reduce')
+         call start_timer('nonlocf_eed_comm')
 #endif
 c
            if ( my_rank.ne.0 ) then
@@ -968,8 +968,8 @@ c
             enddo
            endif ! end of if my_rank.ne.0 loop
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(150)
-         call prof_start(151)
+         call stop_timer('nonlocf_eed_comm')
+         call start_timer('nonlocf_ylm_radius')
 #endif
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'DO 583 loop end'
@@ -978,26 +978,26 @@ C
              DO 588 IG=1,NG2(IK)
   588        RHOA(IG)=SQRT(G2(4,IG,IK))*TPIBA
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(151)
-         call prof_stop(130)
+         call stop_timer('nonlocf_ylm_radius')
+         call stop_timer('nonlocf_kinetic_mpi')
 #endif
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'DO 588 loop end'
 c **** temp check : end
          NG26=NG2(IK)/6
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_start(131)
+         call start_timer('nonlocf_getylm')
 #endif
          CALL GETYLM(NG2Q,NG26,G2(1,1,IK),RHOA,YLM,TPIBA,NGcont)
 !$acc update device(YLM(1:NGcont,1:16)) if(IACCSP.eq.1)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(131)
+         call stop_timer('nonlocf_getylm')
 #endif
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'after end of GETYLM'
 c **** temp check : end
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_start(132)
+         call start_timer('nonlocf_seppotf')
 #endif
          CALL SEPPOTF( NG2Q, NG2(IK),NBSEQ(IK),NBNDQ, G2(1,1,IK),
      &   VPJ(1,1,1,1,ik),VPP,YLM,RHO2
@@ -1012,7 +1012,7 @@ c     &  ,WORK2(1,1),WORK2(1,2),WORK2(1,3),
 c
      &  ,nbegin,nend,ncpuq,ncpu )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(132)
+         call stop_timer('nonlocf_seppotf')
 #endif
 c **** temp check
 c       write(6,*)'my_rank=',my_rank,'IK=',ik,'after end of SEPPOTF'
@@ -1029,7 +1029,7 @@ c      write(6,*)' WK !! '
 c      write(6,*)( wk(ik),ik=1,numk )
 c ***  temp check : end
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(133)
+      call start_timer('nonlocf_finalize')
 #endif
       if ( my_rank.eq.0 ) then
       ENL=0.D0
@@ -1140,7 +1140,7 @@ C
       ETOT = EKINE + ENL + DELTA
       endif   ! end of if my_rank.eq.0 loop
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(133)
+      call stop_timer('nonlocf_finalize')
 #endif
 C
 c      endif   ! end of if mod(itstep,itmod).eq.0 loop
@@ -1249,7 +1249,7 @@ C *****
       FY=0.D0
       FZ=0.D0
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(134)
+      call start_timer('seppotf_phase')
 #endif
 c        DO 22 IG=1,NG2
         DO 22 IG=1,NGNL(ITY)
@@ -1258,7 +1258,7 @@ c        DO 22 IG=1,NG2
         EXTAU(IG)=DCMPLX(COS(TEMP),SIN(TEMP))
    22   CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(134)
+      call stop_timer('seppotf_phase')
 #endif
 C
       DO 30 LI=1,LMAX
@@ -1273,7 +1273,7 @@ C
       L=LI-1
       IF(L.EQ.0.AND.IBUN(1,ITY).NE.1) THEN
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_start(135)
+         call start_timer('seppotf_s_projector')
 #endif
 c         DO 50 IG=1,NG2
          DO 50 IG=1,NGNL(ITY)
@@ -1286,8 +1286,8 @@ c         Y00=DCMPLX(YLM(IG,1),0.D0)
          DCOEF(IG,3)=SUKA1*G2K(3,IG)
    50    CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(135)
-         call prof_start(136)
+         call stop_timer('seppotf_s_projector')
+         call start_timer('seppotf_s_band_reduce')
 #endif
 c         DO 52 IB=1,NBND
          DO 52 IB=nbegin(my_rank),nend(my_rank)
@@ -1316,7 +1316,7 @@ c            CD(3,1)=CD(3,1)+COEF(IG,IB)*DCOEF(IG,3)
      &              /VPP(1,li,ity)
    52    CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(136)
+         call stop_timer('seppotf_s_band_reduce')
 #endif
       ELSEIF(L.EQ.0) THEN
 C           PARTITIONING
@@ -1379,7 +1379,7 @@ c            CD(3,1)=CD(3,1)+COEF(IG,IB)*DCOEF(IG,3)
       ELSEIF(L.EQ.1.AND.IBUN(2,ITY).NE.1) THEN
          sq2=dsqrt(2.d0)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_start(137)
+         call start_timer('seppotf_p_projector')
 #endif
 c         DO 60 IG=1,NG2
          DO 60 IG=1,NGNL(ITY)
@@ -1406,8 +1406,8 @@ c         Y13=DCMPLX( YLM(IG,3),YLM(IG,4))
          DCOEF(IG,9)=SUKA3*G2K(3,IG)
    60    CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(137)
-         call prof_start(138)
+         call stop_timer('seppotf_p_projector')
+         call start_timer('seppotf_p_band_reduce')
 #endif
 c         DO 62 IB=1,NBND
          DO 62 IB=nbegin(my_rank),nend(my_rank)
@@ -1468,7 +1468,7 @@ c            CD(3,3)=CD(3,3)+COEF(IG,IB)*DCOEF(IG,9)
      &              /VPP(1,li,ity)
    62    CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-         call prof_stop(138)
+         call stop_timer('seppotf_p_band_reduce')
 #endif
       ELSEIF(L.EQ.1) THEN
          sq2=dsqrt(2.d0)
@@ -2074,7 +2074,7 @@ c ****  temp check : end
    10 CONTINUE
   900 CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(139)
+      call start_timer('seppotf_mpi')
 #endif
       if (my_rank.ne.0 ) then
       nbleng=nend(my_rank)-nbegin(my_rank)+1
@@ -2100,7 +2100,7 @@ c ****  temp check : end
       enddo
       endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(139)
+      call stop_timer('seppotf_mpi')
 #endif
 C     WRITE(6,*) ' COEF CHECK ',COEF(1,1),COEF(1,2)
 C     WRITE(6,*) ' ##NON-LOCAL##',ENL

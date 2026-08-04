@@ -69,7 +69,7 @@ c       if (miya.eq.13 ) stop
 c ** check end
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       call prof_start(96)
+       call start_timer('g2vxc_derivative_setup')
 #endif
        DO JG = 1, NXYZ
         DRX(JG)  = (0.0D0,0.0D0)
@@ -96,8 +96,8 @@ C
         DRZX(JG) =  - TPIBA2*G(3,IG)*G(1,IG)*RHOG(JG)
        END DO
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       call prof_stop(96)
-       call prof_start(97)
+       call stop_timer('g2vxc_derivative_setup')
+       call start_timer('g2vxc_derivative_fft')
 #endif
 C
 C --- TRANSFORM TO R-SPACE ----
@@ -218,8 +218,8 @@ c **** for Kokubo fftw ASL compatible
         CALL FFT3BX_fftwASL( NRX, NRY, NRZ, NXYZ, DRZX, VWORK,
      &              plancfp,plancbp            )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       call prof_stop(97)
-       call prof_start(98)
+       call stop_timer('g2vxc_derivative_fft')
+       call start_timer('g2vxc_exchange')
 #endif
 C
       DO 100 IG = 1, NXYZ
@@ -261,8 +261,8 @@ c
 c       CALL EXCHPBE(DEN,S,U1,V1,1,1,EX,VX)
        CALL EXCHPBE(RHO,VWORK,DRYY,1,1,DRZZ,NXYZ,GMIN)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       call prof_stop(98)
-       call prof_start(99)
+       call stop_timer('g2vxc_exchange')
+       call start_timer('g2vxc_correlation')
 #endif
 C --- LDA CORRELATION ---
 c       CALL CORLSD(RS,0,ECLOC,VCLOC,VCDN,ECRS,ECZET,ALFC)
@@ -299,8 +299,8 @@ c  *** note FK and SH should be rebuild in CORPBE !!!
        CALL CORPBE(RHO,VWORK,zzero,DRYY,zzero2,1,1,DRX,DRY,DRZ
      &     ,DRXY,DRYZ,DRZX,NXYZ,GMIN)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       call prof_stop(99)
-       call prof_start(100)
+       call stop_timer('g2vxc_correlation')
+       call start_timer('g2vxc_assemble')
 #endif
 c
       DO 500 IG=1,NXYZ
@@ -316,7 +316,7 @@ c                    Vx          +VcLSD          +VcPBEcorrection
       ENDIF
   500 CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       call prof_stop(100)
+       call stop_timer('g2vxc_assemble')
 #endif
 c *** for check
 c      call clock(t1)

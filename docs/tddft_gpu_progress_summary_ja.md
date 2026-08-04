@@ -146,8 +146,8 @@ Step 3 実行後、残っている `s2_acc_kernel` と `s2_acc_update` の内訳
 | 23 | `s2_gather_p` | `RHO2_`から`P`へのgather |
 | 24 | `s2_copyout_p` | DeviceからHostへの最後の`P` copyout |
 
-これらのラベルは、CPU/FFTWとGPU/cuFFTで共通の`mod_timer.f90`から
-`FPSEID_PROFILE`へ出力されます。
+これらの直接指定した名称は、CPU/FFTWとGPU/cuFFTで共通の`mod_timer.f90`から
+`[Timer Output]`と`FPSEID_PROFILE`へ出力されます。
 
 ## 残るhost-copy FFT呼び出し
 

@@ -70,9 +70,9 @@ c
       complex*16 RHOG(NG)
       integer*8 plancfp,plancbp
 C
-      call prof_start(14)
+      call start_timer('fft_wrapper')
       call dfftw_execute_dft(plancbp,rhog,rhog)
-      call prof_stop(14)
+      call stop_timer('fft_wrapper')
 C
       END
 
@@ -164,9 +164,9 @@ c
       complex*16 RHOG(NG)
       integer*8 plancfp,plancbp
 C
-      call prof_start(14)
+      call start_timer('fft_wrapper')
       call dfftw_execute_dft(plancfp,rhog,rhog)
-      call prof_stop(14)
+      call stop_timer('fft_wrapper')
 C
       FAC=1.0D0/DBLE(NG)
 !$omp parallel do default(shared) private(I)

@@ -45,7 +45,7 @@ C
 C     EXCHANGE CORRELATION CONTRIBUTION TO THE ONE-ELECTRON POTENTIAL
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(91)
+      call start_timer('vofrho_xc')
 #endif
       IF(IGGA.EQ.1) THEN
        CALL G2VXC2(TPIBA,NRX,NRY,NRZ,NXYZ,NG,NGQ,G,
@@ -62,8 +62,8 @@ c *** for Kokubo FFTW
       CALL S2VXC2(NXYZ,RHO,VG)
       ENDIF
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(91)
-      call prof_start(92)
+      call stop_timer('vofrho_xc')
+      call start_timer('vofrho_fft')
 #endif
 c ** for Sugino FFT
 c      CALL FFT3FX(NRX,NRY,NRZ,NXYZ,VG,VCLR,
@@ -75,8 +75,8 @@ c      call FFT3FX_fftw(NXYZ,VG,plancfp,plancbp)
 c ** for Kokubo fftw ASL compatible
       CALL FFT3FX_fftwASL(NRX,NRY,NRZ,NXYZ,VG,VCLR,plancfp,plancbp)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(92)
-      call prof_start(93)
+      call stop_timer('vofrho_fft')
+      call start_timer('vofrho_hartree_zero')
 #endif
 C
 C        HARTREE POTENTIAL
@@ -84,8 +84,8 @@ C
       DO 47 IG=1,NXYZ
    47 VCSR(IG)=(0.D0,0.D0)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(93)
-      call prof_start(94)
+      call stop_timer('vofrho_hartree_zero')
+      call start_timer('vofrho_hartree_build')
 #endif
 C
 *VDIR NODEP(VCSR,RHOG)
@@ -94,13 +94,13 @@ C
       JG=I2G(IG)
    49 VCSR(JG)=0.5D0*FPI*RHOG(JG)/(TPIBA2*G(4,IG))
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(94)
-      call prof_start(95)
+      call stop_timer('vofrho_hartree_build')
+      call start_timer('vofrho_hartree_add')
 #endif
       DO 48 IG=1,NXYZ
    48 VG(IG)=VG(IG)+VCSR(IG)*2.D0
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(95)
+      call stop_timer('vofrho_hartree_add')
 #endif
 C
 c *** Smoothing of potential
@@ -808,7 +808,7 @@ C
 C    DO G SUM FOR THE CASE WHERE A=B
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(125)
+      call start_timer('ewald_g_space')
 #endif
       ESUM0=0.D0
       DO 1530 I=NG,2,-1
@@ -953,7 +953,7 @@ ccc      endif  ! if i.ge.nbegint(my_rank) .and. i.le.nendt(my_rank)
  1545 CONTINUE
 #endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(125)
+      call stop_timer('ewald_g_space')
 #endif
 C
 C****************************
@@ -967,7 +967,7 @@ C
 C     DO R SUM FOR THE CASE WHERE A=B
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(126)
+      call start_timer('ewald_r_space')
 #endif
       ESUM0=0.D0
       DO 1600 I=2,NLV
@@ -1060,8 +1060,8 @@ CC      WRITE(6,*) '  EWALD R ',ESUMR,TIM2-TIM1
 CC        WRITE(6,*) '  EWALD R ',ESUMR
       EWA=ESUMG+ESUMR
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(126)
-      call prof_start(127)
+      call stop_timer('ewald_r_space')
+      call start_timer('ewald_mpi')
 #endif
       TEMP=0.d0
        call MPI_Reduce(EWA,TEMP,1,MPI_DOUBLE_PRECISION
@@ -1080,7 +1080,7 @@ CC        WRITE(6,*) '  EWALD R ',ESUMR
       call MPI_Bcast(FORCE,3*NATOT,MPI_DOUBLE_PRECISION,0,
      &        MPI_COMM_WORLD,ierr)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(127)
+      call stop_timer('ewald_mpi')
 #endif
 C     DO 17 I=1,NTAUQ
 C  17 WRITE(6,*) (FORCE(J,I),J=1,3)
@@ -1552,7 +1552,7 @@ C
 C       EWALD SUM
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(121)
+      call start_timer('locpotf_ewald')
 #endif
       CALL EWALDY(TPIBA,OMEGA,EWA,NGQ,NG,G,EXPG,FORCE,LATQ,EWVEC,
      &           NTAUQ,NTYQ,NTYPE,TAU,NUMTY,NIDN,ZV,ZZ,
@@ -1560,7 +1560,7 @@ C
 c
      &          ,nbegintt,nendtt,ncpuq,ncpu )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(121)
+      call stop_timer('locpotf_ewald')
       call ewald_reuse_observe(EWA,FORCE,NTAUQ,NTYQ,NUMTY,NIDN)
 #endif
 C *****   EWALD END
@@ -1594,7 +1594,7 @@ C LOCAL POTENTITAL
 C
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(120)
+      call start_timer('locpotf_local_mpi')
 #endif
       do IG=1,NXYZ
 c       WEXT(IG)=DCONJG( RHOG(IG)+REXT(IG) )
@@ -1734,7 +1734,7 @@ C
            endif ! end of if my_rank.ne.0 loop
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(120)
+      call stop_timer('locpotf_local_mpi')
 #endif
 C * TEMP
 C     WRITE(6,6004)
@@ -1756,7 +1756,7 @@ ccc       write(6,7979)(WEXT(IG),IG=1,NXYZ,NXYZ)
  7979 format(4f22.16)
 c *** temp check : end
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(122)
+      call start_timer('locpotf_local_energy')
 #endif
       ELOCAL=0.D0
       ELOCALd=0.D0
@@ -1777,7 +1777,7 @@ c *** temp check :end
       ELOCAL=OMEGA*ELOCAL
       ELOCALd=OMEGA*ELOCALd
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(122)
+      call stop_timer('locpotf_local_energy')
 #endif
 C
 c *** temp check
@@ -1801,7 +1801,7 @@ c      endif
 c *** temp check ; end
 C         EXCHANGE CORRELATION PART
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(123)
+      call start_timer('locpotf_xc')
 #endif
       IF(IGGA.EQ.1) THEN
 c *** temp check
@@ -1825,7 +1825,7 @@ c *** temp check: end
       ENDIF
       EXC = OMEGA*EXC/DBLE(NXYZ)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(123)
+      call stop_timer('locpotf_xc')
 #endif
 C
 C      CALL S2VXC2(NXYZ,RHO,VG)
@@ -1839,7 +1839,7 @@ C
 C        HARTREE ENERGY
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(124)
+      call start_timer('locpotf_hartree')
 #endif
       EH=0.D0
       EHd=0.D0
@@ -1867,7 +1867,7 @@ C
       DELTAd=EHd+ELOCALd
       DELTA=EWA+EH+ELOCAL+EXC+ESELF
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(124)
+      call stop_timer('locpotf_hartree')
 #endif
 C
       RETURN

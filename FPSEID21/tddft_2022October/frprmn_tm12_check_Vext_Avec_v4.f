@@ -373,7 +373,7 @@ c      nscf=10  ! but not 10, actually.
 c
       do 9898 iscf=1,nscf  ! start Predictor Corrector loop
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(53)
+      call start_timer('frprmn_vloc_prepare')
 #endif
 c ***
       if ( iscf.eq.1 ) then 
@@ -449,7 +449,7 @@ c       enddo
 c      endif
 c *** temp check end
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(65)
+      call start_timer('frprmn_vloc_locpot')
 #endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
@@ -459,8 +459,8 @@ c     & I2G,RHO2,OMEGA,
 c
      & ,nbegint,nendt,ncpuq )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(65)
-      call prof_start(66)
+      call stop_timer('frprmn_vloc_locpot')
+      call start_timer('frprmn_vloc_smooth_fft')
 #endif
 c *** Make Vloc(*,1) in real space !!!!
 c *** potential smoothing !!
@@ -484,12 +484,12 @@ c *** for Kokubo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      & ,plancfp,plancbp)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(66)
+      call stop_timer('frprmn_vloc_smooth_fft')
 #endif
       call vlocgen(Vloc(1,1),rho4,nxyz,VEXT,ft1)
 c  ***** part 2 **********
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(65)
+      call start_timer('frprmn_vloc_locpot')
 #endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
@@ -499,8 +499,8 @@ c     & I2G,RHO2,OMEGA,
 c
      & ,nbegint,nendt,ncpuq )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(65)
-      call prof_start(66)
+      call stop_timer('frprmn_vloc_locpot')
+      call start_timer('frprmn_vloc_smooth_fft')
 #endif
 c *** Make Vloc(*,2) in real space !!!!
 c *** potential smoothing !!
@@ -524,12 +524,12 @@ c **** for Kokubo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      & ,plancfp,plancbp)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(66)
+      call stop_timer('frprmn_vloc_smooth_fft')
 #endif
       call vlocgen(Vloc(1,2),rho4,nxyz,VEXT,ft2)
 c  ***** part 3 **********
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(65)
+      call start_timer('frprmn_vloc_locpot')
 #endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
@@ -539,8 +539,8 @@ c     & I2G,RHO2,OMEGA,
 c
      & ,nbegint,nendt,ncpuq )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(65)
-      call prof_start(66)
+      call stop_timer('frprmn_vloc_locpot')
+      call start_timer('frprmn_vloc_smooth_fft')
 #endif
 c *** Make Vloc(*,3) in real space !!!!
 c *** potential smoothing !!
@@ -564,12 +564,12 @@ c *** for Kokubo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      & ,plancfp,plancbp)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(66)
+      call stop_timer('frprmn_vloc_smooth_fft')
 #endif
       call vlocgen(Vloc(1,3),rho4,nxyz,VEXT,ft3)
 c  ***** part 4 **********
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(65)
+      call start_timer('frprmn_vloc_locpot')
 #endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
@@ -579,8 +579,8 @@ c     & I2G,RHO2,OMEGA,
 c
      & ,nbegint,nendt,ncpuq )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(65)
-      call prof_start(66)
+      call stop_timer('frprmn_vloc_locpot')
+      call start_timer('frprmn_vloc_smooth_fft')
 #endif
 c *** Make Vloc(*,4) in real space !!!!
 c *** potential smoothing !!
@@ -604,12 +604,12 @@ c **** for Kokubo fftw ASL compativle
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      &  ,plancfp,plancbp)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(66)
+      call stop_timer('frprmn_vloc_smooth_fft')
 #endif
       call vlocgen(Vloc(1,4),rho4,nxyz,VEXT,ft4)
 c  ***** part 5 **********
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(65)
+      call start_timer('frprmn_vloc_locpot')
 #endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
@@ -619,8 +619,8 @@ c     & I2G,RHO2,OMEGA,
 c
      & ,nbegint,nendt,ncpuq )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(65)
-      call prof_start(66)
+      call stop_timer('frprmn_vloc_locpot')
+      call start_timer('frprmn_vloc_smooth_fft')
 #endif
 c *** Make Vloc(*,5) in real space !!!!
 c *** potential smoothing !!
@@ -644,13 +644,13 @@ c *** for Kokubo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      &   ,plancfp,plancbp)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(66)
+      call stop_timer('frprmn_vloc_smooth_fft')
 #endif
       call vlocgen(Vloc(1,5),rho4,nxyz,VEXT,ft5)
 c
 c  ***** part 6!! **********
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(65)
+      call start_timer('frprmn_vloc_locpot')
 #endif
       CALL LOCPOT(NXYZ,NG,NGQ,G,TPIBA,RHO4,RHO1,
 c     & I2G,RHO2,OMEGA,
@@ -660,8 +660,8 @@ c     & I2G,RHO2,OMEGA,
 c
      & ,nbegint,nendt,ncpuq )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(65)
-      call prof_start(66)
+      call stop_timer('frprmn_vloc_locpot')
+      call start_timer('frprmn_vloc_smooth_fft')
 #endif
 c *** Make rho4 for advanced step in real space !!!!
 c *** potential smoothing !!
@@ -685,7 +685,7 @@ c *** for Kokubo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO4,RHO1
      &  ,plancfp,plancbp)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(66)
+      call stop_timer('frprmn_vloc_smooth_fft')
 #endif
 c ***  RHO4 at t+dt on real space
 c  ***
@@ -699,10 +699,10 @@ c **** temp check : end
       endif
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(53)
-      call prof_start(54)
-      call prof_start(64)
-      call prof_start(67)
+      call stop_timer('frprmn_vloc_prepare')
+      call start_timer('frprmn_vrho_mix')
+      call start_timer('frprmn_vrho_mix_control')
+      call start_timer('frprmn_vrho_seed_ctrl')
 #endif
 C     CALL CLOCK(TIM)
 C6000 FORMAT(23X,'****  FRPRMN: AFT LOCPOT: ',F15.7,' SEC')
@@ -740,9 +740,9 @@ c
 c      call MPI_Barrier(MPI_COMM_WORLD,ierr)
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(67)
-      call prof_stop(64)
-      call prof_start(62)
+      call stop_timer('frprmn_vrho_seed_ctrl')
+      call stop_timer('frprmn_vrho_mix_control')
+      call start_timer('frprmn_vrho_vofrho')
 #endif
       CALL VOFRHO(NRX,NRY,NRZ,NXYZ,NG,NGQ,G,TPIBA,
      & RHO1,RHO2,RHO3,RHO,RHOG,I2G,
@@ -757,8 +757,8 @@ c     & ,DCOEF(1,6),DCOEF(1,7),DCOEF(1,8),DCOEF(1,9),DCOEF(1,10) )
      &  ,CWORK(1,1),CWORK(1,2),CWORK(1,3),CWORK(1,4),CWORK(1,5)
      &  ,CWORK(1,6),CWORK(1,7),CWORK(1,8),CWORK(1,9),CWORK(1,10) )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(62)
-      call prof_start(63)
+      call stop_timer('frprmn_vrho_vofrho')
+      call start_timer('frprmn_vrho_smooth_fft')
 #endif
 C
 c *** Smoothing of potential : rho1 as work area
@@ -781,9 +781,9 @@ c      call FFT3BX_fftw(NXYZ,RHO3,plancfp,plancbp)
 c *** for Koukbo fftw ASL compatible
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO3,RHO1,plancfp,plancbp)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(63)
-      call prof_start(64)
-      call prof_start(68)
+      call stop_timer('frprmn_vrho_smooth_fft')
+      call start_timer('frprmn_vrho_mix_control')
+      call start_timer('frprmn_vrho_predict_ctrl')
 #endif
 c
 c ****  NOW RHO3 is in R-space
@@ -873,12 +873,12 @@ ccc          VGPST(IG)=VG0(IG)
       endif
 c  ***  interpolate VG(t+dt/2) from new and past VG's ***
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(68)
-      call prof_start(69)
+      call stop_timer('frprmn_vrho_predict_ctrl')
+      call start_timer('frprmn_vrho_correct_ctrl')
 #endif
       if ( iscf.ge.2 ) then
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(70)
+      call start_timer('frprmn_vrho_interp')
 #endif
 cc *** 
 c
@@ -948,12 +948,12 @@ c
         endif
        endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(70)
-      call prof_start(71)
+      call stop_timer('frprmn_vrho_interp')
+      call start_timer('frprmn_vrho_converge')
 #endif
        call vgconv(VG3,VGOLD,NXYZ,TR2,RDIF,IOK)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(71)
+      call stop_timer('frprmn_vrho_converge')
 #endif
 cc  ***  temp check
 c       write(6,*)' iscf = ',iscf,' Convergence = ',RDIF
@@ -973,7 +973,7 @@ c       if (IOK.eq.1) goto 9899 ! Quit the SCF loop
 c ***
 cc       if (my_rank.ne.0 ) then
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(72)
+      call start_timer('frprmn_vrho_coef_restore')
 #endif
 #ifndef _OPENACC
 c *** CPU/FFTW restart state.  On OpenACC, COEF0 remains authoritative on
@@ -989,22 +989,22 @@ c       call coefcp(coef0(1,nbgn,ik0),coef(1,nbgn,ik0),ng2q*nblng)
         VGOLD(ig)=VG3(ig) ! store
        enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(72)
+      call stop_timer('frprmn_vrho_coef_restore')
 #endif
       endif
 c
  9799 continue
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(69)
-      call prof_stop(64)
-      call prof_stop(54)
-      call prof_start(55)
+      call stop_timer('frprmn_vrho_correct_ctrl')
+      call stop_timer('frprmn_vrho_mix_control')
+      call stop_timer('frprmn_vrho_mix')
+      call start_timer('frprmn_energy_diag')
 #endif
 C
 C#################################################################
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(78)
+      call start_timer('frprmn_energy_vg_build')
 #endif
 c      if ( itstep.eq.0 .or. itstep.eq.ntstep) then
 c      do ig=1,nxyz
@@ -1020,8 +1020,8 @@ c       VG(IG)=RHO3(IG)+RHO4(IG)
        VG(IG)=RHO3(IG)+RHO4(IG)+ft*VEXT(IG)
        enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(78)
-      call prof_start(79)
+      call stop_timer('frprmn_energy_vg_build')
+      call start_timer('frprmn_energy_efield')
 #endif
 c
 c *** compute E-field from VG when (itstep mode itmod) = 0
@@ -1044,20 +1044,20 @@ c
         call Efield(Vplt,nrx,nry,nrz,nxyz,time,93)
       endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(79)
+      call stop_timer('frprmn_energy_efield')
 #endif
 c
 c *** The final-step expectation path below reads COEF on the host for
 c *** every correction, including corrections that have not converged.
       if (itstep.eq.ntstep .and. icoef_host_current.eq.0) then
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       call prof_stop(55)
+       call stop_timer('frprmn_energy_diag')
 #endif
-       call prof_start(44)
+       call start_timer('frprmn_coef_sync')
 !$acc update self(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
-       call prof_stop(44)
+       call stop_timer('frprmn_coef_sync')
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-       call prof_start(55)
+       call start_timer('frprmn_energy_diag')
 #endif
        icoef_host_current=1
       endif
@@ -1083,7 +1083,7 @@ c       endif
 c **** temp check : end !
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(80)
+      call start_timer('frprmn_energy_expect')
 #endif
       if ( itstep.eq.0 .or. itstep.eq.ntstep) then
 c ********************
@@ -1111,7 +1111,7 @@ c *** temp check : end
       iib=ib-nbegin(my_rank)+1
       call zero(dcoef,ng2q )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(81)
+      call start_timer('energy_diag_hlocal')
 #endif
       CALL HLOCAL( NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q, mxbnd,
 c     & COEF(1,ib,ik),DCOEF(1,1),
@@ -1124,8 +1124,8 @@ c     & RHO1, RHO2, VG, J2G(1,ik), WSAVE_XYZ,   IFAC_XYZ  )
 c *** for Kokubo FFTW
      & RHO1, RHO2, VG, J2G(1,ik), plancfp,plancbp  )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(81)
-      call prof_start(82)
+      call stop_timer('energy_diag_hlocal')
+      call start_timer('energy_diag_nonloc')
 #endif
 C
       CALL NONLOC( NXYZ, NG2(IK), NG2Q, mxbnd,
@@ -1138,8 +1138,8 @@ c     & YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &     ,NGcont,iylm_reuse )
       iylm_reuse=1
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(82)
-      call prof_start(83)
+      call stop_timer('energy_diag_nonloc')
+      call start_timer('energy_diag_dot')
 #endif
        temp=0
         do ig=1,ng2(ik)
@@ -1148,7 +1148,7 @@ c        temp=temp + dble( dconjg( coef(ig,ib,ik) )*dcoef(ig,1) )
         enddo
        EE(ib,ik)=temp
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(83)
+      call stop_timer('energy_diag_dot')
 #endif
        enddo  ! end of ib loop
 c *** temp check
@@ -1168,7 +1168,7 @@ c *** temp check : end
 !     call ftrace_region_begin("sendrecv01")
 ! ==============================================================================
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(84)
+      call start_timer('energy_diag_ee_comm')
 #endif
       if ( my_rank.ne.0 ) then
       nbleng=nend(my_rank)-nbegin(my_rank)+1
@@ -1215,7 +1215,7 @@ c       endif
 c **** temp check
       endif   ! if my_rank.ne.0 loop end!
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(84)
+      call stop_timer('energy_diag_ee_comm')
 #endif
 ! ==============================================================================
 !     call MPI_Barrier(MPI_COMM_WORLD,ierr)
@@ -1245,7 +1245,7 @@ c       if ( itstep.eq.ntstep .and. ib.lt.nbseq(ik) ) then
 cc 9799 continue
        if ( itstep.eq.ntstep .and. IOK.eq.1 ) then
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(85)
+      call start_timer('energy_offdiag_total')
 #endif
 c *** temp check
         if ( my_rank.eq.0 ) then
@@ -1263,7 +1263,7 @@ c        enddo
          iib2=ib2-nbegin(my_rank)+1
           call zero(dcoef,ng2q )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(86)
+      call start_timer('offdiag_hlocal')
 #endif
           CALL HLOCAL( NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q, mxbnd,
      &    COEF(1,iib2,ik),DCOEF(1,1),
@@ -1275,8 +1275,8 @@ c     &   RHO1, RHO2, VG, J2G(1,ik), WSAVE_XYZ,   IFAC_XYZ  )
 c *** for Kokubo FFTW
      &   RHO1, RHO2, VG, J2G(1,ik), plancfp,plancbp  )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(86)
-      call prof_start(87)
+      call stop_timer('offdiag_hlocal')
+      call start_timer('offdiag_nonloc')
 #endif
 C
          CALL NONLOC( NXYZ, NG2(IK), NG2Q, mxbnd,
@@ -1287,8 +1287,8 @@ c     &   YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &             NIDN, IOVP(1,1,ik), MXOFL,GDUMP(1,IK),NGNL(1,IK)
      &  ,NGcont,iylm_reuse )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(87)
-      call prof_start(88)
+      call stop_timer('offdiag_nonloc')
+      call start_timer('offdiag_dot')
 #endif
 c
 c          do ib1=nbegin(my_rank),nend(my_rank)
@@ -1305,7 +1305,7 @@ c     &      ,ib2,'>=',cmat(ib1,ib2)
 c *** temp check : end
           enddo ! end of ib1 loop
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(88)
+      call stop_timer('offdiag_dot')
 #endif
         enddo  ! end of ib2 loop
 c *** temp check
@@ -1355,7 +1355,7 @@ c *** temp check : end
 ! ==============================================================================
          do 2200 icpu2=0,ncpu
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(89)
+      call start_timer('offdiag_comm_copy')
 #endif
          if ( my_rank.gt.icpu2 ) then
           nbleng=nend(my_rank)-nbegin(my_rank)+1
@@ -1372,13 +1372,13 @@ c *** temp check : end
      &    MPI_DOUBLE_COMPLEX,icpu2,tag+1,MPI_COMM_WORLD,status,ierr)
          endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(89)
+      call stop_timer('offdiag_comm_copy')
 #endif
         do ib2=nbegin(icpu2),nend(icpu2)
          iib2=ib2-nbegin(icpu2)+1
          call zero(dcoef,ng2q )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(86)
+      call start_timer('offdiag_hlocal')
 #endif
          CALL HLOCAL( NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q, mxbnd,
      &   COEF0(1,iib2,ik),DCOEF(1,1),
@@ -1390,8 +1390,8 @@ c     &   RHO1, RHO2, VG, J2G(1,ik), WSAVE_XYZ, IFAC_XYZ  )
 c *** for Kokubo FFTW
      &   RHO1, RHO2, VG, J2G(1,ik), plancfp,plancbp  )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(86)
-      call prof_start(87)
+      call stop_timer('offdiag_hlocal')
+      call start_timer('offdiag_nonloc')
 #endif
 C
          CALL NONLOC( NXYZ, NG2(IK), NG2Q, mxbnd,
@@ -1402,8 +1402,8 @@ c     &   YLM, G2(1,1,ik), RHO2, RHO3, TPIBA, WORK2, VPJ(1,1,1,1,ik),
      &             NIDN, IOVP(1,1,ik), MXOFL,GDUMP(1,IK),NGNL(1,IK)
      &   ,NGcont,iylm_reuse )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(87)
-      call prof_start(88)
+      call stop_timer('offdiag_nonloc')
+      call start_timer('offdiag_dot')
 #endif
 c
 c ** temp check
@@ -1430,7 +1430,7 @@ c     &      ,ib1,'>=',cmat(ib2,ib1)
 c *** temp check : end
          enddo ! end of ib1 loop
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(88)
+      call stop_timer('offdiag_dot')
 #endif
        enddo ! end of ib2 loop
  2200   continue   ! end of icpu2 loop
@@ -1459,7 +1459,7 @@ c *** Gather cmat on my_rank=0
 !     call ftrace_region_begin("sendrecv03")
 ! ==============================================================================
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(90)
+      call start_timer('offdiag_gather_output')
 #endif
         if ( my_rank.eq.0 ) then
          do icpu=1,ncpu
@@ -1494,11 +1494,11 @@ c ** Gather end
            enddo    ! end of ib2 loop
        endif ! end of if my_rank.eq.0
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(90)
+      call stop_timer('offdiag_gather_output')
 #endif
 c **************
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(85)
+      call stop_timer('energy_offdiag_total')
 #endif
        endif  ! end of if  itstep.eq.ntstep .and... loop
       enddo   ! end of ik loop
@@ -1524,8 +1524,8 @@ C
       endif
 c
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(80)
-      call prof_stop(55)
+      call stop_timer('frprmn_energy_expect')
+      call stop_timer('frprmn_energy_diag')
 #endif
       if (IOK.eq.1 ) goto 9899  ! quit the Predictor-correcter loop
 ! Keep COEF allocated until the immediately following ELECTF call.  The
@@ -1536,7 +1536,7 @@ c
       endif
       if ( itstep.eq.0 ) then
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(56)
+      call start_timer('frprmn_initial_density')
 #endif
 c  **** for accuracy of inital EH ELOCAL energies
 c *** temp check
@@ -1597,7 +1597,7 @@ c     &    WSAVE_XYZ, IFAC_XYZ,LY2, LZ1, LZ2,fdump,itstep,itmod   )
 c *** for Kokubo FFT -- LY2,LZ1,LZ2 are still necessary for ROTRA
      &    plancfp,plancbp, LY2, LZ1, LZ2,fdump,itstep,itmod   )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(56)
+      call stop_timer('frprmn_initial_density')
 #endif
       return
       endif
@@ -1607,7 +1607,7 @@ c *** predictor-corrector sequence.  COEF0 is the unchanged wavefunction
 c *** used to restart every correction.  The host coefcp above remains only
 c *** for CPU/FFTW.  OpenACC initializes COEF0 from resident COEF on device.
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(45)
+      call start_timer('frprmn_coef_setup')
 #endif
       if (iscf.eq.1) then
 #ifdef _OPENACC
@@ -1640,8 +1640,8 @@ c *** for CPU/FFTW.  OpenACC initializes COEF0 from resident COEF on device.
        icoef_host_current=0
       endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(45)
-      call prof_start(57)
+      call stop_timer('frprmn_coef_setup')
+      call start_timer('frprmn_iter_init')
 #endif
 c
       DO 600 I=1,NXYZ
@@ -1651,13 +1651,13 @@ C
       ENL=0.D0
       EKINE=0.D0
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(57)
+      call stop_timer('frprmn_iter_init')
 #endif
       DO 2000 IK=1,NUMK
 c *****
       if (iscf.eq.1 ) then
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(46)
+      call start_timer('frprmn_gdump_prepare')
 #endif
 c *****
       GFAC=GMHF*2
@@ -1786,8 +1786,8 @@ c *** temp check : end
 c ** for P-A: nonlocal part 
 c +++++++++
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(46)
-      call prof_start(47)
+      call stop_timer('frprmn_gdump_prepare')
+      call start_timer('frprmn_part1to5')
 #endif
          NGNLMX=1
          do ity=1,NTYPE
@@ -1819,14 +1819,14 @@ c
 c
 c **** 
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(47)
+      call stop_timer('frprmn_part1to5')
 #endif
       endif
 c **** iscf=1 loop end
 c
 c *** prepare EXTAU !!!
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(48)
+      call start_timer('frprmn_extau_prepare')
 #endif
 c ****** part 1 ********
 ! ==============================================================================
@@ -2030,8 +2030,8 @@ c     & ,MPI_DOUBLE_COMPLEX, icpu,MPI_COMM_WORLD,ierr)
 c      enddo
 c **
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(48)
-      call prof_start(58)
+      call stop_timer('frprmn_extau_prepare')
+      call start_timer('frprmn_pre_tmevl')
 #endif
 c *** temp check
 c      miya=13
@@ -2119,7 +2119,7 @@ c ** temp check
 C ** temp check  : end
 c **
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(58)
+      call stop_timer('frprmn_pre_tmevl')
 #endif
       CALL TMEVL(itstep,RDIF0,ITCF,NRX,NRY,NRZ,NXYZ,NG2(IK),NG2Q,
 c     &             NBNDQ, NBSEQ,NBND, COEF(1,1,ik), DCOEF(1,1), CWK1,
@@ -2166,7 +2166,7 @@ c
 c
      &   ,nbegin,nend,mshbegin,mshend,ncpuq,ncpu  )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(59)
+      call start_timer('frprmn_post_tmevl')
 #endif
       icoef_host_current=0
 c **** temp check
@@ -2189,11 +2189,11 @@ C6004 FORMAT(23X,'****  FRPRMN: AFT CGDIAG: ',F15.7,' SEC')
 C     WRITE(6,6004) TIM
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(59)
+      call stop_timer('frprmn_post_tmevl')
 #endif
  2000 CONTINUE  ! end of IK loop
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(60)
+      call start_timer('frprmn_density_init')
 #endif
 c
 c      call MPI_Barrier(MPI_COMM_WORLD,ierr)
@@ -2222,9 +2222,9 @@ c 1911 format(4f20.12)
 c ****  temp check end
 cccc      NBND1 = NFL + 1
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(60)
+      call stop_timer('frprmn_density_init')
 #endif
-      call prof_start(41)
+      call start_timer('frprmn_rhoofk')
       DO 630 IK=1,NUMK
 c *** temp check
 c      write(6,*)'my_rank=',my_rank,' IK=',ik
@@ -2249,7 +2249,7 @@ c *** for Kokubo FFTW
 c
      &            ,nbegin,nend,ncpuq)
   630 CONTINUE
-      call prof_stop(41)
+      call stop_timer('frprmn_rhoofk')
 c *** temp check
 c      miya=13
 c      if ( miya.eq.13 ) then
@@ -2261,12 +2261,12 @@ C ****
                  IF( NPFL .EQ. 0 ) GO TO 8500
 C ****
       if (icoef_host_current.eq.0) then
-       call prof_start(44)
+       call start_timer('frprmn_coef_sync')
 !$acc update self(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
-       call prof_stop(44)
+       call stop_timer('frprmn_coef_sync')
        icoef_host_current=1
       endif
-      call prof_start(42)
+      call start_timer('frprmn_sumchr')
       DO 634 IK=1,NUMK
         CALL SUMCHR( MXBND, 1, NFL, NPFL, NRX, NRY, NRZ, NXYZ,
      &               RHO, RHO1, RHO2, RHO3, IOWF(1,IK), NG2Q,
@@ -2283,11 +2283,11 @@ c *** for Kokubo FFTW
 c
      &        ,nbegin,nend,ncpuq )
   634 CONTINUE
-      call prof_stop(42)
+      call stop_timer('frprmn_sumchr')
 C ****
  8500            CONTINUE
 C ****
-      call prof_start(43)
+      call start_timer('frprmn_rhoget')
       CALL RHOGET( NRX, NRY, NRZ, NXYZ, RHO, RHO1, RHOG,
      &             NTOT, S, OMEGA, ZVAL,RHO2,I2G,G,
 c *** for Sugino FFT
@@ -2297,7 +2297,7 @@ c *** for Kokubo FFT -- LY2,LZ1,LZ2 are still necessary for ROTRA
 c     &    WSAVE_XYZ, IFAC_XYZ,LY2, LZ1, LZ2,fdump,itstep,itmod   )
 c *** for Kokubo FFT -- LY2,LZ1,LZ2 are still necessary for ROTRA
      &    plancfp,plancbp, LY2, LZ1, LZ2,fdump,itstep,itmod   )
-      call prof_stop(43)
+      call stop_timer('frprmn_rhoget')
 C
 c ****  temp check
 c      write(6,*)' After calling RHOGET ! -- RHO '
@@ -2308,17 +2308,17 @@ C
 C
  9899 continue
       if (icoef_host_current.eq.0) then
-       call prof_start(44)
+       call start_timer('frprmn_coef_sync')
 !$acc update self(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
-       call prof_stop(44)
+       call stop_timer('frprmn_coef_sync')
        icoef_host_current=1
       endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(61)
+      call start_timer('frprmn_exit_cleanup')
 #endif
 !$acc exit data delete(COEF0(1:NG2Q,1:MXBND,1:NUMKQ))
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(61)
+      call stop_timer('frprmn_exit_cleanup')
 #endif
 c *** 
  1999 CONTINUE
@@ -3007,11 +3007,11 @@ c     *** part 1 ***
        RHO3(IG)=DSQRT(G21(4,IG))*TPIBA
       enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(49)
+      call start_timer('part1to5_getylm')
 #endif
       CALL GETYLM(NG2Q,NGNLMX,G21,RHO3,YLM1,TPIBA,NGcont)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(49)
+      call stop_timer('part1to5_getylm')
 #endif
       CALL VPJ_GEN(G2,G21,NG2Q,NG2,RHO3,VPJ1
      &         ,VPJWORK,VPP21,
@@ -3032,11 +3032,11 @@ c     *** part 2 ***
        RHO3(IG)=DSQRT(G22(4,IG))*TPIBA
       enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(49)
+      call start_timer('part1to5_getylm')
 #endif
       CALL GETYLM(NG2Q,NGNLMX,G22,RHO3,YLM2,TPIBA,NGcont)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(49)
+      call stop_timer('part1to5_getylm')
 #endif
       CALL VPJ_GEN(G2,G22,NG2Q,NG2,RHO3,VPJ2
      &         ,VPJWORK,VPP22,
@@ -3057,11 +3057,11 @@ c     *** part 3 ***
        RHO3(IG)=DSQRT(G23(4,IG))*TPIBA
       enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(49)
+      call start_timer('part1to5_getylm')
 #endif
       CALL GETYLM(NG2Q,NGNLMX,G23,RHO3,YLM3,TPIBA,NGcont)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(49)
+      call stop_timer('part1to5_getylm')
 #endif
       CALL VPJ_GEN(G2,G23,NG2Q,NG2,RHO3,VPJ3
      &         ,VPJWORK,VPP23,
@@ -3082,11 +3082,11 @@ c     *** part 4 ***
        RHO3(IG)=DSQRT(G24(4,IG))*TPIBA
       enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(49)
+      call start_timer('part1to5_getylm')
 #endif
       CALL GETYLM(NG2Q,NGNLMX,G24,RHO3,YLM4,TPIBA,NGcont)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(49)
+      call stop_timer('part1to5_getylm')
 #endif
       CALL VPJ_GEN(G2,G24,NG2Q,NG2,RHO3,VPJ4
      &         ,VPJWORK,VPP24,
@@ -3107,11 +3107,11 @@ c     *** part 5 ***
        RHO3(IG)=DSQRT(G25(4,IG))*TPIBA
       enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(49)
+      call start_timer('part1to5_getylm')
 #endif
       CALL GETYLM(NG2Q,NGNLMX,G25,RHO3,YLM5,TPIBA,NGcont)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(49)
+      call stop_timer('part1to5_getylm')
 #endif
       CALL VPJ_GEN(G2,G25,NG2Q,NG2,RHO3,VPJ5
      &         ,VPJWORK,VPP25,

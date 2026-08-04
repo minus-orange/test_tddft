@@ -145,7 +145,7 @@ c      ioption=3     ! choise of 4-th order decomposition ver.1
 c      ioption=4     ! choise of 4-th order decomposition ver.2
 c
       call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
-      call prof_start(8)
+      call start_timer('tmevl_total')
 c
 c  *** temp check
 c      if (my_rank.eq.0) then
@@ -532,10 +532,10 @@ c        write(6,*)' norm = ',temp
 c      endif
 c *** temp check:end
       nbndloc=nend(my_rank)-nbegin(my_rank)+1
-      call prof_start(35)
+      call start_timer('tmevl_p_enter')
 c     P is owned by FRPRMN across the predictor-corrector sequence.
 c     Keep its mapping after this call and only synchronize the host result.
-      call prof_stop(35)
+      call stop_timer('tmevl_p_enter')
       dt1=pr1*dt
 c      call exkin(dt1,nxyz,ng2q,P(1,ib),G2,TPIBA2,GDUMP,GMHF)
       call exkin_(dt1,nxyz,ng2q,P,G2,TPIBA2,GDUMP1,GMHF,
@@ -737,7 +737,7 @@ c
 c Calculation of the expectation values.
 c
        if ( mod(itstep,itmod).eq.0 ) then
-        call prof_start(13)
+        call start_timer('tmevl_expectation')
         tag=11
 ccc ***        if ( my_rank.ne.0 ) then
 c         do ib=1,nbseq
@@ -785,7 +785,7 @@ c        write(6,*)'my_rank=',my_rank,'EE(',ib,')=',EE(IB)*27.212d0
 c        enddo
 c *** temp check ; end
         endif   ! if my_rank.ne.o loop:  end
-        call prof_stop(13)
+        call stop_timer('tmevl_expectation')
        endif ! if mod(itstep,itmod).eq.0 loop: end
 c ***  temp check
 c       if ( my_rank.eq.0 ) then
@@ -798,7 +798,7 @@ c      write(6,*)' in sub. TMEVL : VG !! '
 c      write(6,*)( vg(ig),ig=1,1500,100 )
 c ***  temp check : end
 C
-      call prof_stop(8)
+      call stop_timer('tmevl_total')
       RETURN
       END
 c
@@ -1259,14 +1259,14 @@ c *** exponential of 0.5*dt*(kinetic energy operator)
       COMPLEX*16  P(NG2Q)
       DIMENSION G2(4,NG2Q),GDUMP(NG2Q)
 ccc      dthalf=0.5d0*dt
-      call prof_start(9)
+      call start_timer('tmevl_exkin')
       dtqrt=0.25d0*dt*TPIBA2
       do ig=1,ng2
 c      fac=dtqrt*( GDUMP(ig) - GMHF ) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr) 
       fac=dtqrt*GDUMP(ig) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr) 
       P(ig)=dcmplx( dcos(fac),-dsin(fac) )*P(ig)
       enddo
-      call prof_stop(9)
+      call stop_timer('tmevl_exkin')
       return
       end
       subroutine exkin_(dt,ng2,ng2q,P,G2,TPIBA2,GDUMP,GMHF,
@@ -1275,10 +1275,10 @@ c      fac=dtqrt*( GDUMP(ig) - GMHF ) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr)
       COMPLEX*16  P(NG2Q,mxbnd)
       DIMENSION G2(4,NG2Q),GDUMP(NG2Q)
 ccc      dthalf=0.5d0*dt
-      call prof_start(9)
+      call start_timer('tmevl_exkin')
       dtqrt=0.25d0*dt*TPIBA2
       nbndloc=nend-nbegin+1
-      call prof_start(37)
+      call start_timer('exkin_acc_kernel')
 !$acc parallel loop collapse(2) present(P(1:NG2Q,1:nbndloc))
 !$acc+ copyin(GDUMP(1:ng2))
       do iib=1,nbndloc
@@ -1288,8 +1288,8 @@ c      fac=dtqrt*( GDUMP(ig) - GMHF ) ! note:0.5d0*g2(4,ig)*TPIBA2=Ekin(Hr)
       P(ig,iib)=dcmplx( dcos(fac),-dsin(fac) )*P(ig,iib)
       enddo
       enddo
-      call prof_stop(37)
-      call prof_stop(9)
+      call stop_timer('exkin_acc_kernel')
+      call stop_timer('tmevl_exkin')
       return
       end
 c **************************************************************
@@ -1753,7 +1753,7 @@ c      COMMON/SAITO2/IBUN(3,NTYQ2)
       integer, allocatable, save, dimension(:) :: ngnl_
       integer, save :: ngwork = 0
       logical, save :: first = .true.
-      call prof_start(10)
+      call start_timer('tmevl_s2')
 c *** first: operate kinetic energy term
 c      do ig=1,ng2
 c       fac=dt*0.25d0*g2(4,ig)  ! 0.5d0*g2(4,ig) = Ekin (Hr) 
@@ -1827,8 +1827,8 @@ c ***  temp check for YLM : end
       endif
 ! ==============================================================================
       nbndloc=nend-nbegin+1
-      call prof_start(11)
-      call prof_start(25)
+      call start_timer('s2_nonlocal')
+      call start_timer('s2_nonlocal_make')
       loopcnt = 0
       dthalf=0.5d0*dt
       do 1 ity=ntype,1,-1
@@ -1924,22 +1924,22 @@ c ***  temp check for YLM : end
     3   continue
     2  continue
     1 continue
-      call prof_stop(25)
+      call stop_timer('s2_nonlocal_make')
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call exnlp_reuse_observe(np,work2_,cfac_,ngnl_,
      &                         ngwork,loopcnt)
 #endif
-      call prof_start(26)
-      call prof_start(38)
+      call start_timer('s2_nonlocal_gemm')
+      call start_timer('exnlp_work1_enter')
 !$acc update device(work2_(1:ngwork,1:loopcnt))
-      call prof_stop(38)
-      call prof_start(39)
+      call stop_timer('exnlp_work1_enter')
+      call start_timer('exnlp_meta_enter')
 !$acc update device(cfac_(1:loopcnt),ngnl_(1:loopcnt))
-      call prof_stop(39)
+      call stop_timer('exnlp_meta_enter')
       call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,ngwork,.false.)
-      call prof_stop(26)
-      call prof_stop(11)
+      call stop_timer('s2_nonlocal_gemm')
+      call stop_timer('s2_nonlocal')
 c ****
 c *****  temp check : orthonormality
 c        temp=0
@@ -1949,15 +1949,15 @@ c        enddo
 c        write(6,*)' in sub S2 after non-local:  norm = ',temp
 c *** temp check:end 
 c ** third: operate local potential term
-      call prof_start(12)
+      call start_timer('s2_fft_local')
       nbndloc=nend-nbegin+1
 !$acc data present(P(1:NXYZ,1:nbndloc),J2G(1:NXYZ))
 !$acc& copyin(VGG(1:NXYZ),Vloc(1:NXYZ))
 !$acc& create(RHO1_(1:NXYZ,1:nbndloc),
 !$acc& RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ))
 ! ==============================================================================
-      call prof_start(18)
-      call prof_start(19)
+      call start_timer('s2_acc_kernel')
+      call start_timer('s2_zero_rho2')
 !$acc parallel loop present(RHO2_(1:NXYZ,1:nbndloc)) private(iib,JG)
       do ib=nbegin,nend
        iib=ib-nbegin+1
@@ -1967,10 +1967,10 @@ c  101    RHO1(JG)=(0.D0,0.D0)
   101    RHO2_(JG,iib)=(0.D0,0.D0)
 ! ==============================================================================
       enddo
-      call prof_stop(19)
+      call stop_timer('s2_zero_rho2')
 ! ==============================================================================
 ! ==============================================================================
-      call prof_start(20)
+      call start_timer('s2_scatter_p')
 !$acc parallel loop present(P(1:NXYZ,1:nbndloc),
 !$acc& RHO1_(1:NXYZ,1:nbndloc),J2G(1:NXYZ)) private(iib,IG,JG)
       do idx=1,NXYZ*nbndloc
@@ -1979,8 +1979,8 @@ c  101    RHO1(JG)=(0.D0,0.D0)
          JG=J2G(IG)
          RHO1_(JG,iib)=P(IG,iib)
       enddo
-      call prof_stop(20)
-      call prof_stop(18)
+      call stop_timer('s2_scatter_p')
+      call stop_timer('s2_acc_kernel')
 ! ==============================================================================
 c **** temp check
 c       sum=0
@@ -2018,8 +2018,8 @@ C        RHO1:WAVEFN IN REAL SPACE
 C        VG:POTENTIAL IN REAL SPACE
 C       VGG: HXC POTENTIAL IN R-  SPACE
 C       RHO4:LOCAL PSEUDOPOTENTIAL in R- SPACE
-      call prof_start(18)
-      call prof_start(21)
+      call start_timer('s2_acc_kernel')
+      call start_timer('s2_vg_build')
 ! Build the band-independent local phase once per grid point.
 ! The band loop then multiplies by it instead of repeating COS/SIN.
 !$acc parallel loop present(VG(1:NXYZ),VGG(1:NXYZ),Vloc(1:NXYZ))
@@ -2032,7 +2032,7 @@ c      VG(ig)=VGG(ig)+rho4(ig)
       fac=dt*dreal(VG(ig))
       VG(ig)=dcmplx(dcos(fac),-dsin(fac))
       enddo
-      call prof_stop(21)
+      call stop_timer('s2_vg_build')
 C
 C
 c *** temp check
@@ -2049,7 +2049,7 @@ c       write(6,*)' in sub. S2: before exp(Vlocal) : norm = ',
 c     & sum/dfloat(NXYZ)
 c **** temp check : end
 ! ==============================================================================
-      call prof_start(22)
+      call start_timer('s2_local_multiply')
 !$acc parallel loop present(RHO1_(1:NXYZ,1:nbndloc),
 !$acc& RHO2_(1:NXYZ,1:nbndloc),VG(1:NXYZ)) private(iib,I)
       do ib=nbegin,nend
@@ -2059,8 +2059,8 @@ c **** temp check : end
   300    RHO2_(I,iib)=VG(I)*RHO1_(I,iib)
 ! ==============================================================================
       enddo
-      call prof_stop(22)
-      call prof_stop(18)
+      call stop_timer('s2_local_multiply')
+      call stop_timer('s2_acc_kernel')
 ! ==============================================================================
 c **** temp check
 c       sum=0
@@ -2085,8 +2085,8 @@ c      call FFT3FX_fftw(NXYZ,RHO2,plancfp,plancbp)
 C
 c         DO 110 IG=1,NG2
 ! ==============================================================================
-      call prof_start(18)
-      call prof_start(23)
+      call start_timer('s2_acc_kernel')
+      call start_timer('s2_gather_p')
 !$acc parallel loop present(P(1:NXYZ,1:nbndloc),
 !$acc& RHO2_(1:NXYZ,1:nbndloc),J2G(1:NXYZ)) private(iib,IG,JG)
       do ib=nbegin,nend
@@ -2099,11 +2099,11 @@ c         DO 110 IG=1,NG2
   110    P(IG,iib)=RHO2_(JG,iib)
 ! ==============================================================================
       enddo
-      call prof_stop(23)
-      call prof_stop(18)
+      call stop_timer('s2_gather_p')
+      call stop_timer('s2_acc_kernel')
 ! ==============================================================================
 !$acc end data
-      call prof_stop(12)
+      call stop_timer('s2_fft_local')
 c ****
 c *****  temp check : orthonormality
 c        temp=0
@@ -2114,17 +2114,17 @@ c        write(6,*)' in sub S2 after local pot:  norm = ',temp
 c *** temp check:end
 C
 c ** fourth: operate nonlocal potential terms
-      call prof_start(11)
-      call prof_start(25)
+      call start_timer('s2_nonlocal')
+      call start_timer('s2_nonlocal_make')
 ! The second traversal is the exact reverse of the first traversal over
 ! ity/it/il/ip/l.  Reuse the read-only staging columns and reverse their
 ! lookup; this preserves the original sequential projector order.
-      call prof_stop(25)
-      call prof_start(26)
+      call stop_timer('s2_nonlocal_make')
+      call start_timer('s2_nonlocal_gemm')
       call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,ngwork,.true.)
-      call prof_stop(26)
-      call prof_stop(11)
+      call stop_timer('s2_nonlocal_gemm')
+      call stop_timer('s2_nonlocal')
 c ****
 c *****  temp check : orthonormality
 c        temp=0
@@ -2147,7 +2147,7 @@ c      snorm=snorm+dble( dconjg( p(ig) )*p(ig)  )
 c      enddo
 c      write(6,*)' norm = ',snorm
 c ***  check norm :end
-      call prof_stop(10)
+      call stop_timer('tmevl_s2')
       return
       end
 c ******************************************
@@ -2481,25 +2481,25 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       integer ngnl(loopcnt)
       integer nbndloc
       nbndloc = nend-nbegin+1
-      call prof_start(27)
-      call prof_start(30)
-      call prof_start(38)
+      call start_timer('exnlp_gemm_data')
+      call start_timer('exnlp_gemm_enter')
+      call start_timer('exnlp_work1_enter')
 !$acc enter data copyin(work1(1:NGcont,1:loopcnt))
-      call prof_stop(38)
-      call prof_start(39)
+      call stop_timer('exnlp_work1_enter')
+      call start_timer('exnlp_meta_enter')
 !$acc enter data copyin(cfac(1:loopcnt),ngnl(1:loopcnt))
-      call prof_stop(39)
-      call prof_start(40)
+      call stop_timer('exnlp_meta_enter')
+      call start_timer('exnlp_ct1_create')
 !$acc enter data create(ct1(1:nbndloc))
-      call prof_stop(40)
-      call prof_stop(30)
+      call stop_timer('exnlp_ct1_create')
+      call stop_timer('exnlp_gemm_enter')
       call exnlp_gemm_body(ng2q,work1,coef,omega,ngnl,
      &     mxbnd,nbegin,nend,loopcnt,cfac,NGcont,ct1)
-      call prof_start(32)
+      call start_timer('exnlp_gemm_exit')
 !$acc exit data delete(work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
 !$acc& ngnl(1:loopcnt),ct1(1:nbndloc))
-      call prof_stop(32)
-      call prof_stop(27)
+      call stop_timer('exnlp_gemm_exit')
+      call stop_timer('exnlp_gemm_data')
       return
       end
 
@@ -2510,10 +2510,10 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
      &           cfac(loopcnt)
       integer ngnl(loopcnt)
       logical reverse_order
-      call prof_start(27)
+      call start_timer('exnlp_gemm_data')
       call exnlp_gemm_body_fused(ng2q,work1,coef,omega,ngnl,
      &     mxbnd,nbegin,nend,loopcnt,cfac,ngwork,reverse_order)
-      call prof_stop(27)
+      call stop_timer('exnlp_gemm_data')
       return
       end
 
@@ -2527,7 +2527,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       logical reverse_order
       real*8 sr,si,ar,ai,br,bi,cr,ci,ctr,cti
       nbndloc = nend-nbegin+1
-      call prof_start(28)
+      call start_timer('exnlp_gemm_dot')
 !$acc parallel loop gang vector_length(256)
 !$acc& present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:ngwork,1:loopcnt),cfac(1:loopcnt),
@@ -2562,7 +2562,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
             end do
          end do
       end do
-      call prof_stop(28)
+      call stop_timer('exnlp_gemm_dot')
       return
       end
 
@@ -2576,7 +2576,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
       real*8 sr,si,ar,ai,br,bi,cr,ci
       nbndloc = nend-nbegin+1
       do ia = 1, loopcnt
-         call prof_start(28)
+         call start_timer('exnlp_gemm_dot')
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:NGcont,1:loopcnt),cfac(1:loopcnt),
 !$acc& ngnl(1:loopcnt),ct1(1:nbndloc))
@@ -2597,8 +2597,8 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
             ct1(iib) = dcmplx((cr*sr-ci*si)/omega,
      &                         (cr*si+ci*sr)/omega)
          end do
-         call prof_stop(28)
-         call prof_start(29)
+         call stop_timer('exnlp_gemm_dot')
+         call start_timer('exnlp_gemm_update')
 !$acc parallel loop gang present(coef(1:ng2q,1:nbndloc),
 !$acc& work1(1:NGcont,1:loopcnt),ngnl(1:loopcnt),
 !$acc& ct1(1:nbndloc))
@@ -2609,7 +2609,7 @@ c      dimension g2(4,ng2q), vpj(ng2q), ylm(ng2q,9), tau(3)
      &         + ct1(iib)*dconjg(work1(ig,ia))
             end do
          end do
-         call prof_stop(29)
+         call stop_timer('exnlp_gemm_update')
       end do
       return
       end
@@ -2645,7 +2645,7 @@ C
 C     Keep both FFTs and their surrounding loops on one temporary device
 C     allocation.  The host fallback below remains the reference path.
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(107)
+      call start_timer('hlocal_acc_total')
 #endif
 !$acc data copyin(COEF(1:NG2),VG(1:NXYZ),J2G(1:NG2))
 !$acc& copyout(DCOEF(1:NG2))
@@ -2677,25 +2677,25 @@ C     allocation.  The host fallback below remains the reference path.
          ENDDO
 !$acc end data
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(107)
+      call stop_timer('hlocal_acc_total')
 #endif
 #else
 C     MAIN LOOP
 C
 c      DO 1010 IB=1,NBND
 C
-         call prof_start(101)
+         call start_timer('hlocal_zero')
          DO 101 JG=1,NXYZ
   101    RHO1(JG)=(0.D0,0.D0)
-         call prof_stop(101)
+         call stop_timer('hlocal_zero')
 *VDIR NODEP(RHO1)
 !ocl norecurrence(RHO1)
-         call prof_start(102)
+         call start_timer('hlocal_scatter')
          DO 100 IG=1,NG2
          JG=J2G(IG)
 c  100    RHO1(JG)=COEF(IG,IB)
   100    RHO1(JG)=COEF(IG)
-         call prof_stop(102)
+         call stop_timer('hlocal_scatter')
 C
 c *** for Sugino FFT
 c         CALL FFT3BX(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,
@@ -2705,17 +2705,17 @@ c      CALL FFT3BX_ASL(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,WSAVE_XYZ,IFAC_XYZ)
 c *** for Kokubo FFTW
 c      call FFT3BX_fftw(NXYZ,RHO1,plancfp,plancbp)
 c *** for Kokubo fftw ASL compatible
-      call prof_start(103)
+      call start_timer('hlocal_inverse_fft')
       CALL FFT3BX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,plancfp,plancbp)
-      call prof_stop(103)
+      call stop_timer('hlocal_inverse_fft')
 C
 C        RHO1:WAVEFN IN REAL SPACE
 C        VG:POTENTIAL IN REAL SPACE
 C
-         call prof_start(104)
+         call start_timer('hlocal_vg_multiply')
          DO 300 I=1,NXYZ
   300    RHO2(I)=VG(I)*RHO1(I)
-         call prof_stop(104)
+         call stop_timer('hlocal_vg_multiply')
 c *** for Sugino FFT
 c         CALL FFT3FX(NRX,NRY,NRZ,NXYZ,RHO2,RHO1,
 c     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
@@ -2724,18 +2724,18 @@ c      CALL FFT3FX_ASL(NRX,NRY,NRZ,NXYZ,RHO2,RHO1,WSAVE_XYZ,IFAC_XYZ)
 c *** for Kokubo FFTW
 c      call FFT3FX_fftw(NXYZ,RHO2,plancfp,plancbp)
 c *** for Kokubo fftw ASL compatible
-      call prof_start(105)
+      call start_timer('hlocal_forward_fft')
       CALL FFT3FX_fftwASL(NRX,NRY,NRZ,NXYZ,RHO2,RHO1,plancfp,plancbp)
-      call prof_stop(105)
+      call stop_timer('hlocal_forward_fft')
 C
 *VDIR NODEP(RHO2)
 !ocl norecurrence(RHO2)
-         call prof_start(106)
+         call start_timer('hlocal_gather')
          DO 110 IG=1,NG2
          JG=J2G(IG)
 c  110    DCOEF(IG,IB)=RHO2(JG)
   110    DCOEF(IG)=RHO2(JG)
-         call prof_stop(106)
+         call stop_timer('hlocal_gather')
 C
 c 1010 CONTINUE
 C
@@ -2777,7 +2777,7 @@ c      DIMENSION VPJ(NG2Q/3,3,3,NTYQ),VPP(3,3,NTYQ),IOVP(2,NTYQ)
       TPIBA2=TPIBA**2
 C
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(108)
+      call start_timer('nonloc_kinetic')
 #endif
          DO 581 IG=1,NG2
 c         RHOA(IG)=G2(4,IG)*0.5D0*TPIBA2
@@ -2786,8 +2786,8 @@ c         RHOA(IG)=G2(4,IG)*0.5D0*TPIBA2
          DO 584 IG=1,NG2
   584    DCOEF(IG)=DCOEF(IG)+RHOA(IG)*COEF(IG)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(108)
-      call prof_start(109)
+      call stop_timer('nonloc_kinetic')
+      call start_timer('nonloc_ylm')
 #endif
 C
 c **  temp check
@@ -2807,8 +2807,8 @@ c **  temp check : end
           CALL GETYLM(NG2Q,NG26,G2,RHOA,YLM,TPIBA,NGcont)
          ENDIF
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(109)
-      call prof_start(110)
+      call stop_timer('nonloc_ylm')
+      call start_timer('nonloc_seppot')
 #endif
 c  ************************************
          CALL SEPPOT( NG2Q, NG2, NBND, G2,
@@ -2818,7 +2818,7 @@ c  ************************************
      &                NTAUQ, NTYQ, LREQ, TAU, NTYPE, NUMTY, NIDN,
      &                MXOFL,NGNL,NGcont                       )
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(110)
+      call stop_timer('nonloc_seppot')
 #endif
   580 CONTINUE
 C     CALL CLOCK(TIM1)
@@ -2985,7 +2985,7 @@ C
       DO 20 IATM=1,NATM
       ITAU=NIDN(IATM,ITY)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(111)
+      call start_timer('seppot_extau')
 #endif
 c        DO 22 IG=1,NG2
         DO 22 IG=1,NGNL(ITY)
@@ -2994,13 +2994,16 @@ c        DO 22 IG=1,NG2
         EXTAU(IG)=DCMPLX(COS(TEMP),SIN(TEMP))
    22   CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(111)
+      call stop_timer('seppot_extau')
 #endif
 C
       DO 30 LI=1,LMAX
       L=LI-1
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(112+L)
+      if (L.eq.0) call start_timer('seppot_s')
+      if (L.eq.1) call start_timer('seppot_p')
+      if (L.eq.2) call start_timer('seppot_d')
+      if (L.eq.3) call start_timer('seppot_f')
 #endif
 ccc      READ(82,REC=IOVP(LI,ITY)) VPP, VPJ
 C
@@ -3055,7 +3058,7 @@ c *** temp check : end
       ELSEIF(L.EQ.1.AND.IBUN(2,ITY).NE.1) THEN
 C             NO PARTITIONING
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(116)
+      call start_timer('seppot_p_projector')
 #endif
 c         DO 60 IG=1,NG2
          DO 60 IG=1,NGNL(ITY)
@@ -3067,8 +3070,8 @@ c         DO 60 IG=1,NG2
          WORK3(IG)=EXTAU(IG)*Y13*VPJ(IG,1,LI,ITY)
    60    CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(116)
-      call prof_start(117)
+      call stop_timer('seppot_p_projector')
+      call start_timer('seppot_p_reduce')
 #endif
 c         DO 62 IB=1,NBND
             CT1=(0.D0,0.D0)
@@ -3087,8 +3090,8 @@ c            CT3=CT3+COEF(IG,IB)*WORK3(IG)
             CT2=CT2/VPP(1,LI,iTY)/OMEGA
             CT3=CT3/VPP(1,LI,ITY)/OMEGA
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(117)
-      call prof_start(118)
+      call stop_timer('seppot_p_reduce')
+      call start_timer('seppot_p_dcoef')
 #endif
 c            DO 66 IG=1,NG2
             DO 66 IG=1,NGNL(ITY)
@@ -3099,14 +3102,14 @@ c            DCOEF(IG,IB)=DCOEF(IG,IB)
      &           +CT3*DCONJG(WORK3(IG))
    66       CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(118)
+      call stop_timer('seppot_p_dcoef')
 #endif
 c   62    CONTINUE
       ELSEIF(L.EQ.1) THEN
 C             PARTITIONING
          DO 1261 IP=2,3
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_start(116)
+      call start_timer('seppot_p_projector')
 #endif
 c         DO 61 IG=1,NG2
          DO 61 IG=1,NGNL(ITY)
@@ -3118,8 +3121,8 @@ c         DO 61 IG=1,NG2
          WORK3(IG)=EXTAU(IG)*Y13*VPJ(IG,IP,LI,ITY)
    61    CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(116)
-      call prof_start(117)
+      call stop_timer('seppot_p_projector')
+      call start_timer('seppot_p_reduce')
 #endif
 c         DO 63 IB=1,NBND
             CT1=(0.D0,0.D0)
@@ -3138,8 +3141,8 @@ c            CT3=CT3+COEF(IG,IB)*WORK3(IG)
             CT2=CT2/VPP(IP,LI,ITY)/OMEGA
             CT3=CT3/VPP(IP,LI,iTY)/OMEGA
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(117)
-      call prof_start(118)
+      call stop_timer('seppot_p_reduce')
+      call start_timer('seppot_p_dcoef')
 #endif
 c            DO 67 IG=1,NG2
             DO 67 IG=1,NGNL(ITY)
@@ -3150,7 +3153,7 @@ c            DCOEF(IG,IB)=DCOEF(IG,IB)
      &           +CT3*DCONJG(WORK3(IG))
    67       CONTINUE
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(118)
+      call stop_timer('seppot_p_dcoef')
 #endif
 c   63    CONTINUE
 c +*** temp check for lowest band
@@ -3459,7 +3462,10 @@ c  102    CONTINUE
       stop
       ENDIF
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      call prof_stop(112+L)
+      if (L.eq.0) call stop_timer('seppot_s')
+      if (L.eq.1) call stop_timer('seppot_p')
+      if (L.eq.2) call stop_timer('seppot_d')
+      if (L.eq.3) call stop_timer('seppot_f')
 #endif
 c *** temp check
 c      if (my_rank.eq.0 ) then

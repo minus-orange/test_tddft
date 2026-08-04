@@ -57,9 +57,9 @@ c
       complex*16 RHOG(NG),WORK(NG)
 C
 c
-      call prof_start(14)
+      call start_timer('fft_wrapper')
       call asl_fft_execute_complex_backward_d(fft,RHOG,WORK)
-      call prof_stop(14)
+      call stop_timer('fft_wrapper')
       do ig=1,NG
        RHOG(IG)=WORK(IG)
       enddo
@@ -87,9 +87,9 @@ c
       complex*16 RHOG(NG),WORK(NG)
 C
 c
-      call prof_start(14)
+      call start_timer('fft_wrapper')
       call asl_fft_execute_complex_forward_d(fft, rhog, work)
-      call prof_stop(14)
+      call stop_timer('fft_wrapper')
 C
       FAC=1.0D0/DBLE(NG)
       DO I=1,NG

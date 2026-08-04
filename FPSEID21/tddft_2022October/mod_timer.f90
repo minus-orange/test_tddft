@@ -2,78 +2,186 @@ module mod_timer
   use mpi
   implicit none
 
-  ! Keep one ID-based timer table for both the CPU/FFTW and GPU/cuFFT paths.
-  ! The external prof_* entry points below preserve the fixed-form call sites,
-  ! so both backends measure the same logical source regions.
-  integer, parameter :: num_profile_timers = 151
-  real(kind=8), private :: elapsed(num_profile_timers) = 0.0d0
-  real(kind=8), private :: started_at(num_profile_timers) = 0.0d0
-  integer, private :: call_count(num_profile_timers) = 0
-  integer, private :: profile_rank = -1
+  integer, private, parameter :: num_max_routines = 192
+  integer, private, parameter :: num_max_namelen = 100
+  integer, private :: num_of_routines = 0
+
+  character(len=num_max_namelen), private :: t_name(num_max_routines) = ''
+  real(kind=8), private :: ts(num_max_routines) = 0.0d0
+  real(kind=8), private :: t_value(num_max_routines) = 0.0d0
+  integer, private :: call_count(num_max_routines) = 0
+  logical, private :: timer_start(num_max_routines) = .false.
+
+  private :: wallclock
 
 contains
 
-  subroutine init_timer(rank)
-    integer, intent(in) :: rank
-
-    profile_rank = rank
-    elapsed = 0.0d0
-    started_at = 0.0d0
+  subroutine reset_timer()
+    num_of_routines = 0
+    t_name = ''
+    ts = 0.0d0
+    t_value = 0.0d0
     call_count = 0
-  end subroutine init_timer
+    timer_start = .false.
+  end subroutine reset_timer
 
-  subroutine start_timer(id)
-    integer, intent(in) :: id
+  subroutine start_timer(subroutine_name)
+    character(len=*), intent(in) :: subroutine_name
+    integer :: nlen
+    integer :: i
 
-    if (id < 1 .or. id > num_profile_timers) return
-    started_at(id) = MPI_Wtime()
+    nlen = min(len_trim(subroutine_name), num_max_namelen)
+
+    do i = 1, num_of_routines
+      if (subroutine_name(1:nlen) == trim(t_name(i))) then
+        if (timer_start(i)) then
+          write(0,*) 'Timer for ', trim(subroutine_name), &
+            ' is already started!!!'
+          return
+        end if
+        timer_start(i) = .true.
+        call_count(i) = call_count(i) + 1
+        call wallclock(ts(i))
+        return
+      end if
+    end do
+
+    if (num_of_routines >= num_max_routines) then
+      write(0,*) 'Timer table is full: ', trim(subroutine_name)
+      return
+    end if
+
+    num_of_routines = num_of_routines + 1
+    t_name(num_of_routines) = subroutine_name(1:nlen)
+    timer_start(num_of_routines) = .true.
+    call_count(num_of_routines) = call_count(num_of_routines) + 1
+    call wallclock(ts(num_of_routines))
   end subroutine start_timer
 
-  subroutine stop_timer(id)
-    integer, intent(in) :: id
+  subroutine stop_timer(subroutine_name)
+    character(len=*), intent(in) :: subroutine_name
+    integer :: nlen
+    integer :: i
+    real(kind=8) :: te_tmp
 
-    if (id < 1 .or. id > num_profile_timers) return
-    elapsed(id) = elapsed(id) + MPI_Wtime() - started_at(id)
-    call_count(id) = call_count(id) + 1
+    call wallclock(te_tmp)
+    nlen = min(len_trim(subroutine_name), num_max_namelen)
+
+    do i = 1, num_of_routines
+      if (subroutine_name(1:nlen) == trim(t_name(i))) then
+        if (.not. timer_start(i)) then
+          write(0,*) 'Timer for ', trim(subroutine_name), &
+            ' is NOT started!!!'
+          return
+        end if
+        timer_start(i) = .false.
+        t_value(i) = t_value(i) + (te_tmp - ts(i))
+        return
+      end if
+    end do
+
+    write(0,*) 'Timer for ', trim(subroutine_name), &
+      ' is NOT started!!!'
   end subroutine stop_timer
 
   subroutine print_timer()
-    real(kind=8) :: elapsed_sum(num_profile_timers)
-    real(kind=8) :: elapsed_max(num_profile_timers)
-    integer :: count_max(num_profile_timers)
-    character(len=24) :: name
-    integer :: id
+    integer :: i
     integer :: ierr
+    integer :: my_rank
     integer :: nproc
+    integer :: min_routines
+    integer :: max_routines
+    integer :: total_count
+    integer :: count_max(num_max_routines)
+    logical :: mpi_ready
+    character(len=31) :: p_name
+    real(kind=8) :: total_value
+    real(kind=8) :: value_sum(num_max_routines)
+    real(kind=8) :: value_max(num_max_routines)
 
-    call MPI_Reduce(elapsed, elapsed_sum, num_profile_timers, &
-      MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
-    call MPI_Reduce(elapsed, elapsed_max, num_profile_timers, &
-      MPI_DOUBLE_PRECISION, MPI_MAX, 0, MPI_COMM_WORLD, ierr)
-    call MPI_Reduce(call_count, count_max, num_profile_timers, &
-      MPI_INTEGER, MPI_MAX, 0, MPI_COMM_WORLD, ierr)
-    call MPI_Comm_size(MPI_COMM_WORLD, nproc, ierr)
+    my_rank = -1
+    nproc = 1
+    call MPI_Initialized(mpi_ready, ierr)
+    if (mpi_ready) then
+      call MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+      call MPI_Comm_size(MPI_COMM_WORLD, nproc, ierr)
+      call MPI_Allreduce(num_of_routines, min_routines, 1, MPI_INTEGER, &
+        MPI_MIN, MPI_COMM_WORLD, ierr)
+      call MPI_Allreduce(num_of_routines, max_routines, 1, MPI_INTEGER, &
+        MPI_MAX, MPI_COMM_WORLD, ierr)
+      if (min_routines /= max_routines) then
+        if (my_rank == 0) then
+          write(0,*) 'Timer region count differs between MPI ranks.'
+        end if
+        return
+      end if
+      call MPI_Reduce(t_value, value_sum, num_max_routines, &
+        MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
+      call MPI_Reduce(t_value, value_max, num_max_routines, &
+        MPI_DOUBLE_PRECISION, MPI_MAX, 0, MPI_COMM_WORLD, ierr)
+      call MPI_Reduce(call_count, count_max, num_max_routines, &
+        MPI_INTEGER, MPI_MAX, 0, MPI_COMM_WORLD, ierr)
+      if (my_rank /= 0) return
+    else
+      value_sum = t_value
+      value_max = t_value
+      count_max = call_count
+    end if
 
-    if (profile_rank /= 0) return
+    total_count = 0
+    total_value = 0.0d0
+
+    write(6,'(a)') ''
+    write(6,'(a)') '[Timer Output]'
+    write(6,'(a)') '+--------------------------------+------+----------+------------+'
+    write(6,'(a)') '|Timer region                    |Rank  |Called    |Elapsed     |'
+    write(6,'(a)') '|                                |      |          |Time[s]     |'
+    write(6,'(a)') '+--------------------------------+------+----------+------------+'
+    do i = 1, num_of_routines
+      if (timer_start(i)) then
+        write(0,*) 'Timer for ', trim(t_name(i)), ' is NOT stopped!!!'
+        return
+      end if
+      p_name = ''
+      p_name = trim(t_name(i))
+      total_count = total_count + call_count(i)
+      total_value = total_value + t_value(i)
+      write(6,'(a,a31,a,i6,a,i10,a,f12.3,a)') '|', p_name, &
+        '|', my_rank, '|', call_count(i), '|', t_value(i), '|'
+    end do
+    p_name = 'TOTAL'
+    write(6,'(a)') '+--------------------------------+------+----------+------------+'
+    write(6,'(a,a31,a,i6,a,i10,a,f12.3,a)') '|', p_name, &
+      '|', my_rank, '|', total_count, '|', total_value, '|'
+    write(6,'(a)') '+--------------------------------+------+----------+------------+'
+
     write(6,*)
     write(6,*) 'FPSEID_PROFILE_BEGIN'
     write(6,*) ' id label                    count', &
       '      max_rank_sec       avg_rank_sec'
-    do id = 1, num_profile_timers
-      if (count_max(id) <= 0) cycle
-      call fpseid_mod_timer_name(id, name)
-      write(6,100) id, name, count_max(id), elapsed_max(id), &
-        elapsed_sum(id) / dble(nproc)
+    do i = 1, num_of_routines
+      if (count_max(i) <= 0) cycle
+      write(6,100) i, t_name(i)(1:24), count_max(i), value_max(i), &
+        value_sum(i) / dble(nproc)
     end do
     write(6,*) 'FPSEID_PROFILE_END'
     write(6,*)
 100 format(1x,i3,1x,a24,1x,i10,2(1x,f18.6))
   end subroutine print_timer
 
+  subroutine wallclock(t)
+    real(kind=8), intent(out) :: t
+    integer(kind=8) :: c
+    integer(kind=8) :: c_rate
+
+    call system_clock(c, c_rate)
+    t = dble(c) / dble(c_rate)
+  end subroutine wallclock
+
 end module mod_timer
 
-subroutine prof_init(rank)
-  use mod_timer, only: init_timer
+subroutine init_timer(rank)
+  use mod_timer, only: reset_timer
   implicit none
   integer, intent(in) :: rank
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
@@ -86,7 +194,7 @@ subroutine prof_init(rank)
   common /ewaldreuse/ ewobs, ewsame, ewchanged, ewesame, ewforcesame
 #endif
 
-  call init_timer(rank)
+  call reset_timer()
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
   do i = 1, 5
     exobs(i) = 0
@@ -102,32 +210,32 @@ subroutine prof_init(rank)
   ewesame = 0
   ewforcesame = 0
 #endif
-end subroutine prof_init
+end subroutine init_timer
 
-subroutine prof_start(id)
-  use mod_timer, only: start_timer
+subroutine start_timer(subroutine_name)
+  use mod_timer, only: module_start_timer => start_timer
   implicit none
-  integer, intent(in) :: id
+  character(len=*), intent(in) :: subroutine_name
 
-  call start_timer(id)
-end subroutine prof_start
+  call module_start_timer(subroutine_name)
+end subroutine start_timer
 
-subroutine prof_stop(id)
-  use mod_timer, only: stop_timer
+subroutine stop_timer(subroutine_name)
+  use mod_timer, only: module_stop_timer => stop_timer
   implicit none
-  integer, intent(in) :: id
+  character(len=*), intent(in) :: subroutine_name
 
-  call stop_timer(id)
-end subroutine prof_stop
+  call module_stop_timer(subroutine_name)
+end subroutine stop_timer
 
-subroutine prof_report()
-  use mod_timer, only: print_timer
+subroutine print_timer()
+  use mod_timer, only: module_print_timer => print_timer
   use mpi
   implicit none
   integer :: ierr
   integer :: rank
 
-  call print_timer()
+  call module_print_timer()
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
   call MPI_Comm_rank(MPI_COMM_WORLD, rank, ierr)
   if (rank == 0) then
@@ -135,324 +243,4 @@ subroutine prof_report()
     call ewald_reuse_report()
   end if
 #endif
-end subroutine prof_report
-
-subroutine prof_name(id, name)
-  implicit none
-  integer, intent(in) :: id
-  character(len=*), intent(out) :: name
-
-  call fpseid_mod_timer_name(id, name)
-end subroutine prof_name
-
-subroutine fpseid_mod_timer_name(id, name)
-  implicit none
-  integer, intent(in) :: id
-  character(len=*), intent(out) :: name
-
-  name = ''
-  select case (id)
-  case (1)
-    name = 'time_step_total'
-  case (2)
-    name = 'g_vector_update'
-  case (3)
-    name = 'ion_md'
-  case (4)
-    name = 'frprmn'
-  case (5)
-    name = 'electf_force'
-  case (6)
-    name = 'force_energy_update'
-  case (7)
-    name = 'prenon'
-  case (8)
-    name = 'tmevl_total'
-  case (9)
-    name = 'tmevl_exkin'
-  case (10)
-    name = 'tmevl_s2'
-  case (11)
-    name = 's2_nonlocal'
-  case (12)
-    name = 's2_fft_local'
-  case (13)
-    name = 'tmevl_expectation'
-  case (14)
-    name = 'fft_wrapper'
-  case (15)
-    name = 'startup_before_steps'
-  case (16)
-    name = 'fft_plan_init'
-  case (17)
-    name = 's2_acc_update'
-  case (18)
-    name = 's2_acc_kernel'
-  case (19)
-    name = 's2_zero_rho2'
-  case (20)
-    name = 's2_scatter_p'
-  case (21)
-    name = 's2_vg_build'
-  case (22)
-    name = 's2_local_multiply'
-  case (23)
-    name = 's2_gather_p'
-  case (24)
-    name = 's2_copyout_p'
-  case (25)
-    name = 's2_nonlocal_make'
-  case (26)
-    name = 's2_nonlocal_gemm'
-  case (27)
-    name = 'exnlp_gemm_data'
-  case (28)
-    name = 'exnlp_gemm_dot'
-  case (29)
-    name = 'exnlp_gemm_update'
-  case (30)
-    name = 'exnlp_gemm_enter'
-  case (31)
-    name = 'exnlp_gemm_zero'
-  case (32)
-    name = 'exnlp_gemm_exit'
-  case (33)
-    name = 's2_p_enter'
-  case (34)
-    name = 's2_p_exit'
-  case (35)
-    name = 'tmevl_p_enter'
-  case (36)
-    name = 'tmevl_p_exit'
-  case (37)
-    name = 'exkin_acc_kernel'
-  case (38)
-    name = 'exnlp_work1_enter'
-  case (39)
-    name = 'exnlp_meta_enter'
-  case (40)
-    name = 'exnlp_ct1_create'
-  case (41)
-    name = 'frprmn_rhoofk'
-  case (42)
-    name = 'frprmn_sumchr'
-  case (43)
-    name = 'frprmn_rhoget'
-  case (44)
-    name = 'frprmn_coef_sync'
-  case (45)
-    name = 'frprmn_coef_setup'
-  case (46)
-    name = 'frprmn_gdump_prepare'
-  case (47)
-    name = 'frprmn_part1to5'
-  case (48)
-    name = 'frprmn_extau_prepare'
-  case (49)
-    name = 'part1to5_getylm'
-  case (50)
-    name = 'vpjgen_cpu_integral'
-  case (51)
-    name = 'vpjgen_mpi_allreduce'
-  case (52)
-    name = 'vpjgen_postreduce'
-  case (53)
-    name = 'frprmn_vloc_prepare'
-  case (54)
-    name = 'frprmn_vrho_mix'
-  case (55)
-    name = 'frprmn_energy_diag'
-  case (56)
-    name = 'frprmn_initial_density'
-  case (57)
-    name = 'frprmn_iter_init'
-  case (58)
-    name = 'frprmn_pre_tmevl'
-  case (59)
-    name = 'frprmn_post_tmevl'
-  case (60)
-    name = 'frprmn_density_init'
-  case (61)
-    name = 'frprmn_exit_cleanup'
-  case (62)
-    name = 'frprmn_vrho_vofrho'
-  case (63)
-    name = 'frprmn_vrho_smooth_fft'
-  case (64)
-    name = 'frprmn_vrho_mix_control'
-  case (65)
-    name = 'frprmn_vloc_locpot'
-  case (66)
-    name = 'frprmn_vloc_smooth_fft'
-  case (67)
-    name = 'frprmn_vrho_seed_ctrl'
-  case (68)
-    name = 'frprmn_vrho_predict_ctrl'
-  case (69)
-    name = 'frprmn_vrho_correct_ctrl'
-  case (70)
-    name = 'frprmn_vrho_interp'
-  case (71)
-    name = 'frprmn_vrho_converge'
-  case (72)
-    name = 'frprmn_vrho_coef_restore'
-  case (73)
-    name = 'vpjgen_host_zero'
-  case (74)
-    name = 'vpjgen_vpp2_zero'
-  case (75)
-    name = 'vpjgen_acc_kernel_d2h'
-  case (76)
-    name = 'vpjgen_acc_kernel_wait'
-  case (77)
-    name = 'vpjgen_acc_d2h'
-  case (78)
-    name = 'frprmn_energy_vg_build'
-  case (79)
-    name = 'frprmn_energy_efield'
-  case (80)
-    name = 'frprmn_energy_expect'
-  case (81)
-    name = 'energy_diag_hlocal'
-  case (82)
-    name = 'energy_diag_nonloc'
-  case (83)
-    name = 'energy_diag_dot'
-  case (84)
-    name = 'energy_diag_ee_comm'
-  case (85)
-    name = 'energy_offdiag_total'
-  case (86)
-    name = 'offdiag_hlocal'
-  case (87)
-    name = 'offdiag_nonloc'
-  case (88)
-    name = 'offdiag_dot'
-  case (89)
-    name = 'offdiag_comm_copy'
-  case (90)
-    name = 'offdiag_gather_output'
-  case (91)
-    name = 'vofrho_xc'
-  case (92)
-    name = 'vofrho_fft'
-  case (93)
-    name = 'vofrho_hartree_zero'
-  case (94)
-    name = 'vofrho_hartree_build'
-  case (95)
-    name = 'vofrho_hartree_add'
-  case (96)
-    name = 'g2vxc_derivative_setup'
-  case (97)
-    name = 'g2vxc_derivative_fft'
-  case (98)
-    name = 'g2vxc_exchange'
-  case (99)
-    name = 'g2vxc_correlation'
-  case (100)
-    name = 'g2vxc_assemble'
-  case (101)
-    name = 'hlocal_zero'
-  case (102)
-    name = 'hlocal_scatter'
-  case (103)
-    name = 'hlocal_inverse_fft'
-  case (104)
-    name = 'hlocal_vg_multiply'
-  case (105)
-    name = 'hlocal_forward_fft'
-  case (106)
-    name = 'hlocal_gather'
-  case (107)
-    name = 'hlocal_acc_total'
-  case (108)
-    name = 'nonloc_kinetic'
-  case (109)
-    name = 'nonloc_ylm'
-  case (110)
-    name = 'nonloc_seppot'
-  case (111)
-    name = 'seppot_extau'
-  case (112)
-    name = 'seppot_s'
-  case (113)
-    name = 'seppot_p'
-  case (114)
-    name = 'seppot_d'
-  case (115)
-    name = 'seppot_f'
-  case (116)
-    name = 'seppot_p_projector'
-  case (117)
-    name = 'seppot_p_reduce'
-  case (118)
-    name = 'seppot_p_dcoef'
-  case (119)
-    name = 'electf_locpotf_total'
-  case (120)
-    name = 'locpotf_local_mpi'
-  case (121)
-    name = 'locpotf_ewald'
-  case (122)
-    name = 'locpotf_local_energy'
-  case (123)
-    name = 'locpotf_xc'
-  case (124)
-    name = 'locpotf_hartree'
-  case (125)
-    name = 'ewald_g_space'
-  case (126)
-    name = 'ewald_r_space'
-  case (127)
-    name = 'ewald_mpi'
-  case (128)
-    name = 'electf_nonlocf_total'
-  case (129)
-    name = 'nonlocf_setup'
-  case (130)
-    name = 'nonlocf_kinetic_mpi'
-  case (131)
-    name = 'nonlocf_getylm'
-  case (132)
-    name = 'nonlocf_seppotf'
-  case (133)
-    name = 'nonlocf_finalize'
-  case (134)
-    name = 'seppotf_phase'
-  case (135)
-    name = 'seppotf_s_projector'
-  case (136)
-    name = 'seppotf_s_band_reduce'
-  case (137)
-    name = 'seppotf_p_projector'
-  case (138)
-    name = 'seppotf_p_band_reduce'
-  case (139)
-    name = 'seppotf_mpi'
-  case (140)
-    name = 'seppotf_acc_project'
-  case (141)
-    name = 'seppotf_acc_s_batch'
-  case (142)
-    name = 'seppotf_acc_p_batch'
-  case (143)
-    name = 'seppotf_acc_final'
-  case (144)
-    name = 'seppotf_acc_download'
-  case (145)
-    name = 'nonlocf_k_gprep'
-  case (146)
-    name = 'nonlocf_k_reduce'
-  case (147)
-    name = 'nonlocf_k_comm'
-  case (148)
-    name = 'nonlocf_eed_gprep'
-  case (149)
-    name = 'nonlocf_eed_reduce'
-  case (150)
-    name = 'nonlocf_eed_comm'
-  case (151)
-    name = 'nonlocf_ylm_radius'
-  end select
-end subroutine fpseid_mod_timer_name
+end subroutine print_timer

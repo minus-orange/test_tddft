@@ -88,11 +88,11 @@ c
       if (MXOFL(ity).ge.1 ) then
       do LI=1,MXOFL(ity)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      if (IPROF.eq.1) call prof_start(50)
+      if (IPROF.eq.1) call start_timer('vpjgen_cpu_integral')
 #endif
       L=LI-1
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      if (IPROF.eq.1) call prof_start(73)
+      if (IPROF.eq.1) call start_timer('vpjgen_host_zero')
 #endif
 cc ** clean up VPJWORK for parallel mesh integration
       DO IG=1,NGNL(ity)
@@ -108,8 +108,8 @@ c *** clean up VPJ for mesh integration
        VPJ(ig,3,li,ity)=0.d0
        enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      if (IPROF.eq.1) call prof_stop(73)
-      if (IPROF.eq.1) call prof_start(74)
+      if (IPROF.eq.1) call stop_timer('vpjgen_host_zero')
+      if (IPROF.eq.1) call start_timer('vpjgen_vpp2_zero')
 #endif
 c
        do j=1,3
@@ -136,27 +136,27 @@ c
        endif
        enddo
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      if (IPROF.eq.1) call prof_stop(74)
+      if (IPROF.eq.1) call stop_timer('vpjgen_vpp2_zero')
 #endif
 c
 #ifdef _OPENACC
       if (IACC.eq.1) then
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      if (IPROF.eq.1) call prof_start(75)
-      if (IPROF.eq.1) call prof_start(76)
+      if (IPROF.eq.1) call start_timer('vpjgen_acc_kernel_d2h')
+      if (IPROF.eq.1) call start_timer('vpjgen_acc_kernel_wait')
 #endif
        call VPJ_GEN_ACC_INTEGRAL(G2,VPJWORK,TPIBA,FPI,ITY,LI,
      &  RAD,PSPOT,PSPOT2,PHIL,MESHQ,ISPD,NTYQ,NGNL(ITY),NGcont,
      &  mshbegin(my_rank),mshend(my_rank))
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
 !$acc wait
-      if (IPROF.eq.1) call prof_stop(76)
-      if (IPROF.eq.1) call prof_start(77)
+      if (IPROF.eq.1) call stop_timer('vpjgen_acc_kernel_wait')
+      if (IPROF.eq.1) call start_timer('vpjgen_acc_d2h')
 #endif
 !$acc update self(VPJWORK(1:NGcont,1:3))
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      if (IPROF.eq.1) call prof_stop(77)
-      if (IPROF.eq.1) call prof_stop(75)
+      if (IPROF.eq.1) call stop_timer('vpjgen_acc_d2h')
+      if (IPROF.eq.1) call stop_timer('vpjgen_acc_kernel_d2h')
 #endif
       else
 #endif
@@ -273,15 +273,15 @@ c
 c      
 c +++ 2020 begin insert
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      if (IPROF.eq.1) call prof_stop(50)
-      if (IPROF.eq.1) call prof_start(51)
+      if (IPROF.eq.1) call stop_timer('vpjgen_cpu_integral')
+      if (IPROF.eq.1) call start_timer('vpjgen_mpi_allreduce')
 #endif
       LngthDat=3*(NGcont)
       call MPI_ALLReduce(VPJWORK(1,1),VPJ(1,1,li,ity),LngthDat,
      &  MPI_DOUBLE_PRECISION,MPI_SUM, MPI_COMM_WORLD,ierr)
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      if (IPROF.eq.1) call prof_stop(51)
-      if (IPROF.eq.1) call prof_start(52)
+      if (IPROF.eq.1) call stop_timer('vpjgen_mpi_allreduce')
+      if (IPROF.eq.1) call start_timer('vpjgen_postreduce')
 #endif
 c +++ 2020 end insert
 c *** prepare smoothing !! Here cause of the trap!!
@@ -409,7 +409,7 @@ c *** attention end:
        enddo
        endif
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
-      if (IPROF.eq.1) call prof_stop(52)
+      if (IPROF.eq.1) call stop_timer('vpjgen_postreduce')
 #endif
       enddo  ! end of LI loop
       endif

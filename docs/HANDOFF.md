@@ -23,8 +23,9 @@ Last updated: 2026-08-04
 - H100 baseline-adoption record: `7fc0c6d`
 - Current HEAD source status: the numerical path matches accepted Step 107
   source `c46cfa9`; Step 110 and Step 112 are rejected and restored. Step 117
-  consolidates the common CPU/GPU timer in `mod_timer.f90`, removes
-  `prof_timer.f`, and does not change the numerical path
+  consolidates the common CPU/GPU timer in `mod_timer.f90`, directly names
+  each region at its call site, removes `prof_timer.f`, and does not change
+  the numerical path
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Official A100 baseline: Step 107 median `63.2135219574` sec
