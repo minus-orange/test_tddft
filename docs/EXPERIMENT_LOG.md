@@ -2811,3 +2811,18 @@ the original table, and the aggregated compatibility block for
 identical timer-call sequences in both PSPW variants and both LIB4 variants.
 No A100, H100, or official x86 performance run has been performed for this
 implementation; all three formal baselines remain unchanged and independent.
+
+## Step 118: Dedicated 32 MPI x 8 OpenMP x86 Runner
+
+Added `tools/run_tddft_x86_32mpi_8omp.sh` as the single-command runner for the
+accepted x86 configuration. It fixes the Intel toolchain, 32 MPI ranks, 8
+TDDFT OpenMP threads, one CG/SD OpenMP thread, and the accepted compact Intel
+MPI/OpenMP binding. It delegates building, three-run archiving, normal check,
+x86 relaxed comparison, run-to-run strict comparison, and median reporting to
+the existing x86 baseline runner.
+
+The baseline runner now accepts a positive TDDFT OpenMP thread count, records
+the effective binding in each archive and terminal summary, and continues to
+default to its historical 16 MPI x 1 OpenMP reference configuration. No x86,
+A100, or H100 execution was performed while adding this workflow helper, so
+all formal baseline timings remain unchanged.

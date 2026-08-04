@@ -7,7 +7,7 @@ set -eu
 #   TOOLCHAIN=intel        Intel oneAPI (ifx, mpiifx, mpiicx)
 #   RUNS=3                 independent CG -> SD -> 100-step TDDFT runs
 #   NPROCS=16              default x86 performance MPI rank count
-#   OMP_NUM_THREADS=1      fixed performance-validation OpenMP thread count
+#   OMP_NUM_THREADS=1      TDDFT OpenMP thread count (CG/SD remain at 1)
 #   BUILD_MODE=auto        reuse a matching existing build
 #   X86_FORCE_ATOL=2e-4    cross-toolchain tolerance in Hartree/Bohr
 #   X86_POSITION_ATOL=2e-6 cross-toolchain tolerance in Bohr
@@ -34,6 +34,10 @@ RUNS=${RUNS:-3}
 NPROCS=${NPROCS:-16}
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 OMP_STACKSIZE=${OMP_STACKSIZE:-512M}
+I_MPI_PIN=${I_MPI_PIN:-1}
+I_MPI_PIN_DOMAIN=${I_MPI_PIN_DOMAIN:-omp}
+I_MPI_PIN_ORDER=${I_MPI_PIN_ORDER:-compact}
+KMP_AFFINITY=${KMP_AFFINITY:-granularity=fine,compact,1,0}
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_x86"}
 ARCHIVE_ROOT=${ARCHIVE_ROOT:-"$ROOT_DIR/run/tddft_archives"}
 SKIP_FFTW=${SKIP_FFTW:-0}
@@ -58,10 +62,19 @@ case "$NPROCS" in
     exit 2
     ;;
 esac
-if [ "$OMP_NUM_THREADS" != 1 ]; then
-  echo "ERROR: this baseline helper requires OMP_NUM_THREADS=1." >&2
-  exit 2
-fi
+case "$OMP_NUM_THREADS" in
+  ''|*[!0-9]*|0)
+    echo "ERROR: OMP_NUM_THREADS must be a positive integer." >&2
+    exit 2
+    ;;
+esac
+case "$I_MPI_PIN_ORDER" in
+  compact|scatter|spread|bunch|range) ;;
+  *)
+    echo "ERROR: unsupported I_MPI_PIN_ORDER: $I_MPI_PIN_ORDER" >&2
+    exit 2
+    ;;
+esac
 case "$SKIP_FFTW" in
   0|1) ;;
   *)
@@ -118,6 +131,7 @@ esac
 
 MPIRUN=${MPIRUN:-mpirun}
 export OMP_NUM_THREADS OMP_STACKSIZE
+export I_MPI_PIN I_MPI_PIN_DOMAIN I_MPI_PIN_ORDER KMP_AFFINITY
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -203,7 +217,7 @@ fi
 revision=$(git rev-parse HEAD)
 short_revision=$(git rev-parse --short=12 HEAD)
 timestamp=$(date '+%Y%m%d_%H%M%S')
-label_prefix=${LABEL_PREFIX:-"x86_fftw_${NPROCS}rank_${TOOLCHAIN}_${timestamp}_${short_revision}"}
+label_prefix=${LABEL_PREFIX:-"x86_fftw_${NPROCS}mpi_${OMP_NUM_THREADS}omp_${TOOLCHAIN}_${timestamp}_${short_revision}"}
 
 CG_EXE="$ROOT_DIR/FPSEID21/cg_GGA_f_code/cg_exe"
 SD_EXE="$ROOT_DIR/FPSEID21/sd_GGA_f_compact_code/sd_exe"
@@ -360,7 +374,9 @@ while [ "$run_no" -le "$RUNS" ]; do
   fi
 
   RUN_DIR="$RUN_DIR" TDDFT_INPUT=Si111-H_tm.in_100steps \
-    NPROCS="$NPROCS" OMP_NUM_THREADS=1 OMP_STACKSIZE="$OMP_STACKSIZE" \
+    NPROCS="$NPROCS" OMP_NUM_THREADS="$OMP_NUM_THREADS" \
+    CG_OMP_NUM_THREADS=1 SD_OMP_NUM_THREADS=1 \
+    TDDFT_OMP_NUM_THREADS="$OMP_NUM_THREADS" OMP_STACKSIZE="$OMP_STACKSIZE" \
     CG_EXE="$ROOT_DIR/FPSEID21/cg_GGA_f_code/cg_exe" \
     SD_EXE="$ROOT_DIR/FPSEID21/sd_GGA_f_compact_code/sd_exe" \
     TDDFT_EXE="$ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe" \
@@ -418,7 +434,13 @@ while [ "$run_no" -le "$RUNS" ]; do
     echo "sd_reused=$sd_reused"
     echo "tddft_reused=$tddft_reused"
     echo "nprocs=$NPROCS"
-    echo "omp_num_threads=1"
+    echo "omp_num_threads=$OMP_NUM_THREADS"
+    echo "cg_omp_num_threads=1"
+    echo "sd_omp_num_threads=1"
+    echo "i_mpi_pin=$I_MPI_PIN"
+    echo "i_mpi_pin_domain=$I_MPI_PIN_DOMAIN"
+    echo "i_mpi_pin_order=$I_MPI_PIN_ORDER"
+    echo "kmp_affinity=$KMP_AFFINITY"
     echo "diagnostic=OFF"
     echo "energy_atol=$X86_ENERGY_ATOL"
     echo "force_atol=$X86_FORCE_ATOL"
@@ -457,7 +479,9 @@ echo "fftw_root=$FFTW_ROOT"
 echo "build_mode=$BUILD_MODE"
 echo "build_reused=$reuse_build"
 echo "fftw_reused=$fftw_reused cg_reused=$cg_reused sd_reused=$sd_reused tddft_reused=$tddft_reused"
-echo "runs=$RUNS nprocs=$NPROCS omp_num_threads=1 diagnostic=OFF"
+echo "runs=$RUNS nprocs=$NPROCS omp_num_threads=$OMP_NUM_THREADS diagnostic=OFF"
+echo "binding i_mpi_pin=$I_MPI_PIN i_mpi_pin_domain=$I_MPI_PIN_DOMAIN i_mpi_pin_order=$I_MPI_PIN_ORDER"
+echo "kmp_affinity=$KMP_AFFINITY"
 echo "tolerances energy=$X86_ENERGY_ATOL force=$X86_FORCE_ATOL position=$X86_POSITION_ATOL velocity=$X86_VELOCITY_ATOL"
 run_no=1
 while IFS= read -r wall; do

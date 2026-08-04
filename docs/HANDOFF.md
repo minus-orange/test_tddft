@@ -60,7 +60,11 @@ Last updated: 2026-08-04
   non-cuFFT OpenACC launch configurations and interpretation are recorded in
   `docs/STEP116_OPENACC_LAUNCH_SHAPES.md`.
 - Pending human-operated x86 action: Step 117 timer-output validation has not
-  been run on the official Intel Xeon 6980P configuration
+  been run on the official Intel Xeon 6980P configuration. Use
+  `./tools/run_tddft_x86_32mpi_8omp.sh`; the dedicated helper fixes the Intel
+  32 MPI x 8 OpenMP configuration and accepted compact binding, builds or
+  safely reuses the CPU/FFTW executables, and performs the standard three-run
+  normal/relaxed/strict validation. No x86 run has yet used this helper.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:

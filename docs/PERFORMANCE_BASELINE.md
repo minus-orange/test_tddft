@@ -325,6 +325,16 @@ Scatter emitted IPL2 domain-size errors, failed the normal stderr gate, and
 took `78.1684319973` sec. Spread was not run after the required early stop.
 Keep compact placement as the formal configuration.
 
+Repeat this exact 32 MPI x 8 OpenMP configuration on the x86 host with:
+
+```sh
+./tools/run_tddft_x86_32mpi_8omp.sh
+```
+
+This dedicated helper fixes the Intel toolchain and accepted binding, builds
+or safely reuses the current CPU/FFTW executables, runs three independent
+sequences, and performs the normal, relaxed, and run-to-run strict checks.
+
 ### Historical x86 16 MPI x 1 OpenMP Baseline
 
 The previous formal x86 baseline was measured at revision

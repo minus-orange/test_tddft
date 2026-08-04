@@ -89,12 +89,12 @@ SKIP_FFTW=1 FFTW_ROOT=/path/to/fftw \
 
 This build-and-run helper retains its historical reference configuration of
 16 MPI ranks, 1 OpenMP thread per rank, diagnostics off, and 100 TDDFT steps.
-Override the rank count with `NPROCS=<count>` when a separate measurement is
-required. Set `RUNS=1` only for a smoke test; the default three-run result is
-required for a controlled median. Immediately before each TDDFT run, the
-helper prints the effective launch as `MPI launch: mpirun -np 16 ...`. The
-current accepted performance baseline is documented below and uses the
-MPI x OpenMP sweep helper.
+Override `NPROCS` and `OMP_NUM_THREADS` only when a separate investigation is
+required; CG and SD remain at one OpenMP thread. Set `RUNS=1` only for a smoke
+test; the default three-run result is required for a controlled median.
+Immediately before each TDDFT run, the helper prints the effective launch.
+Use the fixed 32 MPI x 8 OpenMP helper documented below for the current
+accepted performance configuration.
 
 If a run returns to the prompt before printing the three-run summary, diagnose
 the latest x86 output, stderr, normal check, and relaxed comparison with:
@@ -139,12 +139,20 @@ is to screen once and then repeat only the fastest valid configuration three
 times.
 
 The accepted x86 performance baseline is 32 MPI ranks x 8 OpenMP threads. To
-repeat its controlled three-run measurement without compiling, use:
+build or safely reuse the matching Intel binaries and repeat its controlled
+three-run measurement with the accepted compact binding, use the fixed
+configuration helper:
 
 ```sh
-MPI_COUNTS=32 OMP_THREAD_COUNTS=8 RUNS_PER_CONFIG=3 \
-  ./tools/run_tddft_x86_mpi_omp_sweep.sh
+./tools/run_tddft_x86_32mpi_8omp.sh
 ```
+
+The helper fixes `TOOLCHAIN=intel`, 32 MPI ranks, 8 TDDFT OpenMP threads,
+one CG/SD OpenMP thread, `I_MPI_PIN_DOMAIN=omp`, and compact rank/thread
+placement. It does not expose an MPI/OpenMP configuration override. Set
+`RUNS=1` only for a smoke test; the default `RUNS=3` is required for a formal
+median. The general sweep helper remains available for investigation, but is
+not needed to repeat the accepted configuration.
 
 On the Intel Xeon 6980P measurement host this configuration produced a
 `16.5392820835` sec median and `0.0579471588` sec range. The earlier 16 MPI
