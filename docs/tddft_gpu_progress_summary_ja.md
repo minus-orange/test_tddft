@@ -2299,3 +2299,10 @@ PASSしました。中央値は`20.5968229771`秒、rangeは`0.0558128357`秒で
 ユーザーは2026-08-05に独立したXeon 8468 CPU/FFTW正式baselineとして明示承認
 しました。Xeon 8468、Xeon 6980P、A100、H100系列を混合・置換しません。Xeon
 8592+ screenは未実施です。
+
+返却された8468階層timer treeのinclusive値は`time_step_total=20.620`、
+`frprmn=19.869`、`tmevl_total=13.234`、`tmevl_s2=10.270`、
+`s2_nonlocal=6.746`、`s2_fft_local=3.513`、`electf_force=0.698`秒です。
+inclusive総call数138,879と`fft_wrapper` 13,155 callsはXeon 6980P treeの構造と
+一致します。全path値は`docs/STEP120_XEON_GENERATION_SWEEPS.md`へ保存しました。
+写真にarchive labelがないため、timer sampleを特定runへは割り当てません。

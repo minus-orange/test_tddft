@@ -101,6 +101,12 @@ Last updated: 2026-08-05
   `x86_mpi_omp_20260805_151026_094ebd1f421d_32mpi_3omp_` with suffixes 01-03.
   The candidate is complete and reproducible. The user explicitly approved it
   as the independent formal Xeon 8468 baseline on 2026-08-05.
+- The returned formal-series 8468 timer tree is transcribed in
+  `docs/STEP120_XEON_GENERATION_SWEEPS.md`. Key inclusive values are
+  `time_step_total=20.620`, `frprmn=19.869`, `tmevl_total=13.234`,
+  `tmevl_s2=10.270`, and `electf_force=0.698` sec. It has 138,879 inclusive
+  calls and 13,155 aggregate `fft_wrapper` calls, matching the Xeon 6980P tree
+  structure. The photo lacks an archive label, so the sample is unassigned.
 - The first 8468 attempt exposed a stale-build reuse hazard: the old x86 cache
   stamp described only build inputs, so an executable overwritten later by a
   different build path could still be accepted. A forced CPU/FFTW rebuild

@@ -2565,3 +2565,11 @@ and `24.5328%` slower than the formal dual-socket Xeon 6980P median.
 The user explicitly approved this as the independent formal Xeon 8468
 CPU/FFTW baseline on 2026-08-05. Keep the Xeon 8468, Xeon 6980P, A100, and H100
 series separate. The Xeon 8592+ screen remains pending.
+
+The returned 8468 hierarchical timer tree records inclusive
+`time_step_total=20.620`, `frprmn=19.869`, `tmevl_total=13.234`,
+`tmevl_s2=10.270`, `s2_nonlocal=6.746`, `s2_fft_local=3.513`, and
+`electf_force=0.698` sec. Its 138,879 total inclusive calls and 13,155
+`fft_wrapper` calls match the Xeon 6980P tree structure. Complete path values
+are preserved in `docs/STEP120_XEON_GENERATION_SWEEPS.md`; the sample is not
+assigned to a run because the photo does not show its archive label.

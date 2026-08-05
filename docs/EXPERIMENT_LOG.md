@@ -3000,3 +3000,16 @@ explicitly approved adoption on 2026-08-05. The official independent Xeon 8468
 baseline is therefore median `20.5968229771` sec and range `0.0558128357` sec
 at 32 MPI x 3 OpenMP. The Xeon 6980P, A100, and H100 formal baselines remain
 independent and unchanged.
+
+### Step 120 8468 timer-tree preservation
+
+The returned formal-series 8468 photograph contains the complete hierarchical
+rank-0 timer tree. It is transcribed without assigning it to run 01, 02, or 03
+because the archive label is not visible beside the table. The principal
+inclusive values are `time_step_total=20.620`, `frprmn=19.869`,
+`tmevl_total=13.234`, `tmevl_s2=10.270`, `s2_nonlocal=6.746`,
+`s2_nonlocal_gemm=5.059`, `s2_fft_local=3.513`, and
+`electf_force=0.698` sec. Total inclusive regions are 138,879 calls and
+`101.678` sec. The 13,155 displayed `fft_wrapper` calls sum to `2.576` sec at
+the photographed precision. Complete paths, counts, and values are in
+`docs/STEP120_XEON_GENERATION_SWEEPS.md`.

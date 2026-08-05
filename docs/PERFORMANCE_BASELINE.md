@@ -403,6 +403,13 @@ official dual-socket Xeon 6980P median. The user explicitly approved this
 8468-only formal baseline on 2026-08-05. The 6980P, A100, and H100 formal
 baselines remain independent and unchanged.
 
+The photographed hierarchical timer-tree sample from this formal series is
+transcribed in `docs/STEP120_XEON_GENERATION_SWEEPS.md`. Its rank-0 inclusive
+`time_step_total` is `20.620` sec, `frprmn` is `19.869` sec, `tmevl_total` is
+`13.234` sec, `tmevl_s2` is `10.270` sec, and `electf_force` is `0.698` sec.
+The photograph does not identify which of the three archive labels emitted the
+tree, so the timer sample is deliberately not assigned to a run.
+
 Repeat the CPU-model-selected screen or a controlled 32 x 3 series with:
 
 ```sh

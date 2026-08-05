@@ -76,6 +76,75 @@ is `4.0575408936` sec (`24.5328%`) slower than the formal dual-socket Xeon
 6980P median. The controlled median is `0.4928259849` sec (`2.3368%`) shorter
 than the initial one-run 8468 screen value.
 
+### Hierarchical timer-tree sample
+
+The returned photograph does not show an archive label beside the timer tree,
+so the table is preserved as an unassigned sample from the formal 8468 32 MPI
+x 3 OpenMP series. Values are rank-0 inclusive elapsed seconds rounded to
+three decimals. They must not be summed as exclusive wall-time components.
+
+| call path | called | elapsed_sec |
+|---|---:|---:|
+| `startup_before_steps` | 1 | 0.434 |
+| `startup_before_steps > fft_plan_init` | 1 | 0.114 |
+| `startup_before_steps > fft_wrapper` | 3 | 0.001 |
+| `startup_before_steps > prenon` | 1 | 0.006 |
+| `time_step_total` | 101 | 20.620 |
+| `time_step_total > g_vector_update` | 101 | 0.045 |
+| `time_step_total > ion_md` | 101 | 0.001 |
+| `time_step_total > frprmn` | 101 | 19.869 |
+| `frprmn > fft_wrapper` | 1,748 | 0.363 |
+| `frprmn > hlocal_zero` | 78 | 0.002 |
+| `frprmn > hlocal_scatter` | 78 | 0.003 |
+| `frprmn > hlocal_inverse_fft` | 78 | 0.015 |
+| `frprmn > hlocal_inverse_fft > fft_wrapper` | 78 | 0.015 |
+| `frprmn > hlocal_vg_multiply` | 78 | 0.005 |
+| `frprmn > hlocal_forward_fft` | 78 | 0.016 |
+| `frprmn > hlocal_forward_fft > fft_wrapper` | 78 | 0.015 |
+| `frprmn > hlocal_gather` | 78 | 0.004 |
+| `frprmn > tmevl_total` | 936 | 13.234 |
+| `tmevl_total > tmevl_p_enter` | 936 | 0.000 |
+| `tmevl_total > tmevl_exkin` | 9,360 | 1.234 |
+| `tmevl_exkin > exkin_acc_kernel` | 9,360 | 1.227 |
+| `tmevl_total > tmevl_s2` | 4,680 | 10.270 |
+| `tmevl_s2 > s2_nonlocal` | 9,360 | 6.746 |
+| `s2_nonlocal > s2_nonlocal_make` | 9,360 | 1.673 |
+| `s2_nonlocal > s2_nonlocal_gemm` | 9,360 | 5.059 |
+| `s2_nonlocal_gemm > exnlp_work1_enter` | 4,680 | 0.000 |
+| `s2_nonlocal_gemm > exnlp_meta_enter` | 4,680 | 0.000 |
+| `s2_nonlocal_gemm > exnlp_gemm_data` | 9,360 | 5.044 |
+| `exnlp_gemm_data > exnlp_gemm_dot` | 9,360 | 5.033 |
+| `tmevl_s2 > s2_fft_local` | 4,680 | 3.513 |
+| `s2_fft_local > s2_acc_kernel` | 14,040 | 1.622 |
+| `s2_acc_kernel > s2_zero_rho2` | 4,680 | 0.176 |
+| `s2_acc_kernel > s2_scatter_p` | 4,680 | 0.389 |
+| `s2_acc_kernel > s2_vg_build` | 4,680 | 0.570 |
+| `s2_acc_kernel > s2_local_multiply` | 4,680 | 0.242 |
+| `s2_acc_kernel > s2_gather_p` | 4,680 | 0.222 |
+| `s2_fft_local > fft_wrapper` | 9,360 | 1.815 |
+| `tmevl_total > tmevl_expectation` | 8 | 0.015 |
+| `tmevl_expectation > hlocal_zero` | 8 | 0.000 |
+| `tmevl_expectation > hlocal_scatter` | 8 | 0.000 |
+| `tmevl_expectation > hlocal_inverse_fft` | 8 | 0.002 |
+| `tmevl_expectation > hlocal_inverse_fft > fft_wrapper` | 8 | 0.002 |
+| `tmevl_expectation > hlocal_vg_multiply` | 8 | 0.001 |
+| `tmevl_expectation > hlocal_forward_fft` | 8 | 0.002 |
+| `tmevl_expectation > hlocal_forward_fft > fft_wrapper` | 8 | 0.002 |
+| `tmevl_expectation > hlocal_gather` | 8 | 0.001 |
+| `frprmn > frprmn_rhoofk` | 468 | 0.711 |
+| `frprmn_rhoofk > fft_wrapper` | 936 | 0.184 |
+| `frprmn > frprmn_rhoget` | 468 | 0.282 |
+| `frprmn_rhoget > fft_wrapper` | 936 | 0.179 |
+| `frprmn > frprmn_coef_sync` | 103 | 0.000 |
+| `time_step_total > electf_force` | 101 | 0.698 |
+| `time_step_total > force_energy_update` | 101 | 0.000 |
+| `TOTAL (inclusive regions)` | 138,879 | 101.678 |
+
+The displayed `fft_wrapper` paths total 13,155 calls and `2.576` sec after
+three-decimal rounding. Both that aggregate count and the total inclusive call
+count exactly match the formal Xeon 6980P Step 119 tree, so the two CPU trees
+have directly comparable path structure and call multiplicity.
+
 ## Xeon Platinum 8592+, dual socket
 
 Pending. Use the same helper after updating to revision `071b986` or later so
