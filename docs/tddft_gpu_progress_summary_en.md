@@ -2588,3 +2588,10 @@ The median is `19.5947289467` sec and the range is `0.0526847839` sec. This is
 slower than Xeon 6980P. The user explicitly approved it as the independent
 formal Xeon 8592+ CPU/FFTW baseline on 2026-08-05. Keep all five A100, H100,
 Xeon 6980P, Xeon 8468, and Xeon 8592+ platform series separate.
+
+The returned 8592+ hierarchical timer tree records inclusive
+`time_step_total=19.669`, `frprmn=18.923`, `tmevl_total=12.527`,
+`tmevl_s2=9.388`, `s2_nonlocal=6.275`, `s2_fft_local=3.100`, and
+`electf_force=0.699` sec. Its 138,879 total inclusive calls and 13,155
+`fft_wrapper` calls match the Xeon 6980P and Xeon 8468 tree structure. The
+sample is unassigned because no archive label is shown beside the photograph.

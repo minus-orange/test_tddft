@@ -145,6 +145,13 @@ Last updated: 2026-08-05
   archive-label endings are cropped and are not inferred. The user explicitly
   approved this result as the independent formal Xeon 8592+ baseline on
   2026-08-05.
+- The returned formal-series 8592+ timer tree is transcribed in
+  `docs/STEP120_XEON_GENERATION_SWEEPS.md`. Key rank-0 inclusive values are
+  `time_step_total=19.669`, `frprmn=18.923`, `tmevl_total=12.527`,
+  `tmevl_s2=9.388`, `s2_nonlocal=6.275`, `s2_fft_local=3.100`, and
+  `electf_force=0.699` sec. It has 138,879 inclusive calls and 13,155 aggregate
+  `fft_wrapper` calls, matching the 6980P and 8468 tree structure. With no
+  archive label beside the photograph, the sample remains unassigned.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:

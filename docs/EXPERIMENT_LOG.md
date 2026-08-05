@@ -3093,3 +3093,16 @@ adoption on 2026-08-05. The official independent Xeon 8592+ baseline is
 therefore median `19.5947289467` sec and range `0.0526847839` sec at 32 MPI x
 4 OpenMP. The Xeon 8468, Xeon 6980P, A100, and H100 formal baselines remain
 independent and unchanged.
+
+### Step 120 8592+ timer-tree preservation
+
+The returned formal-series 8592+ photograph contains the complete hierarchical
+rank-0 timer tree. It is transcribed without assigning it to run 01, 02, or 03
+because the archive label is not visible beside the table. The principal
+inclusive values are `time_step_total=19.669`, `frprmn=18.923`,
+`tmevl_total=12.527`, `tmevl_s2=9.388`, `s2_nonlocal=6.275`,
+`s2_nonlocal_gemm=4.963`, `s2_fft_local=3.100`, and
+`electf_force=0.699` sec. Total inclusive regions are 138,879 calls and
+`95.957` sec. The 13,155 displayed `fft_wrapper` calls sum to `2.237` sec at
+the photographed precision. Complete paths, counts, and values are in
+`docs/STEP120_XEON_GENERATION_SWEEPS.md`.

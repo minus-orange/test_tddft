@@ -462,6 +462,14 @@ BUILD_MODE=never CONFIGS="32x4" RUNS_PER_CONFIG=3 \
   ./tools/run_tddft_x86_8468_8592_sweep.sh
 ```
 
+The returned hierarchical timer-tree sample from this formal series is
+transcribed in `docs/STEP120_XEON_GENERATION_SWEEPS.md`. Its rank-0 inclusive
+`time_step_total` is `19.669` sec, `frprmn` is `18.923` sec, `tmevl_total` is
+`12.527` sec, `tmevl_s2` is `9.388` sec, `s2_nonlocal` is `6.275` sec,
+`s2_fft_local` is `3.100` sec, and `electf_force` is `0.699` sec. The
+photograph does not identify which formal run emitted the tree, so it is not
+assigned to run 01, 02, or 03.
+
 ### Historical x86 16 MPI x 1 OpenMP Baseline
 
 The previous formal x86 baseline was measured at revision

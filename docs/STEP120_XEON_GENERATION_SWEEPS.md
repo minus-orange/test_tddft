@@ -224,3 +224,71 @@ cropped from the photograph and are not inferred. The user explicitly approved
 the controlled result on 2026-08-05, making median `19.5947289467` sec and
 range `0.0526847839` sec the formal independent Xeon 8592+ baseline. All other
 platform baseline series remain unchanged.
+
+### Hierarchical timer-tree sample
+
+The returned photograph does not show an archive label beside the timer tree,
+so this is preserved as an unassigned sample from the formal 8592+ 32 MPI x 4
+OpenMP series. Values are rank-0 inclusive elapsed seconds rounded to three
+decimals and must not be summed as exclusive wall-time components.
+
+| call path | called | elapsed_sec |
+|---|---:|---:|
+| `startup_before_steps` | 1 | 0.480 |
+| `startup_before_steps > fft_plan_init` | 1 | 0.132 |
+| `startup_before_steps > fft_wrapper` | 3 | 0.000 |
+| `startup_before_steps > prenon` | 1 | 0.006 |
+| `time_step_total` | 101 | 19.669 |
+| `time_step_total > g_vector_update` | 101 | 0.038 |
+| `time_step_total > ion_md` | 101 | 0.001 |
+| `time_step_total > frprmn` | 101 | 18.923 |
+| `frprmn > fft_wrapper` | 1,748 | 0.303 |
+| `frprmn > hlocal_zero` | 78 | 0.001 |
+| `frprmn > hlocal_scatter` | 78 | 0.004 |
+| `frprmn > hlocal_inverse_fft` | 78 | 0.013 |
+| `frprmn > hlocal_inverse_fft > fft_wrapper` | 78 | 0.013 |
+| `frprmn > hlocal_vg_multiply` | 78 | 0.003 |
+| `frprmn > hlocal_forward_fft` | 78 | 0.014 |
+| `frprmn > hlocal_forward_fft > fft_wrapper` | 78 | 0.013 |
+| `frprmn > hlocal_gather` | 78 | 0.003 |
+| `frprmn > tmevl_total` | 936 | 12.527 |
+| `tmevl_total > tmevl_p_enter` | 936 | 0.000 |
+| `tmevl_total > tmevl_exkin` | 9,360 | 1.291 |
+| `tmevl_exkin > exkin_acc_kernel` | 9,360 | 1.284 |
+| `tmevl_total > tmevl_s2` | 4,680 | 9.388 |
+| `tmevl_s2 > s2_nonlocal` | 9,360 | 6.275 |
+| `s2_nonlocal > s2_nonlocal_make` | 9,360 | 1.294 |
+| `s2_nonlocal > s2_nonlocal_gemm` | 9,360 | 4.963 |
+| `s2_nonlocal_gemm > exnlp_work1_enter` | 4,680 | 0.000 |
+| `s2_nonlocal_gemm > exnlp_meta_enter` | 4,680 | 0.000 |
+| `s2_nonlocal_gemm > exnlp_gemm_data` | 9,360 | 4.945 |
+| `exnlp_gemm_data > exnlp_gemm_dot` | 9,360 | 4.933 |
+| `tmevl_s2 > s2_fft_local` | 4,680 | 3.100 |
+| `s2_fft_local > s2_acc_kernel` | 14,040 | 1.419 |
+| `s2_acc_kernel > s2_zero_rho2` | 4,680 | 0.094 |
+| `s2_acc_kernel > s2_scatter_p` | 4,680 | 0.354 |
+| `s2_acc_kernel > s2_vg_build` | 4,680 | 0.595 |
+| `s2_acc_kernel > s2_local_multiply` | 4,680 | 0.163 |
+| `s2_acc_kernel > s2_gather_p` | 4,680 | 0.184 |
+| `s2_fft_local > fft_wrapper` | 9,360 | 1.589 |
+| `tmevl_total > tmevl_expectation` | 8 | 0.016 |
+| `tmevl_expectation > hlocal_zero` | 8 | 0.000 |
+| `tmevl_expectation > hlocal_scatter` | 8 | 0.000 |
+| `tmevl_expectation > hlocal_inverse_fft` | 8 | 0.001 |
+| `tmevl_expectation > hlocal_inverse_fft > fft_wrapper` | 8 | 0.001 |
+| `tmevl_expectation > hlocal_vg_multiply` | 8 | 0.000 |
+| `tmevl_expectation > hlocal_forward_fft` | 8 | 0.001 |
+| `tmevl_expectation > hlocal_forward_fft > fft_wrapper` | 8 | 0.001 |
+| `tmevl_expectation > hlocal_gather` | 8 | 0.000 |
+| `frprmn > frprmn_rhoofk` | 468 | 0.667 |
+| `frprmn_rhoofk > fft_wrapper` | 936 | 0.158 |
+| `frprmn > frprmn_rhoget` | 468 | 0.235 |
+| `frprmn_rhoget > fft_wrapper` | 936 | 0.159 |
+| `frprmn > frprmn_coef_sync` | 103 | 0.000 |
+| `time_step_total > electf_force` | 101 | 0.699 |
+| `time_step_total > force_energy_update` | 101 | 0.000 |
+| `TOTAL (inclusive regions)` | 138,879 | 95.957 |
+
+The displayed `fft_wrapper` paths total 13,155 calls and `2.237` sec after
+three-decimal rounding. The path structure and call multiplicities exactly
+match the formal Xeon 6980P and Xeon 8468 trees.

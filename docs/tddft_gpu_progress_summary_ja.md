@@ -2320,3 +2320,9 @@ relaxed compareにPASSし、run 02/03はrun 01とのstrict compareにもPASSし�
 `18.4739%`低速です。ユーザーは2026-08-05に独立したXeon 8592+ CPU/FFTW正式
 baselineとして明示承認しました。A100、H100、Xeon 6980P、Xeon 8468、Xeon
 8592+の5 platform系列を混合・置換しません。
+
+返却された8592+階層timer treeのinclusive値は`time_step_total=19.669`、
+`frprmn=18.923`、`tmevl_total=12.527`、`tmevl_s2=9.388`、
+`s2_nonlocal=6.275`、`s2_fft_local=3.100`、`electf_force=0.699`秒です。
+inclusive総call数138,879と`fft_wrapper` 13,155 callsはXeon 6980Pおよび8468
+treeの構造と一致します。写真にarchive labelがないため特定runへ割り当てません。
