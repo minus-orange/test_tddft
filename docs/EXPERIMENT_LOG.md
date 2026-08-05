@@ -3028,3 +3028,26 @@ dependency check before reuse and after build; missing libraries or unavailable
 symbol versions force an `auto` rebuild or stop `BUILD_MODE=never`. The safe
 8592+ recovery is a complete local `BUILD_MODE=always` rebuild followed by the
 unchanged one-run configuration screen. No platform baseline changes.
+
+### Step 120 8592+ one-run screen result
+
+After the complete local Intel/FFTW rebuild, the dual-socket Xeon Platinum
+8592+ screen completed at revision
+`1e3762587ede0b92cc3791446cf092ef79b15ca5`. The host reported 128 logical
+CPUs and 128 physical cores. All four diagnostic-off runs passed the normal
+check and x86 relaxed comparison.
+
+| MPI x OpenMP | total threads | wall_sec |
+|---|---:|---:|
+| 32 x 4 | 128 | 19.6031851768 |
+| 16 x 8 | 128 | 28.6397459507 |
+| 8 x 16 | 128 | 49.3092470169 |
+| 4 x 32 | 128 | 90.9068999290 |
+
+The screen selects 32 x 4 unambiguously. Its one-run wall is `42.5278%`
+shorter than the formal H100 median, `4.8242%` shorter than the formal 8468
+median, and `18.5250%` longer than the formal 6980P median. It is not an 8592+
+baseline: the selected configuration still requires three equivalent runs,
+normal and relaxed checks for each, strict comparison of runs 02/03 against
+run 01, and explicit user adoption. Archive labels were not visible in the
+returned photograph and are not inferred. No formal baseline changes.

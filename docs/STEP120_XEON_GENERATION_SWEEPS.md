@@ -147,8 +147,39 @@ have directly comparable path structure and call multiplicity.
 
 ## Xeon Platinum 8592+, dual socket
 
-Pending. The first attempt stopped before the screen because the reused
-`cg_exe` required `GLIBC_2.34`, which was unavailable on this host. This is a
-cross-host binary compatibility failure, not a timing result. Update to the
-runtime-aware helper and force one complete local rebuild before retrying; the
-expected screen remains 32x4, 16x8, 8x16, and 4x32 on 128 physical cores.
+- Returned: 2026-08-05
+- Tested revision: `1e3762587ede0b92cc3791446cf092ef79b15ca5`
+- CPU: Intel Xeon Platinum 8592+, 2 sockets
+- Online logical CPUs: 128
+- Physical cores: 128
+- Compiler: ifx/mpiifx 2026.1.0
+- MPI: Intel MPI 2021.18.0
+- Binding: `I_MPI_PIN=1`, `I_MPI_PIN_DOMAIN=omp`,
+  `I_MPI_PIN_ORDER=compact`, `KMP_AFFINITY=granularity=fine,compact,1,0`
+- Runs per configuration: 1
+- Diagnostic: OFF
+- Correctness: every measured configuration passed the normal check and x86
+  relaxed comparison; reaching the final ranked summary is conditional on
+  those gates
+- Build note: the valid screen followed a complete local Intel/FFTW rebuild;
+  the earlier GLIBC-incompatible attempt supplied no measurement
+
+| MPI ranks | OpenMP threads | total physical threads | wall_sec | normal | relaxed |
+|---:|---:|---:|---:|---|---|
+| 32 | 4 | 128 | 19.6031851768 | PASS | PASS |
+| 16 | 8 | 128 | 28.6397459507 | PASS | PASS |
+| 8 | 16 | 128 | 49.3092470169 | PASS | PASS |
+| 4 | 32 | 128 | 90.9068999290 | PASS | PASS |
+
+The clear candidate is 32 MPI x 4 OpenMP. Relative to that candidate, 16 x 8
+was `1.461x`, 8 x 16 was `2.515x`, and 4 x 32 was `4.637x`. As on the 8468,
+larger OpenMP teams and fewer MPI ranks regressed this tutorial case
+monotonically.
+
+The one-run candidate is `14.5057797432` sec (`42.5278%`) shorter than the
+formal H100 median, `0.9936378003` sec (`4.8242%`) shorter than the formal
+8468 median, and `3.0639030933` sec (`18.5250%`) longer than the formal 6980P
+median. These comparisons are provisional: the 8592+ value remains a one-run
+screen until 32 x 4 completes three equivalent validated runs and is explicitly
+adopted. Archive labels were outside the returned photograph and are not
+inferred.

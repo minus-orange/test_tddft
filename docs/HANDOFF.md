@@ -84,7 +84,7 @@ Last updated: 2026-08-05
   relaxed checks. Walls were 32x3 `21.0896489620`, 16x6 `29.4878950119`, 8x12
   `49.3604290485`, and 4x24 `88.6823518276` sec. The clear candidate is 32x3;
   its controlled three-run result is recorded below. The dual-socket Xeon
-  Platinum 8592+ screen is pending.
+  Platinum 8592+ screen is also complete as recorded below.
   Complete provenance and interpretation are in
   `docs/STEP120_XEON_GENERATION_SWEEPS.md`. These are independent CPU series
   and must not replace the 6980P, A100, or H100 baselines automatically.
@@ -120,6 +120,12 @@ Last updated: 2026-08-05
   helper now includes the host runtime in FFTW/CG/SD/TDDFT signatures and uses
   `ldd` to reject unresolved libraries or symbol versions. Retry the 8592+
   screen only after a local `BUILD_MODE=always` rebuild.
+- After that local rebuild, the 8592+ one-run screen completed at revision
+  `1e37625`. All four 128-thread configurations passed normal and x86 relaxed
+  checks. Walls were 32x4 `19.6031851768`, 16x8 `28.6397459507`, 8x16
+  `49.3092470169`, and 4x32 `90.9068999290` sec. The clear candidate is 32x4.
+  This is screening evidence only; the controlled three-run series and
+  explicit adoption remain pending.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:
