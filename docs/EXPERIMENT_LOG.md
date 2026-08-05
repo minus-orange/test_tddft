@@ -3062,3 +3062,23 @@ as a separate one-run sample only. It is `0.0849432945` sec (`0.4333%`)
 shorter than the initial 32 x 4 screen value, but the two independently
 launched samples cannot substitute for the helper's three-run median, range,
 and run-01 strict checks. No baseline changes.
+
+### Step 120 8592+ controlled candidate result
+
+The selected 32 MPI x 4 OpenMP configuration completed three diagnostic-off
+runs in one invocation at revision
+`fa6d80a21d247d4fa0360c5cb585aeac29fe861b`. The terminal reported
+`runs_per_config=3`, median `19.5947289467` sec, and range `0.0526847839` sec.
+The final helper summary is emitted only after all three normal and x86 relaxed
+checks pass and runs 02/03 pass strict comparison against run 01.
+
+- H100 formal median difference: `14.5142359733` sec (`42.5526%` faster)
+- 8468 formal median difference: `1.0020940304` sec (`4.8653%` faster)
+- 6980P formal median difference: `3.0554468632` sec (`18.4739%` slower)
+- Three-run range relative to median: `0.2689%`
+
+The individual run walls and archive labels were outside the returned
+photograph and remain pending from `runs.tsv`. The controlled result is a
+complete timing and validation candidate, but is not adopted as the formal
+independent 8592+ baseline until that provenance is returned and the user
+explicitly approves adoption. No formal baseline changes.

@@ -131,6 +131,13 @@ Last updated: 2026-08-05
   `runs_per_config=1`. It is a separate one-run sample, not the requested
   controlled series. The next return must visibly report
   `runs_per_config=3` and include its nonzero three-run range.
+- The controlled 8592+ 32 MPI x 4 OpenMP series then completed at revision
+  `fa6d80a`: three runs, median `19.5947289467` sec, range
+  `0.0526847839` sec, with all normal and relaxed checks passing and runs 02/03
+  passing strict comparison to run 01. This is `42.5526%` faster than H100,
+  `4.8653%` faster than the formal 8468 median, and `18.4739%` slower than the
+  formal 6980P median. Individual walls/archive labels from `runs.tsv` and
+  explicit adoption are still pending, so it remains a baseline candidate.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:

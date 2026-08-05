@@ -193,3 +193,24 @@ range `0`, so it is retained only as a second independent one-run sample, not
 as a member of a controlled three-run series. It is `0.0849432945` sec
 (`0.4333%`) shorter than the first 32 x 4 screen sample. The controlled series
 remains pending and must report `runs_per_config=3` in one invocation.
+
+### Controlled 32 MPI x 4 OpenMP candidate
+
+- Returned: 2026-08-05
+- Tested revision: `fa6d80a21d247d4fa0360c5cb585aeac29fe861b`
+- Runs: 3 in one invocation
+- Configuration: 32 MPI x 4 OpenMP = 128 physical threads
+- Median: `19.5947289467` sec
+- Range: `0.0526847839` sec (`0.2689%` of the median)
+- Normal check: PASS for all runs
+- x86 relaxed comparison: PASS for all runs
+- Run-01 strict comparison: PASS for runs 02 and 03
+- Diagnostic: OFF
+
+The final summary is emitted only after all of these validation gates pass.
+The candidate is `14.5142359733` sec (`42.5526%`) faster than the formal H100
+median, `1.0020940304` sec (`4.8653%`) faster than the formal 8468 median, and
+`3.0554468632` sec (`18.4739%`) slower than the formal 6980P median. Individual
+run walls and archive labels are not visible in the returned photograph and
+remain pending from `runs.tsv`; the candidate is not adopted as the formal
+8592+ baseline without that provenance and explicit user approval.
