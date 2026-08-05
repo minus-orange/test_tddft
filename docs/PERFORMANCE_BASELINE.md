@@ -78,8 +78,26 @@ Step 119 changes only timer reporting and accounting structure. `[Timer Output]`
 now records parent/child call paths and prints an indented tree with
 inclusive elapsed time. A name called from multiple parents is shown once per
 path, while `FPSEID_PROFILE` continues to aggregate by region name for parser
-compatibility. No formal platform timing has been measured for this reporting
-change, and no baseline is replaced.
+compatibility. At the implementation commit, no formal platform timing had
+been measured for this reporting change and no baseline was replaced.
+
+The controlled x86 Step 119 validation subsequently completed at revision
+`87045133f0685b95c0943488e6953e0c8deb1936` on the same Intel Xeon 6980P,
+ifx 2026.1.0, Intel MPI 2021.18.0, 32 MPI x 8 OpenMP, and compact binding:
+
+| archive label | wall_sec | check | x86 relaxed compare | run-01 pairwise strict |
+|---|---:|---|---|---|
+| `x86_fftw_32mpi_8omp_intel_20260805_133214_87045133f068_01` | 16.4435307980 | PASS | PASS | SELF |
+| `x86_fftw_32mpi_8omp_intel_20260805_133214_87045133f068_02` | 16.4973180294 | PASS | PASS | PASS |
+| `x86_fftw_32mpi_8omp_intel_20260805_133214_87045133f068_03` | 16.4935860634 | PASS | PASS | PASS |
+
+The median is `16.4935860634` sec and the range is `0.0537872314` sec
+(`0.326110%` of the median). It is `0.0456960201` sec (`0.276288%`) below the
+official x86 median, with a `1.002771x` wall ratio. The timer tree visibly
+preserved the former aggregate `fft_wrapper` count of 13,155 while separating
+calls by parent path. This validates the x86 timer implementation and shows no
+performance regression. It is not adopted as a replacement x86 baseline
+without an explicit human decision; the A100 and H100 series are unaffected.
 
 ## Source-Level GPU Coverage History
 

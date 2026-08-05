@@ -2850,3 +2850,29 @@ depth-first output, the same region under two different parents, and one
 aggregated `FPSEID_PROFILE` row for that shared name. No official x86, A100,
 or H100 run has been performed, so all three formal platform baselines remain
 unchanged.
+
+The controlled x86 validation then completed at full revision
+`87045133f0685b95c0943488e6953e0c8deb1936` on the Intel Xeon 6980P with ifx
+2026.1.0, Intel MPI 2021.18.0, 32 MPI x 8 OpenMP, compact binding, and
+diagnostics off. FFTW, CG, and SD were reused; TDDFT was rebuilt. The dedicated
+runner reached its final summary, which is emitted only after all three normal
+checks, x86 relaxed comparisons, and run-01 pairwise strict comparisons pass.
+
+| archive label | wall_sec | normal | relaxed | run-01 strict |
+|---|---:|---|---|---|
+| `x86_fftw_32mpi_8omp_intel_20260805_133214_87045133f068_01` | 16.4435307980 | PASS | PASS | SELF |
+| `x86_fftw_32mpi_8omp_intel_20260805_133214_87045133f068_02` | 16.4973180294 | PASS | PASS | PASS |
+| `x86_fftw_32mpi_8omp_intel_20260805_133214_87045133f068_03` | 16.4935860634 | PASS | PASS | PASS |
+
+The median is `16.4935860634` sec and the range is `0.0537872314` sec. This is
+`0.0456960201` sec (`0.276288%`) faster than the existing official x86 median
+of `16.5392820835` sec and therefore shows no timer-reporting regression. The
+returned timer tree correctly nested `time_step_total`, `frprmn`, `tmevl_total`,
+and S2 children. Shared `fft_wrapper` contexts summed to the previous flat
+count of 13,155: startup 3, direct FRPRMN 1,748, two 78-call and two 8-call
+HLOCAL FFT paths, TMEVL S2 9,360, RHOOFK 936, and RHOGET 936.
+
+This completes x86 correctness and timer-tree validation. The small wall
+difference is not treated as a new optimization result, and the official x86
+baseline is unchanged pending an explicit human adoption decision. No A100 or
+H100 Step 119 validation has been performed.

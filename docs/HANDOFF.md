@@ -1,6 +1,6 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-08-04
+Last updated: 2026-08-05
 
 ## Current State
 
@@ -61,12 +61,15 @@ Last updated: 2026-08-04
 - Step 116 profiler post-processing: complete for A100 and H100. The 24
   non-cuFFT OpenACC launch configurations and interpretation are recorded in
   `docs/STEP116_OPENACC_LAUNCH_SHAPES.md`.
-- Pending human-operated x86 action: Step 119 timer-tree validation has not
-  been run on the official Intel Xeon 6980P configuration. Use
-  `./tools/run_tddft_x86_32mpi_8omp.sh`; the dedicated helper fixes the Intel
-  32 MPI x 8 OpenMP configuration and accepted compact binding, builds or
-  safely reuses the CPU/FFTW executables, and performs the standard three-run
-  normal/relaxed/strict validation. No x86 run has yet used this helper.
+- Step 119 x86 timer-tree validation is complete at revision `8704513` on the
+  Intel Xeon 6980P with ifx 2026.1.0, Intel MPI 2021.18.0, 32 MPI x 8 OpenMP,
+  compact binding, and diagnostics off. All three runs passed normal, relaxed,
+  and run-to-run strict validation. Walls were `16.4435307980`,
+  `16.4973180294`, and `16.4935860634` sec; median `16.4935860634` sec and
+  range `0.0537872314` sec. The call-path tree correctly split shared
+  `fft_wrapper` calls among their parents while preserving the aggregate
+  count. This validates the x86 timer implementation but does not replace the
+  official x86 baseline without an explicit adoption decision.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:
