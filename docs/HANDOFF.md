@@ -75,15 +75,15 @@ Last updated: 2026-08-05
   official x86 baseline without an explicit adoption decision. The returned
   timer values are preserved in `docs/STEP119_X86_TIMER_TREE.md` without
   guessing which of the three archive labels produced the photographed table.
-- Pending human-operated same-generation CPU screens: dual-socket Xeon
-  Platinum 8468 (96 physical cores) and dual-socket Xeon Platinum 8592+
-  (128 physical cores). Use `./tools/run_tddft_x86_8468_8592_sweep.sh` once
-  on each host. The helper auto-detects the model and topology, builds once,
-  and screens four full-core MPI/OpenMP decompositions with diagnostics off,
-  archiving and checking every run. The initial screen is one run per
-  configuration; selected candidates require a separate three-run series.
-  Results form new independent CPU platform series and must not replace the
-  6980P, A100, or H100 baselines automatically.
+- The dual-socket Xeon Platinum 8468 one-run screen is complete at tested
+  revision `013845d`. All four 96-thread configurations passed normal and x86
+  relaxed checks. Walls were 32x3 `21.0896489620`, 16x6 `29.4878950119`, 8x12
+  `49.3604290485`, and 4x24 `88.6823518276` sec. The clear candidate is 32x3;
+  it still requires a separate three-run series before defining an 8468
+  platform baseline. The dual-socket Xeon Platinum 8592+ screen is pending.
+  Complete provenance and interpretation are in
+  `docs/STEP120_XEON_GENERATION_SWEEPS.md`. These are independent CPU series
+  and must not replace the 6980P, A100, or H100 baselines automatically.
 - The first 8468 attempt exposed a stale-build reuse hazard: the old x86 cache
   stamp described only build inputs, so an executable overwritten later by a
   different build path could still be accepted. A forced CPU/FFTW rebuild

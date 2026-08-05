@@ -2949,3 +2949,24 @@ old one-line stamps or externally replaced binaries trigger a rebuild.
 `BUILD_MODE=never` retains its explicit adoption behavior and records the
 fingerprint for subsequent safe reuse. The interrupted 8468 attempt is not
 archived or treated as performance evidence, and no baseline changes.
+
+### Step 120 8468 one-run screen result
+
+After the forced Intel/FFTW rebuild, the dual-socket Xeon Platinum 8468 screen
+completed at revision `013845d3227f24cdfbe3e3d525a24ff239e754c2`. The host
+reported 96 logical CPUs and 96 physical cores. All four diagnostic-off runs
+passed the normal check and x86 relaxed comparison.
+
+| MPI x OpenMP | total threads | wall_sec |
+|---|---:|---:|
+| 32 x 3 | 96 | 21.0896489620 |
+| 16 x 6 | 96 | 29.4878950119 |
+| 8 x 12 | 96 | 49.3604290485 |
+| 4 x 24 | 96 | 88.6823518276 |
+
+The screen selects 32 x 3 unambiguously. Its one-run wall is `38.1698%`
+shorter than the formal H100 median but is not yet an 8468 baseline. Run the
+candidate three times and require normal, relaxed, and run-01 strict checks
+before using its median. Archive labels were outside the returned photograph
+and are not inferred. Full recorded evidence is in
+`docs/STEP120_XEON_GENERATION_SWEEPS.md`.
