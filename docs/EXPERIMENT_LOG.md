@@ -3106,3 +3106,15 @@ inclusive values are `time_step_total=19.669`, `frprmn=18.923`,
 `95.957` sec. The 13,155 displayed `fft_wrapper` calls sum to `2.237` sec at
 the photographed precision. Complete paths, counts, and values are in
 `docs/STEP120_XEON_GENERATION_SWEEPS.md`.
+
+### Step 120 PowerPoint update
+
+Created `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86.pptx` as a
+new editable deck while preserving the Step 116 source deck. The formal
+baseline table now contains the five independent A100, H100, Xeon 6980P,
+Xeon 8468, and Xeon 8592+ series. Two slides were added: the full-core
+MPI/OpenMP screens for 8468 and 8592+, and a rank-0 inclusive timer comparison
+for 6980P, 8468, and 8592+. The latter shows that 8592+ improves the 8468
+`time_step_total` sample by about 4.6%, while the remaining gap to 6980P is
+concentrated in `tmevl_s2` and `s2_fft_local`. These timer samples remain
+instrumentation observations and do not replace any formal wall-time baseline.

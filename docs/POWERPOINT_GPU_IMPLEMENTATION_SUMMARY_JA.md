@@ -1,7 +1,7 @@
-# FPSEID21 TDDFT GPU化 PowerPoint原稿（2026-08-04更新）
+# FPSEID21 TDDFT GPU化 PowerPoint原稿（2026-08-05更新）
 
 この文書は、FPSEID21 TDDFTのOpenACC／cuFFT GPU化を説明するPowerPoint用の
-詳細原稿である。2026-08-04時点のコード、正式baseline、検証結果に合わせて更新した。
+詳細原稿である。2026-08-05時点のコード、正式baseline、検証結果に合わせて更新した。
 
 想定する伝達目標は次のとおりである。
 
@@ -479,8 +479,10 @@ cuFFT以外のOpenACC kernel launch形状（A100/H100で共通）:
 - スライド3: Host／Device境界を1本のフロー図で示す。
 - スライド4: 計算領域をTDDFT time-step順に色分けする。
 - スライド10: A100実行時間の段階的短縮を折れ線グラフにする。
-- スライド11: 3プラットフォームの値は表で示し、x86の256コア条件を脚注に置く。
+- 正式baseline表: 5系列を表で示し、CPUは2 socket、GPUは1 GPUであることを脚注に置く。
 - スライド13: A100／H100のStep 116 NSYSとNCUを比較し、正式baselineではないと明記する。
+- 追加x86測定: 8468／8592+のMPI × OpenMP構成を表で比較する。
+- timer tree比較: 6980P／8468／8592+の主要inclusive regionを横棒グラフで比較する。
 - 変更前は灰色、GPU上で連続する区間は青、残るHost同期は橙で示す。
 
 ## 付録A8: 数値の出典

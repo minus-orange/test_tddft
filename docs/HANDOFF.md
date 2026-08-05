@@ -156,6 +156,11 @@ Last updated: 2026-08-05
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:
   `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-04_STEP116.pptx`
+- Step 120 x86 generation-sweep and timer-tree comparison PowerPoint:
+  `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86.pptx`. It preserves
+  the Step 116 deck, expands the formal-baseline table to all five independent
+  platform series, and adds the 8468/8592+ MPI/OpenMP screen and the
+  6980P/8468/8592+ rank-0 inclusive timer comparison.
 - Progress report dated 2026-07-31:
   `docs/PROGRESS_REPORT_2026-07-31_BRIEF_JA.md` and
   `docs/PROGRESS_REPORT_2026-07-31_JA.md`
