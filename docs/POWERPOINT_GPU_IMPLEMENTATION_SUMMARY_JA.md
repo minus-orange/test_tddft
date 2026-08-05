@@ -411,9 +411,15 @@ cuFFT以外のOpenACC kernel launch形状（A100/H100で共通）:
 | `tools/build_nvhpc.sh` | NVHPC/OpenACC/cuFFT build |
 | `tools/run_tddft_x86_8468_8592_sweep.sh` | 2 socket x86のMPI × OpenMP構成sweep |
 
-PowerPointでは、説明ページ4、5、7〜10、24、25に短縮ファイル名を表示し、
-付録のページ17で正式ファイル名、変更内容、関連ページを対応付ける。コード断片を
-掲載するページ18〜21にも、対象ファイルまたはroutine名を直接表示する。
+PowerPointでは、説明ページ4、5、24、25に短縮ファイル名を表示し、付録の
+ページ17で正式ファイル名、変更内容、関連ページを対応付ける。説明ページ7〜10は
+性能値と採用ソースを同じページで照合できるようにし、`fft_cufft.f`のdevice pointer
+／batch呼出し、`tmevl10_Avec_v4.f`の融合非局所kernel、
+`frprmn_tm12_check_Vext_Avec_v4.f`の`COEF0` device copy、time-step常駐用の
+OpenACC directiveを実コードのまま掲載する。コード断片を掲載するページ18〜21にも、
+対象ファイルまたはroutine名を直接表示する。直接掲載版は
+`docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86_CODE_EXCERPTS.pptx`
+であり、従来のPowerPointファイルは保持する。
 
 ## 付録A3: cuFFTをdevice pointer版へ変更
 

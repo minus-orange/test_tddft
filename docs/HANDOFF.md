@@ -1335,6 +1335,15 @@ Production-size scaling remains blocked because no production input or matching
 correctness reference is available. The tutorial's 32-band grid is the minimum
 operational case and must not be used to infer production occupancy.
 
+The latest editable presentation is
+`docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86_CODE_EXCERPTS.pptx`.
+It preserves the earlier Step 120 decks and adds accepted-source excerpts
+directly to explanatory slides 7-10 beside the corresponding diagrams and
+performance values. The excerpts cover OpenACC device-pointer and batched
+cuFFT calls, the fused nonlocal kernel, device-resident `COEF0` setup, and
+time-step residency directives. This is documentation only: no numerical
+source, measurement, or formal baseline changed.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

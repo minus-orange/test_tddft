@@ -3128,3 +3128,20 @@ Slide 17 now provides a page-to-source index with the concrete change in each
 file, while slides 18-21 identify the source file or routine for every code
 excerpt. This is a documentation-only update; no numerical source or baseline
 was changed.
+
+### Step 120 PowerPoint direct source excerpts
+
+- Scope: documentation only; no build or execution.
+- Input deck:
+  `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86_CODEMAP.pptx`.
+- Output deck:
+  `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86_CODE_EXCERPTS.pptx`.
+- Slides 7-10 now contain accepted-source excerpts instead of only abbreviated
+  file references.
+- The excerpts cover `fft_cufft.f`, `tmevl10_Avec_v4.f`,
+  `frprmn_tm12_check_Vext_Avec_v4.f`, and
+  `pspw_tm11_Vext_Avec_v4_alloc.f`.
+- Existing diagrams, performance values, the code mapping index, the x86
+  sweep, and the timer-tree comparison are preserved.
+- PowerPoint overflow and template-fidelity checks passed for all 25 slides.
+- Numerical source and all platform baselines are unchanged.
