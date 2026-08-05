@@ -6,6 +6,8 @@ set -eu
 # Default grid (configurations above MAX_TOTAL_THREADS are skipped):
 #   MPI_COUNTS="4 8 16 32"
 #   OMP_THREAD_COUNTS="2 4 8 16"
+# Set CONFIGS to run only explicitly paired configurations, for example:
+#   CONFIGS="32x4 16x8 8x16"
 #   MAX_TOTAL_THREADS=256
 #   RUNS_PER_CONFIG=1
 #
@@ -18,6 +20,7 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 
 MPI_COUNTS=${MPI_COUNTS:-"4 8 16 32"}
 OMP_THREAD_COUNTS=${OMP_THREAD_COUNTS:-"2 4 8 16"}
+CONFIGS=${CONFIGS:-}
 MAX_TOTAL_THREADS=${MAX_TOTAL_THREADS:-256}
 RUNS_PER_CONFIG=${RUNS_PER_CONFIG:-1}
 RUN_DIR=${RUN_DIR:-"$ROOT_DIR/run/Si111-H_x86"}
@@ -105,6 +108,37 @@ case "$RUNS_PER_CONFIG" in
 esac
 validate_positive_list MPI_COUNTS "$MPI_COUNTS"
 validate_positive_list OMP_THREAD_COUNTS "$OMP_THREAD_COUNTS"
+if [ -n "$CONFIGS" ]; then
+  config_count=0
+  for config in $CONFIGS; do
+    case "$config" in
+      *x*) ;;
+      *)
+        echo "ERROR: CONFIGS entries must use <MPI>x<OMP>: $config" >&2
+        exit 2
+        ;;
+    esac
+    config_mpi=${config%%x*}
+    config_omp=${config#*x}
+    case "$config_mpi" in
+      ''|*[!0-9]*|0)
+        echo "ERROR: invalid MPI count in CONFIGS: $config" >&2
+        exit 2
+        ;;
+    esac
+    case "$config_omp" in
+      ''|*[!0-9]*|0|*x*)
+        echo "ERROR: invalid OpenMP count in CONFIGS: $config" >&2
+        exit 2
+        ;;
+    esac
+    config_count=$((config_count + 1))
+  done
+  if [ "$config_count" -eq 0 ]; then
+    echo "ERROR: CONFIGS must not be empty when specified." >&2
+    exit 2
+  fi
+fi
 case "$MAX_TOTAL_THREADS" in
   ''|*[!0-9]*|0)
     echo "ERROR: MAX_TOTAL_THREADS must be a positive integer." >&2
@@ -190,13 +224,26 @@ echo "  mpi=$mpi"
 echo "  logical_cpus=$logical_cpus physical_cores=$physical_cores"
 echo "  mpi_counts=$MPI_COUNTS"
 echo "  omp_thread_counts=$OMP_THREAD_COUNTS"
+echo "  explicit_configs=${CONFIGS:-none}"
 echo "  max_total_threads=$MAX_TOTAL_THREADS"
 echo "  runs_per_config=$RUNS_PER_CONFIG"
 echo "  I_MPI_PIN=$I_MPI_PIN I_MPI_PIN_DOMAIN=$I_MPI_PIN_DOMAIN I_MPI_PIN_ORDER=$I_MPI_PIN_ORDER"
 echo "  KMP_AFFINITY=$KMP_AFFINITY"
 
-for mpi_ranks in $MPI_COUNTS; do
-  for omp_threads in $OMP_THREAD_COUNTS; do
+if [ -n "$CONFIGS" ]; then
+  config_pairs=$CONFIGS
+else
+  config_pairs=
+  for config_mpi in $MPI_COUNTS; do
+    for config_omp in $OMP_THREAD_COUNTS; do
+      config_pairs="$config_pairs ${config_mpi}x${config_omp}"
+    done
+  done
+fi
+
+for config in $config_pairs; do
+    mpi_ranks=${config%%x*}
+    omp_threads=${config#*x}
     total_threads=$((mpi_ranks * omp_threads))
     if [ "$total_threads" -gt "$MAX_TOTAL_THREADS" ]; then
       echo
@@ -315,7 +362,6 @@ for mpi_ranks in $MPI_COUNTS; do
     printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
       "$mpi_ranks" "$omp_threads" "$total_threads" "$median" "$range" \
       "$oversubscribed" >> "$summary_tsv"
-  done
 done
 
 ranked_tsv=$sweep_dir/config_summary_ranked.tsv
@@ -334,6 +380,7 @@ echo "mpi=$mpi"
 echo "logical_cpus=$logical_cpus physical_cores=$physical_cores"
 echo "max_total_threads=$MAX_TOTAL_THREADS"
 echo "runs_per_config=$RUNS_PER_CONFIG"
+echo "explicit_configs=${CONFIGS:-none}"
 echo "binding I_MPI_PIN=$I_MPI_PIN I_MPI_PIN_DOMAIN=$I_MPI_PIN_DOMAIN I_MPI_PIN_ORDER=$I_MPI_PIN_ORDER KMP_AFFINITY=$KMP_AFFINITY"
 echo "tolerances energy=$X86_ENERGY_ATOL force=$X86_FORCE_ATOL position=$X86_POSITION_ATOL velocity=$X86_VELOCITY_ATOL"
 echo "mpi omp total_threads median_sec range_sec oversubscribed"

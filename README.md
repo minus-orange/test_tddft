@@ -138,6 +138,31 @@ threads and whether that count exceeds the online logical CPUs. Set
 is to screen once and then repeat only the fastest valid configuration three
 times.
 
+For the dual-socket Xeon Platinum 8468 and 8592+ comparison hosts, use the
+topology-checking wrapper:
+
+```sh
+./tools/run_tddft_x86_8468_8592_sweep.sh
+```
+
+It detects the CPU model, requires two sockets and the expected physical-core
+count, builds or safely reuses the Intel/FFTW executables once, and then runs
+only paired full-core configurations. The 8468 defaults are `32x3`, `16x6`,
+`8x12`, and `4x24` (96 threads); the 8592+ defaults are `32x4`, `16x8`,
+`8x16`, and `4x32` (128 threads). The first screen uses one run per
+configuration. After selecting candidates, use, for example:
+
+```sh
+CONFIGS="16x8 32x4" RUNS_PER_CONFIG=3 \
+  ./tools/run_tddft_x86_8468_8592_sweep.sh
+```
+
+Every run is archived and must pass the normal and x86 relaxed checks; runs
+02/03 also pass the strict comparison with run 01. `CONFIGS` is also accepted
+directly by the general sweep helper as space-separated `<MPI>x<OMP>` pairs.
+These CPU models form independent platform series and do not replace the
+6980P baseline automatically.
+
 The accepted x86 performance baseline is 32 MPI ranks x 8 OpenMP threads. To
 build or safely reuse the matching Intel binaries and repeat its controlled
 three-run measurement with the accepted compact binding, use the fixed

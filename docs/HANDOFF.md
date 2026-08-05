@@ -75,6 +75,15 @@ Last updated: 2026-08-05
   official x86 baseline without an explicit adoption decision. The returned
   timer values are preserved in `docs/STEP119_X86_TIMER_TREE.md` without
   guessing which of the three archive labels produced the photographed table.
+- Pending human-operated same-generation CPU screens: dual-socket Xeon
+  Platinum 8468 (96 physical cores) and dual-socket Xeon Platinum 8592+
+  (128 physical cores). Use `./tools/run_tddft_x86_8468_8592_sweep.sh` once
+  on each host. The helper auto-detects the model and topology, builds once,
+  and screens four full-core MPI/OpenMP decompositions with diagnostics off,
+  archiving and checking every run. The initial screen is one run per
+  configuration; selected candidates require a separate three-run series.
+  Results form new independent CPU platform series and must not replace the
+  6980P, A100, or H100 baselines automatically.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:

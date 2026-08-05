@@ -2905,3 +2905,30 @@ A100/H100 inclusive ratios were `2.653x` for `s2_nonlocal_gemm`, `2.567x` for
 `exnlp_gemm_dot`, and `2.382x` for `s2_nonlocal`. Full transcribed values and
 provenance are in `docs/STEP119_GPU_TIMER_TREES.md`. These single-run
 instrumentation walls do not alter the formal A100 or H100 baseline.
+
+## Step 120: Dual-Socket 8468 and 8592+ MPI/OpenMP Screen Helper
+
+Added `tools/run_tddft_x86_8468_8592_sweep.sh` for the two user-operated CPU
+hosts selected for comparison with H100. It accepts only a dual-socket Xeon
+Platinum 8468 with 96 physical cores or a dual-socket Xeon Platinum 8592+ with
+128 physical cores. Auto-detection and topology checks stop before execution
+when the model, socket count, or physical-core count does not match.
+
+The default 8468 configurations are `32 MPI x 3 OpenMP`, `16 x 6`, `8 x 12`,
+and `4 x 24`, all totaling 96 physical threads. The default 8592+
+configurations are `32 x 4`, `16 x 8`, `8 x 16`, and `4 x 32`, all totaling
+128 physical threads. This keeps the TDDFT MPI rank count at or below 32 while
+screening four rank/thread decompositions at full physical-core occupancy.
+
+The general sweep helper now accepts explicit paired configurations through
+`CONFIGS="<MPI>x<OMP> ..."` in addition to its existing Cartesian grid. The
+x86 baseline helper adds `BUILD_ONLY=1`, allowing the new wrapper to build or
+safely reuse Intel/FFTW, CG, SD, and TDDFT once without consuming an extra
+measurement. The screen defaults to one run per configuration; a selected set
+can be repeated with `RUNS_PER_CONFIG=3`. Every run retains the normal check,
+x86 relaxed comparison, archive provenance, and run-01 strict comparison for
+runs 02/03.
+
+No 8468, 8592+, 6980P, A100, or H100 execution was performed while adding the
+helper. Each CPU model will have its own independent measurement series, and
+no formal baseline is changed by this implementation.

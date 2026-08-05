@@ -43,6 +43,7 @@ ARCHIVE_ROOT=${ARCHIVE_ROOT:-"$ROOT_DIR/run/tddft_archives"}
 SKIP_FFTW=${SKIP_FFTW:-0}
 ALLOW_NON_X86=${ALLOW_NON_X86:-0}
 BUILD_MODE=${BUILD_MODE:-auto}
+BUILD_ONLY=${BUILD_ONLY:-0}
 BUILD_CACHE_DIR=${BUILD_CACHE_DIR:-"$ROOT_DIR/.cache/tddft_x86_build"}
 X86_ENERGY_ATOL=${X86_ENERGY_ATOL:-1e-4}
 X86_FORCE_ATOL=${X86_FORCE_ATOL:-2e-4}
@@ -86,6 +87,13 @@ case "$BUILD_MODE" in
   auto|always|never) ;;
   *)
     echo "ERROR: BUILD_MODE must be auto, always, or never." >&2
+    exit 2
+    ;;
+esac
+case "$BUILD_ONLY" in
+  0|1) ;;
+  *)
+    echo "ERROR: BUILD_ONLY must be 0 or 1." >&2
     exit 2
     ;;
 esac
@@ -341,6 +349,20 @@ if [ "$fftw_reused" = 1 ] &&
   reuse_build=1
 else
   reuse_build=0
+fi
+
+if [ "$BUILD_ONLY" = 1 ]; then
+  echo
+  echo "FPSEID21_X86_BUILD_ONLY_BEGIN"
+  echo "revision=$revision"
+  echo "toolchain=$TOOLCHAIN"
+  echo "fftw_root=$FFTW_ROOT"
+  echo "build_mode=$BUILD_MODE"
+  echo "build_reused=$reuse_build"
+  echo "fftw_reused=$fftw_reused cg_reused=$cg_reused sd_reused=$sd_reused tddft_reused=$tddft_reused"
+  echo "diagnostic=OFF"
+  echo "FPSEID21_X86_BUILD_ONLY_END"
+  exit 0
 fi
 
 RUN_DIR="$RUN_DIR" TDDFT_STEPS=100 NPROCS="$NPROCS" MPIRUN="$MPIRUN" \
