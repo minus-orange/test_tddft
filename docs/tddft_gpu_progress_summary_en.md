@@ -2547,3 +2547,21 @@ A100/H100 ratios were `2.653x` for `s2_nonlocal_gemm`, `2.567x` for
 These are single-run instrumentation validations and do not replace the formal
 A100 or H100 baseline. Complete transcribed timer values are in
 `docs/STEP119_GPU_TIMER_TREES.md`.
+
+## Step 120: Same-generation Xeon 8468 CPU baseline
+
+The dual-socket Xeon Platinum 8468 host has 96 physical cores. A one-run
+full-core screen selected 32 MPI x 3 OpenMP at `21.0896489620` sec over 16 x 6,
+8 x 12, and 4 x 24. After a forced Intel/FFTW rebuild exposed and corrected a
+stale executable-reuse hazard, the selected configuration completed a fresh
+three-run diagnostic-off series at revision `094ebd1`.
+
+The three walls were `20.5968229771`, `20.6482338905`, and `20.5924210548`
+sec. Every run passed the normal and x86 relaxed checks, and runs 02/03 passed
+strict comparison with run 01. The median is `20.5968229771` sec and the range
+is `0.0558128357` sec. This is `39.6146%` faster than the formal H100 median
+and `24.5328%` slower than the formal dual-socket Xeon 6980P median.
+
+The user explicitly approved this as the independent formal Xeon 8468
+CPU/FFTW baseline on 2026-08-05. Keep the Xeon 8468, Xeon 6980P, A100, and H100
+series separate. The Xeon 8592+ screen remains pending.

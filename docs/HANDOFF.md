@@ -33,12 +33,16 @@ Last updated: 2026-08-05
 - Official A100 baseline: Step 107 median `63.2135219574` sec
 - Official H100 baseline: Step 115 median `34.1089649200` sec, range
   `0.0905621052` sec, explicitly approved by the user on 2026-07-30
-- Official x86 CPU/FFTW baseline: Intel Xeon 6980P, ifx 2026.1.0,
+- Official Xeon 6980P CPU/FFTW baseline: ifx 2026.1.0,
   Intel MPI 2021.18.0, 32 MPI ranks / 8 OpenMP threads per rank, median
   `16.5392820835` sec, range `0.0579471588` sec, explicitly approved by
   the user on 2026-07-31
-- The A100, H100, and x86 CPU baseline series are independent; never replace
-  or mix one series with another
+- Official Xeon Platinum 8468 CPU/FFTW baseline: 2 sockets, 96 physical cores,
+  ifx 2026.1.0, Intel MPI 2021.18.0, 32 MPI ranks / 3 OpenMP threads per rank,
+  median `20.5968229771` sec, range `0.0558128357` sec, explicitly approved by
+  the user on 2026-08-05
+- The A100, H100, Xeon 6980P, and Xeon 8468 baseline series are independent;
+  never replace or mix one series with another
 - Step 116 A100 current-source profiler result: revision `9e67ad0`, run 03,
   normal check PASS and relaxed compare PASS for both 100-step runs. The NSYS
   trace wall was `66.9540450573` sec (diagnostic only); the fused kernel used
@@ -79,8 +83,8 @@ Last updated: 2026-08-05
   revision `013845d`. All four 96-thread configurations passed normal and x86
   relaxed checks. Walls were 32x3 `21.0896489620`, 16x6 `29.4878950119`, 8x12
   `49.3604290485`, and 4x24 `88.6823518276` sec. The clear candidate is 32x3;
-  it still requires a separate three-run series before defining an 8468
-  platform baseline. The dual-socket Xeon Platinum 8592+ screen is pending.
+  its controlled three-run result is recorded below. The dual-socket Xeon
+  Platinum 8592+ screen is pending.
   Complete provenance and interpretation are in
   `docs/STEP120_XEON_GENERATION_SWEEPS.md`. These are independent CPU series
   and must not replace the 6980P, A100, or H100 baselines automatically.
@@ -88,16 +92,15 @@ Last updated: 2026-08-05
   `094ebd1`: three runs, median `20.5968229771` sec, range `0.0558128357` sec,
   with all normal and x86 relaxed checks passing and runs 02/03 passing strict
   comparison to run 01. This is `39.6146%` faster than the formal H100 median
-  and `24.5328%` slower than the formal 6980P median. It remains an 8468
-  baseline candidate pending individual run/archive provenance and explicit
-  user adoption; no existing formal baseline changes.
+  and `24.5328%` slower than the formal 6980P median. Individual provenance
+  and explicit adoption are recorded in the following item.
 - The targeted 8468 `runs.tsv` return supplied individual walls
   `20.5968229771`, `20.6482338905`, and `20.5924210548` sec. All three normal
   and relaxed checks passed; runs 02/03 passed strict comparison with run 01.
   Their archive labels share
   `x86_mpi_omp_20260805_151026_094ebd1f421d_32mpi_3omp_` with suffixes 01-03.
-  The candidate is now complete and reproducible, but formal adoption still
-  requires explicit user approval.
+  The candidate is complete and reproducible. The user explicitly approved it
+  as the independent formal Xeon 8468 baseline on 2026-08-05.
 - The first 8468 attempt exposed a stale-build reuse hazard: the old x86 cache
   stamp described only build inputs, so an executable overwritten later by a
   different build path could still be accepted. A forced CPU/FFTW rebuild

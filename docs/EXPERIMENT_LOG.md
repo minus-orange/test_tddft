@@ -2995,6 +2995,8 @@ The targeted `runs.tsv` return then supplied the complete individual series:
 The full common archive prefix is
 `x86_mpi_omp_20260805_151026_094ebd1f421d_`. Sorting these walls exactly
 reproduces median `20.5968229771` sec and range `0.0558128357` sec. The
-controlled result is complete as an 8468 baseline candidate; the formal 8468
-series and all existing platform baselines remain unchanged pending explicit
-user approval.
+controlled result was complete as an 8468 baseline candidate. The user then
+explicitly approved adoption on 2026-08-05. The official independent Xeon 8468
+baseline is therefore median `20.5968229771` sec and range `0.0558128357` sec
+at 32 MPI x 3 OpenMP. The Xeon 6980P, A100, and H100 formal baselines remain
+independent and unchanged.

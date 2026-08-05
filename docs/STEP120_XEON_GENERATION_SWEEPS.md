@@ -1,9 +1,9 @@
 # Step 120 Xeon Generation MPI/OpenMP Screens
 
-These measurements are independent CPU/FFTW platform screens. They do not
+These measurements are independent CPU/FFTW platform series. They do not
 replace the formal Xeon 6980P, A100, or H100 baselines. A one-run screen selects
 a candidate configuration; a formal platform value requires three equivalent
-runs, the median, and the range.
+runs, the median, the range, and explicit user approval.
 
 ## Xeon Platinum 8468, dual socket
 
@@ -39,13 +39,13 @@ this tutorial case monotonically.
 The one-run 32 x 3 value was `13.0193159580` sec (`38.1698%`) shorter than the
 formal H100 median `34.1089649200` sec. Conversely, it was `4.5503668785` sec
 (`27.5125%`) longer than the formal dual-socket Xeon 6980P median
-`16.5392820835` sec. These cross-platform comparisons remain provisional until
-the 8468 candidate completes a controlled three-run series.
+`16.5392820835` sec. These were provisional one-run comparisons; the
+controlled three-run result below supersedes them for formal comparison.
 
 The user-operated host retains the exact `runs.tsv`, ranked summary, archives,
 and provenance paths emitted by the helper.
 
-### Controlled 32 MPI x 3 OpenMP candidate
+### Official 32 MPI x 3 OpenMP baseline
 
 - Returned: 2026-08-05
 - Tested revision: `094ebd1f421d1cb181aa404b28eb28edd350bbd9`
@@ -67,9 +67,8 @@ and provenance paths emitted by the helper.
 The targeted provenance return confirms all three individual walls and the
 archive-label prefix. The final two-digit archive suffix follows the visible
 run column and the helper's deterministic label format. Sorting the walls
-reproduces the reported median and range exactly. Until the user explicitly
-approves adoption, this is an 8468 baseline candidate rather than the formal
-8468 baseline.
+reproduces the reported median and range exactly. The user explicitly approved
+adoption on 2026-08-05, making this the formal independent Xeon 8468 baseline.
 
 The candidate is `13.5121419429` sec (`39.6146%`) faster than the formal H100
 median, so the H100 wall is `1.656x` the 8468 wall for this tutorial case. It

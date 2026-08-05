@@ -2282,3 +2282,20 @@ A100/H100比は`s2_nonlocal_gemm`が`2.653x`、`exnlp_gemm_dot`が`2.567x`、
 
 これらは単発のinstrumentation validationであり、A100/H100の正式baselineを置換
 しません。全timer値は`docs/STEP119_GPU_TIMER_TREES.md`に保存しました。
+
+## Step 120: 同世代Xeon 8468 CPU baseline
+
+2 socket Xeon Platinum 8468 hostは96 physical coresです。全coreを使うone-run
+screenでは32 MPI x 3 OpenMPが`21.0896489620`秒で、16 x 6、8 x 12、4 x 24より
+明確に高速でした。古い実行ファイルを再利用できるbuild cache上の問題を強制
+Intel/FFTW再buildで切り分け、修正後、revision `094ebd1`で選定構成の独立した
+diagnostic OFF 3 runを実施しました。
+
+3 runは`20.5968229771`、`20.6482338905`、`20.5924210548`秒でした。全runが通常
+checkとx86 relaxed compareにPASSし、run 02/03はrun 01とのstrict compareにも
+PASSしました。中央値は`20.5968229771`秒、rangeは`0.0558128357`秒です。正式H100
+中央値より`39.6146%`高速で、正式2 socket Xeon 6980P中央値より`24.5328%`低速です。
+
+ユーザーは2026-08-05に独立したXeon 8468 CPU/FFTW正式baselineとして明示承認
+しました。Xeon 8468、Xeon 6980P、A100、H100系列を混合・置換しません。Xeon
+8592+ screenは未実施です。

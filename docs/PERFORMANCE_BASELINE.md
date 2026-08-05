@@ -1,6 +1,6 @@
 # TDDFT GPU Performance Baseline
 
-Last updated: 2026-08-04
+Last updated: 2026-08-05
 
 ## Official A100 Baseline
 
@@ -328,7 +328,7 @@ and flags were captured. The user explicitly approved this H100-only formal
 baseline on 2026-07-30. The official A100 baseline remains independent and
 unchanged.
 
-## Official x86 CPU/FFTW Baseline
+## Official Xeon 6980P CPU/FFTW Baseline
 
 This CPU series is independent of both GPU series. It uses the accepted
 numerical source and the CPU/FFTW fallback at tested revision
@@ -369,6 +369,47 @@ Repeat this exact 32 MPI x 8 OpenMP configuration on the x86 host with:
 This dedicated helper fixes the Intel toolchain and accepted binding, builds
 or safely reuses the current CPU/FFTW executables, runs three independent
 sequences, and performs the normal, relaxed, and run-to-run strict checks.
+
+## Official Xeon Platinum 8468 CPU/FFTW Baseline
+
+This is a separate CPU platform series from the Xeon 6980P and both GPU
+series. It uses the accepted numerical source and CPU/FFTW fallback at tested
+revision `094ebd1f421d1cb181aa404b28eb28edd350bbd9`:
+
+- CPU: Intel Xeon Platinum 8468, 2 sockets
+- Compiler: ifx/mpiifx 2026.1.0 (20260617)
+- MPI: Intel MPI 2021.18.0, build 20260327
+- Available CPUs: 96 logical / 96 physical
+- Execution: 32 MPI ranks, 3 OpenMP threads per rank
+- Binding: `I_MPI_PIN=1`, `I_MPI_PIN_DOMAIN=omp`,
+  `I_MPI_PIN_ORDER=compact`,
+  `KMP_AFFINITY=granularity=fine,compact,1,0`
+- Diagnostics: off
+- Case: Si111-H, 100 TDDFT time steps
+- FFT backend: FFTW
+- x86-only relaxed tolerances: energy `1e-4` Hartree, force `2e-4`
+  Hartree/Bohr, position `2e-6` Bohr, velocity `1e-6`
+
+| archive label | wall_sec | check | x86 relaxed compare | run-01 pairwise strict |
+|---|---:|---|---|---|
+| `x86_mpi_omp_20260805_151026_094ebd1f421d_32mpi_3omp_01` | 20.5968229771 | PASS | PASS | SELF |
+| `x86_mpi_omp_20260805_151026_094ebd1f421d_32mpi_3omp_02` | 20.6482338905 | PASS | PASS | PASS |
+| `x86_mpi_omp_20260805_151026_094ebd1f421d_32mpi_3omp_03` | 20.5924210548 | PASS | PASS | PASS |
+
+Official Xeon 8468 median: `20.5968229771` sec. Run-to-run range:
+`0.0558128357` sec. This is `13.5121419429` sec (`39.6146%`) faster than the
+official H100 median and `4.0575408936` sec (`24.5328%`) slower than the
+official dual-socket Xeon 6980P median. The user explicitly approved this
+8468-only formal baseline on 2026-08-05. The 6980P, A100, and H100 formal
+baselines remain independent and unchanged.
+
+Repeat the CPU-model-selected screen or a controlled 32 x 3 series with:
+
+```sh
+./tools/run_tddft_x86_8468_8592_sweep.sh
+CONFIGS="32x3" RUNS_PER_CONFIG=3 \
+  ./tools/run_tddft_x86_8468_8592_sweep.sh
+```
 
 ### Historical x86 16 MPI x 1 OpenMP Baseline
 
