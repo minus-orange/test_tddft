@@ -207,10 +207,18 @@ remains pending and must report `runs_per_config=3` in one invocation.
 - Run-01 strict comparison: PASS for runs 02 and 03
 - Diagnostic: OFF
 
+| run | wall_sec | normal | relaxed | run-01 strict |
+|---:|---:|---|---|---|
+| 01 | 19.5947289467 | PASS | PASS | SELF |
+| 02 | 19.5884881020 | PASS | PASS | PASS |
+| 03 | 19.6411728859 | PASS | PASS | PASS |
+
 The final summary is emitted only after all of these validation gates pass.
 The candidate is `14.5142359733` sec (`42.5526%`) faster than the formal H100
 median, `1.0020940304` sec (`4.8653%`) faster than the formal 8468 median, and
-`3.0554468632` sec (`18.4739%`) slower than the formal 6980P median. Individual
-run walls and archive labels are not visible in the returned photograph and
-remain pending from `runs.tsv`; the candidate is not adopted as the formal
-8592+ baseline without that provenance and explicit user approval.
+`3.0554468632` sec (`18.4739%`) slower than the formal 6980P median. The
+returned `runs.tsv` supplies all individual walls and check states and exactly
+reproduces the median and range. Its visible results-directory suffix is
+`x86_mpi_omp_20260805_160921_fa6d80a21d24`; full archive-label endings are
+cropped from the photograph and are not inferred. The candidate is not adopted
+as the formal 8592+ baseline without explicit user approval.

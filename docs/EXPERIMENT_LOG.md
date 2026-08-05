@@ -3077,8 +3077,18 @@ checks pass and runs 02/03 pass strict comparison against run 01.
 - 6980P formal median difference: `3.0554468632` sec (`18.4739%` slower)
 - Three-run range relative to median: `0.2689%`
 
-The individual run walls and archive labels were outside the returned
-photograph and remain pending from `runs.tsv`. The controlled result is a
+The targeted `runs.tsv` return supplied the individual series:
+
+| run | wall_sec | normal | relaxed | run-01 strict |
+|---:|---:|---|---|---|
+| 01 | 19.5947289467 | PASS | PASS | SELF |
+| 02 | 19.5884881020 | PASS | PASS | PASS |
+| 03 | 19.6411728859 | PASS | PASS | PASS |
+
+Sorting these walls exactly reproduces the reported median and range. The
+visible results-directory suffix is
+`x86_mpi_omp_20260805_160921_fa6d80a21d24`; full archive-label endings are
+cropped from the photograph and are not inferred. The controlled result is a
 complete timing and validation candidate, but is not adopted as the formal
-independent 8592+ baseline until that provenance is returned and the user
-explicitly approves adoption. No formal baseline changes.
+independent 8592+ baseline without explicit user approval. No formal baseline
+changes.
