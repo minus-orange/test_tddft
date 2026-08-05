@@ -42,9 +42,8 @@ formal H100 median `34.1089649200` sec. Conversely, it was `4.5503668785` sec
 `16.5392820835` sec. These cross-platform comparisons remain provisional until
 the 8468 candidate completes a controlled three-run series.
 
-The archive labels were not visible in the returned photograph and are not
-guessed here. The user-operated host retains the exact `runs.tsv`, ranked
-summary, archives, and provenance paths emitted by the helper.
+The user-operated host retains the exact `runs.tsv`, ranked summary, archives,
+and provenance paths emitted by the helper.
 
 ### Controlled 32 MPI x 3 OpenMP candidate
 
@@ -59,11 +58,18 @@ summary, archives, and provenance paths emitted by the helper.
 - Run-01 strict comparison: PASS for runs 02 and 03
 - Diagnostic: OFF
 
-The final helper summary establishes the three-run median and range. Individual
-run walls and archive labels were outside the returned photograph and remain
-pending as a targeted provenance return; they are not guessed here. Until the
-user explicitly approves adoption, this is an 8468 baseline candidate rather
-than the formal 8468 baseline.
+| run | wall_sec | normal | relaxed | run-01 strict | archive label |
+|---:|---:|---|---|---|---|
+| 01 | 20.5968229771 | PASS | PASS | SELF | `x86_mpi_omp_20260805_151026_094ebd1f421d_32mpi_3omp_01` |
+| 02 | 20.6482338905 | PASS | PASS | PASS | `x86_mpi_omp_20260805_151026_094ebd1f421d_32mpi_3omp_02` |
+| 03 | 20.5924210548 | PASS | PASS | PASS | `x86_mpi_omp_20260805_151026_094ebd1f421d_32mpi_3omp_03` |
+
+The targeted provenance return confirms all three individual walls and the
+archive-label prefix. The final two-digit archive suffix follows the visible
+run column and the helper's deterministic label format. Sorting the walls
+reproduces the reported median and range exactly. Until the user explicitly
+approves adoption, this is an 8468 baseline candidate rather than the formal
+8468 baseline.
 
 The candidate is `13.5121419429` sec (`39.6146%`) faster than the formal H100
 median, so the H100 wall is `1.656x` the 8468 wall for this tutorial case. It

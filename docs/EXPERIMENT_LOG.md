@@ -2984,8 +2984,17 @@ and runs 02/03 pass strict comparison against run 01.
 - H100 formal median difference: `13.5121419429` sec (`39.6146%` faster)
 - 6980P formal median difference: `4.0575408936` sec (`24.5328%` slower)
 
-The individual run walls and archive labels were not visible in the returned
-photograph. Request that bounded provenance before final adoption rather than
-inferring it. The controlled result is recorded as an 8468 baseline candidate;
-the formal 8468 series and all existing platform baselines remain unchanged
-pending explicit user approval.
+The targeted `runs.tsv` return then supplied the complete individual series:
+
+| run | wall_sec | normal | relaxed | run-01 strict | archive suffix |
+|---:|---:|---|---|---|---|
+| 01 | 20.5968229771 | PASS | PASS | SELF | `32mpi_3omp_01` |
+| 02 | 20.6482338905 | PASS | PASS | PASS | `32mpi_3omp_02` |
+| 03 | 20.5924210548 | PASS | PASS | PASS | `32mpi_3omp_03` |
+
+The full common archive prefix is
+`x86_mpi_omp_20260805_151026_094ebd1f421d_`. Sorting these walls exactly
+reproduces median `20.5968229771` sec and range `0.0558128357` sec. The
+controlled result is complete as an 8468 baseline candidate; the formal 8468
+series and all existing platform baselines remain unchanged pending explicit
+user approval.

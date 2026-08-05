@@ -91,6 +91,13 @@ Last updated: 2026-08-05
   and `24.5328%` slower than the formal 6980P median. It remains an 8468
   baseline candidate pending individual run/archive provenance and explicit
   user adoption; no existing formal baseline changes.
+- The targeted 8468 `runs.tsv` return supplied individual walls
+  `20.5968229771`, `20.6482338905`, and `20.5924210548` sec. All three normal
+  and relaxed checks passed; runs 02/03 passed strict comparison with run 01.
+  Their archive labels share
+  `x86_mpi_omp_20260805_151026_094ebd1f421d_32mpi_3omp_` with suffixes 01-03.
+  The candidate is now complete and reproducible, but formal adoption still
+  requires explicit user approval.
 - The first 8468 attempt exposed a stale-build reuse hazard: the old x86 cache
   stamp described only build inputs, so an executable overwritten later by a
   different build path could still be accepted. A forced CPU/FFTW rebuild
