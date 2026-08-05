@@ -2826,3 +2826,27 @@ the effective binding in each archive and terminal summary, and continues to
 default to its historical 16 MPI x 1 OpenMP reference configuration. No x86,
 A100, or H100 execution was performed while adding this workflow helper, so
 all formal baseline timings remain unchanged.
+
+## Step 119: Hierarchical Timer Call-Path Output
+
+Changed only the common `mod_timer.f90` reporting/accounting layer. At each
+`start_timer('name')`, the timer records the currently active parent and
+accumulates a separate display node for each `(parent path, name)` pair. The
+`[Timer Output]` table walks those nodes depth-first and indents child regions.
+Elapsed values remain inclusive. When a shared region such as `fft_wrapper`
+is called from multiple parents, it appears below each parent with the count
+and elapsed time for that path instead of being assigned to whichever parent
+registered the name first.
+
+The existing name table remains authoritative for `FPSEID_PROFILE`: all paths
+with the same region name are summed into one MPI-aggregated row with the same
+label and total count. Existing checkers and history report scripts therefore
+retain their input format. Direct `start_timer('region')` and
+`stop_timer('region')` call sites are unchanged.
+
+Local validation on 2026-08-05 passed full GNU MPI CPU/FFTW links with
+diagnostics both off and on. A two-rank standalone MPI probe verified nested
+depth-first output, the same region under two different parents, and one
+aggregated `FPSEID_PROFILE` row for that shared name. No official x86, A100,
+or H100 run has been performed, so all three formal platform baselines remain
+unchanged.

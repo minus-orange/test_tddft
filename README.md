@@ -308,10 +308,13 @@ cuFFT builds print an additional `FPSEID_CUFFT_PROFILE` block at shutdown. It
 splits the FFT wrapper time into host-to-device copy, cuFFT execution,
 device-to-host copy, and CUDA-event measured total time.
 CPU/FFTW and GPU/cuFFT builds call the same name-based timers from
-`mod_timer.f90` at matching logical regions. The original `[Timer Output]`
-table and the MPI-aggregated `FPSEID_PROFILE` block therefore use the same
-region names on both platforms. The cuFFT C wrapper keeps its additional
-CUDA-event breakdown for GPU-only transfer and execution analysis.
+`mod_timer.f90` at matching logical regions. The `[Timer Output]` table is an
+indented call-path tree: child regions appear below their active parent, and
+the same region name is shown separately when it is reached from different
+parents. Its elapsed values are inclusive. The MPI-aggregated
+`FPSEID_PROFILE` block remains a flat name-based summary for existing result
+checks and reporting tools. The cuFFT C wrapper keeps its additional CUDA-event
+breakdown for GPU-only transfer and execution analysis.
 
 If the MPI C wrapper cannot find CUDA headers, use the NVIDIA C compiler or
 add the CUDA include/library paths supplied by the site module, for example:

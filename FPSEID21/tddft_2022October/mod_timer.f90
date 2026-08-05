@@ -3,16 +3,28 @@ module mod_timer
   implicit none
 
   integer, private, parameter :: num_max_routines = 192
+  integer, private, parameter :: num_max_tree_nodes = 512
   integer, private, parameter :: num_max_namelen = 100
   integer, private :: num_of_routines = 0
+  integer, private :: num_tree_nodes = 0
+  integer, private :: timer_stack_depth = 0
 
   character(len=num_max_namelen), private :: t_name(num_max_routines) = ''
   real(kind=8), private :: ts(num_max_routines) = 0.0d0
   real(kind=8), private :: t_value(num_max_routines) = 0.0d0
   integer, private :: call_count(num_max_routines) = 0
   logical, private :: timer_start(num_max_routines) = .false.
+  integer, private :: active_tree_node(num_max_routines) = 0
 
-  private :: wallclock
+  integer, private :: tree_name_index(num_max_tree_nodes) = 0
+  integer, private :: tree_parent(num_max_tree_nodes) = 0
+  integer, private :: tree_depth(num_max_tree_nodes) = 0
+  integer, private :: tree_call_count(num_max_tree_nodes) = 0
+  real(kind=8), private :: tree_ts(num_max_tree_nodes) = 0.0d0
+  real(kind=8), private :: tree_value(num_max_tree_nodes) = 0.0d0
+  integer, private :: timer_stack(num_max_routines) = 0
+
+  private :: wallclock, find_or_add_tree_node, print_timer_tree
 
 contains
 
@@ -23,15 +35,34 @@ contains
     t_value = 0.0d0
     call_count = 0
     timer_start = .false.
+    active_tree_node = 0
+    num_tree_nodes = 0
+    tree_name_index = 0
+    tree_parent = 0
+    tree_depth = 0
+    tree_call_count = 0
+    tree_ts = 0.0d0
+    tree_value = 0.0d0
+    timer_stack_depth = 0
+    timer_stack = 0
   end subroutine reset_timer
 
   subroutine start_timer(subroutine_name)
     character(len=*), intent(in) :: subroutine_name
     integer :: nlen
     integer :: i
+    integer :: name_index
+    integer :: node_index
+    integer :: parent_index
+    real(kind=8) :: t_start
 
     nlen = min(len_trim(subroutine_name), num_max_namelen)
+    if (nlen <= 0) then
+      write(0,*) 'Timer region name must not be empty.'
+      return
+    end if
 
+    name_index = 0
     do i = 1, num_of_routines
       if (subroutine_name(1:nlen) == trim(t_name(i))) then
         if (timer_start(i)) then
@@ -39,33 +70,59 @@ contains
             ' is already started!!!'
           return
         end if
-        timer_start(i) = .true.
-        call_count(i) = call_count(i) + 1
-        call wallclock(ts(i))
-        return
+        name_index = i
+        exit
       end if
     end do
 
-    if (num_of_routines >= num_max_routines) then
-      write(0,*) 'Timer table is full: ', trim(subroutine_name)
+    if (name_index == 0) then
+      if (num_of_routines >= num_max_routines) then
+        write(0,*) 'Timer table is full: ', trim(subroutine_name)
+        return
+      end if
+
+      num_of_routines = num_of_routines + 1
+      name_index = num_of_routines
+      t_name(name_index) = subroutine_name(1:nlen)
+    end if
+
+    parent_index = 0
+    if (timer_stack_depth > 0) then
+      parent_index = timer_stack(timer_stack_depth)
+    end if
+    call find_or_add_tree_node(name_index, parent_index, node_index)
+    if (node_index == 0) return
+
+    if (timer_stack_depth >= num_max_routines) then
+      write(0,*) 'Timer nesting is too deep: ', trim(subroutine_name)
       return
     end if
 
-    num_of_routines = num_of_routines + 1
-    t_name(num_of_routines) = subroutine_name(1:nlen)
-    timer_start(num_of_routines) = .true.
-    call_count(num_of_routines) = call_count(num_of_routines) + 1
-    call wallclock(ts(num_of_routines))
+    call wallclock(t_start)
+    timer_start(name_index) = .true.
+    call_count(name_index) = call_count(name_index) + 1
+    ts(name_index) = t_start
+    active_tree_node(name_index) = node_index
+    tree_call_count(node_index) = tree_call_count(node_index) + 1
+    tree_ts(node_index) = t_start
+    timer_stack_depth = timer_stack_depth + 1
+    timer_stack(timer_stack_depth) = node_index
   end subroutine start_timer
 
   subroutine stop_timer(subroutine_name)
     character(len=*), intent(in) :: subroutine_name
     integer :: nlen
     integer :: i
+    integer :: j
+    integer :: node_index
     real(kind=8) :: te_tmp
 
     call wallclock(te_tmp)
     nlen = min(len_trim(subroutine_name), num_max_namelen)
+    if (nlen <= 0) then
+      write(0,*) 'Timer region name must not be empty.'
+      return
+    end if
 
     do i = 1, num_of_routines
       if (subroutine_name(1:nlen) == trim(t_name(i))) then
@@ -76,6 +133,29 @@ contains
         end if
         timer_start(i) = .false.
         t_value(i) = t_value(i) + (te_tmp - ts(i))
+        node_index = active_tree_node(i)
+        if (node_index > 0) then
+          tree_value(node_index) = tree_value(node_index) + &
+            (te_tmp - tree_ts(node_index))
+        end if
+        active_tree_node(i) = 0
+
+        if (timer_stack_depth > 0 .and. &
+          timer_stack(timer_stack_depth) == node_index) then
+          timer_stack(timer_stack_depth) = 0
+          timer_stack_depth = timer_stack_depth - 1
+        else
+          write(0,*) 'Timer nesting mismatch at ', trim(subroutine_name)
+          do j = timer_stack_depth, 1, -1
+            if (timer_stack(j) == node_index) then
+              timer_stack(j:timer_stack_depth-1) = &
+                timer_stack(j+1:timer_stack_depth)
+              timer_stack(timer_stack_depth) = 0
+              timer_stack_depth = timer_stack_depth - 1
+              exit
+            end if
+          end do
+        end if
         return
       end if
     end do
@@ -94,7 +174,7 @@ contains
     integer :: total_count
     integer :: count_max(num_max_routines)
     logical :: mpi_ready
-    character(len=31) :: p_name
+    character(len=47) :: p_name
     real(kind=8) :: total_value
     real(kind=8) :: value_sum(num_max_routines)
     real(kind=8) :: value_max(num_max_routines)
@@ -133,27 +213,28 @@ contains
 
     write(6,'(a)') ''
     write(6,'(a)') '[Timer Output]'
-    write(6,'(a)') '+--------------------------------+------+----------+------------+'
-    write(6,'(a)') '|Timer region                    |Rank  |Called    |Elapsed     |'
-    write(6,'(a)') '|                                |      |          |Time[s]     |'
-    write(6,'(a)') '+--------------------------------+------+----------+------------+'
+    write(6,'(a)') 'Elapsed time is inclusive; indentation shows the call path.'
+    write(6,'(a)') 'A repeated region name means it was called from multiple parents.'
+    write(6,'(a)') '+------------------------------------------------+------+----------+------------+'
+    write(6,'(a)') '|Timer region / call path                        |Rank  |Called    |Elapsed     |'
+    write(6,'(a)') '|                                                |      |          |Time[s]     |'
+    write(6,'(a)') '+------------------------------------------------+------+----------+------------+'
     do i = 1, num_of_routines
       if (timer_start(i)) then
         write(0,*) 'Timer for ', trim(t_name(i)), ' is NOT stopped!!!'
         return
       end if
-      p_name = ''
-      p_name = trim(t_name(i))
-      total_count = total_count + call_count(i)
-      total_value = total_value + t_value(i)
-      write(6,'(a,a31,a,i6,a,i10,a,f12.3,a)') '|', p_name, &
-        '|', my_rank, '|', call_count(i), '|', t_value(i), '|'
     end do
-    p_name = 'TOTAL'
-    write(6,'(a)') '+--------------------------------+------+----------+------------+'
-    write(6,'(a,a31,a,i6,a,i10,a,f12.3,a)') '|', p_name, &
+    if (timer_stack_depth /= 0) then
+      write(0,*) 'Timer nesting stack is not empty at print_timer.'
+      return
+    end if
+    call print_timer_tree(my_rank, total_count, total_value)
+    p_name = 'TOTAL (inclusive regions)'
+    write(6,'(a)') '+------------------------------------------------+------+----------+------------+'
+    write(6,'(a,a47,a,i6,a,i10,a,f12.3,a)') '|', p_name, &
       '|', my_rank, '|', total_count, '|', total_value, '|'
-    write(6,'(a)') '+--------------------------------+------+----------+------------+'
+    write(6,'(a)') '+------------------------------------------------+------+----------+------------+'
 
     write(6,*)
     write(6,*) 'FPSEID_PROFILE_BEGIN'
@@ -168,6 +249,87 @@ contains
     write(6,*)
 100 format(1x,i3,1x,a24,1x,i10,2(1x,f18.6))
   end subroutine print_timer
+
+  subroutine find_or_add_tree_node(name_index, parent_index, node_index)
+    integer, intent(in) :: name_index
+    integer, intent(in) :: parent_index
+    integer, intent(out) :: node_index
+    integer :: i
+
+    do i = 1, num_tree_nodes
+      if (tree_name_index(i) == name_index .and. &
+        tree_parent(i) == parent_index) then
+        node_index = i
+        return
+      end if
+    end do
+
+    if (num_tree_nodes >= num_max_tree_nodes) then
+      write(0,*) 'Timer call-path table is full: ', trim(t_name(name_index))
+      node_index = 0
+      return
+    end if
+
+    num_tree_nodes = num_tree_nodes + 1
+    node_index = num_tree_nodes
+    tree_name_index(node_index) = name_index
+    tree_parent(node_index) = parent_index
+    if (parent_index > 0) then
+      tree_depth(node_index) = tree_depth(parent_index) + 1
+    else
+      tree_depth(node_index) = 0
+    end if
+  end subroutine find_or_add_tree_node
+
+  subroutine print_timer_tree(rank, total_count, total_value)
+    integer, intent(in) :: rank
+    integer, intent(inout) :: total_count
+    real(kind=8), intent(inout) :: total_value
+    integer :: i
+    integer :: j
+    integer :: indent_len
+    integer :: name_len
+    integer :: name_offset
+    integer :: output_stack(num_max_tree_nodes)
+    integer :: output_stack_size
+    character(len=47) :: p_name
+
+    output_stack = 0
+    output_stack_size = 0
+    do i = num_tree_nodes, 1, -1
+      if (tree_parent(i) /= 0) cycle
+      output_stack_size = output_stack_size + 1
+      output_stack(output_stack_size) = i
+    end do
+
+    do while (output_stack_size > 0)
+      i = output_stack(output_stack_size)
+      output_stack(output_stack_size) = 0
+      output_stack_size = output_stack_size - 1
+      p_name = ''
+      indent_len = min(2 * tree_depth(i), len(p_name) - 4)
+      name_offset = indent_len
+      if (tree_depth(i) > 0) then
+        p_name(indent_len+1:indent_len+3) = '+- '
+        name_offset = indent_len + 3
+      end if
+      name_len = min(len_trim(t_name(tree_name_index(i))), &
+        len(p_name) - name_offset)
+      if (name_len > 0) then
+        p_name(name_offset+1:name_offset+name_len) = &
+          t_name(tree_name_index(i))(1:name_len)
+      end if
+      total_count = total_count + tree_call_count(i)
+      total_value = total_value + tree_value(i)
+      write(6,'(a,a47,a,i6,a,i10,a,f12.3,a)') '|', p_name, &
+        '|', rank, '|', tree_call_count(i), '|', tree_value(i), '|'
+      do j = num_tree_nodes, 1, -1
+        if (tree_parent(j) /= i) cycle
+        output_stack_size = output_stack_size + 1
+        output_stack(output_stack_size) = j
+      end do
+    end do
+  end subroutine print_timer_tree
 
   subroutine wallclock(t)
     real(kind=8), intent(out) :: t

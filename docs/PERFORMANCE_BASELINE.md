@@ -74,6 +74,13 @@ platform series or adopt it automatically; the A100, H100, and x86 baselines
 above remain unchanged until each platform completes its own controlled
 correctness and timing series.
 
+Step 119 changes only timer reporting and accounting structure. `[Timer Output]`
+now records parent/child call paths and prints an indented tree with
+inclusive elapsed time. A name called from multiple parents is shown once per
+path, while `FPSEID_PROFILE` continues to aggregate by region name for parser
+compatibility. No formal platform timing has been measured for this reporting
+change, and no baseline is replaced.
+
 ## Source-Level GPU Coverage History
 
 For a reproducible source-based trend, define the OpenACC compute-site coverage

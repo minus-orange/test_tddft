@@ -24,8 +24,10 @@ Last updated: 2026-08-04
 - Current HEAD source status: the numerical path matches accepted Step 107
   source `c46cfa9`; Step 110 and Step 112 are rejected and restored. Step 117
   consolidates the common CPU/GPU timer in `mod_timer.f90`, directly names
-  each region at its call site, removes `prof_timer.f`, and does not change
-  the numerical path
+  each region at its call site, and removes `prof_timer.f`. Step 119 adds
+  call-path tracking and an indented inclusive-time tree to `[Timer Output]`;
+  `FPSEID_PROFILE` remains name-aggregated. Neither step changes the numerical
+  path.
 - Rejected Step 31 implementation: `f8b6188`
 - Step 31 rollback: `8ef55bb`
 - Official A100 baseline: Step 107 median `63.2135219574` sec
@@ -52,14 +54,14 @@ Last updated: 2026-08-04
   launch, 72 registers/thread, `0.09` waves/SM, `37.50%` theoretical
   occupancy, `12.50%` achieved occupancy, and `355.78` us duration. The same
   32-block parallel-width limit is therefore visible on both A100 and H100.
-- Pending human-operated GPU action: Step 117 timer-output validation has not
+- Pending human-operated GPU action: Step 119 timer-tree validation has not
   been run on A100 or H100. It is an instrumentation validation, not a new
   optimization hypothesis; keep any resulting platform series independent.
   Step 116 profiler capture is complete on both GPUs.
 - Step 116 profiler post-processing: complete for A100 and H100. The 24
   non-cuFFT OpenACC launch configurations and interpretation are recorded in
   `docs/STEP116_OPENACC_LAUNCH_SHAPES.md`.
-- Pending human-operated x86 action: Step 117 timer-output validation has not
+- Pending human-operated x86 action: Step 119 timer-tree validation has not
   been run on the official Intel Xeon 6980P configuration. Use
   `./tools/run_tddft_x86_32mpi_8omp.sh`; the dedicated helper fixes the Intel
   32 MPI x 8 OpenMP configuration and accepted compact binding, builds or
