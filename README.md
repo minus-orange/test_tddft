@@ -319,6 +319,19 @@ breakdown for GPU-only transfer and execution analysis.
 The photographed Step 119 Intel x86 timer-tree values and matching three-run
 provenance are preserved in `docs/STEP119_X86_TIMER_TREE.md`.
 
+Measure the same timer tree on one verified A100 or H100 with the platform
+argument. Each invocation performs a cc80 or cc90 TDDFT-only rebuild, one
+100-step run, archiving, normal check, relaxed comparison, and a terminal tree
+plus compact summary:
+
+```sh
+./tools/run_tddft_step119_gpu_timer_tree.sh A100
+./tools/run_tddft_step119_gpu_timer_tree.sh H100
+```
+
+Run the commands on their respective hosts. These one-run instrumentation
+validations do not replace either formal GPU baseline.
+
 If the MPI C wrapper cannot find CUDA headers, use the NVIDIA C compiler or
 add the CUDA include/library paths supplied by the site module, for example:
 

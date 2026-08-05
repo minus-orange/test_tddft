@@ -2882,3 +2882,11 @@ photograph is transcribed in `docs/STEP119_X86_TIMER_TREE.md`, together with
 the execution provenance and three-run wall summary. The photograph does not
 show the archive label alongside the timer table, so the sample is deliberately
 not assigned to run 01, 02, or 03.
+
+For the independent GPU timer-tree validations, use
+`tools/run_tddft_step119_gpu_timer_tree.sh` with an explicit `A100` or `H100`
+argument on the matching host. The helper rejects the wrong device, fixes
+cc80 or cc90 with pinned separate memory, rebuilds TDDFT only, executes one
+diagnostic-off 100-step run at 1 GPU / 1 MPI / 1 OpenMP, archives it, requires
+normal and relaxed checks, and prints the tree plus compact provenance. These
+are one-run instrumentation validations and cannot replace a formal baseline.

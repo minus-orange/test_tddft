@@ -57,7 +57,10 @@ Last updated: 2026-08-05
 - Pending human-operated GPU action: Step 119 timer-tree validation has not
   been run on A100 or H100. It is an instrumentation validation, not a new
   optimization hypothesis; keep any resulting platform series independent.
-  Step 116 profiler capture is complete on both GPUs.
+  Step 116 profiler capture is complete on both GPUs. Run
+  `./tools/run_tddft_step119_gpu_timer_tree.sh A100` on the A100 host and
+  `./tools/run_tddft_step119_gpu_timer_tree.sh H100` on the H100 host. Each
+  produces a separate archive and photograph-ready tree/summary block.
 - Step 116 profiler post-processing: complete for A100 and H100. The 24
   non-cuFFT OpenACC launch configurations and interpretation are recorded in
   `docs/STEP116_OPENACC_LAUNCH_SHAPES.md`.
