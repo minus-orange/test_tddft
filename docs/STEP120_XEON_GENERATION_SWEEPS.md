@@ -183,3 +183,13 @@ median. These comparisons are provisional: the 8592+ value remains a one-run
 screen until 32 x 4 completes three equivalent validated runs and is explicitly
 adopted. Archive labels were outside the returned photograph and are not
 inferred.
+
+### Additional one-run 32 MPI x 4 OpenMP sample
+
+A subsequent targeted invocation at the same revision and configuration also
+passed the normal check and x86 relaxed comparison, with wall
+`19.5182418823` sec. Its summary explicitly reported `runs_per_config=1` and
+range `0`, so it is retained only as a second independent one-run sample, not
+as a member of a controlled three-run series. It is `0.0849432945` sec
+(`0.4333%`) shorter than the first 32 x 4 screen sample. The controlled series
+remains pending and must report `runs_per_config=3` in one invocation.

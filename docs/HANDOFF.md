@@ -126,6 +126,11 @@ Last updated: 2026-08-05
   `49.3092470169`, and 4x32 `90.9068999290` sec. The clear candidate is 32x4.
   This is screening evidence only; the controlled three-run series and
   explicit adoption remain pending.
+- A later targeted 8592+ 32x4 invocation at the same revision passed both
+  checks at `19.5182418823` sec, but its summary reported
+  `runs_per_config=1`. It is a separate one-run sample, not the requested
+  controlled series. The next return must visibly report
+  `runs_per_config=3` and include its nonzero three-run range.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:

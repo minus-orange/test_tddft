@@ -3051,3 +3051,14 @@ baseline: the selected configuration still requires three equivalent runs,
 normal and relaxed checks for each, strict comparison of runs 02/03 against
 run 01, and explicit user adoption. Archive labels were not visible in the
 returned photograph and are not inferred. No formal baseline changes.
+
+### Step 120 8592+ additional one-run candidate sample
+
+A targeted 32 MPI x 4 OpenMP run at the same revision subsequently completed
+at `19.5182418823` sec with normal and x86 relaxed comparisons passing. The
+terminal summary explicitly showed `runs_per_config=1` and range `0`, so the
+requested controlled three-run measurement did not occur. This value is saved
+as a separate one-run sample only. It is `0.0849432945` sec (`0.4333%`)
+shorter than the initial 32 x 4 screen value, but the two independently
+launched samples cannot substitute for the helper's three-run median, range,
+and run-01 strict checks. No baseline changes.
