@@ -84,6 +84,13 @@ Last updated: 2026-08-05
   Complete provenance and interpretation are in
   `docs/STEP120_XEON_GENERATION_SWEEPS.md`. These are independent CPU series
   and must not replace the 6980P, A100, or H100 baselines automatically.
+- The controlled 8468 32 MPI x 3 OpenMP series then completed at revision
+  `094ebd1`: three runs, median `20.5968229771` sec, range `0.0558128357` sec,
+  with all normal and x86 relaxed checks passing and runs 02/03 passing strict
+  comparison to run 01. This is `39.6146%` faster than the formal H100 median
+  and `24.5328%` slower than the formal 6980P median. It remains an 8468
+  baseline candidate pending individual run/archive provenance and explicit
+  user adoption; no existing formal baseline changes.
 - The first 8468 attempt exposed a stale-build reuse hazard: the old x86 cache
   stamp described only build inputs, so an executable overwritten later by a
   different build path could still be accepted. A forced CPU/FFTW rebuild

@@ -46,6 +46,31 @@ The archive labels were not visible in the returned photograph and are not
 guessed here. The user-operated host retains the exact `runs.tsv`, ranked
 summary, archives, and provenance paths emitted by the helper.
 
+### Controlled 32 MPI x 3 OpenMP candidate
+
+- Returned: 2026-08-05
+- Tested revision: `094ebd1f421d1cb181aa404b28eb28edd350bbd9`
+- Runs: 3
+- Configuration: 32 MPI x 3 OpenMP = 96 physical threads
+- Median: `20.5968229771` sec
+- Range: `0.0558128357` sec
+- Normal check: PASS for all runs
+- x86 relaxed comparison: PASS for all runs
+- Run-01 strict comparison: PASS for runs 02 and 03
+- Diagnostic: OFF
+
+The final helper summary establishes the three-run median and range. Individual
+run walls and archive labels were outside the returned photograph and remain
+pending as a targeted provenance return; they are not guessed here. Until the
+user explicitly approves adoption, this is an 8468 baseline candidate rather
+than the formal 8468 baseline.
+
+The candidate is `13.5121419429` sec (`39.6146%`) faster than the formal H100
+median, so the H100 wall is `1.656x` the 8468 wall for this tutorial case. It
+is `4.0575408936` sec (`24.5328%`) slower than the formal dual-socket Xeon
+6980P median. The controlled median is `0.4928259849` sec (`2.3368%`) shorter
+than the initial one-run 8468 screen value.
+
 ## Xeon Platinum 8592+, dual socket
 
 Pending. Use the same helper after updating to revision `071b986` or later so

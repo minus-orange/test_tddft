@@ -2970,3 +2970,22 @@ candidate three times and require normal, relaxed, and run-01 strict checks
 before using its median. Archive labels were outside the returned photograph
 and are not inferred. Full recorded evidence is in
 `docs/STEP120_XEON_GENERATION_SWEEPS.md`.
+
+### Step 120 8468 controlled candidate result
+
+The selected 32 MPI x 3 OpenMP configuration completed three diagnostic-off
+runs at revision `094ebd1f421d1cb181aa404b28eb28edd350bbd9`. The final helper
+summary is emitted only after every normal and x86 relaxed comparison passes
+and runs 02/03 pass strict comparison against run 01.
+
+- Median: `20.5968229771` sec
+- Range: `0.0558128357` sec
+- Total physical threads: 96
+- H100 formal median difference: `13.5121419429` sec (`39.6146%` faster)
+- 6980P formal median difference: `4.0575408936` sec (`24.5328%` slower)
+
+The individual run walls and archive labels were not visible in the returned
+photograph. Request that bounded provenance before final adoption rather than
+inferring it. The controlled result is recorded as an 8468 baseline candidate;
+the formal 8468 series and all existing platform baselines remain unchanged
+pending explicit user approval.
