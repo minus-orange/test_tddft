@@ -418,6 +418,50 @@ CONFIGS="32x3" RUNS_PER_CONFIG=3 \
   ./tools/run_tddft_x86_8468_8592_sweep.sh
 ```
 
+## Official Xeon Platinum 8592+ CPU/FFTW Baseline
+
+This is an independent CPU platform series from the Xeon 6980P, Xeon 8468,
+and both GPU series. It uses the accepted numerical source and CPU/FFTW
+fallback at tested revision `fa6d80a21d247d4fa0360c5cb585aeac29fe861b`:
+
+- CPU: Intel Xeon Platinum 8592+, 2 sockets
+- Compiler: ifx/mpiifx 2026.1.0 (20260617)
+- MPI: Intel MPI 2021.18.0, build 20260327
+- Available CPUs: 128 logical / 128 physical
+- Execution: 32 MPI ranks, 4 OpenMP threads per rank
+- Binding: `I_MPI_PIN=1`, `I_MPI_PIN_DOMAIN=omp`,
+  `I_MPI_PIN_ORDER=compact`,
+  `KMP_AFFINITY=granularity=fine,compact,1,0`
+- Diagnostics: off
+- Case: Si111-H, 100 TDDFT time steps
+- FFT backend: FFTW
+- x86-only relaxed tolerances: energy `1e-4` Hartree, force `2e-4`
+  Hartree/Bohr, position `2e-6` Bohr, velocity `1e-6`
+
+| run | wall_sec | check | x86 relaxed compare | run-01 pairwise strict |
+|---:|---:|---|---|---|
+| 01 | 19.5947289467 | PASS | PASS | SELF |
+| 02 | 19.5884881020 | PASS | PASS | PASS |
+| 03 | 19.6411728859 | PASS | PASS | PASS |
+
+Official Xeon 8592+ median: `19.5947289467` sec. Run-to-run range:
+`0.0526847839` sec (`0.2689%` of the median). This is `14.5142359733` sec
+(`42.5526%`) faster than the official H100 median, `1.0020940304` sec
+(`4.8653%`) faster than the official Xeon 8468 median, and `3.0554468632` sec
+(`18.4739%`) slower than the official dual-socket Xeon 6980P median. The user
+explicitly approved this 8592+-only formal baseline on 2026-08-05. The 8468,
+6980P, A100, and H100 formal baselines remain independent and unchanged.
+
+The visible results-directory suffix is
+`x86_mpi_omp_20260805_160921_fa6d80a21d24`. Full archive-label endings are
+cropped from the returned photograph and are not inferred. Repeat the formal
+configuration with:
+
+```sh
+BUILD_MODE=never CONFIGS="32x4" RUNS_PER_CONFIG=3 \
+  ./tools/run_tddft_x86_8468_8592_sweep.sh
+```
+
 ### Historical x86 16 MPI x 1 OpenMP Baseline
 
 The previous formal x86 baseline was measured at revision

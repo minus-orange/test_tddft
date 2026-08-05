@@ -258,15 +258,18 @@ MPI／Host処理
 | NVIDIA A100-PCIE-40GB | NVHPC/OpenACC/cuFFT、1 GPU × 1 MPI rank × 1 OpenMP thread | 63.214秒 | 0.103秒 | PASS |
 | NVIDIA H100 PCIe | NVHPC/OpenACC/cuFFT、1 GPU × 1 MPI rank × 1 OpenMP thread | 34.109秒 | 0.091秒 | PASS |
 | Intel Xeon 6980P | ifx/mpiifx＋FFTW、32 MPI ranks × 8 OpenMP threads/rank = 256 threads | 16.539秒 | 0.058秒 | PASS |
+| Intel Xeon Platinum 8468 × 2 socket | ifx/mpiifx＋FFTW、32 MPI ranks × 3 OpenMP threads/rank = 96 threads | 20.597秒 | 0.056秒 | PASS |
+| Intel Xeon Platinum 8592+ × 2 socket | ifx/mpiifx＋FFTW、32 MPI ranks × 4 OpenMP threads/rank = 128 threads | 19.595秒 | 0.053秒 | PASS |
 
 - H100はA100よりwall timeが約46.0%短く、比率は約1.85倍
-- x86は256 CPUコア使用のため、1 GPUとの直接的な装置性能比較ではない
+- CPU系列は96、128、256 CPUコアを使用しており、1 GPUとの直接的な装置性能
+  比較ではない
 
 説明メモ:
 
 - A100はStep 107、H100はStep 115で、どちらも`mpirun -np 1`、
   `OMP_NUM_THREADS=1`の独立baseline。
-- x86は32 MPI ranks × 8 OpenMP threads/rank、合計256 threadsの独立baseline。
+- 6980P、8468、8592+はそれぞれ独立したCPU/FFTW baselineで、相互に置換しない。
 - x86は16 MPI × 1 OpenMPの`29.352秒`から構成最適化で`16.539秒`へ短縮した。
 
 ## スライド12: 効果のない最適化も採否を明確にした

@@ -41,8 +41,12 @@ Last updated: 2026-08-05
   ifx 2026.1.0, Intel MPI 2021.18.0, 32 MPI ranks / 3 OpenMP threads per rank,
   median `20.5968229771` sec, range `0.0558128357` sec, explicitly approved by
   the user on 2026-08-05
-- The A100, H100, Xeon 6980P, and Xeon 8468 baseline series are independent;
-  never replace or mix one series with another
+- Official Xeon Platinum 8592+ CPU/FFTW baseline: 2 sockets, 128 physical
+  cores, ifx 2026.1.0, Intel MPI 2021.18.0, 32 MPI ranks / 4 OpenMP threads per
+  rank, median `19.5947289467` sec, range `0.0526847839` sec, explicitly
+  approved by the user on 2026-08-05
+- The A100, H100, Xeon 6980P, Xeon 8468, and Xeon 8592+ baseline series are
+  independent; never replace or mix one series with another
 - Step 116 A100 current-source profiler result: revision `9e67ad0`, run 03,
   normal check PASS and relaxed compare PASS for both 100-step runs. The NSYS
   trace wall was `66.9540450573` sec (diagnostic only); the fused kernel used
@@ -124,13 +128,12 @@ Last updated: 2026-08-05
   `1e37625`. All four 128-thread configurations passed normal and x86 relaxed
   checks. Walls were 32x4 `19.6031851768`, 16x8 `28.6397459507`, 8x16
   `49.3092470169`, and 4x32 `90.9068999290` sec. The clear candidate is 32x4.
-  This is screening evidence only; the controlled three-run series and
-  explicit adoption remain pending.
+  At this screen stage it was evidence only; the controlled series and later
+  adoption are recorded below.
 - A later targeted 8592+ 32x4 invocation at the same revision passed both
   checks at `19.5182418823` sec, but its summary reported
   `runs_per_config=1`. It is a separate one-run sample, not the requested
-  controlled series. The next return must visibly report
-  `runs_per_config=3` and include its nonzero three-run range.
+  controlled series; it was superseded by the three-run return below.
 - The controlled 8592+ 32 MPI x 4 OpenMP series then completed at revision
   `fa6d80a`: three runs, median `19.5947289467` sec, range
   `0.0526847839` sec, with all normal and relaxed checks passing and runs 02/03
@@ -139,8 +142,9 @@ Last updated: 2026-08-05
   formal 6980P median. The returned `runs.tsv` supplies individual walls
   `19.5947289467`, `19.5884881020`, and `19.6411728859` sec and confirms all
   check states; sorting them exactly reproduces the median and range. The full
-  archive-label endings are cropped, and explicit adoption is still pending,
-  so it remains a baseline candidate.
+  archive-label endings are cropped and are not inferred. The user explicitly
+  approved this result as the independent formal Xeon 8592+ baseline on
+  2026-08-05.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:

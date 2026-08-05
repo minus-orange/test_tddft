@@ -3088,7 +3088,8 @@ The targeted `runs.tsv` return supplied the individual series:
 Sorting these walls exactly reproduces the reported median and range. The
 visible results-directory suffix is
 `x86_mpi_omp_20260805_160921_fa6d80a21d24`; full archive-label endings are
-cropped from the photograph and are not inferred. The controlled result is a
-complete timing and validation candidate, but is not adopted as the formal
-independent 8592+ baseline without explicit user approval. No formal baseline
-changes.
+cropped from the photograph and are not inferred. The user explicitly approved
+adoption on 2026-08-05. The official independent Xeon 8592+ baseline is
+therefore median `19.5947289467` sec and range `0.0526847839` sec at 32 MPI x
+4 OpenMP. The Xeon 8468, Xeon 6980P, A100, and H100 formal baselines remain
+independent and unchanged.

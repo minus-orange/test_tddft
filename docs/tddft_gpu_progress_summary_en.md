@@ -2564,7 +2564,7 @@ and `24.5328%` slower than the formal dual-socket Xeon 6980P median.
 
 The user explicitly approved this as the independent formal Xeon 8468
 CPU/FFTW baseline on 2026-08-05. Keep the Xeon 8468, Xeon 6980P, A100, and H100
-series separate. The Xeon 8592+ screen remains pending.
+series separate.
 
 The returned 8468 hierarchical timer tree records inclusive
 `time_step_total=20.620`, `frprmn=19.869`, `tmevl_total=13.234`,
@@ -2573,3 +2573,18 @@ The returned 8468 hierarchical timer tree records inclusive
 `fft_wrapper` calls match the Xeon 6980P tree structure. Complete path values
 are preserved in `docs/STEP120_XEON_GENERATION_SWEEPS.md`; the sample is not
 assigned to a run because the photo does not show its archive label.
+
+## Step 120: Same-generation Xeon 8592+ CPU baseline
+
+The dual-socket Xeon Platinum 8592+ host has 128 physical cores. A one-run
+full-core screen selected 32 MPI x 4 OpenMP over 16 x 8, 8 x 16, and 4 x 32.
+The selected configuration then completed three diagnostic-off runs at
+revision `fa6d80a`: `19.5947289467`, `19.5884881020`, and `19.6411728859`
+sec. Every run passed normal and x86 relaxed checks, and runs 02/03 passed
+strict comparison with run 01.
+
+The median is `19.5947289467` sec and the range is `0.0526847839` sec. This is
+`42.5526%` faster than H100, `4.8653%` faster than Xeon 8468, and `18.4739%`
+slower than Xeon 6980P. The user explicitly approved it as the independent
+formal Xeon 8592+ CPU/FFTW baseline on 2026-08-05. Keep all five A100, H100,
+Xeon 6980P, Xeon 8468, and Xeon 8592+ platform series separate.

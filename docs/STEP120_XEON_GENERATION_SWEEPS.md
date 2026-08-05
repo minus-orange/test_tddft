@@ -194,7 +194,7 @@ as a member of a controlled three-run series. It is `0.0849432945` sec
 (`0.4333%`) shorter than the first 32 x 4 screen sample. The controlled series
 remains pending and must report `runs_per_config=3` in one invocation.
 
-### Controlled 32 MPI x 4 OpenMP candidate
+### Official 32 MPI x 4 OpenMP baseline
 
 - Returned: 2026-08-05
 - Tested revision: `fa6d80a21d247d4fa0360c5cb585aeac29fe861b`
@@ -220,5 +220,7 @@ median, `1.0020940304` sec (`4.8653%`) faster than the formal 8468 median, and
 returned `runs.tsv` supplies all individual walls and check states and exactly
 reproduces the median and range. Its visible results-directory suffix is
 `x86_mpi_omp_20260805_160921_fa6d80a21d24`; full archive-label endings are
-cropped from the photograph and are not inferred. The candidate is not adopted
-as the formal 8592+ baseline without explicit user approval.
+cropped from the photograph and are not inferred. The user explicitly approved
+the controlled result on 2026-08-05, making median `19.5947289467` sec and
+range `0.0526847839` sec the formal independent Xeon 8592+ baseline. All other
+platform baseline series remain unchanged.

@@ -2298,7 +2298,7 @@ PASSしました。中央値は`20.5968229771`秒、rangeは`0.0558128357`秒で
 
 ユーザーは2026-08-05に独立したXeon 8468 CPU/FFTW正式baselineとして明示承認
 しました。Xeon 8468、Xeon 6980P、A100、H100系列を混合・置換しません。Xeon
-8592+ screenは未実施です。
+8592+系列も以下の独立baselineとして扱います。
 
 返却された8468階層timer treeのinclusive値は`time_step_total=20.620`、
 `frprmn=19.869`、`tmevl_total=13.234`、`tmevl_s2=10.270`、
@@ -2306,3 +2306,17 @@ PASSしました。中央値は`20.5968229771`秒、rangeは`0.0558128357`秒で
 inclusive総call数138,879と`fft_wrapper` 13,155 callsはXeon 6980P treeの構造と
 一致します。全path値は`docs/STEP120_XEON_GENERATION_SWEEPS.md`へ保存しました。
 写真にarchive labelがないため、timer sampleを特定runへは割り当てません。
+
+## Step 120: 同世代Xeon 8592+ CPU baseline
+
+2 socket Xeon Platinum 8592+ hostは128 physical coresです。全coreを使うone-run
+screenでは32 MPI x 4 OpenMPが16 x 8、8 x 16、4 x 32より明確に高速でした。選定
+構成はrevision `fa6d80a`で`19.5947289467`、`19.5884881020`、
+`19.6411728859`秒のdiagnostic OFF 3 runを完了しました。全runが通常checkとx86
+relaxed compareにPASSし、run 02/03はrun 01とのstrict compareにもPASSしました。
+
+中央値は`19.5947289467`秒、rangeは`0.0526847839`秒です。正式H100より
+`42.5526%`高速、正式Xeon 8468より`4.8653%`高速、正式Xeon 6980Pより
+`18.4739%`低速です。ユーザーは2026-08-05に独立したXeon 8592+ CPU/FFTW正式
+baselineとして明示承認しました。A100、H100、Xeon 6980P、Xeon 8468、Xeon
+8592+の5 platform系列を混合・置換しません。
