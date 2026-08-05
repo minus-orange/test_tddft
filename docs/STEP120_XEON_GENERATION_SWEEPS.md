@@ -147,5 +147,8 @@ have directly comparable path structure and call multiplicity.
 
 ## Xeon Platinum 8592+, dual socket
 
-Pending. Use the same helper after updating to revision `071b986` or later so
-cached executable artifacts are fingerprint-validated before reuse.
+Pending. The first attempt stopped before the screen because the reused
+`cg_exe` required `GLIBC_2.34`, which was unavailable on this host. This is a
+cross-host binary compatibility failure, not a timing result. Update to the
+runtime-aware helper and force one complete local rebuild before retrying; the
+expected screen remains 32x4, 16x8, 8x16, and 4x32 on 128 physical cores.

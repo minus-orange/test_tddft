@@ -3013,3 +3013,18 @@ inclusive values are `time_step_total=20.620`, `frprmn=19.869`,
 `101.678` sec. The 13,155 displayed `fft_wrapper` calls sum to `2.576` sec at
 the photographed precision. Complete paths, counts, and values are in
 `docs/STEP120_XEON_GENERATION_SWEEPS.md`.
+
+### Step 120 8592+ pre-screen GLIBC failure
+
+The first dual-socket Xeon Platinum 8592+ attempt returned to the prompt during
+the initial CG phase, before any MPI/OpenMP screen configuration ran. The
+returned `Si111-H.err` showed that the reused `cg_exe` required the unavailable
+symbol version `GLIBC_2.34`. This is a cross-host executable compatibility
+failure and supplies no 8592+ performance value.
+
+The x86 build cache now includes the execution-host runtime identity in the
+FFTW, CG, SD, and TDDFT signatures. CG, SD, and TDDFT also pass an `ldd`
+dependency check before reuse and after build; missing libraries or unavailable
+symbol versions force an `auto` rebuild or stop `BUILD_MODE=never`. The safe
+8592+ recovery is a complete local `BUILD_MODE=always` rebuild followed by the
+unchanged one-run configuration screen. No platform baseline changes.

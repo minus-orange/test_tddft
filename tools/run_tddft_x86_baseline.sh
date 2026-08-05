@@ -160,6 +160,39 @@ compiler_identity() {
   printf '%s=%s|%s\n' "$compiler_name" "$compiler_path" "$compiler_version"
 }
 
+runtime_identity() {
+  printf 'uname=%s\n' "$(uname -srm)"
+  if command -v getconf >/dev/null 2>&1; then
+    printf 'libc=%s\n' "$(getconf GNU_LIBC_VERSION 2>/dev/null || echo unknown)"
+  fi
+  if command -v ldd >/dev/null 2>&1; then
+    ldd_version=$(ldd --version 2>&1 | first_nonblank_line || true)
+    printf 'ldd=%s\n' "$ldd_version"
+  fi
+}
+
+executable_runtime_is_ready() {
+  executable=$1
+  [ -x "$executable" ] || return 1
+  if command -v ldd >/dev/null 2>&1; then
+    ldd_output=$(ldd "$executable" 2>&1) || return 1
+    if printf '%s\n' "$ldd_output" |
+      grep -Eiq 'not found|version .* not found'; then
+      return 1
+    fi
+  fi
+}
+
+require_executable_runtime() {
+  executable=$1
+  label=$2
+  if ! executable_runtime_is_ready "$executable"; then
+    echo "ERROR: $label executable has unresolved runtime dependencies:" >&2
+    ldd "$executable" >&2 || true
+    exit 1
+  fi
+}
+
 fftw_is_ready() {
   [ -f "$FFTW_ROOT/include/fftw3.f" ]
 }
@@ -180,11 +213,11 @@ component_can_be_reused() {
       return 1
       ;;
     never)
-      [ -x "$component_executable" ]
+      executable_runtime_is_ready "$component_executable"
       return
       ;;
     auto)
-      if [ ! -x "$component_executable" ]; then
+      if ! executable_runtime_is_ready "$component_executable"; then
         return 1
       fi
       if [ -f "$component_stamp" ] &&
@@ -194,6 +227,26 @@ component_can_be_reused() {
         return 0
       fi
       return 1
+      ;;
+  esac
+}
+
+fftw_can_be_reused() {
+  fftw_signature=$1
+  fftw_stamp=$2
+  case "$BUILD_MODE" in
+    always)
+      return 1
+      ;;
+    never)
+      fftw_is_ready
+      return
+      ;;
+    auto)
+      [ -f "$fftw_stamp" ] &&
+        [ "$(sed -n '1p' "$fftw_stamp")" = "$fftw_signature" ] &&
+        fftw_is_ready
+      return
       ;;
   esac
 }
@@ -238,6 +291,22 @@ TDDFT_EXE="$ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe"
 CG_BUILD_STAMP="$BUILD_CACHE_DIR/$TOOLCHAIN.cg.stamp"
 SD_BUILD_STAMP="$BUILD_CACHE_DIR/$TOOLCHAIN.sd.stamp"
 TDDFT_BUILD_STAMP="$BUILD_CACHE_DIR/$TOOLCHAIN.tddft.stamp"
+FFTW_BUILD_STAMP="$BUILD_CACHE_DIR/$TOOLCHAIN.fftw.stamp"
+
+fftw_build_signature=$(
+  {
+    printf '%s\n' \
+      "toolchain=$TOOLCHAIN" \
+      "fftw_root=$FFTW_ROOT" \
+      "fftw_cc=$FFTW_CC" \
+      "fftw_fc=$FFTW_FC" \
+      "fftw_f77=$FFTW_F77"
+    compiler_identity "$FFTW_CC"
+    compiler_identity "$FFTW_FC"
+    compiler_identity "$FFTW_F77"
+    runtime_identity
+  } | git hash-object --stdin
+)
 
 cg_build_signature=$(
   {
@@ -246,6 +315,7 @@ cg_build_signature=$(
       "toolchain=$TOOLCHAIN" \
       "cg_fc=$CG_FC"
     compiler_identity "$CG_FC"
+    runtime_identity
   } | git hash-object --stdin
 )
 sd_build_signature=$(
@@ -255,6 +325,7 @@ sd_build_signature=$(
       "toolchain=$TOOLCHAIN" \
       "sd_fc=$SD_FC"
     compiler_identity "$SD_FC"
+    runtime_identity
   } | git hash-object --stdin
 )
 tddft_build_signature=$(
@@ -277,6 +348,7 @@ tddft_build_signature=$(
     compiler_identity "$FFTW_CC"
     compiler_identity "$FFTW_FC"
     compiler_identity "$FFTW_F77"
+    runtime_identity
   } | git hash-object --stdin
 )
 
@@ -289,11 +361,14 @@ if [ "$BUILD_MODE" = never ]; then
     echo "ERROR: BUILD_MODE=never but one or more executables are missing." >&2
     exit 1
   fi
+  require_executable_runtime "$CG_EXE" CG
+  require_executable_runtime "$SD_EXE" SD
+  require_executable_runtime "$TDDFT_EXE" TDDFT
 fi
 
 fftw_reused=1
 if [ "$SKIP_FFTW" = 0 ]; then
-  if [ "$BUILD_MODE" = always ] || ! fftw_is_ready; then
+  if ! fftw_can_be_reused "$fftw_build_signature" "$FFTW_BUILD_STAMP"; then
     fftw_reused=0
     require_command curl
     PREFIX="$FFTW_ROOT" CC="$FFTW_CC" FC="$FFTW_FC" F77="$FFTW_F77" \
@@ -304,6 +379,10 @@ if [ "$SKIP_FFTW" = 0 ]; then
 elif ! fftw_is_ready; then
   echo "ERROR: FFTW_ROOT does not contain include/fftw3.f: $FFTW_ROOT" >&2
   exit 1
+fi
+if [ "$SKIP_FFTW" = 0 ]; then
+  mkdir -p "$BUILD_CACHE_DIR"
+  printf '%s\n' "$fftw_build_signature" > "$FFTW_BUILD_STAMP"
 fi
 
 cg_reused=0
@@ -317,6 +396,7 @@ else
     FC="$CG_FC" ./mk_ifort.sh
   )
 fi
+require_executable_runtime "$CG_EXE" CG
 record_component_signature \
   "$cg_build_signature" "$CG_BUILD_STAMP" "$CG_EXE"
 
@@ -331,6 +411,7 @@ else
     FC="$SD_FC" ./mk_ifort.sh
   )
 fi
+require_executable_runtime "$SD_EXE" SD
 record_component_signature \
   "$sd_build_signature" "$SD_BUILD_STAMP" "$SD_EXE"
 
@@ -347,6 +428,7 @@ else
       FPSEID_FRPRMN_DIAGNOSTIC=0 FFTW_ROOT="$FFTW_ROOT" ./mk_ifort.sh
   )
 fi
+require_executable_runtime "$TDDFT_EXE" TDDFT
 record_component_signature \
   "$tddft_build_signature" "$TDDFT_BUILD_STAMP" "$TDDFT_EXE"
 

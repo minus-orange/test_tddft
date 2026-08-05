@@ -112,14 +112,17 @@ global comparator defaults and GPU validation tolerances remain unchanged,
 and x86 runs 02/03 must still pass the existing strict pairwise comparison
 against run 01.
 
-The helper defaults to `BUILD_MODE=auto`. It records separate CG, SD, and TDDFT
-build signatures under the ignored `.cache/tddft_x86_build/` directory and
-reuses each existing binary when its tracked sources, build settings, and
-compiler identities still match. Unchanged components are therefore not
-rebuilt when only one source tree changes. Use `BUILD_MODE=always` to force a
-rebuild. Use `BUILD_MODE=never` once to adopt known-compatible existing
-binaries without compiling; that run records their signatures, so subsequent
-default `auto` runs can reuse them safely.
+The helper defaults to `BUILD_MODE=auto`. It records separate FFTW, CG, SD, and
+TDDFT build signatures under the ignored `.cache/tddft_x86_build/` directory
+and reuses each existing artifact when its tracked sources, build settings,
+compiler identities, and build-host runtime identity still match. It also runs
+`ldd` on CG, SD, and TDDFT before reuse and after each build, rejecting missing
+libraries or unavailable symbol versions. Unchanged compatible components are
+therefore not rebuilt when only one source tree changes. Use
+`BUILD_MODE=always` to force a complete local rebuild. Use `BUILD_MODE=never`
+once to adopt known-compatible existing binaries without compiling; that run
+still requires their runtime dependencies to resolve and records their
+signatures for subsequent safe `auto` reuse.
 
 The cache stamp includes both the build-input signature and a fingerprint of
 the resulting executable. If another build path later overwrites CG, SD, or

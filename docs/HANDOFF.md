@@ -113,6 +113,13 @@ Last updated: 2026-08-05
   allowed the 8468 run to progress. The x86 helper now fingerprints each CG,
   SD, and TDDFT executable in its stamp and automatically rebuilds when the
   artifact no longer matches. The interrupted attempt is not a result.
+- The first 8592+ attempt stopped before any screen configuration was measured.
+  `run/Si111-H_x86/Si111-H.err` reported that `cg_exe` required
+  `GLIBC_2.34`, which was unavailable on the 8592+ execution host. This was a
+  cross-host binary reuse failure, not CG runtime performance evidence. The x86
+  helper now includes the host runtime in FFTW/CG/SD/TDDFT signatures and uses
+  `ldd` to reject unresolved libraries or symbol versions. Retry the 8592+
+  screen only after a local `BUILD_MODE=always` rebuild.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:
