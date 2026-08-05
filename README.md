@@ -121,6 +121,11 @@ rebuild. Use `BUILD_MODE=never` once to adopt known-compatible existing
 binaries without compiling; that run records their signatures, so subsequent
 default `auto` runs can reuse them safely.
 
+The cache stamp includes both the build-input signature and a fingerprint of
+the resulting executable. If another build path later overwrites CG, SD, or
+TDDFT in the shared source tree, `BUILD_MODE=auto` detects the changed binary
+and rebuilds the CPU/FFTW component instead of trusting the stale stamp.
+
 To screen 4/8/16/32 MPI ranks against 2/4/8/16 OpenMP threads without
 recompiling, run:
 

@@ -2932,3 +2932,20 @@ runs 02/03.
 No 8468, 8592+, 6980P, A100, or H100 execution was performed while adding the
 helper. Each CPU model will have its own independent measurement series, and
 no formal baseline is changed by this implementation.
+
+### Step 120 follow-up: reject stale executable reuse
+
+The first user-operated 8468 attempt spent abnormal time in the initial TDDFT
+launch. The branch and revision were correct, but forcing an Intel/FFTW rebuild
+allowed execution to progress. This exposed a build-cache integrity gap: the
+previous stamp checked tracked build inputs and compiler identities but did
+not verify that the executable had not subsequently been overwritten by a
+different build path in the shared source tree.
+
+The x86 baseline helper now stores a `git hash-object` fingerprint of each CG,
+SD, and TDDFT executable as the second stamp line. `BUILD_MODE=auto` requires
+both the existing input signature and current artifact fingerprint to match;
+old one-line stamps or externally replaced binaries trigger a rebuild.
+`BUILD_MODE=never` retains its explicit adoption behavior and records the
+fingerprint for subsequent safe reuse. The interrupted 8468 attempt is not
+archived or treated as performance evidence, and no baseline changes.

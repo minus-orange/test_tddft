@@ -188,7 +188,9 @@ component_can_be_reused() {
         return 1
       fi
       if [ -f "$component_stamp" ] &&
-        [ "$(sed -n '1p' "$component_stamp")" = "$component_signature" ]; then
+        [ "$(sed -n '1p' "$component_stamp")" = "$component_signature" ] &&
+        [ "$(sed -n '2p' "$component_stamp")" = \
+          "$(git hash-object "$component_executable")" ]; then
         return 0
       fi
       return 1
@@ -199,8 +201,11 @@ component_can_be_reused() {
 record_component_signature() {
   component_signature=$1
   component_stamp=$2
+  component_executable=$3
   mkdir -p "$BUILD_CACHE_DIR"
-  printf '%s\n' "$component_signature" > "$component_stamp"
+  printf '%s\n%s\n' \
+    "$component_signature" "$(git hash-object "$component_executable")" \
+    > "$component_stamp"
 }
 
 require_command git
@@ -312,7 +317,8 @@ else
     FC="$CG_FC" ./mk_ifort.sh
   )
 fi
-record_component_signature "$cg_build_signature" "$CG_BUILD_STAMP"
+record_component_signature \
+  "$cg_build_signature" "$CG_BUILD_STAMP" "$CG_EXE"
 
 sd_reused=0
 if component_can_be_reused \
@@ -325,7 +331,8 @@ else
     FC="$SD_FC" ./mk_ifort.sh
   )
 fi
-record_component_signature "$sd_build_signature" "$SD_BUILD_STAMP"
+record_component_signature \
+  "$sd_build_signature" "$SD_BUILD_STAMP" "$SD_EXE"
 
 tddft_reused=0
 if [ "$fftw_reused" = 1 ] &&
@@ -340,7 +347,8 @@ else
       FPSEID_FRPRMN_DIAGNOSTIC=0 FFTW_ROOT="$FFTW_ROOT" ./mk_ifort.sh
   )
 fi
-record_component_signature "$tddft_build_signature" "$TDDFT_BUILD_STAMP"
+record_component_signature \
+  "$tddft_build_signature" "$TDDFT_BUILD_STAMP" "$TDDFT_EXE"
 
 if [ "$fftw_reused" = 1 ] &&
   [ "$cg_reused" = 1 ] &&

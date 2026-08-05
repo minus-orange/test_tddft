@@ -84,6 +84,12 @@ Last updated: 2026-08-05
   configuration; selected candidates require a separate three-run series.
   Results form new independent CPU platform series and must not replace the
   6980P, A100, or H100 baselines automatically.
+- The first 8468 attempt exposed a stale-build reuse hazard: the old x86 cache
+  stamp described only build inputs, so an executable overwritten later by a
+  different build path could still be accepted. A forced CPU/FFTW rebuild
+  allowed the 8468 run to progress. The x86 helper now fingerprints each CG,
+  SD, and TDDFT executable in its stamp and automatically rebuilds when the
+  artifact no longer matches. The interrupted attempt is not a result.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:
