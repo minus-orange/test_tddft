@@ -54,13 +54,13 @@ Last updated: 2026-08-05
   launch, 72 registers/thread, `0.09` waves/SM, `37.50%` theoretical
   occupancy, `12.50%` achieved occupancy, and `355.78` us duration. The same
   32-block parallel-width limit is therefore visible on both A100 and H100.
-- Pending human-operated GPU action: Step 119 timer-tree validation has not
-  been run on A100 or H100. It is an instrumentation validation, not a new
-  optimization hypothesis; keep any resulting platform series independent.
-  Step 116 profiler capture is complete on both GPUs. Run
-  `./tools/run_tddft_step119_gpu_timer_tree.sh A100` on the A100 host and
-  `./tools/run_tddft_step119_gpu_timer_tree.sh H100` on the H100 host. Each
-  produces a separate archive and photograph-ready tree/summary block.
+- Step 119 timer-tree validation is complete on A100 and H100 at revision
+  `24ae712`. Both independent 1 GPU / 1 MPI / 1 OpenMP, diagnostic-off runs
+  passed normal check and relaxed compare. A100 wall was `63.9410018921` sec;
+  H100 wall was `34.0914211273` sec. Both trees had identical paths and
+  call counts, including 14,685 aggregate `fft_wrapper` calls. Complete values
+  are in `docs/STEP119_GPU_TIMER_TREES.md`. These one-run instrumentation
+  results do not replace either formal GPU baseline.
 - Step 116 profiler post-processing: complete for A100 and H100. The 24
   non-cuFFT OpenACC launch configurations and interpretation are recorded in
   `docs/STEP116_OPENACC_LAUNCH_SHAPES.md`.

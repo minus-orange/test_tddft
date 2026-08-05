@@ -2268,3 +2268,17 @@ cuFFT以外のOpenACC kernelは24構成あり、Grid／BlockはA100とH100で全
 7,257、14,513 blocksの広いgridもあります。したがって全GPU kernelが低並列なのでは
 なく、性能上の制約は支配時間の大きい32～42 blocksのkernelに集中しています。
 詳細表は`docs/STEP116_OPENACC_LAUNCH_SHAPES.md`に記録しました。
+
+## Step 119: 共通階層timerのA100/H100検証
+
+CPU/GPU共通の`mod_timer.f90`はinclusive時間のcall-path treeを表示し、既存の名称別
+集約`FPSEID_PROFILE` interfaceも維持します。revision `24ae712`でA100とH100の
+独立したdiagnostic OFF one-run検証が完了しました。両方ともpinned separate memory、
+1 GPU / 1 MPI / 1 OpenMPで通常checkとrelaxed compareにPASSしました。A100 cc80は
+`63.9410018921`秒、H100 cc90は`34.0914211273`秒でした。両treeのpathとcall countは
+全て一致し、`fft_wrapper`はともに14,685 callsでした。支配的なinclusive時間の
+A100/H100比は`s2_nonlocal_gemm`が`2.653x`、`exnlp_gemm_dot`が`2.567x`、
+`s2_nonlocal`が`2.382x`です。
+
+これらは単発のinstrumentation validationであり、A100/H100の正式baselineを置換
+しません。全timer値は`docs/STEP119_GPU_TIMER_TREES.md`に保存しました。

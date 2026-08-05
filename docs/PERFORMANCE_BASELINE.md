@@ -99,6 +99,16 @@ calls by parent path. This validates the x86 timer implementation and shows no
 performance regression. It is not adopted as a replacement x86 baseline
 without an explicit human decision; the A100 and H100 series are unaffected.
 
+Step 119 GPU timer-tree validation completed independently on A100 and H100 at
+revision `24ae7127805ce4da63078c31bbd91e3456e84b44`. Both diagnostic-off
+100-step runs used 1 GPU / 1 MPI / 1 OpenMP with pinned separate memory and
+passed normal check and relaxed compare. A100 cc80 wall was `63.9410018921`
+sec; H100 cc90 wall was `34.0914211273` sec. The respective differences from
+the formal medians are `+0.7274799347` sec (`+1.150830%`) and
+`-0.0175437927` sec (`-0.051435%`). These are single instrumentation runs, so
+neither replaces a formal baseline. Full call-path values are recorded in
+`docs/STEP119_GPU_TIMER_TREES.md`.
+
 ## Source-Level GPU Coverage History
 
 For a reproducible source-based trend, define the OpenACC compute-site coverage

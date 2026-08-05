@@ -2531,3 +2531,19 @@ required early stop. Reject scatter and do not retry it by weakening the
 checker. Spread remains unmeasured and the screen is closed. Keep the formal
 compact baseline unchanged. The used helper is archived under
 `tools/history/x86/`.
+
+## Step 119: Common hierarchical timer validation
+
+The common CPU/GPU `mod_timer.f90` now prints an inclusive call-path tree while
+retaining the flat name-aggregated `FPSEID_PROFILE` interface. Independent
+diagnostic-off one-run validations completed on A100 and H100 at revision
+`24ae712`; both used 1 GPU / 1 MPI / 1 OpenMP with pinned separate memory and
+passed normal check and relaxed compare. A100 cc80 wall was `63.9410018921`
+sec and H100 cc90 wall was `34.0914211273` sec. Both trees had identical paths
+and call counts, including 14,685 `fft_wrapper` calls. The dominant inclusive
+A100/H100 ratios were `2.653x` for `s2_nonlocal_gemm`, `2.567x` for
+`exnlp_gemm_dot`, and `2.382x` for `s2_nonlocal`.
+
+These are single-run instrumentation validations and do not replace the formal
+A100 or H100 baseline. Complete transcribed timer values are in
+`docs/STEP119_GPU_TIMER_TREES.md`.

@@ -2890,3 +2890,18 @@ cc80 or cc90 with pinned separate memory, rebuilds TDDFT only, executes one
 diagnostic-off 100-step run at 1 GPU / 1 MPI / 1 OpenMP, archives it, requires
 normal and relaxed checks, and prints the tree plus compact provenance. These
 are one-run instrumentation validations and cannot replace a formal baseline.
+
+Both GPU runs completed on 2026-08-05 at revision
+`24ae7127805ce4da63078c31bbd91e3456e84b44`. The A100-PCIE-40GB cc80 archive
+`nvhpc_cufft_1rank_02_STEP119_A100_TIMER_TREE_20260805_135009_24ae7127805c_01`
+passed both checks at `63.9410018921` sec. The H100 PCIe cc90 archive
+`nvhpc_cufft_1rank_02_STEP119_H100_TIMER_TREE_20260805_135328_24ae7127805c_01`
+passed both checks at `34.0914211273` sec. Both used driver 595.45.04, pinned
+separate memory, 1 GPU / 1 MPI / 1 OpenMP, and diagnostics off.
+
+The trees had identical paths and call counts on both platforms. Each reported
+140,957 inclusive region calls and 14,685 `fft_wrapper` calls. The dominant
+A100/H100 inclusive ratios were `2.653x` for `s2_nonlocal_gemm`, `2.567x` for
+`exnlp_gemm_dot`, and `2.382x` for `s2_nonlocal`. Full transcribed values and
+provenance are in `docs/STEP119_GPU_TIMER_TREES.md`. These single-run
+instrumentation walls do not alter the formal A100 or H100 baseline.

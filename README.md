@@ -318,6 +318,8 @@ breakdown for GPU-only transfer and execution analysis.
 
 The photographed Step 119 Intel x86 timer-tree values and matching three-run
 provenance are preserved in `docs/STEP119_X86_TIMER_TREE.md`.
+The matching A100/H100 timer trees are preserved side by side in
+`docs/STEP119_GPU_TIMER_TREES.md`.
 
 Measure the same timer tree on one verified A100 or H100 with the platform
 argument. Each invocation performs a cc80 or cc90 TDDFT-only rebuild, one
