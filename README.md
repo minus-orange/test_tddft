@@ -316,6 +316,9 @@ parents. Its elapsed values are inclusive. The MPI-aggregated
 checks and reporting tools. The cuFFT C wrapper keeps its additional CUDA-event
 breakdown for GPU-only transfer and execution analysis.
 
+The photographed Step 119 Intel x86 timer-tree values and matching three-run
+provenance are preserved in `docs/STEP119_X86_TIMER_TREE.md`.
+
 If the MPI C wrapper cannot find CUDA headers, use the NVIDIA C compiler or
 add the CUDA include/library paths supplied by the site module, for example:
 

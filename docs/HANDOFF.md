@@ -69,7 +69,9 @@ Last updated: 2026-08-05
   range `0.0537872314` sec. The call-path tree correctly split shared
   `fft_wrapper` calls among their parents while preserving the aggregate
   count. This validates the x86 timer implementation but does not replace the
-  official x86 baseline without an explicit adoption decision.
+  official x86 baseline without an explicit adoption decision. The returned
+  timer values are preserved in `docs/STEP119_X86_TIMER_TREE.md` without
+  guessing which of the three archive labels produced the photographed table.
 - PowerPoint-ready GPU implementation summary:
   `docs/POWERPOINT_GPU_IMPLEMENTATION_SUMMARY_JA.md`
 - Step 116 A100/H100 profiler-updated editable PowerPoint:

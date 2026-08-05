@@ -2876,3 +2876,9 @@ This completes x86 correctness and timer-tree validation. The small wall
 difference is not treated as a new optimization result, and the official x86
 baseline is unchanged pending an explicit human adoption decision. No A100 or
 H100 Step 119 validation has been performed.
+
+The complete set of timer values visible in the returned x86 timer-tree
+photograph is transcribed in `docs/STEP119_X86_TIMER_TREE.md`, together with
+the execution provenance and three-run wall summary. The photograph does not
+show the archive label alongside the timer table, so the sample is deliberately
+not assigned to run 01, 02, or 03.
