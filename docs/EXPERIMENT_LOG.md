@@ -3118,3 +3118,13 @@ for 6980P, 8468, and 8592+. The latter shows that 8592+ improves the 8468
 `time_step_total` sample by about 4.6%, while the remaining gap to 6980P is
 concentrated in `tmevl_s2` and `s2_fft_local`. These timer samples remain
 instrumentation observations and do not replace any formal wall-time baseline.
+
+### Step 120 PowerPoint code mapping
+
+Created `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86_CODEMAP.pptx`
+as a new copy, preserving both earlier PowerPoint files. Implementation
+references were added directly to explanatory slides 4, 5, 7-10, 24, and 25.
+Slide 17 now provides a page-to-source index with the concrete change in each
+file, while slides 18-21 identify the source file or routine for every code
+excerpt. This is a documentation-only update; no numerical source or baseline
+was changed.

@@ -161,6 +161,11 @@ Last updated: 2026-08-05
   the Step 116 deck, expands the formal-baseline table to all five independent
   platform series, and adds the 8468/8592+ MPI/OpenMP screen and the
   6980P/8468/8592+ rank-0 inclusive timer comparison.
+- Code-mapped revision of the Step 120 PowerPoint:
+  `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86_CODEMAP.pptx`.
+  Explanatory slides 4, 5, 7-10, and 24-25 identify their implementation
+  sources; slide 17 maps page numbers to full file names and change summaries;
+  slides 18-21 label each code excerpt with its file or routine.
 - Progress report dated 2026-07-31:
   `docs/PROGRESS_REPORT_2026-07-31_BRIEF_JA.md` and
   `docs/PROGRESS_REPORT_2026-07-31_JA.md`

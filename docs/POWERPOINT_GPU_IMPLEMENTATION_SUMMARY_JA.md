@@ -407,7 +407,13 @@ cuFFT以外のOpenACC kernel launch形状（A100/H100で共通）:
 | `vpj_gen.f` | VPJ動径積分kernel |
 | `lib4_ASL_2_check_Vext_SXACE.f` | LOCPOT、交換相関 |
 | `pspw_tm11_Vext_Avec_v4_alloc.f` | loop外metadata常駐 |
+| `mod_timer.f90` | named region、call-path追跡、inclusive timer tree |
 | `tools/build_nvhpc.sh` | NVHPC/OpenACC/cuFFT build |
+| `tools/run_tddft_x86_8468_8592_sweep.sh` | 2 socket x86のMPI × OpenMP構成sweep |
+
+PowerPointでは、説明ページ4、5、7〜10、24、25に短縮ファイル名を表示し、
+付録のページ17で正式ファイル名、変更内容、関連ページを対応付ける。コード断片を
+掲載するページ18〜21にも、対象ファイルまたはroutine名を直接表示する。
 
 ## 付録A3: cuFFTをdevice pointer版へ変更
 
