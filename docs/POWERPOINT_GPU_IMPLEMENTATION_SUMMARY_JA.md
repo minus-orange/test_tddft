@@ -421,6 +421,13 @@ OpenACC directiveを実コードのまま掲載する。コード断片を掲載
 `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86_CODE_EXCERPTS.pptx`
 であり、従来のPowerPointファイルは保持する。
 
+最新版の
+`docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-06_STEP120_X86_BEFORE_AFTER.pptx`
+では、説明ページ7〜10と技術付録18〜21をbefore／after形式へ変更した。beforeは
+Git履歴から変更直前のソースを復元し、削除・置換された行を橙で表示する。afterは
+現在の採用ソースを用い、追加・採用された行を青で表示する。性能値、図、正式baseline、
+x86比較、timer treeは変更しない。
+
 ## 付録A3: cuFFTをdevice pointer版へ変更
 
 ```fortran

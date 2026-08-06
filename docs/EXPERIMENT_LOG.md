@@ -3145,3 +3145,21 @@ was changed.
   sweep, and the timer-tree comparison are preserved.
 - PowerPoint overflow and template-fidelity checks passed for all 25 slides.
 - Numerical source and all platform baselines are unchanged.
+
+### Step 120 PowerPoint before/after code comparison
+
+- Scope: documentation only; no build or execution.
+- Input deck:
+  `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86_CODE_EXCERPTS.pptx`.
+- Output deck:
+  `docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-06_STEP120_X86_BEFORE_AFTER.pptx`.
+- Slides 7-10 and 18-21 now compare the Git-derived before source with the
+  accepted after source.
+- Orange identifies lines deleted or replaced from the before path; blue
+  identifies lines added or adopted in the after path.
+- The comparison is based on commits `8744981`, `bad046f`, `35835ea`,
+  `1b98197`, `2b7f5ba`, and `4aaa33c`, plus the current accepted source.
+- Existing performance values, charts, x86 comparisons, and timer trees are
+  unchanged.
+- PowerPoint overflow and template-fidelity checks passed for all 25 slides.
+- Numerical source and all platform baselines are unchanged.

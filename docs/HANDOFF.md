@@ -1336,13 +1336,14 @@ correctness reference is available. The tutorial's 32-band grid is the minimum
 operational case and must not be used to infer production occupancy.
 
 The latest editable presentation is
-`docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-05_STEP120_X86_CODE_EXCERPTS.pptx`.
-It preserves the earlier Step 120 decks and adds accepted-source excerpts
-directly to explanatory slides 7-10 beside the corresponding diagrams and
-performance values. The excerpts cover OpenACC device-pointer and batched
-cuFFT calls, the fused nonlocal kernel, device-resident `COEF0` setup, and
-time-step residency directives. This is documentation only: no numerical
-source, measurement, or formal baseline changed.
+`docs/FPSEID21_TDDFT_GPU_PROGRESS_2026-08-06_STEP120_X86_BEFORE_AFTER.pptx`.
+It preserves the earlier Step 120 decks and compares the Git-derived code
+before each change with the accepted code after the change on explanatory
+slides 7-10 and technical appendix slides 18-21. Replaced/deleted before lines
+are orange; added/adopted after lines are blue. The comparisons cover the
+cuFFT device-pointer and batch paths, fused nonlocal kernel, device-local
+`COEF0` setup, and time-step residency directives. This is documentation only:
+no numerical source, measurement, or formal baseline changed.
 
 ## Validation Gate
 
