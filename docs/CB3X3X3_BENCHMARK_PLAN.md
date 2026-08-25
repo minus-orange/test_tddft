@@ -61,6 +61,21 @@ Prepare and verify without running a simulation:
 ./tools/check_cb3x3x3_benchmark.sh
 ```
 
+Before any x86 build or run, execute the read-only environment gate on each
+independent SKU. It checks CPU identity, topology, available memory, Intel
+compiler/MPI commands, FFTW readiness, Git state, and recommends a safe MPI x
+OpenMP configuration for the current unmodified numerical source:
+
+```sh
+EXPECTED_SKU=6980P ./tools/check_cb3x3x3_x86_environment.sh
+EXPECTED_SKU=8468  ./tools/check_cb3x3x3_x86_environment.sh
+EXPECTED_SKU=8592+ ./tools/check_cb3x3x3_x86_environment.sh
+```
+
+Do not start CG, SD, or TDDFT when `environment_gate=BLOCK`. Preserve each
+terminal summary as the platform-specific preflight record. The script is
+read-only and does not build, stage data, or start a simulation.
+
 ## Initial-state gate
 
 The official ZIP does not contain `rh.dia-cb3x3x3` or

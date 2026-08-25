@@ -3183,3 +3183,15 @@ was changed.
   data and archives are isolated under `run/benchmarks/cb3x3x3/`.
 - No GPU/x86 run, rank-count change, baseline adoption, or profiler execution
   was performed.
+
+### Unmodified-source x86 environment gate
+
+- The user selected execution with no x86 numerical-source modification.
+- Added a read-only environment checker for the independent Xeon 6980P, 8468,
+  and 8592+ environments. It reports CPU topology, `MemAvailable`, Intel
+  compiler/MPI identities, FFTW readiness, Git state, the former formal
+  configuration gate, and a conservative MPI x OpenMP recommendation.
+- The memory recommendation retains the current full 480-band RHOOFK batch
+  allocation on every MPI rank. It does not claim that larger-input scaling is
+  equivalent to the Si111-H tutorial configuration.
+- No build, CG, SD, TDDFT, source change, or baseline change was performed.
