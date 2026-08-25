@@ -1,6 +1,18 @@
 # TDDFT GPU Performance Baseline
 
-Last updated: 2026-08-05
+Last updated: 2026-08-25
+
+## Pending official diamond cb3x3x3 series
+
+The FPSEID21 official site published a separate 216-carbon diamond cb3x3x3
+benchmark package on 2026-08-08. It is not part of the Si111-H tutorial
+baseline. No A100, H100, or x86 cb3x3x3 performance baseline exists yet.
+Initial CG/SD state generation, a same-step correctness reference, memory/rank
+preflight, and a controlled three-run series are still required. See
+`docs/CB3X3X3_BENCHMARK_PLAN.md`.
+
+The existing platform medians below remain unchanged and must not be compared
+as same-input values with future cb3x3x3 measurements.
 
 ## Official A100 Baseline
 

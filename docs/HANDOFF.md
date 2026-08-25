@@ -1,6 +1,6 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-08-05
+Last updated: 2026-08-25
 
 ## Current State
 
@@ -1344,6 +1344,22 @@ are orange; added/adopted after lines are blue. The comparisons cover the
 cuFFT device-pointer and batch paths, fused nonlocal kernel, device-local
 `COEF0` setup, and time-step residency directives. This is documentation only:
 no numerical source, measurement, or formal baseline changed.
+
+The official FPSEID21 site added a Japan-only diamond `cb3x3x3` benchmark
+package on 2026-08-08. It contains a 216-carbon, 105 x 105 x 105 mesh case
+with 576 CG/SD bands, 480 TDDFT bands, and an AOBA-S 96-MPI 40,000-step output
+reference. This is a new input and baseline family and must never be mixed with
+Si111-H archives or any of the five existing platform series. Preparation is
+recorded in `docs/CB3X3X3_BENCHMARK_PLAN.md`; generated data is isolated under
+`run/benchmarks/cb3x3x3/`.
+
+The package does not include the required initial density and full-grid
+wavefunction. CG and SD must generate and validate them before TDDFT. The
+official 40,000-step output passes the normal checker, but the suggested
+1,000-step profiling input has no supplied same-step reference. Do not use the
+Si111-H reference or adopt a cb3x3x3 timing until a same-input correctness
+reference, memory/rank configuration, three-run median, and platform-specific
+approval exist. No cb3x3x3 simulation command is currently pending.
 
 ## Validation Gate
 

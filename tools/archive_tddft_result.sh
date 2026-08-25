@@ -20,6 +20,9 @@ set -eu
 #   TDDFT_INPUT   default: Si111-H_tm.in_100steps
 #   TDDFT_OUTPUT  default: auto-detected TDDFT output log
 #   TDDFT_ERR     default: auto-detected stderr log when present
+#   TDDFT_REFERENCE  optional explicit comparison reference
+#   EXPECTED_STEPS   optional expected step count for printed check commands
+#   ARCHIVE_EXTRA_PATHS  optional space-separated run-relative files
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
@@ -117,6 +120,10 @@ do
   copy_path "$rel"
 done
 
+for rel in ${ARCHIVE_EXTRA_PATHS:-}; do
+  copy_path "$rel"
+done
+
 if [ -n "$TDDFT_ERR" ] && [ -f "$RUN_DIR/$TDDFT_ERR" ]; then
   copy_path "$TDDFT_ERR"
 fi
@@ -134,19 +141,34 @@ fi
   echo "tddft_input=$TDDFT_INPUT"
   echo "tddft_output=$TDDFT_OUTPUT"
   echo "tddft_err=$TDDFT_ERR"
+  echo "tddft_reference=${TDDFT_REFERENCE:-}"
+  echo "expected_steps=${EXPECTED_STEPS:-}"
   echo
   echo "Check archived result:"
+  check_steps=
+  if [ -n "${EXPECTED_STEPS:-}" ]; then
+    check_steps=" --expected-steps $EXPECTED_STEPS"
+  fi
   if [ -f "$ARCHIVE_DIR/tddft.err" ]; then
-    echo "  python3 ./tools/check_tddft_result.py check \"$ARCHIVE_DIR/tddft.out\" --err \"$ARCHIVE_DIR/tddft.err\""
+    echo "  python3 ./tools/check_tddft_result.py check \"$ARCHIVE_DIR/tddft.out\" --err \"$ARCHIVE_DIR/tddft.err\"$check_steps"
   else
-    echo "  python3 ./tools/check_tddft_result.py check \"$ARCHIVE_DIR/tddft.out\""
+    echo "  python3 ./tools/check_tddft_result.py check \"$ARCHIVE_DIR/tddft.out\"$check_steps"
   fi
   echo
-  echo "Compare archived result with default GNU reference:"
-  if [ -f "$ARCHIVE_DIR/tddft.err" ]; then
-    echo "  python3 ./tools/check_tddft_result.py compare \"$ARCHIVE_DIR/tddft.out\" --test-err \"$ARCHIVE_DIR/tddft.err\""
+  if [ -n "${TDDFT_REFERENCE:-}" ]; then
+    echo "Compare archived result with explicit reference:"
+    if [ -f "$ARCHIVE_DIR/tddft.err" ]; then
+      echo "  python3 ./tools/check_tddft_result.py compare \"$TDDFT_REFERENCE\" \"$ARCHIVE_DIR/tddft.out\" --test-err \"$ARCHIVE_DIR/tddft.err\"$check_steps --no-require-profile"
+    else
+      echo "  python3 ./tools/check_tddft_result.py compare \"$TDDFT_REFERENCE\" \"$ARCHIVE_DIR/tddft.out\"$check_steps --no-require-profile"
+    fi
   else
-    echo "  python3 ./tools/check_tddft_result.py compare \"$ARCHIVE_DIR/tddft.out\""
+    echo "Compare archived result with default GNU reference:"
+    if [ -f "$ARCHIVE_DIR/tddft.err" ]; then
+      echo "  python3 ./tools/check_tddft_result.py compare \"$ARCHIVE_DIR/tddft.out\" --test-err \"$ARCHIVE_DIR/tddft.err\"$check_steps"
+    else
+      echo "  python3 ./tools/check_tddft_result.py compare \"$ARCHIVE_DIR/tddft.out\"$check_steps"
+    fi
   fi
   echo
   echo "Compare TDDFT input state with another archive/run directory:"
@@ -160,6 +182,8 @@ fi
   echo "tddft_input=$TDDFT_INPUT"
   echo "tddft_output=$TDDFT_OUTPUT"
   echo "tddft_err=$TDDFT_ERR"
+  echo "tddft_reference=${TDDFT_REFERENCE:-}"
+  echo "expected_steps=${EXPECTED_STEPS:-}"
 } > "$ARCHIVE_DIR/manifest.env"
 
 echo "Archived TDDFT result:"
@@ -171,10 +195,23 @@ fi
 echo "  archive: $ARCHIVE_DIR"
 echo
 echo "Use:"
+check_steps=
+if [ -n "${EXPECTED_STEPS:-}" ]; then
+  check_steps=" --expected-steps $EXPECTED_STEPS"
+fi
 if [ -f "$ARCHIVE_DIR/tddft.err" ]; then
-  echo "  python3 ./tools/check_tddft_result.py check \"$ARCHIVE_DIR/tddft.out\" --err \"$ARCHIVE_DIR/tddft.err\""
-  echo "  python3 ./tools/check_tddft_result.py compare \"$ARCHIVE_DIR/tddft.out\" --test-err \"$ARCHIVE_DIR/tddft.err\""
+  echo "  python3 ./tools/check_tddft_result.py check \"$ARCHIVE_DIR/tddft.out\" --err \"$ARCHIVE_DIR/tddft.err\"$check_steps"
 else
-  echo "  python3 ./tools/check_tddft_result.py check \"$ARCHIVE_DIR/tddft.out\""
-  echo "  python3 ./tools/check_tddft_result.py compare \"$ARCHIVE_DIR/tddft.out\""
+  echo "  python3 ./tools/check_tddft_result.py check \"$ARCHIVE_DIR/tddft.out\"$check_steps"
+fi
+if [ -n "${TDDFT_REFERENCE:-}" ]; then
+  if [ -f "$ARCHIVE_DIR/tddft.err" ]; then
+    echo "  python3 ./tools/check_tddft_result.py compare \"$TDDFT_REFERENCE\" \"$ARCHIVE_DIR/tddft.out\" --test-err \"$ARCHIVE_DIR/tddft.err\"$check_steps --no-require-profile"
+  else
+    echo "  python3 ./tools/check_tddft_result.py compare \"$TDDFT_REFERENCE\" \"$ARCHIVE_DIR/tddft.out\"$check_steps --no-require-profile"
+  fi
+elif [ -f "$ARCHIVE_DIR/tddft.err" ]; then
+  echo "  python3 ./tools/check_tddft_result.py compare \"$ARCHIVE_DIR/tddft.out\" --test-err \"$ARCHIVE_DIR/tddft.err\"$check_steps"
+else
+  echo "  python3 ./tools/check_tddft_result.py compare \"$ARCHIVE_DIR/tddft.out\"$check_steps"
 fi

@@ -3163,3 +3163,23 @@ was changed.
   unchanged.
 - PowerPoint overflow and template-fidelity checks passed for all 25 slides.
 - Numerical source and all platform baselines are unchanged.
+
+## Official 2026-08-08 diamond cb3x3x3 benchmark preparation
+
+- Scope: evaluation infrastructure and documentation only; no simulation,
+  numerical-source change, or baseline change.
+- Official package: `benchmark-cb3x3x3.zip`, SHA-256
+  `793a7754a416c83f00f563a7de3ce49d570f6830db89388d2e3b7b808c2612f9`.
+- Case: diamond 3 x 3 x 3, 216 carbon atoms, 105 x 105 x 105 mesh,
+  576 CG/SD bands, and 480 TDDFT bands.
+- The included AOBA-S 96-MPI 40,000-step output passes the existing normal
+  checker with profile requirements disabled; its recorded wall is
+  `90501.2334069` sec.
+- The ZIP does not include TDDFT initial density or full-grid wavefunction.
+  CG and SD generation/validation remain mandatory before TDDFT.
+- The official README permits a 1,000-step profiling reduction, but supplies
+  no 1,000-step reference. The Si111-H reference is explicitly forbidden.
+- Added preparation/preflight and case-specific archive wrappers. Generated
+  data and archives are isolated under `run/benchmarks/cb3x3x3/`.
+- No GPU/x86 run, rank-count change, baseline adoption, or profiler execution
+  was performed.
