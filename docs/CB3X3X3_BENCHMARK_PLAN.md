@@ -76,6 +76,34 @@ Do not start CG, SD, or TDDFT when `environment_gate=BLOCK`. Preserve each
 terminal summary as the platform-specific preflight record. The script is
 read-only and does not build, stage data, or start a simulation.
 
+The three returned environment gates select these fixed configurations for
+the unmodified x86 numerical source:
+
+| platform | TDDFT configuration | environment result |
+| --- | --- | --- |
+| Xeon 6980P x 2 | 16 MPI x 16 OpenMP | PASS; 32 x 8 is memory-blocked |
+| Xeon Platinum 8468 x 2 | 32 MPI x 3 OpenMP | PASS |
+| Xeon Platinum 8592+ x 2 | 32 MPI x 4 OpenMP | PASS |
+
+Use the case-specific x86 runner for all builds and calculations. It always
+re-runs both read-only preflights, builds the CPU/FFTW path with diagnostics
+off, copies host-specific executables below `platforms/<sku>_<host>/bin`, and
+refuses to overwrite any existing state, run, or archive:
+
+```sh
+EXPECTED_SKU=<SKU> ./tools/run_cb3x3x3_x86.sh build
+EXPECTED_SKU=<SKU> ./tools/run_cb3x3x3_x86.sh cg
+EXPECTED_SKU=<SKU> ./tools/run_cb3x3x3_x86.sh sd
+EXPECTED_SKU=<SKU> ./tools/run_cb3x3x3_x86.sh tddft-2
+```
+
+Run CG and SD exactly once, sequentially, on the same selected state-generation
+host. Their default one-thread OpenMP setting is deliberate and is recorded in
+the provenance. After SD passes, the runner installs the density and full-grid
+wavefunction under `work/tddft_600K`, makes them write-protected, and records a
+`STATE_MANIFEST.sha256`. Each TDDFT host then uses that identical state while
+writing to its own label directory below `platforms/<sku>_<host>/runs`.
+
 ## Initial-state gate
 
 The official ZIP does not contain `rh.dia-cb3x3x3` or
@@ -93,6 +121,11 @@ No TDDFT execution is authorized until these inputs exist and the platform
 memory/rank configuration is reviewed. The former 1 GPU / 1 MPI validation
 path may not fit this 480-band case and must not be assumed without a memory
 preflight.
+
+The two-step runner action is only a bounded startup and memory check. It
+performs the normal result check but has no same-input external reference and
+cannot become a performance baseline. Stop and review its summary before any
+long run.
 
 ## Correctness and performance gates
 
@@ -127,3 +160,18 @@ REFERENCE_OUTPUT=<APPROVED_1000_STEP_REFERENCE> \
 LABEL=<UNIQUE_CB3X3X3_LABEL> \
 ./tools/archive_cb3x3x3_result.sh
 ```
+
+The x86 runner exposes the same long-run gates, but requires explicit
+confirmation so they cannot start accidentally:
+
+```sh
+EXPECTED_SKU=<SKU> CONFIRM_LONG_RUN=YES LABEL=<UNIQUE_LABEL> \
+  ./tools/run_cb3x3x3_x86.sh tddft-40000
+
+EXPECTED_SKU=<SKU> CONFIRM_LONG_RUN=YES LABEL=<UNIQUE_LABEL> \
+REFERENCE_OUTPUT=<APPROVED_1000_STEP_REFERENCE> \
+  ./tools/run_cb3x3x3_x86.sh tddft-1000
+```
+
+Execute one long run at a time. Runs 02 and 03 remain gated on run 01 passing
+both the normal check and same-input relaxed comparison.

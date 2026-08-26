@@ -3195,3 +3195,24 @@ was changed.
   allocation on every MPI rank. It does not claim that larger-input scaling is
   equivalent to the Si111-H tutorial configuration.
 - No build, CG, SD, TDDFT, source change, or baseline change was performed.
+
+### Staged x86 CG/SD/TDDFT runner
+
+- Added `tools/run_cb3x3x3_x86.sh`; this is execution infrastructure only and
+  does not change the x86 numerical source.
+- Fixed the validated TDDFT configurations at 6980P 16 MPI x 16 OpenMP, 8468
+  32 x 3, and 8592+ 32 x 4. The 6980P former 32 x 8 configuration remains
+  blocked by its returned available-memory gate.
+- The runner rechecks the environment and official package before every
+  action, builds/reuses the diagnostic-off Intel CPU/FFTW path, serializes
+  shared-source builds, and copies host-specific executables into the
+  platform directory before execution.
+- CG, SD, two-step TDDFT, 1,000-step TDDFT, and 40,000-step TDDFT are explicit
+  separate actions. Existing state, run directories, and archives are never
+  overwritten. CG and SD must share one host and revision.
+- Successful SD output is installed as a common write-protected initial state
+  with SHA-256 provenance. TDDFT runs are separated below
+  `run/benchmarks/cb3x3x3/platforms/<sku>_<host>/runs/<label>`.
+- The two-step action is startup/memory validation only. A 1,000-step action
+  requires an approved same-input reference; both long actions require an
+  explicit confirmation and unique label. No calculation was run locally.

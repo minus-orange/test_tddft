@@ -1359,7 +1359,21 @@ official 40,000-step output passes the normal checker, but the suggested
 1,000-step profiling input has no supplied same-step reference. Do not use the
 Si111-H reference or adopt a cb3x3x3 timing until a same-input correctness
 reference, memory/rank configuration, three-run median, and platform-specific
-approval exist. No cb3x3x3 simulation command is currently pending.
+approval exist.
+
+The three x86 environment returns are complete. Xeon 6980P uses 16 MPI x 16
+OpenMP because its 747.79 GiB available memory blocks the former 32 x 8
+configuration's 768 GiB gate. Xeon 8468 uses 32 x 3 and Xeon 8592+ uses 32 x
+4. All three environment gates passed at `4c8013b` with clean synchronized Git,
+ready Intel FFTW, and zero failures or warnings.
+
+The case-specific `tools/run_cb3x3x3_x86.sh` runner now owns build, CG, SD,
+two-step startup, and explicitly confirmed 1,000/40,000-step actions. It does
+not edit numerical source. CG and SD must run once on the same selected host;
+their accepted output becomes the common write-protected, SHA-256-recorded
+initial state. TDDFT run directories are separated by SKU, hostname, and
+label. The immediate pending action is CG only; inspect its compact PASS
+summary before authorizing SD.
 
 ## Validation Gate
 
