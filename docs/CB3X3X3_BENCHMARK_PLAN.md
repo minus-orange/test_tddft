@@ -127,10 +127,20 @@ performs the normal result check but has no same-input external reference and
 cannot become a performance baseline. Stop and review its summary before any
 long run.
 
+The user authorized one 100-step diagnostic on the Xeon Platinum 8592+ host
+using its fixed single-node `32 MPI x 4 OpenMP = 128 physical cores`
+configuration. The derived 100-step input changes only `tstep` from the
+official input. Because the official package supplies no 100-step reference,
+this action performs the normal result check only, remains in its isolated
+platform run directory, and is not archived or treated as a baseline.
+
 ## Correctness and performance gates
 
 - The official 40,000-step output is the only supplied external reference.
 - The derived 2-step input is for bounded startup/memory validation only.
+- The derived 100-step input is for the explicitly authorized 8592+
+  diagnostic only. It has no supplied same-step reference and cannot enter a
+  formal correctness or performance series.
 - The derived 1,000-step input follows the official README's profiling
   suggestion, but it has no supplied 1,000-step reference.
 - A 1,000-step performance run therefore requires a separately approved,
@@ -165,6 +175,9 @@ The x86 runner exposes the same long-run gates, but requires explicit
 confirmation so they cannot start accidentally:
 
 ```sh
+EXPECTED_SKU=8592+ CONFIRM_LONG_RUN=YES LABEL=<UNIQUE_100_STEP_LABEL> \
+  ./tools/run_cb3x3x3_x86.sh tddft-100
+
 EXPECTED_SKU=<SKU> CONFIRM_LONG_RUN=YES LABEL=<UNIQUE_LABEL> \
   ./tools/run_cb3x3x3_x86.sh tddft-40000
 

@@ -39,6 +39,7 @@ require_file "$OFFICIAL_DIR/600K/dia-cb3x3x3_tm.out_AOBA-S"
 require_file "$WORK_ROOT/cg/dia-cb3x3x3.in"
 require_file "$WORK_ROOT/sd/dia-cb3x3x3_sd.in"
 require_file "$WORK_ROOT/tddft_600K/dia-cb3x3x3_tm.in_2steps"
+require_file "$WORK_ROOT/tddft_600K/dia-cb3x3x3_tm.in_100steps"
 require_file "$WORK_ROOT/tddft_600K/dia-cb3x3x3_tm.in_1000steps"
 require_file "$WORK_ROOT/tddft_600K/dia-cb3x3x3_tm.in_40000steps"
 require_file "$WORK_ROOT/tddft_600K/SOURCE_MANIFEST.env"
@@ -50,7 +51,7 @@ python3 "$SCRIPT_DIR/check_tddft_result.py" check \
   "$OFFICIAL_DIR/600K/dia-cb3x3x3_tm.out_AOBA-S" \
   --expected-steps 40000 --no-require-profile >/dev/null
 
-for pair in '2 2' '1000 1000' '40000 40000'; do
+for pair in '2 2' '100 100' '1000 1000' '40000 40000'; do
   set -- $pair
   file=$WORK_ROOT/tddft_600K/dia-cb3x3x3_tm.in_${1}steps
   grep -Eq "tstep=${2}([[:space:]]|$)" "$file" || \

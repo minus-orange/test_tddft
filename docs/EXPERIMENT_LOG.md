@@ -3216,3 +3216,21 @@ was changed.
 - The two-step action is startup/memory validation only. A 1,000-step action
   requires an approved same-input reference; both long actions require an
   explicit confirmation and unique label. No calculation was run locally.
+
+### Xeon Platinum 8592+ cb3x3x3 startup result and 100-step diagnostic gate
+
+- The user-operated CG and SD stages on host `spr10` passed for all 216 atoms
+  and produced the validated, SHA-256-recorded TDDFT initial state.
+- A 2-step TDDFT startup run at 32 MPI x 4 OpenMP passed the normal result
+  checker. It reported `543.709180832` sec, 216 force/position/velocity rows,
+  and 38 profile timers. There was no same-step reference, so the wall is not
+  a correctness comparison or performance baseline.
+- Added a derived 100-step input and `tddft-100` runner action for the user's
+  explicitly authorized single-node 8592+ run. It fixes the existing
+  validated 32 MPI x 4 OpenMP configuration, requires
+  `CONFIRM_LONG_RUN=YES` and a unique label, refuses overwrite, and performs
+  only the normal result check.
+- The official package provides no 100-step reference. The run therefore
+  remains diagnostic, is not archived by the helper, cannot use the Si111-H
+  reference, and cannot enter a formal baseline series. Numerical source and
+  all existing platform baselines are unchanged.

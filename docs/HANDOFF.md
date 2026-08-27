@@ -1368,12 +1368,20 @@ configuration's 768 GiB gate. Xeon 8468 uses 32 x 3 and Xeon 8592+ uses 32 x
 ready Intel FFTW, and zero failures or warnings.
 
 The case-specific `tools/run_cb3x3x3_x86.sh` runner now owns build, CG, SD,
-two-step startup, and explicitly confirmed 1,000/40,000-step actions. It does
-not edit numerical source. CG and SD must run once on the same selected host;
-their accepted output becomes the common write-protected, SHA-256-recorded
-initial state. TDDFT run directories are separated by SKU, hostname, and
-label. The immediate pending action is CG only; inspect its compact PASS
-summary before authorizing SD.
+two-step startup, an explicitly confirmed 100-step diagnostic, and explicitly
+confirmed 1,000/40,000-step actions. It does not edit numerical source. CG and
+SD must run once on the same selected host; their accepted output becomes the
+common write-protected, SHA-256-recorded initial state. TDDFT run directories
+are separated by SKU, hostname, and label.
+
+On Xeon Platinum 8592+ host `spr10`, CG and SD both passed for the 216-atom
+case and installed a validated initial state. The subsequent 2-step TDDFT
+startup run passed the normal checker with 32 MPI x 4 OpenMP and reported
+`543.709180832` sec; this startup wall is not a baseline. The next authorized
+action is one 100-step run on the same 128-core single-node configuration.
+It has no official same-step reference, so it is a normal-check-only
+diagnostic and must not be archived, compared with Si111-H, or adopted as a
+platform baseline.
 
 ## Validation Gate
 

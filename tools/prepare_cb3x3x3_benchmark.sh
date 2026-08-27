@@ -198,7 +198,7 @@ copy_once "$OFFICIAL_DIR/SOURCE_MANIFEST.env" \
 link_once ../../official/600K/dia-cb3x3x3_tm.out_AOBA-S \
   "$tddft_dir/official_reference_40000steps.out"
 
-for steps in 2 1000; do
+for steps in 2 100 1000; do
   derived=$tddft_dir/dia-cb3x3x3_tm.in_${steps}steps
   if [ ! -e "$derived" ]; then
     sed "s/tstep=40000/tstep=$steps/" \

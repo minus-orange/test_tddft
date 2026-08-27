@@ -12,7 +12,13 @@ set -eu
 #   EXPECTED_SKU=6980P ./tools/run_cb3x3x3_x86.sh sd
 #   EXPECTED_SKU=6980P ./tools/run_cb3x3x3_x86.sh tddft-2
 #
-# Long runs require an explicit confirmation and a unique label:
+# A user-authorized 100-step diagnostic requires explicit confirmation and a
+# unique label, but no reference comparison or baseline adoption is allowed:
+#
+#   EXPECTED_SKU=8592+ CONFIRM_LONG_RUN=YES LABEL=<label> \
+#     ./tools/run_cb3x3x3_x86.sh tddft-100
+#
+# Reference-backed long runs also require confirmation and a unique label:
 #
 #   EXPECTED_SKU=8468 CONFIRM_LONG_RUN=YES LABEL=<label> \
 #     ./tools/run_cb3x3x3_x86.sh tddft-40000
@@ -51,6 +57,9 @@ Actions:
   sd             Build, run SD from the validated CG state, validate it, and
                  install a write-protected canonical TDDFT initial state.
   tddft-2        Run a bounded two-step startup/memory check. No baseline.
+  tddft-100      Run a user-authorized 100-step diagnostic. Requires
+                 CONFIRM_LONG_RUN=YES and LABEL. Normal check only; no
+                 same-input comparison and no baseline.
   tddft-1000     Run 1000 steps. Requires CONFIRM_LONG_RUN=YES, LABEL, and an
                  approved same-input REFERENCE_OUTPUT.
   tddft-40000    Run the official 40000-step case. Requires
@@ -475,6 +484,12 @@ run_tddft() {
       timestamp=$(date '+%Y%m%d_%H%M%S')
       run_label=${LABEL:-"cb3x3x3_${platform_id}_${NPROCS}mpi_${TDDFT_OMP_NUM_THREADS}omp_2step_${timestamp}_${short_revision}"}
       ;;
+    100)
+      [ "$CONFIRM_LONG_RUN" = YES ] ||
+        fail "set CONFIRM_LONG_RUN=YES for a 100-step diagnostic run"
+      validate_label "${LABEL:-}"
+      run_label=$LABEL
+      ;;
     1000)
       [ "$CONFIRM_LONG_RUN" = YES ] ||
         fail "set CONFIRM_LONG_RUN=YES for a 1000-step run"
@@ -541,8 +556,12 @@ run_tddft() {
     --err "$run_dir/dia-cb3x3x3_tm.err" \
     --expected-steps "$steps"
 
-  if [ "$steps" -eq 2 ]; then
-    echo "CB3X3X3_TDDFT_STARTUP_PASS"
+  if [ "$steps" -eq 2 ] || [ "$steps" -eq 100 ]; then
+    if [ "$steps" -eq 2 ]; then
+      echo "CB3X3X3_TDDFT_STARTUP_PASS"
+    else
+      echo "CB3X3X3_TDDFT_DIAGNOSTIC_PASS"
+    fi
     echo "run_dir=$run_dir"
     echo "normal_check=PASS"
     echo "same_input_compare=NOT_AVAILABLE"
@@ -565,7 +584,7 @@ case "$ACTION" in
     [ -n "$ACTION" ] || exit 2
     exit 0
     ;;
-  build|cg|sd|tddft-2|tddft-1000|tddft-40000) ;;
+  build|cg|sd|tddft-2|tddft-100|tddft-1000|tddft-40000) ;;
   *) usage >&2; fail "unknown action: $ACTION" ;;
 esac
 
@@ -587,6 +606,7 @@ case "$ACTION" in
   cg) run_cg ;;
   sd) run_sd ;;
   tddft-2) run_tddft 2 ;;
+  tddft-100) run_tddft 100 ;;
   tddft-1000) run_tddft 1000 ;;
   tddft-40000) run_tddft 40000 ;;
 esac
