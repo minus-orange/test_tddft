@@ -1388,6 +1388,15 @@ follow-up photograph confirms the run label as
 `cb3x3x3_8592p_spr10_32mpi_4omp_100step_diag_01`. No additional cb3x3x3
 execution is pending.
 
+A separate NEC VE 100-step result was identified under
+`run/cb3x3x3_ve/sample.tddft_exe/0827_100steps_8MPI_2OMP/`; its standard output
+name links to `dia-cb3x3x3_tm.out_part001`. The read-only
+`tools/compare_cb3x3x3_platform_results.sh` helper compares that output with
+the fixed 8592+ diagnostic. Both normal checks, 100 steps, 216 observable rows,
+and the existing relaxed tolerances must pass before it prints the wall ratio.
+The NEC VE hardware/compiler provenance is not yet established, so this is an
+independent diagnostic comparison and not a baseline adoption path.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

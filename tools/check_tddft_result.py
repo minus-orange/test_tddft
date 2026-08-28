@@ -218,6 +218,7 @@ def check_result(
     result: TddftResult,
     require_profile: bool,
     expected_steps: int | None,
+    expected_atoms: int | None = None,
 ) -> list[str]:
     failures: list[str] = []
     if result.bad_lines:
@@ -236,6 +237,16 @@ def check_result(
         failures.append("missing final TOTAL FORCE block")
     if not result.positions:
         failures.append("missing final Positions block")
+    if expected_atoms is not None:
+        for name, rows in (
+            ("force", result.force),
+            ("positions", result.positions),
+            ("velocities", result.velocities),
+        ):
+            if len(rows) != expected_atoms:
+                failures.append(
+                    f"expected {expected_atoms} {name} rows, found {len(rows)}"
+                )
     if require_profile and not result.profile:
         failures.append("missing FPSEID_PROFILE block")
     return failures
@@ -285,11 +296,15 @@ def compare(args: argparse.Namespace) -> int:
     failures = []
     failures.extend(
         f"reference: {msg}"
-        for msg in check_result(ref, args.require_profile, args.expected_steps)
+        for msg in check_result(
+            ref, args.require_profile, args.expected_steps, args.expected_atoms
+        )
     )
     failures.extend(
         f"test: {msg}"
-        for msg in check_result(test, args.require_profile, args.expected_steps)
+        for msg in check_result(
+            test, args.require_profile, args.expected_steps, args.expected_atoms
+        )
     )
     if ref.steps is not None and test.steps is not None and ref.steps != test.steps:
         failures.append(f"steps: reference={ref.steps} test={test.steps}")
@@ -348,7 +363,9 @@ def compare(args: argparse.Namespace) -> int:
 
 def check(args: argparse.Namespace) -> int:
     result = parse_result(args.output, args.err)
-    failures = check_result(result, args.require_profile, args.expected_steps)
+    failures = check_result(
+        result, args.require_profile, args.expected_steps, args.expected_atoms
+    )
     print_summary(result)
     if failures:
         print("\nFAIL")
@@ -371,6 +388,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=positive_int,
         help="require the completion marker to report exactly this many steps",
     )
+    check_parser.add_argument(
+        "--expected-atoms",
+        type=positive_int,
+        help="require exactly this many force, position, and velocity rows",
+    )
     check_parser.add_argument("--require-profile", action=argparse.BooleanOptionalAction, default=True)
     check_parser.set_defaults(func=check)
 
@@ -388,6 +410,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--expected-steps",
         type=positive_int,
         help="require both completion markers to report exactly this many steps",
+    )
+    compare_parser.add_argument(
+        "--expected-atoms",
+        type=positive_int,
+        help="require exactly this many force, position, and velocity rows in both logs",
     )
     compare_parser.add_argument("--energy-atol", type=float, default=RELAXED_TOLERANCES["energy"])
     compare_parser.add_argument("--force-atol", type=float, default=RELAXED_TOLERANCES["force"])

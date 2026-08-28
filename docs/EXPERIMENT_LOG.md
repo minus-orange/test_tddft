@@ -3258,3 +3258,22 @@ was changed.
 - This measurement remains separate from Si111-H and all existing A100,
   H100, Xeon 6980P, Xeon 8468, and Xeon 8592+ Si111-H baselines. Numerical
   source and every formal baseline are unchanged.
+
+### NEC VE and Xeon 8592+ cb3x3x3 comparison preparation
+
+- A returned directory listing identifies the NEC VE result directory as
+  `run/cb3x3x3_ve/sample.tddft_exe/0827_100steps_8MPI_2OMP/` and confirms that
+  `dia-cb3x3x3_tm.out` links to the nonempty
+  `dia-cb3x3x3_tm.out_part001` file.
+- Added a read-only cross-platform comparison helper. It accepts a directory
+  or output path and defaults the reference to the fixed 8592+ run label
+  `cb3x3x3_8592p_spr10_32mpi_4omp_100step_diag_01`.
+- Extended the common result checker with an optional `--expected-atoms`
+  gate. Existing calls are unchanged; the cb3x3x3 helper requires 216 force,
+  position, and velocity rows in both results.
+- The helper runs both normal checks without requiring the repository-specific
+  profile block, applies the existing relaxed comparison at exactly 100
+  steps, and prints a wall ratio only after every correctness gate passes.
+- No simulation, file copy, archive mutation, numerical-source change,
+  platform baseline, or claimed NEC VE hardware identity is part of this
+  preparation.

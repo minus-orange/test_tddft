@@ -196,3 +196,28 @@ REFERENCE_OUTPUT=<APPROVED_1000_STEP_REFERENCE> \
 
 Execute one long run at a time. Runs 02 and 03 remain gated on run 01 passing
 both the normal check and same-input relaxed comparison.
+
+## NEC VE diagnostic comparison
+
+A user-supplied NEC VE result is present outside the x86 platform tree at:
+
+```text
+run/cb3x3x3_ve/sample.tddft_exe/0827_100steps_8MPI_2OMP/
+```
+
+Its `dia-cb3x3x3_tm.out` name is a symlink to the nonempty
+`dia-cb3x3x3_tm.out_part001` result. Keep this NEC VE directory independent;
+do not move or copy it into the 8592+ run or archive tree. Compare it read-only
+with the fixed 8592+ 100-step diagnostic using:
+
+```sh
+TEST_PLATFORM=NEC_VE_8MPI_2OMP \
+./tools/compare_cb3x3x3_platform_results.sh \
+  ./run/cb3x3x3_ve/sample.tddft_exe/0827_100steps_8MPI_2OMP/
+```
+
+The helper requires normal checks for both outputs, exactly 100 completed
+steps, exactly 216 force/position/velocity rows, and a relaxed numerical
+comparison before printing a wall-time ratio. A failure blocks the performance
+comparison. This output-only check does not by itself establish the exact NEC
+VE model, VE count, compiler, input provenance, or a formal platform baseline.
