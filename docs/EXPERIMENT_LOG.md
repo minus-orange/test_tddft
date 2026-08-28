@@ -3251,8 +3251,9 @@ was changed.
 - Result: normal check PASS and `CB3X3X3_TDDFT_DIAGNOSTIC_PASS`.
   Same-input comparison was unavailable and the helper correctly reported
   `baseline=NOT_APPLICABLE`.
-- The run-directory path was visible only through the platform prefix; the
-  label was cropped from the photograph and is not inferred. No result file
+- A follow-up photograph confirmed the run label as
+  `cb3x3x3_8592p_spr10_32mpi_4omp_100step_diag_01` below platform directory
+  `run/benchmarks/cb3x3x3/platforms/8592p_spr10/runs`. No result file
   transfer, archive, second run, or baseline adoption was requested.
 - This measurement remains separate from Si111-H and all existing A100,
   H100, Xeon 6980P, Xeon 8468, and Xeon 8592+ Si111-H baselines. Numerical

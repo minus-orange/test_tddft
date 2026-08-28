@@ -1384,8 +1384,9 @@ revision `4bc30413426f029ca6c973f8e375740f0a3282bf`. It reported
 position, and velocity rows, and passed the normal checker. It has no official
 same-step reference, so it remains a normal-check-only diagnostic and must not
 be archived, compared with Si111-H, or adopted as a platform baseline. The
-run label is cropped from the returned photograph and is not inferred. No
-additional cb3x3x3 execution is pending.
+follow-up photograph confirms the run label as
+`cb3x3x3_8592p_spr10_32mpi_4omp_100step_diag_01`. No additional cb3x3x3
+execution is pending.
 
 ## Validation Gate
 

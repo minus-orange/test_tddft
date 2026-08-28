@@ -139,8 +139,8 @@ That diagnostic completed on host `spr10` at revision
 `7053.57140899` sec with diagnostics off and passed the normal checker. The
 returned summary contained 216 force, position, and velocity rows and 39
 profile timers. Same-input comparison remains unavailable and the result is
-not a baseline. The run label was outside the returned photograph and is not
-inferred.
+not a baseline. A follow-up photograph confirmed the run label as
+`cb3x3x3_8592p_spr10_32mpi_4omp_100step_diag_01`.
 
 ## Correctness and performance gates
 
