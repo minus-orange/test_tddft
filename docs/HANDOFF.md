@@ -1386,7 +1386,7 @@ same-step reference, so it remains a normal-check-only diagnostic and must not
 be archived, compared with Si111-H, or adopted as a platform baseline. The
 follow-up photograph confirms the run label as
 `cb3x3x3_8592p_spr10_32mpi_4omp_100step_diag_01`. No additional cb3x3x3
-execution is pending.
+x86 execution is pending.
 
 A separate NEC VE 100-step result was identified under
 `run/cb3x3x3_ve/sample.tddft_exe/0827_100steps_8MPI_2OMP/`; its standard output
@@ -1406,6 +1406,19 @@ checks passed. The helper stopped before printing a speed ratio, so there is
 no validated performance comparison and no NEC VE baseline. Reconcile exact
 input/state/source and NEC VE hardware/compiler provenance before deciding any
 follow-up; do not widen the tolerance.
+
+The user next selected H100 for a separate cb3x3x3 GPU observation. The
+diagnostic-off helper `tools/run_cb3x3x3_h100.sh` fixes one H100, one MPI rank,
+one OpenMP thread, OpenACC/cuFFT, explicit `cc90`, and pinned separate memory.
+Its `preflight` action is read-only and checks synchronized Git, official
+input/state hashes, exact GPU identity/capability, device occupancy/free
+memory, at least 64 GiB host `MemAvailable`, and the NVHPC/MPI commands. Its
+only execution action is a bounded 2-step startup/memory check below
+`platforms/h100_<hostname>`; it requires the normal 216-atom result check and
+reports sampled GPU peak/headroom. It has no 100-step action and no same-input
+reference. No H100 cb3x3x3 build or run has yet occurred. The only pending
+command is the read-only H100 preflight; review its returned summary before
+authorizing `tddft-2`.
 
 ## Validation Gate
 

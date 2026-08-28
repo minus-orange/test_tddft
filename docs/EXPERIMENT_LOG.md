@@ -3299,3 +3299,25 @@ was changed.
   wall is a cross-platform baseline, and no follow-up execution is authorized
   until exact input, initial-state, source, and NEC VE platform/compiler
   provenance are reconciled.
+
+### Staged H100 cb3x3x3 startup and memory validation preparation
+
+- The user selected H100 as the first GPU check for the independent official
+  diamond cb3x3x3 case.
+- Added `tools/run_cb3x3x3_h100.sh` without changing numerical source. The
+  fixed build/run path is OpenACC/cuFFT, explicit `cc90`, pinned separate
+  memory, diagnostics off, one H100, one MPI rank, and one OpenMP thread.
+- The read-only `preflight` action validates clean synchronized Git, official
+  case/state hashes, the NVHPC/MPI toolchain, H100 identity and compute
+  capability, zero active compute processes, at least 90% free GPU memory, and
+  the conservative 64-GiB host-`MemAvailable` gate for one MPI rank.
+- The bounded `tddft-2` action re-runs preflight, builds TDDFT only, uses the
+  immutable CG/SD state, writes an isolated H100-host run directory, samples
+  device-memory usage, and requires the normal checker with all 216 observable
+  rows.
+- The helper deliberately contains no 100-step action. A two-step pass has no
+  same-input reference and remains a startup/capacity observation, not a
+  correctness equivalence, cross-platform comparison, archive, or baseline.
+- No H100 build or simulation was performed while preparing the helper. The
+  read-only preflight result must be returned and reviewed before `tddft-2`.
+  Numerical source and all formal baselines are unchanged.

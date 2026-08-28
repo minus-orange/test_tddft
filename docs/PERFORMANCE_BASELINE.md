@@ -19,6 +19,12 @@ normal checks but failed the fixed relaxed force tolerance (`2.016e-4` versus
 `1.0e-4`). Its raw wall is therefore not used for a validated platform ratio
 or baseline. All formal baseline series remain unchanged.
 
+An H100-specific preflight and bounded 2-step startup/memory helper is now
+prepared for this case, with one GPU/one MPI/one OpenMP, explicit `cc90`, and
+diagnostics off. No H100 cb3x3x3 execution has occurred. The first pending
+action is read-only preflight; any 2-step result remains capacity validation
+only, and the helper provides no 100-step action.
+
 The existing platform medians below remain unchanged and must not be compared
 as same-input values with future cb3x3x3 measurements.
 

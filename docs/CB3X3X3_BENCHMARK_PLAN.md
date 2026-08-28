@@ -127,6 +127,42 @@ performs the normal result check but has no same-input external reference and
 cannot become a performance baseline. Stop and review its summary before any
 long run.
 
+## Staged H100 startup and memory gate
+
+The user selected H100 as the first GPU for this independent cb3x3x3 case.
+Use `tools/run_cb3x3x3_h100.sh`; it does not modify numerical source and it
+deliberately exposes only `preflight` and `tddft-2` actions. The fixed path is
+one H100, one MPI rank, one OpenMP thread, diagnostic off, OpenACC/cuFFT,
+explicit `cc90`, and `-gpu=mem:separate:pinnedalloc`. It reuses the immutable
+CG/SD state but writes the executable, run, and provenance under the separate
+`run/benchmarks/cb3x3x3/platforms/h100_<hostname>/` tree.
+
+Run the read-only gate first:
+
+```sh
+CUDA_VISIBLE_DEVICES=0 ./tools/run_cb3x3x3_h100.sh preflight
+```
+
+It requires clean synchronized Git, the expected official input and
+SHA-256-validated initial state, an H100 with compute capability 9.0, no active
+compute process, at least 90% free device memory, at least 64 GiB host
+`MemAvailable` for the conservative one-rank gate, and the NVHPC/MPI
+toolchain. It does not build or execute TDDFT. Return and review its compact
+terminal summary before the next action.
+
+Only after that review, run the bounded startup/memory check:
+
+```sh
+CUDA_VISIBLE_DEVICES=0 ./tools/run_cb3x3x3_h100.sh tddft-2
+```
+
+This action rebuilds TDDFT for H100, runs exactly two steps, requires the
+normal checker with 216 force/position/velocity rows, and reports sampled peak
+GPU memory and minimum headroom. Two steps have no same-input reference and
+cannot establish correctness equivalence or a performance baseline. The
+helper contains no 100-step action; a separate review and explicit user
+authorization are required before adding or issuing any long-run command.
+
 The user authorized one 100-step diagnostic on the Xeon Platinum 8592+ host
 using its fixed single-node `32 MPI x 4 OpenMP = 128 physical cores`
 configuration. The derived 100-step input changes only `tstep` from the
