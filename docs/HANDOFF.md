@@ -1436,6 +1436,18 @@ directory and records source/normalized hashes. Official input, common state,
 numerical source, and the preserved failed run are unchanged. Re-run only the
 bounded `tddft-2` action after synchronization; 100 steps remain unauthorized.
 
+The next H100 attempt passed `tm_inputs.f` but stopped at record 3 of
+`fort.41` with NVFORTRAN `FIO-F-225` in
+`pspw_tm11_Vext_Avec_v4_alloc.f:3100`. The official `TR.C95g_asci` is also
+CRLF, and the list-directed multi-record array read treats the retained
+carriage return as an unknown token. The sampled peak was 539 MiB with 81,020
+MiB headroom, so this also provides no capacity evidence. The helper now
+LF-normalizes all Fortran-consumed text files only in each new run directory,
+records source/normalized main-input and pseudopotential hashes, and uses
+`mv -f` to replace its own prior write-protected platform executable without
+an interactive prompt. The two failed run directories remain preserved.
+Re-run only `tddft-2` after synchronization; 100 steps remain unauthorized.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

@@ -3343,3 +3343,22 @@ was changed.
   recorded. The official/generated input, initial state, numerical source,
   failed run directory, and all baselines remain unchanged. A new 2-step run
   is required; 100 steps remain unauthorized.
+
+### H100 cb3x3x3 second 2-step text-input failure
+
+- The retry with the LF-normalized command input passed `tm_inputs.f`, which
+  confirms the first failure diagnosis, and then stopped on record 3 of
+  `fort.41` with NVFORTRAN `FIO-F-225` at
+  `pspw_tm11_Vext_Avec_v4_alloc.f:3100`.
+- The official carbon pseudopotential `TR.C95g_asci` also has CRLF endings.
+  Its list-directed read spans records, and NVFORTRAN reports the retained
+  carriage return as an unknown token. The x86 ifx path had tolerated it.
+- The process exited with status 127 before computation. Sampled peak GPU use
+  was 539 MiB (0.66%) with 81,020 MiB headroom; this is not a capacity pass.
+- The build passed, but replacing the helper's prior write-protected platform
+  executable produced an interactive `mv` confirmation prompt.
+- Extended the isolated-run conversion to all Fortran-consumed text files and
+  added source/normalized pseudopotential hashes. Changed executable
+  installation to `mv -f`. Canonical inputs, common state, numerical source,
+  both failed run directories, and all baselines remain unchanged. Another
+  bounded 2-step run is required; 100 steps remain unauthorized.

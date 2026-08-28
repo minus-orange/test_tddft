@@ -226,7 +226,7 @@ preflight() {
   echo "mpirun=$mpirun_version"
   echo "flags=$EFFECTIVE_FLAGS"
   echo "configuration=1_H100_1_MPI_1_OpenMP_diagnostic_OFF"
-  echo "input_line_endings=LF_normalized_in_isolated_run"
+  echo "fortran_text_input_line_endings=LF_normalized_in_isolated_run"
   echo "official_input_gate=PASS"
   echo "initial_state_sha256_gate=PASS"
   echo "gpu_occupancy_gate=PASS"
@@ -255,7 +255,7 @@ build_tddft() {
   require_nonempty "$source_exe"
   executable_part=$PLATFORM_BIN/tddft_exe.part.$$
   cp -p "$source_exe" "$executable_part"
-  mv "$executable_part" "$PLATFORM_BIN/tddft_exe"
+  mv -f "$executable_part" "$PLATFORM_BIN/tddft_exe"
   chmod a-w "$PLATFORM_BIN/tddft_exe"
   {
     echo "revision=$revision"
@@ -280,15 +280,15 @@ build_tddft() {
 prepare_run_dir() {
   run_dir=$1
   mkdir -p "$run_dir"
-  copy_text_lf_new "$STATE_DIR/dia-cb3x3x3_tm.in_2steps" \
-    "$run_dir/dia-cb3x3x3_tm.in_2steps"
   for rel in \
-    SOURCE_MANIFEST.env TR.C95g_asci \
-    Avec Cartesian.velo Eext Etot Ework laser.dat size.dat sym.C1
+    dia-cb3x3x3_tm.in_2steps TR.C95g_asci Avec Cartesian.velo \
+    Eext Etot Ework laser.dat size.dat sym.C1
   do
     require_file "$STATE_DIR/$rel"
-    cp -p "$STATE_DIR/$rel" "$run_dir/$rel"
+    copy_text_lf_new "$STATE_DIR/$rel" "$run_dir/$rel"
   done
+  require_file "$STATE_DIR/SOURCE_MANIFEST.env"
+  cp -p "$STATE_DIR/SOURCE_MANIFEST.env" "$run_dir/SOURCE_MANIFEST.env"
   cp -p "$STATE_DIR/STATE_MANIFEST.sha256" "$run_dir/STATE_MANIFEST.sha256"
   ln "$STATE_DIR/rh.dia-cb3x3x3" "$run_dir/rh.dia-cb3x3x3"
   ln "$STATE_DIR/wf_fft.dia-cb3x3x3" "$run_dir/wf_fft.dia-cb3x3x3"
@@ -328,9 +328,11 @@ run_two_steps() {
     echo "omp_num_threads=1"
     echo "flags=$EFFECTIVE_FLAGS"
     echo "diagnostic=OFF"
-    echo "input_line_endings=LF"
+    echo "fortran_text_input_line_endings=LF"
     echo "source_input_sha256=$(sha256_file "$STATE_DIR/dia-cb3x3x3_tm.in_2steps")"
     echo "input_sha256=$(sha256_file "$run_dir/dia-cb3x3x3_tm.in_2steps")"
+    echo "source_pseudopotential_sha256=$(sha256_file "$STATE_DIR/TR.C95g_asci")"
+    echo "pseudopotential_sha256=$(sha256_file "$run_dir/TR.C95g_asci")"
     echo "state_manifest_sha256=$(sha256_file "$run_dir/STATE_MANIFEST.sha256")"
     echo "tddft_executable_sha256=$(sha256_file "$PLATFORM_BIN/tddft_exe")"
   } > "$run_dir/RUN_PROVENANCE.env"

@@ -175,6 +175,18 @@ SHA-256 values, and does not change any keyword, numeric value, numerical
 source, initial state, or prior run directory. The failed run reported only
 515 MiB peak device use and therefore supplied no capacity evidence.
 
+The next attempt passed the command input and then stopped on record 3 of
+`fort.41` with NVFORTRAN `FIO-F-225`; the official carbon pseudopotential is
+also CRLF, and its multi-record list-directed array read rejects the retained
+carriage return. Peak device use was 539 MiB, again before capacity testing.
+The isolated-run normalization therefore covers every text file consumed by
+the Fortran executable, including the pseudopotential; LF/no-terminator files
+remain byte-equivalent after the operation. Source and normalized
+pseudopotential hashes are recorded. The executable installation also uses
+non-interactive forced replacement so a prior write-protected platform binary
+cannot produce an `mv` confirmation prompt. No canonical input or result is
+deleted or overwritten.
+
 The user authorized one 100-step diagnostic on the Xeon Platinum 8592+ host
 using its fixed single-node `32 MPI x 4 OpenMP = 128 physical cores`
 configuration. The derived 100-step input changes only `tstep` from the
