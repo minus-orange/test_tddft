@@ -1420,6 +1420,22 @@ reference. No H100 cb3x3x3 build or run has yet occurred. The only pending
 command is the read-only H100 preflight; review its returned summary before
 authorizing `tddft-2`.
 
+The returned H100 preflight passed at revision `92543b2` on host `spr21`:
+NVIDIA H100 PCIe, compute capability 9.0, driver `595.45.04`, NVFORTRAN/MPI
+26.5, 81,081 of 81,559 MiB device memory free, 989.03 GiB host memory
+available, zero active compute processes, and all input/state/Git gates PASS.
+The authorized first 2-step attempt then built the cc90 cuFFT executable but
+stopped before computation with NVFORTRAN `FIO-F-231` at `tm_inputs.f:415`.
+Peak GPU use was only 515 MiB, so this is not an OOM or capacity result.
+
+The cause is the official input's CRLF ending on the line whose last token is
+`GCUT=64`: the legacy 72-character parser passes the retained carriage return
+to the internal `E20.0` read. ifx had tolerated it in the earlier x86 run.
+The H100 helper now makes an LF-normalized copy only inside a new isolated run
+directory and records source/normalized hashes. Official input, common state,
+numerical source, and the preserved failed run are unchanged. Re-run only the
+bounded `tddft-2` action after synchronization; 100 steps remain unauthorized.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

@@ -55,6 +55,14 @@ require_nonempty() {
   [ -s "$1" ] || fail "required file is missing or empty: $1"
 }
 
+copy_text_lf_new() {
+  source_file=$1
+  destination_file=$2
+  [ ! -e "$destination_file" ] && [ ! -L "$destination_file" ] ||
+    fail "path already exists; refusing to overwrite: $destination_file"
+  LC_ALL=C tr -d '\r' < "$source_file" > "$destination_file"
+}
+
 sha256_file() {
   if command -v sha256sum >/dev/null 2>&1; then
     sha256sum "$1" | awk '{print $1}'
@@ -107,6 +115,7 @@ preflight() {
   require_command git
   require_command awk
   require_command python3
+  require_command tr
   require_command nvidia-smi
   require_command "$NVFORTRAN"
   require_command "$MPI_FC"
@@ -217,6 +226,7 @@ preflight() {
   echo "mpirun=$mpirun_version"
   echo "flags=$EFFECTIVE_FLAGS"
   echo "configuration=1_H100_1_MPI_1_OpenMP_diagnostic_OFF"
+  echo "input_line_endings=LF_normalized_in_isolated_run"
   echo "official_input_gate=PASS"
   echo "initial_state_sha256_gate=PASS"
   echo "gpu_occupancy_gate=PASS"
@@ -270,8 +280,10 @@ build_tddft() {
 prepare_run_dir() {
   run_dir=$1
   mkdir -p "$run_dir"
+  copy_text_lf_new "$STATE_DIR/dia-cb3x3x3_tm.in_2steps" \
+    "$run_dir/dia-cb3x3x3_tm.in_2steps"
   for rel in \
-    dia-cb3x3x3_tm.in_2steps SOURCE_MANIFEST.env TR.C95g_asci \
+    SOURCE_MANIFEST.env TR.C95g_asci \
     Avec Cartesian.velo Eext Etot Ework laser.dat size.dat sym.C1
   do
     require_file "$STATE_DIR/$rel"
@@ -316,6 +328,8 @@ run_two_steps() {
     echo "omp_num_threads=1"
     echo "flags=$EFFECTIVE_FLAGS"
     echo "diagnostic=OFF"
+    echo "input_line_endings=LF"
+    echo "source_input_sha256=$(sha256_file "$STATE_DIR/dia-cb3x3x3_tm.in_2steps")"
     echo "input_sha256=$(sha256_file "$run_dir/dia-cb3x3x3_tm.in_2steps")"
     echo "state_manifest_sha256=$(sha256_file "$run_dir/STATE_MANIFEST.sha256")"
     echo "tddft_executable_sha256=$(sha256_file "$PLATFORM_BIN/tddft_exe")"

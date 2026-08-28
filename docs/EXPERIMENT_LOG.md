@@ -3321,3 +3321,25 @@ was changed.
 - No H100 build or simulation was performed while preparing the helper. The
   read-only preflight result must be returned and reviewed before `tddft-2`.
   Numerical source and all formal baselines are unchanged.
+
+### H100 cb3x3x3 preflight and first 2-step input failure
+
+- Returned preflight revision: `92543b2c3726dafb296782dbcb281bef6fb4799f`.
+- Host/device: `spr21`, NVIDIA H100 PCIe, compute capability 9.0, driver
+  `595.45.04`; NVFORTRAN and MPI compiler 26.5, Open MPI 5.0.10rc2.
+- Capacity preflight: 81,081/81,559 MiB GPU memory free (99.41%), 989.03 GiB
+  host memory available, zero active compute processes, and every preflight
+  gate PASS.
+- The H100 cc90 OpenACC/cuFFT pinned-separate build passed. The process then
+  exited at startup with status 127 and NVFORTRAN `FIO-F-231` at
+  `tm_inputs.f:415`, before a TDDFT step or material GPU allocation. Sampled
+  peak use was 515 MiB (0.63%), leaving 81,044 MiB; it is not a capacity pass.
+- Root cause: the official TDDFT input has CRLF line endings, and `GCUT=64` is
+  the final token on its line. The legacy fixed-width command parser retains
+  the carriage return in `BSAVE` and NVFORTRAN rejects it in the internal
+  `E20.0` conversion; ifx tolerated the same input in the x86 run.
+- Corrected only the H100 execution helper: each new isolated run receives an
+  LF-normalized 2-step input copy, with both source and normalized SHA-256
+  recorded. The official/generated input, initial state, numerical source,
+  failed run directory, and all baselines remain unchanged. A new 2-step run
+  is required; 100 steps remain unauthorized.

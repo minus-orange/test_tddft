@@ -163,6 +163,18 @@ cannot establish correctness equivalence or a performance baseline. The
 helper contains no 100-step action; a separate review and explicit user
 authorization are required before adding or issuing any long-run command.
 
+The first user-operated H100 attempt built successfully but stopped during
+input parsing at `tm_inputs.f:415` with NVFORTRAN `FIO-F-231`. The official
+input uses CRLF, and the `GCUT=64` token is last on its line; the legacy
+72-character parser retained the carriage return in that token before its
+internal formatted read. The x86 ifx run had accepted the same byte sequence.
+The H100 helper now removes only carriage-return bytes while copying the
+2-step input into each new isolated run directory. It preserves the canonical
+official and generated inputs, records both source and normalized input
+SHA-256 values, and does not change any keyword, numeric value, numerical
+source, initial state, or prior run directory. The failed run reported only
+515 MiB peak device use and therefore supplied no capacity evidence.
+
 The user authorized one 100-step diagnostic on the Xeon Platinum 8592+ host
 using its fixed single-node `32 MPI x 4 OpenMP = 128 physical cores`
 configuration. The derived 100-step input changes only `tstep` from the
