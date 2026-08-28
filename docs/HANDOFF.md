@@ -1377,11 +1377,15 @@ are separated by SKU, hostname, and label.
 On Xeon Platinum 8592+ host `spr10`, CG and SD both passed for the 216-atom
 case and installed a validated initial state. The subsequent 2-step TDDFT
 startup run passed the normal checker with 32 MPI x 4 OpenMP and reported
-`543.709180832` sec; this startup wall is not a baseline. The next authorized
-action is one 100-step run on the same 128-core single-node configuration.
-It has no official same-step reference, so it is a normal-check-only
-diagnostic and must not be archived, compared with Si111-H, or adopted as a
-platform baseline.
+`543.709180832` sec; this startup wall is not a baseline. The authorized
+100-step run then completed on the same 128-core single-node configuration at
+revision `4bc30413426f029ca6c973f8e375740f0a3282bf`. It reported
+`7053.57140899` sec, completed all 100 steps, returned all 216 force,
+position, and velocity rows, and passed the normal checker. It has no official
+same-step reference, so it remains a normal-check-only diagnostic and must not
+be archived, compared with Si111-H, or adopted as a platform baseline. The
+run label is cropped from the returned photograph and is not inferred. No
+additional cb3x3x3 execution is pending.
 
 ## Validation Gate
 

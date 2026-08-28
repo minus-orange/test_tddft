@@ -1,6 +1,6 @@
 # TDDFT GPU Performance Baseline
 
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 ## Pending official diamond cb3x3x3 series
 
@@ -10,7 +10,8 @@ baseline. No A100, H100, or x86 cb3x3x3 performance baseline exists yet. The
 8592+ CG/SD state generation and 2-step startup check have passed, but a
 same-step correctness reference and controlled three-run series are still
 required for a baseline. The authorized 100-step 32 MPI x 4 OpenMP execution
-is diagnostic only because no official same-step reference exists; it cannot
+completed in `7053.57140899` sec and passed the normal checker. It remains
+diagnostic only because no official same-step reference exists; it cannot
 establish or update a baseline. See `docs/CB3X3X3_BENCHMARK_PLAN.md`.
 
 The existing platform medians below remain unchanged and must not be compared

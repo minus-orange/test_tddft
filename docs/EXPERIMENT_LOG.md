@@ -3234,3 +3234,26 @@ was changed.
   remains diagnostic, is not archived by the helper, cannot use the Si111-H
   reference, and cannot enter a formal baseline series. Numerical source and
   all existing platform baselines are unchanged.
+
+### Xeon Platinum 8592+ cb3x3x3 100-step diagnostic result
+
+- Result returned to Main: 2026-08-28.
+- Tested revision:
+  `4bc30413426f029ca6c973f8e375740f0a3282bf`.
+- Host/SKU: `spr10`, Intel Xeon Platinum 8592+.
+- Execution: one node, 32 MPI x 4 OpenMP = 128 physical cores, diagnostics
+  off; the Intel/FFTW, CG, SD, and TDDFT executables were reused.
+- Input/result: diamond cb3x3x3, 216 atoms, 100 steps,
+  `ETOT=-1233.257829`, and
+  `Eelec+Enucl-Eext-Ework=-1232.63825227`.
+- Wall: `7053.57140899` sec. The output contained 216 force, position, and
+  velocity rows and 39 profile timers.
+- Result: normal check PASS and `CB3X3X3_TDDFT_DIAGNOSTIC_PASS`.
+  Same-input comparison was unavailable and the helper correctly reported
+  `baseline=NOT_APPLICABLE`.
+- The run-directory path was visible only through the platform prefix; the
+  label was cropped from the photograph and is not inferred. No result file
+  transfer, archive, second run, or baseline adoption was requested.
+- This measurement remains separate from Si111-H and all existing A100,
+  H100, Xeon 6980P, Xeon 8468, and Xeon 8592+ Si111-H baselines. Numerical
+  source and every formal baseline are unchanged.

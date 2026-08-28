@@ -134,6 +134,14 @@ official input. Because the official package supplies no 100-step reference,
 this action performs the normal result check only, remains in its isolated
 platform run directory, and is not archived or treated as a baseline.
 
+That diagnostic completed on host `spr10` at revision
+`4bc30413426f029ca6c973f8e375740f0a3282bf`. It ran all 100 steps in
+`7053.57140899` sec with diagnostics off and passed the normal checker. The
+returned summary contained 216 force, position, and velocity rows and 39
+profile timers. Same-input comparison remains unavailable and the result is
+not a baseline. The run label was outside the returned photograph and is not
+inferred.
+
 ## Correctness and performance gates
 
 - The official 40,000-step output is the only supplied external reference.
