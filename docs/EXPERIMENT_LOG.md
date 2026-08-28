@@ -3277,3 +3277,25 @@ was changed.
 - No simulation, file copy, archive mutation, numerical-source change,
   platform baseline, or claimed NEC VE hardware identity is part of this
   preparation.
+
+### NEC VE and Xeon 8592+ cb3x3x3 comparison result
+
+- Both normal checks passed with exactly 100 completed steps and 216 force,
+  position, and velocity rows. The x86 result contained 39 profile timers;
+  the NEC VE output contained none, which was allowed for this external-output
+  diagnostic.
+- Xeon 8592+: `ETOT=-1233.257829`,
+  `Eelec+Enucl-Eext-Ework=-1232.63825227`, wall `7053.57140899` sec.
+- NEC VE run-name configuration `8MPI_2OMP`: `ETOT=-1233.257801`,
+  `Eelec+Enucl-Eext-Ework=-1232.63822459`, wall `3189.16684126` sec.
+- Relaxed differences for ETOT `2.8e-5`, total energy `2.768e-5`, positions
+  `1.314808e-9`, and velocities `6.167918e-9` passed their fixed tolerances.
+- Final force failed: maximum absolute difference `2.016e-4` against tolerance
+  `1.0e-4`, at atom `id=165`, component 1. The 8592+ value was
+  `8.220999999999998e-4`; the NEC VE value was
+  `6.204999999999996e-4`.
+- The helper emitted FAIL and blocked the performance comparison before any
+  wall ratio or speedup was printed. The tolerance is unchanged. Neither raw
+  wall is a cross-platform baseline, and no follow-up execution is authorized
+  until exact input, initial-state, source, and NEC VE platform/compiler
+  provenance are reconciled.

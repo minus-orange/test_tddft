@@ -1397,6 +1397,16 @@ and the existing relaxed tolerances must pass before it prints the wall ratio.
 The NEC VE hardware/compiler provenance is not yet established, so this is an
 independent diagnostic comparison and not a baseline adoption path.
 
+The returned cross-platform check passed both normal checks, 100-step counts,
+and all 216-row gates. The 8592+ wall was `7053.57140899` sec and the NEC VE
+wall was `3189.16684126` sec. Relaxed comparison nevertheless failed because
+force `id=165`, component 1 had a `2.016e-4` maximum absolute difference,
+exceeding the unchanged `1.0e-4` tolerance. Energy, position, and velocity
+checks passed. The helper stopped before printing a speed ratio, so there is
+no validated performance comparison and no NEC VE baseline. Reconcile exact
+input/state/source and NEC VE hardware/compiler provenance before deciding any
+follow-up; do not widen the tolerance.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

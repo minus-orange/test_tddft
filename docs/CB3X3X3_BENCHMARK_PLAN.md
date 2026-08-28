@@ -221,3 +221,13 @@ steps, exactly 216 force/position/velocity rows, and a relaxed numerical
 comparison before printing a wall-time ratio. A failure blocks the performance
 comparison. This output-only check does not by itself establish the exact NEC
 VE model, VE count, compiler, input provenance, or a formal platform baseline.
+
+The returned comparison passed both normal checks at 100 steps and 216 atoms.
+The 8592+ and NEC VE walls were `7053.57140899` and `3189.16684126` sec,
+respectively, but the relaxed numerical comparison failed: final-force
+`id=165`, component 1 differed by `2.016e-4`, above the fixed `1.0e-4`
+tolerance. ETOT (`2.8e-5`), total energy (`2.768e-5`), positions
+(`1.314808e-9`), and velocities (`6.167918e-9`) were within tolerance. The
+helper correctly blocked the wall ratio. Do not weaken the force tolerance or
+claim a performance comparison until input, initial-state, numerical-source,
+and NEC VE provenance are reconciled.

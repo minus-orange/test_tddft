@@ -14,6 +14,11 @@ completed in `7053.57140899` sec and passed the normal checker. It remains
 diagnostic only because no official same-step reference exists; it cannot
 establish or update a baseline. See `docs/CB3X3X3_BENCHMARK_PLAN.md`.
 
+A diagnostic comparison with the supplied NEC VE 100-step output passed both
+normal checks but failed the fixed relaxed force tolerance (`2.016e-4` versus
+`1.0e-4`). Its raw wall is therefore not used for a validated platform ratio
+or baseline. All formal baseline series remain unchanged.
+
 The existing platform medians below remain unchanged and must not be compared
 as same-input values with future cb3x3x3 measurements.
 
