@@ -2224,6 +2224,16 @@ cccc      NBND1 = NFL + 1
 #ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call stop_timer('frprmn_density_init')
 #endif
+#ifdef FPSEID_RHOOFK_SCALAR_DIAGNOSTIC
+c *** Scalar RHOOFK consumes host COEF.  Keep this synchronization
+c *** diagnostic-only; the normal resident batch path is unchanged.
+      if (icoef_host_current.eq.0) then
+       call start_timer('frprmn_coef_sync')
+!$acc update self(COEF(1:NG2Q,1:MXBND,1:NUMKQ))
+       call stop_timer('frprmn_coef_sync')
+       icoef_host_current=1
+      endif
+#endif
       call start_timer('frprmn_rhoofk')
       DO 630 IK=1,NUMK
 c *** temp check
@@ -2233,7 +2243,21 @@ c        write(6,*)'my_rank=',my_rank,
 c     & ' EE(',ib,',',ik,')=',EE(ib,ik)*27.212d0
 c       enddo
 c *** temp check
-c      CALL RHOOFK(ik, MXBND, 1, NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q,
+#ifdef FPSEID_RHOOFK_SCALAR_DIAGNOSTIC
+      CALL RHOOFK( MXBND, 1, NRX, NRY, NRZ, NXYZ, NG2(IK), NG2Q,
+     &             NBNDQ, NBND, NFL, RHO, RHO1, RHO2, RHO3,
+     &             COEF(1,1,IK),
+     &             WGT(IK), J2G(1,IK), IOWF(1,IK), OCC(1,IK),NBSEQ(IK)
+c *** for Sugino FFT
+c     &            ,WSAVEX, WSAVEY, WSAVEZ, IFACX, IFACY, IFACZ,
+c     &             LX1, LX2, LY1, LY2, LZ1, LZ2 ,itstep,itmod       )
+c *** for Kokubo ASL FFT
+c     &            ,WSAVE_XYZ, IFAC_XYZ,itstep,itmod       )
+c *** for Kokubo FFTW
+     &            ,plancfp,plancbp,itstep,itmod
+c
+     &            ,nbegin,nend,ncpuq)
+#else
       CALL RHOOFK_ACC_BATCH( MXBND, 1, NRX, NRY, NRZ, NXYZ,
      &             NG2(IK), NG2Q,
      &             NBNDQ, NBND, NFL, RHO, RHO1, RHO2, RHO3,
@@ -2248,6 +2272,7 @@ c *** for Kokubo FFTW
      &            ,plancfp,plancbp,itstep,itmod
 c
      &            ,nbegin,nend,ncpuq)
+#endif
   630 CONTINUE
       call stop_timer('frprmn_rhoofk')
 c *** temp check

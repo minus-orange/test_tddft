@@ -1448,6 +1448,27 @@ records source/normalized main-input and pseudopotential hashes, and uses
 an interactive prompt. The two failed run directories remain preserved.
 Re-run only `tddft-2` after synchronization; 100 steps remain unauthorized.
 
+The subsequent normal H100 batch-path 2-step run completed, but it is
+numerically invalid against the existing Xeon 8592+ 2-step result. The H100
+result reported `ETOT=-637.3190723`, total energy `-636.69918884`, wall
+`1755.62075114` sec, and a 55,881-MiB sampled peak. The Xeon result reported
+`ETOT=-1233.258088`, total energy `-1232.63820424`, and wall
+`543.709180832` sec. Normal checks passed independently, but the relaxed
+comparison failed by about 595.939 Ha in energy and by 0.2465046 Ha/Bohr in
+force. This is a gross correctness failure, not a tolerable cross-platform
+difference; no H100 performance conclusion or 100-step authorization exists.
+
+The approved next test is one H100-only 2-step diagnostic of the post-TMEVL
+charge-density path. Compile-time macro
+`FPSEID_RHOOFK_SCALAR_DIAGNOSTIC` first synchronizes device-resident `COEF` to
+the host and then selects the pre-batch scalar `RHOOFK`; without the macro,
+the normal batch path is unchanged after preprocessing. The helper action
+`tddft-2-rhoofk-scalar` builds a separately named executable, uses a distinct
+run label, and automatically applies the existing relaxed comparison to the
+fixed Xeon 8592+ 2-step result. It has no 100-step action, cannot establish a
+baseline, and only tests whether the 480-band batch density path causes the
+gross H100 error.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

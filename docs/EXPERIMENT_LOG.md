@@ -3362,3 +3362,38 @@ was changed.
   installation to `mv -f`. Canonical inputs, common state, numerical source,
   both failed run directories, and all baselines remain unchanged. Another
   bounded 2-step run is required; 100 steps remain unauthorized.
+
+### H100 cb3x3x3 batch-path 2-step correctness failure
+
+- The LF-normalized H100 run completed two steps at one H100, one MPI rank,
+  and one OpenMP thread with diagnostics off. It returned all 216 force,
+  position, and velocity rows and passed the standalone normal checker.
+- H100 observables were `ETOT=-637.3190723` and
+  `Eelec+Enucl-Eext-Ework=-636.69918884`; wall was `1755.62075114` sec.
+  Sampled device-memory peak was 55,881 MiB with 25,678 MiB headroom.
+- The fixed Xeon Platinum 8592+ 32 MPI x 4 OpenMP 2-step reference reported
+  `ETOT=-1233.258088`, total energy `-1232.63820424`, and wall
+  `543.709180832` sec.
+- The same-input relaxed comparison failed: energy differed by about
+  595.939 Ha and maximum force differed by 0.2465046 Ha/Bohr. Positions and
+  velocities agreed, but they do not rescue the gross energy/force failure.
+- The H100 wall is not a performance result or baseline. One hundred steps,
+  repeat runs, archiving, and adoption are blocked.
+
+### H100 scalar-RHOOFK two-step diagnostic implementation
+
+- Hypothesis: the post-TMEVL `RHOOFK_ACC_BATCH` path, originally validated on
+  the 32-band Si111-H case, is the source of the gross error for the 480-band
+  cb3x3x3 case. This is a hypothesis, not an accepted diagnosis.
+- With compile-time macro `FPSEID_RHOOFK_SCALAR_DIAGNOSTIC`, the source first
+  updates host `COEF` from its device-resident authoritative copy and calls
+  the existing scalar `RHOOFK`. Without the macro, the current resident batch
+  path is unchanged. Normal x86 and H100 production builds do not enable it.
+- Added H100 helper action `tddft-2-rhoofk-scalar`. It creates a separately
+  named executable/provenance file and isolated `rhoofk_scalar_2step` run,
+  fixes one H100 / one MPI / one OpenMP with diagnostics off, and contains no
+  100-step action.
+- A successful process exit is insufficient: the action requires the normal
+  216-atom check and then automatically runs the existing relaxed comparison
+  against the fixed Xeon 8592+ 2-step result. Failure stops with 100 steps
+  blocked. Even a pass is diagnostic-only and cannot become a baseline.
