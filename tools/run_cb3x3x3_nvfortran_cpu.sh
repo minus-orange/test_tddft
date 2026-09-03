@@ -18,7 +18,7 @@ NPROCS=32
 OMP_NUM_THREADS=3
 MIN_AVAILABLE_GIB=768
 STANDARD_CPU_FLAGS="-O2 -mp -Msave -Mlarge_arrays"
-RUNTIME_CHECK_FLAGS="-O0 -g -traceback -mp -Msave -Mlarge_arrays -Mbounds -Mchkptr -Mchkstk -Ktrap=fp -Minit-real=snan -Minit-integer=-2147483647"
+RUNTIME_CHECK_FLAGS="-O0 -g -traceback -mp -Msave -Mlarge_arrays -Mbounds -Mchkptr -Mchkstk -Ktrap=fp -Minit-real=snan -Minit-integer=2147483647"
 case "$ACTION" in
   preflight-runtime-checks|tddft-2-runtime-checks)
     BUILD_VARIANT=runtime_checks
@@ -235,11 +235,7 @@ preflight() {
 
   nvfortran_version=$("$NVFORTRAN" -V 2>&1 | first_nonblank_line || true)
   if [ "$BUILD_VARIANT" = runtime_checks ]; then
-    "$NVFORTRAN" -dryrun $CPU_FLAGS -c \
-      "$ROOT_DIR/FPSEID21/tddft_2022October/omp_clock.f" \
-      >/dev/null 2>&1 ||
-      fail "NVFORTRAN rejected one or more runtime-check flags"
-    runtime_check_flag_gate=PASS
+    runtime_check_flag_gate=DEFERRED_TO_BUILD_COMPILE_PROBE
   else
     runtime_check_flag_gate=NOT_APPLICABLE
   fi
@@ -385,13 +381,52 @@ build_tddft() {
   git_repo archive HEAD FPSEID21/tddft_2022October | tar -x -C "$build_tree"
   source_dir=$build_tree/FPSEID21/tddft_2022October
 
+  if [ "$BUILD_VARIANT" = runtime_checks ]; then
+    runtime_check_probe_log=$build_tree/runtime_check_flag_compile_probe.log
+    runtime_check_probe_object=$build_tree/runtime_check_flag_compile_probe.o
+    if "$MPI_FC" $CPU_FLAGS -Mpreprocess -c \
+        "$source_dir/omp_clock.f" -o "$runtime_check_probe_object" \
+        >"$runtime_check_probe_log" 2>&1; then
+      echo "runtime_check_compile_probe=PASS"
+    else
+      probe_status=$?
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT_BEGIN"
+      echo "stage=runtime_check_flag_compile_probe"
+      echo "outcome=BUILD_FLAG_REJECTED"
+      echo "exit_status=$probe_status"
+      echo "build_tree=$build_tree"
+      echo "flags=$CPU_FLAGS"
+      echo "probe_log_begin"
+      tail -n 30 "$runtime_check_probe_log" 2>/dev/null || true
+      echo "probe_log_end"
+      echo "simulation_started=NO"
+      echo "hundred_step_authorization=BLOCKED_DIAGNOSTIC_ONLY"
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT_END"
+      exit 1
+    fi
+  fi
+
   echo "Building isolated cb3x3x3 NVFORTRAN CPU/FFTW executable"
+  build_status=0
   (
     cd "$source_dir"
     FC="$MPI_FC" CC="$MPI_CC" FFLAGS="$CPU_FLAGS" \
       FPSEID_FRPRMN_DIAGNOSTIC=0 FFT_BACKEND=fftw \
       FFTW_ROOT="$FFTW_ROOT" FFTW_LIBS="$FFTW_LIBS" ./mk_ifort.sh
-  )
+  ) || build_status=$?
+  if [ "$build_status" -ne 0 ]; then
+    if [ "$BUILD_VARIANT" = runtime_checks ]; then
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT_BEGIN"
+      echo "stage=build"
+      echo "outcome=BUILD_FAILURE"
+      echo "exit_status=$build_status"
+      echo "build_tree=$build_tree"
+      echo "simulation_started=NO"
+      echo "hundred_step_authorization=BLOCKED_DIAGNOSTIC_ONLY"
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT_END"
+    fi
+    exit "$build_status"
+  fi
   require_nonempty "$source_dir/tddft_exe"
   build_runtime_dirs=$(runtime_library_path)
   if [ -n "$build_runtime_dirs" ]; then

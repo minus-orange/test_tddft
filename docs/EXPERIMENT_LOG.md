@@ -1,6 +1,6 @@
 # TDDFT GPU Experiment Log
 
-Last updated: 2026-07-30
+Last updated: 2026-09-03
 
 The performance baseline is defined in `PERFORMANCE_BASELINE.md`. Detailed
 implementation and timer notes are in the bilingual progress summaries.
@@ -3486,10 +3486,12 @@ was changed.
   CPU diagnostic, Intel x86 results, or H100 results.
 - Flags are fixed to `-O0 -g -traceback -mp -Msave -Mlarge_arrays -Mbounds
   -Mchkptr -Mchkstk -Ktrap=fp -Minit-real=snan
-  -Minit-integer=-2147483647`. They target array bounds, NULL pointers, stack
+  -Minit-integer=2147483647`. They target array bounds, NULL pointers, stack
   exhaustion, invalid/divide-by-zero/overflow exceptions, and uninitialized
-  local real/integer values. The preflight uses NVFORTRAN `-dryrun` to reject
-  unsupported flags without producing an object.
+  local real/integer values. Read-only preflight defers compiler flag
+  validation. The build action first compiles `omp_clock.f` through the same
+  NVFORTRAN-backed MPI wrapper with every runtime-check flag and
+  `-Mpreprocess`; rejection stops before the full build or simulation.
 - The helper disables core dumps and prints at most 40 unique diagnostic lines
   plus a 30-line stderr tail. It preserves complete stdout/stderr and result
   provenance in the isolated run. Every outcome continues to block 100 steps
@@ -3501,3 +3503,24 @@ was changed.
 - This commit is preparation only. No numerical source, build result, runtime
   result, accepted source, or baseline is changed; execution requires a fresh
   returned preflight and separate human approval.
+
+### First NVFORTRAN runtime-check build rejected its integer sentinel
+
+- Returned revision: `53499eb`.
+- The helper completed the environment preflight and began the isolated
+  runtime-check build, but NVFORTRAN emitted
+  `NVFORTRAN-S-0011-Unrecognized command line switch: -2147483647` for every
+  TDDFT source. The negative integer sentinel in
+  `-Minit-integer=-2147483647` was parsed as a separate switch.
+- The earlier `-dryrun` flag gate was a false PASS because it did not exercise
+  the compiler phase that rejected the nested option. No executable was
+  produced and no simulation was started, so there is no correctness or
+  performance result.
+- The helper now uses the positive sentinel `2147483647` and replaces the
+  `-dryrun` gate with a real isolated compile probe at the start of the build
+  action. A flag or later build failure prints an explicit compact result
+  block with `simulation_started=NO`.
+- The numerical source, official cb3x3x3 state, prior failed NVFORTRAN results,
+  accepted source `c46cfa9`, and all formal platform baselines are unchanged.
+  A new preflight return and separate approval remain required before retrying
+  the two-step diagnostic; 100 steps remain blocked.

@@ -1,6 +1,6 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-08-25
+Last updated: 2026-09-03
 
 ## Current State
 
@@ -1526,16 +1526,30 @@ distinct `runtime_checks_2step` run directory. It uses `-O0 -g -traceback`,
 `-Mbounds`, `-Mchkptr`, `-Mchkstk`, `-Ktrap=fp`, and local real/integer
 initialization sentinels in addition to `-mp -Msave -Mlarge_arrays`.
 
-The runtime-check preflight asks NVFORTRAN to parse the exact flags with a
-read-only `-dryrun` probe. A process trap, normal-check failure, relaxed
-comparison failure, or correctness pass all produce a compact
+The first returned runtime-check build at revision `53499eb` stopped before
+simulation. NVFORTRAN interpreted the negative value in
+`-Minit-integer=-2147483647` as a separate command-line switch and emitted
+`NVFORTRAN-S-0011-Unrecognized command line switch: -2147483647` for every
+source. The preceding `-dryrun` preflight had incorrectly reported PASS
+because it did not execute the compiler phase that parses this nested option.
+This is a helper/build failure, not numerical evidence; it changes no source
+result or baseline.
+
+The integer sentinel is now the positive value `2147483647`. The read-only
+preflight reports flag validation as deferred, and the authorized build first
+performs a real isolated compile of `omp_clock.f` through the same NVFORTRAN-
+backed MPI wrapper with all runtime-check flags and `-Mpreprocess`. A rejected
+flag prints a compact failure block and stops before the full TDDFT build or
+simulation. A process trap, normal-check failure, relaxed comparison failure,
+or correctness pass likewise produces a compact
 `FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT` block. Diagnostic lines
 and a bounded stderr tail are printed for photographs while complete output
 remains in the isolated run directory. Core dumps are disabled. Bounds checks
 are limited for assumed-size arrays, and initialization sentinels do not cover
 every allocatable or automatic object, so absence of a trap cannot exclude all
-undefined behavior. No runtime-check build or run has yet occurred. Review the
-new preflight before authorizing its two-step run; 100 steps remain blocked.
+undefined behavior. No runtime-check simulation has yet occurred. Review the
+corrected preflight before authorizing its two-step build/run; 100 steps remain
+blocked.
 
 ## Validation Gate
 
