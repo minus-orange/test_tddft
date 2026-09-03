@@ -1589,6 +1589,41 @@ separate two-step execution approval are required. The correction may explain
 the NaN macroscopic current, but it does not yet explain the gross energy and
 force mismatch; 100 steps remain blocked.
 
+The corrected runtime-check two-step run returned at revision `bb5cb58` on
+`spr21`. It completed without another trapped runtime violation, printed all
+216 observable rows, passed the normal check, and produced finite current
+components. This confirms that `OCC(IB,K)` to `OCC(IB,IK)` fixes the definite
+current/bounds defect. It does not fix the principal correctness failure:
+NVFORTRAN still produced `ETOT=-637.3190723` and total energy
+`-636.69918884`, differing from the fixed ifx result by about `595.9390` Ha;
+maximum force difference remained `0.2465046` Ha/Bohr. Positions, velocities,
+and the post-run canonical-state hashes passed. The `4027.4240129`-sec checked
+wall is diagnostic only. `bb5cb58` remains pending, accepted source `c46cfa9`
+is unchanged, and 100 steps remain blocked.
+
+The next approved preparation tests the initial-state compiler lineage. The
+previous successful Si111-H sequence was Intel CG output -> NVFORTRAN SD
+(`-O1 -mp -Msave -Mlarge_arrays -Kieee`) -> NVFORTRAN TDDFT, whereas the
+failing cb3x3x3 sequence used ifx CG -> ifx SD -> NVFORTRAN TDDFT.
+`tools/run_cb3x3x3_nvfortran_sd_chain.sh` now provides separate `preflight`,
+`sd`, and `tddft-2` gates for the controlled cb3x3x3 sequence ifx CG ->
+NVFORTRAN SD -> NVFORTRAN CPU/FFTW TDDFT.
+
+The helper validates the existing ifx CG state and ifx SD reference against
+their recorded hashes and ifx executable provenance. NVFORTRAN SD is fixed to
+the historically validated O1/Kieee flags and one OpenMP thread. It runs only
+from private copies, requires a normal 216-force check and relaxed ifx-SD
+comparison, and creates a hashed private TDDFT state only after SD passes. The
+existing NVFORTRAN CPU/FFTW TDDFT helper accepts explicit state and platform
+roots while reusing the prior isolated FFTW dependency, so the subsequent
+two-step run can preserve the same TDDFT flags, placement, and ifx comparison
+while changing chiefly the SD-produced state.
+All artifacts are revision-isolated under a `chains/ifx_cg_nvfortran_sd`
+platform subtree; canonical state and existing results are never overwritten.
+No SD or TDDFT run has occurred. Return the read-only chain preflight first,
+then require separate approval for SD and for TDDFT. No 100-step action or
+baseline path exists.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

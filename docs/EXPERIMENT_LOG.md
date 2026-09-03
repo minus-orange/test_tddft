@@ -3571,3 +3571,60 @@ was changed.
   all platform baselines, and prior results remain unchanged. Runtime-check
   preflight and a separately approved two-step retry are required before any
   acceptance decision. One hundred steps remain blocked.
+
+### Corrected ELECTF index removes NaN but not the gross mismatch
+
+- Returned revision: `bb5cb58` on Xeon Platinum 8468 host `spr21`, using the
+  same isolated NVFORTRAN runtime-check CPU/FFTW path, 32 MPI x 3 OpenMP, and
+  the canonical ifx CG/SD initial state.
+- The corrected run completed two steps without another trapped bounds,
+  pointer, stack, or initialized-local violation. The normal 216-atom check
+  passed and the three macroscopic-current components were finite; therefore
+  changing the uninitialized `OCC(IB,K)` references to `OCC(IB,IK)` fixed a
+  genuine current-calculation defect.
+- The relaxed same-input comparison still failed. NVFORTRAN reported
+  `ETOT=-637.3190723` and total energy `-636.69918884`, while the fixed ifx
+  reference reports `ETOT=-1233.258088` and total energy `-1232.63820424`.
+  The energy difference remains about `595.9390` Ha and the maximum force
+  difference remains `2.465046e-01` Ha/Bohr. Positions and velocities passed.
+- The diagnostic wall time was `4027.4240129` sec and is not performance
+  evidence. The post-run canonical-state SHA-256 gate passed. Revision
+  `bb5cb58` remains a pending correctness candidate rather than the accepted
+  numerical source; accepted source `c46cfa9`, baselines, and 100-step
+  authorization remain unchanged.
+- Conclusion: the `K` to `IK` correction explains the NaN current but does
+  not explain the energy/force failure. A different controlled variable is
+  required before another long or GPU performance run.
+
+### Isolated NVFORTRAN SD lineage diagnostic preparation
+
+- Historical Si111-H validation did not use an all-NVFORTRAN CG/SD chain.
+  Its practical lineage was Intel CG output -> NVFORTRAN SD built with
+  `-O1 -mp -Msave -Mlarge_arrays -Kieee` -> NVFORTRAN TDDFT. The current
+  cb3x3x3 failure instead used ifx CG -> ifx SD -> NVFORTRAN TDDFT, so the SD
+  state producer is an unresolved lineage difference.
+- Added `tools/run_cb3x3x3_nvfortran_sd_chain.sh` with separate `preflight`,
+  `sd`, and `tddft-2` actions. It verifies the existing ifx CG state and ifx
+  SD reference through their hashes, executable provenance, and ifx platform
+  build provenance before using them.
+- The `sd` action builds from an isolated Git archive with the historically
+  validated NVFORTRAN flags and one OpenMP thread, copies the ifx CG state
+  into a revision-specific private directory, checks 216 forces, and requires
+  the established relaxed SD comparison. It creates a private, hashed TDDFT
+  state only after both checks pass.
+- The `tddft-2` action passes that private state to the existing NVFORTRAN
+  CPU/FFTW helper through explicit state/platform-root overrides. The TDDFT
+  compiler flags, previously built isolated FFTW dependency, 32 MPI x 3
+  OpenMP placement, ifx 2-step reference, and normal/relaxed TDDFT checks
+  otherwise remain unchanged, isolating the SD state lineage as the principal
+  variable.
+- The common NVFORTRAN CPU helper now accepts explicit `STATE_DIR` and
+  `NVFORTRAN_PLATFORM_ROOT`/`NVFORTRAN_FFTW_ROOT` overrides while preserving
+  its canonical defaults and recording the effective paths in provenance.
+- Every build, run, and candidate state is isolated below
+  `platforms/nvfortran_cpu_8468_<host>/chains/ifx_cg_nvfortran_sd/<revision>`.
+  Existing ifx CG/SD data, canonical state, and all platform results are never
+  overwritten. Disk headroom for private input/output copies is checked.
+- This is preparation only. No SD or TDDFT process has run. Review the new
+  preflight before authorizing SD; review SD before authorizing TDDFT. The
+  helper exposes no 100-step or baseline-adoption action.

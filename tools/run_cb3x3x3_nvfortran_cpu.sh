@@ -12,7 +12,9 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 ACTION=${1:-}
 EXPECTED_SKU=${EXPECTED_SKU:-8468}
 BENCHMARK_ROOT=${BENCHMARK_ROOT:-"$ROOT_DIR/run/benchmarks/cb3x3x3"}
-STATE_DIR=$BENCHMARK_ROOT/work/tddft_600K
+STATE_DIR=${STATE_DIR:-"$BENCHMARK_ROOT/work/tddft_600K"}
+NVFORTRAN_PLATFORM_ROOT=${NVFORTRAN_PLATFORM_ROOT:-}
+NVFORTRAN_FFTW_ROOT=${NVFORTRAN_FFTW_ROOT:-}
 X86_2STEP_REFERENCE=${X86_2STEP_REFERENCE:-"$BENCHMARK_ROOT/platforms/8592p_spr10/runs/cb3x3x3_8592p_spr10_32mpi_4omp_2step_20260827_170605_6ddf5ff11ecc"}
 NPROCS=32
 OMP_NUM_THREADS=3
@@ -257,14 +259,22 @@ preflight() {
   host_name=$(hostname -s 2>/dev/null || hostname)
   platform_id=$(printf 'nvfortran_cpu_%s_%s' "$detected_sku" "$host_name" |
     tr '[:upper:]' '[:lower:]' | tr '+.' 'pp')
-  PLATFORM_ROOT=$BENCHMARK_ROOT/platforms/$platform_id
+  if [ -n "$NVFORTRAN_PLATFORM_ROOT" ]; then
+    PLATFORM_ROOT=$NVFORTRAN_PLATFORM_ROOT
+  else
+    PLATFORM_ROOT=$BENCHMARK_ROOT/platforms/$platform_id
+  fi
   if [ "$BUILD_VARIANT" = runtime_checks ]; then
     PLATFORM_BIN=$PLATFORM_ROOT/bin/runtime_checks/$short_revision
   else
     PLATFORM_BIN=$PLATFORM_ROOT/bin/$short_revision
   fi
   PLATFORM_RUNS=$PLATFORM_ROOT/runs
-  FFTW_ROOT=$PLATFORM_ROOT/deps/fftw-3.3.11-gcc-pthreads/install
+  if [ -n "$NVFORTRAN_FFTW_ROOT" ]; then
+    FFTW_ROOT=$NVFORTRAN_FFTW_ROOT
+  else
+    FFTW_ROOT=$PLATFORM_ROOT/deps/fftw-3.3.11-gcc-pthreads/install
+  fi
   if [ -f "$FFTW_ROOT/include/fftw3.f" ] &&
      { [ -f "$FFTW_ROOT/lib/libfftw3.a" ] ||
        [ -f "$FFTW_ROOT/lib/libfftw3.so" ]; } &&
@@ -308,6 +318,8 @@ preflight() {
   echo "fftw_root=$FFTW_ROOT"
   echo "fftw_state=$fftw_state"
   echo "gcc_runtime_dirs=${gcc_runtime_dirs:-NOT_REQUIRED_OR_NOT_FOUND}"
+  echo "state_dir=$STATE_DIR"
+  echo "platform_root=$PLATFORM_ROOT"
   echo "x86_2step_reference=$X86_2STEP_REFERENCE"
   echo "slurm_job_id=${SLURM_JOB_ID:-NOT_SET}"
   echo "slurm_cpus_on_node=${SLURM_CPUS_ON_NODE:-NOT_SET}"
@@ -497,6 +509,8 @@ prepare_run_dir() {
   require_file "$STATE_DIR/SOURCE_MANIFEST.env"
   cp -p "$STATE_DIR/SOURCE_MANIFEST.env" "$run_dir/SOURCE_MANIFEST.env"
   cp -p "$STATE_DIR/STATE_MANIFEST.sha256" "$run_dir/STATE_MANIFEST.sha256"
+  cp -p "$STATE_DIR/STATE_PROVENANCE.env" \
+    "$run_dir/INPUT_STATE_PROVENANCE.env"
   ln "$STATE_DIR/rh.dia-cb3x3x3" "$run_dir/rh.dia-cb3x3x3"
   ln "$STATE_DIR/wf_fft.dia-cb3x3x3" "$run_dir/wf_fft.dia-cb3x3x3"
   link_new rh.dia-cb3x3x3 "$run_dir/fort.20"
@@ -573,10 +587,13 @@ run_two_steps() {
     echo "openmp_runtime=NVHPC_LIBNVOMP_ONLY"
     echo "gpu_used=NO"
     echo "diagnostic=OFF"
+    echo "state_dir=$STATE_DIR"
+    echo "platform_root=$PLATFORM_ROOT"
     echo "fortran_text_input_line_endings=LF"
     echo "source_input_sha256=$(sha256_file "$STATE_DIR/dia-cb3x3x3_tm.in_2steps")"
     echo "input_sha256=$(sha256_file "$run_dir/dia-cb3x3x3_tm.in_2steps")"
     echo "state_manifest_sha256=$(sha256_file "$run_dir/STATE_MANIFEST.sha256")"
+    echo "state_provenance_sha256=$(sha256_file "$run_dir/INPUT_STATE_PROVENANCE.env")"
     echo "tddft_executable_sha256=$(sha256_file "$executable")"
     echo "reference_output=$X86_2STEP_REFERENCE/dia-cb3x3x3_tm.out"
   } > "$run_dir/RUN_PROVENANCE.env"
