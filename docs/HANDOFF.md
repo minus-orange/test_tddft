@@ -1474,6 +1474,27 @@ cb3x3x3 H100 run, performance comparison, archive adoption, or baseline is
 authorized. A later investigation must look upstream of RHOOFK, including the
 480-band TMEVL/coefficient path, before proposing another bounded experiment.
 
+Before another GPU-source hypothesis, the user approved a compiler-isolation
+diagnostic. `tools/run_cb3x3x3_nvfortran_cpu.sh` builds the tracked TDDFT
+source with NVFORTRAN but without `-acc`, uses CPU FFTW's POSIX-thread backend
+rather than cuFFT, and runs exactly two steps on the dual-socket Xeon Platinum
+8468 paired with the H100 host. Using `libfftw3_threads` avoids loading GCC
+libgomp beside NVHPC libnvomp. The fixed configuration is 32 MPI x 3 OpenMP =
+96 physical cores, diagnostics off, with a 768-GiB `MemAvailable` gate for the
+replicated 480-band batch buffers.
+
+The NVFORTRAN CPU executable, FFTW installation, build tree, provenance, and
+run directory are isolated below a new `nvfortran_cpu_8468_<host>` platform;
+the existing Intel x86 and H100 platform trees are not reused or replaced.
+The helper requires the normal 216-atom check and automatically applies the
+existing relaxed comparison against the fixed Xeon 8592+ ifx 2-step result.
+A pass would strongly disfavor NVFORTRAN as the primary cause and redirect
+investigation to OpenACC/cuFFT/GPU behavior. A failure would not by itself
+prove a compiler defect, because undefined behavior, Open MPI, and runtime
+differences would remain. No build or run has occurred, and the helper exposes
+no 100-step action or baseline-adoption path. Return and review `preflight`
+before authorizing `tddft-2`.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

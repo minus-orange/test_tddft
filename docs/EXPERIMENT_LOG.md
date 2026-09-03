@@ -3415,3 +3415,31 @@ was changed.
   dedicated H100 action are removed by the result/rollback commit, restoring
   those files exactly to pre-diagnostic revision `507438f`. Result files are
   preserved; no baseline or accepted numerical source changes.
+
+### NVFORTRAN CPU/FFTW compiler-isolation diagnostic preparation
+
+- The user selected compiler isolation before another GPU numerical-source
+  experiment. The bounded question is whether the same cb3x3x3 state and
+  tracked TDDFT source remain correct when compiled by NVFORTRAN but executed
+  entirely through the CPU/FFTW fallback.
+- Added `tools/run_cb3x3x3_nvfortran_cpu.sh` without changing numerical source.
+  It is fixed to the H100 host's dual-socket Xeon Platinum 8468, 32 MPI x
+  3 OpenMP = 96 physical cores, diagnostics off, and exactly two steps.
+- The preflight verifies clean synchronized Git, official input/state hashes,
+  Xeon 8468 topology, at least 768 GiB `MemAvailable`, an NVFORTRAN-backed
+  Open MPI wrapper, the fixed ifx reference, and isolated FFTW readiness.
+- The helper builds from a Git archive in a revision-specific platform build
+  tree, so ignored executables or objects in the checkout are not overwritten.
+  Its GCC-built POSIX-thread FFTW dependency, executable, provenance, and runs
+  are isolated under `platforms/nvfortran_cpu_8468_<host>` and cannot mix with
+  Intel x86 or H100 results. `libfftw3_threads` is used instead of the GCC
+  OpenMP FFTW library, avoiding a second OpenMP runtime beside NVHPC libnvomp.
+- Input text receives the same run-local LF normalization required by
+  NVFORTRAN. The canonical official input, pseudopotential, and CG/SD state
+  remain unchanged.
+- The run must pass the normal 216-atom check and the existing relaxed
+  comparison against the Xeon 8592+ ifx 2-step result. A pass substantially
+  reduces suspicion of NVFORTRAN itself; a failure still requires separation
+  of compiler, undefined behavior, Open MPI, and runtime effects.
+- The helper has no long-run action. No build, simulation, result, baseline,
+  accepted source change, or GPU authorization is part of this preparation.
