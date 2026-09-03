@@ -3470,3 +3470,34 @@ was changed.
   timings, cross-platform performance comparison, and baseline adoption remain
   blocked. The isolated failed run is preserved, the diagnostic helper remains
   reproducible, and no numerical source or accepted baseline is changed.
+
+### NVFORTRAN CPU runtime-check diagnostic preparation
+
+- The user approved a bounded source-undefined-behavior diagnostic after the
+  CPU/FFTW build reproduced the two H100 paths' exact invalid energies and
+  `NaN` current without OpenACC, cuFFT, or GPU execution.
+- Extended `tools/run_cb3x3x3_nvfortran_cpu.sh` with the separate actions
+  `preflight-runtime-checks` and `tddft-2-runtime-checks`. The numerical source,
+  official state, 32 MPI x 3 OpenMP placement, POSIX-thread FFTW dependency,
+  diagnostics-off application path, and two-step bound are unchanged.
+- The runtime-check executable is isolated under
+  `bin/runtime_checks/<revision>`, and its run label contains
+  `runtime_checks_2step`, preventing reuse or mixing with the earlier `-O2`
+  CPU diagnostic, Intel x86 results, or H100 results.
+- Flags are fixed to `-O0 -g -traceback -mp -Msave -Mlarge_arrays -Mbounds
+  -Mchkptr -Mchkstk -Ktrap=fp -Minit-real=snan
+  -Minit-integer=-2147483647`. They target array bounds, NULL pointers, stack
+  exhaustion, invalid/divide-by-zero/overflow exceptions, and uninitialized
+  local real/integer values. The preflight uses NVFORTRAN `-dryrun` to reject
+  unsupported flags without producing an object.
+- The helper disables core dumps and prints at most 40 unique diagnostic lines
+  plus a 30-line stderr tail. It preserves complete stdout/stderr and result
+  provenance in the isolated run. Every outcome continues to block 100 steps
+  and baseline use.
+- Limitations are explicit: assumed-size bounds checks are incomplete, and
+  initialization sentinels do not cover every allocatable or automatic object.
+  Therefore a clean checked run would narrow, but not eliminate, source-level
+  undefined behavior.
+- This commit is preparation only. No numerical source, build result, runtime
+  result, accepted source, or baseline is changed; execution requires a fresh
+  returned preflight and separate human approval.

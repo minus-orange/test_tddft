@@ -17,7 +17,20 @@ X86_2STEP_REFERENCE=${X86_2STEP_REFERENCE:-"$BENCHMARK_ROOT/platforms/8592p_spr1
 NPROCS=32
 OMP_NUM_THREADS=3
 MIN_AVAILABLE_GIB=768
-CPU_FLAGS="-O2 -mp -Msave -Mlarge_arrays"
+STANDARD_CPU_FLAGS="-O2 -mp -Msave -Mlarge_arrays"
+RUNTIME_CHECK_FLAGS="-O0 -g -traceback -mp -Msave -Mlarge_arrays -Mbounds -Mchkptr -Mchkstk -Ktrap=fp -Minit-real=snan -Minit-integer=-2147483647"
+case "$ACTION" in
+  preflight-runtime-checks|tddft-2-runtime-checks)
+    BUILD_VARIANT=runtime_checks
+    CPU_FLAGS=$RUNTIME_CHECK_FLAGS
+    RUNTIME_CHECKS=ON
+    ;;
+  *)
+    BUILD_VARIANT=standard
+    CPU_FLAGS=$STANDARD_CPU_FLAGS
+    RUNTIME_CHECKS=OFF
+    ;;
+esac
 # Use FFTW's POSIX-thread backend so the executable contains only NVHPC's
 # OpenMP runtime. Linking GCC libgomp beside NVHPC libnvomp would add an
 # avoidable runtime variable to this compiler-isolation experiment.
@@ -41,6 +54,13 @@ Actions:
   tddft-2    Re-run preflight, build an isolated NVFORTRAN CPU/FFTW TDDFT
              executable, run 32 MPI x 3 OpenMP for exactly two steps, and
              relaxed-compare with the fixed Xeon 8592+ ifx result.
+  preflight-runtime-checks
+             Read-only preflight for the separately built runtime-check
+             diagnostic. No build or simulation.
+  tddft-2-runtime-checks
+             Build and run a separately isolated two-step executable with
+             bounds, NULL-pointer, stack, floating-point-exception, traceback,
+             and local-variable initialization diagnostics enabled.
 
 This diagnostic is fixed to a dual-socket Xeon Platinum 8468 with at least
 96 physical cores and 768 GiB MemAvailable. OpenACC and GPU use are disabled.
@@ -214,6 +234,15 @@ preflight() {
   require_nonempty "$X86_2STEP_REFERENCE/dia-cb3x3x3_tm.out"
 
   nvfortran_version=$("$NVFORTRAN" -V 2>&1 | first_nonblank_line || true)
+  if [ "$BUILD_VARIANT" = runtime_checks ]; then
+    "$NVFORTRAN" -dryrun $CPU_FLAGS -c \
+      "$ROOT_DIR/FPSEID21/tddft_2022October/omp_clock.f" \
+      >/dev/null 2>&1 ||
+      fail "NVFORTRAN rejected one or more runtime-check flags"
+    runtime_check_flag_gate=PASS
+  else
+    runtime_check_flag_gate=NOT_APPLICABLE
+  fi
   mpi_fc_version=$("$MPI_FC" --version 2>&1 | first_nonblank_line || true)
   mpi_fc_backend=$("$MPI_FC" --showme:command 2>/dev/null || true)
   case "$mpi_fc_backend $mpi_fc_version" in
@@ -232,7 +261,11 @@ preflight() {
   platform_id=$(printf 'nvfortran_cpu_%s_%s' "$detected_sku" "$host_name" |
     tr '[:upper:]' '[:lower:]' | tr '+.' 'pp')
   PLATFORM_ROOT=$BENCHMARK_ROOT/platforms/$platform_id
-  PLATFORM_BIN=$PLATFORM_ROOT/bin/$short_revision
+  if [ "$BUILD_VARIANT" = runtime_checks ]; then
+    PLATFORM_BIN=$PLATFORM_ROOT/bin/runtime_checks/$short_revision
+  else
+    PLATFORM_BIN=$PLATFORM_ROOT/bin/$short_revision
+  fi
   PLATFORM_RUNS=$PLATFORM_ROOT/runs
   FFTW_ROOT=$PLATFORM_ROOT/deps/fftw-3.3.11-gcc-pthreads/install
   if [ -f "$FFTW_ROOT/include/fftw3.f" ] &&
@@ -246,7 +279,12 @@ preflight() {
   fi
   gcc_runtime_dirs=$(runtime_library_path)
 
-  echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_PREFLIGHT_BEGIN"
+  if [ "$BUILD_VARIANT" = runtime_checks ]; then
+    preflight_tag=FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_PREFLIGHT
+  else
+    preflight_tag=FPSEID21_CB3X3X3_NVFORTRAN_CPU_PREFLIGHT
+  fi
+  echo "${preflight_tag}_BEGIN"
   echo "revision=$revision"
   echo "accepted_numerical_source=c46cfa9"
   echo "hostname=$host_name"
@@ -259,11 +297,14 @@ preflight() {
   echo "mem_available_gib=$mem_available_gib"
   echo "memory_gate_gib=$MIN_AVAILABLE_GIB"
   echo "configuration=${NPROCS}_MPI_${OMP_NUM_THREADS}_OpenMP_diagnostic_OFF"
+  echo "build_variant=$BUILD_VARIANT"
+  echo "runtime_checks=$RUNTIME_CHECKS"
   echo "compiler=$nvfortran_version"
   echo "mpi_compiler=$mpi_fc_version"
   echo "mpi_compiler_backend=$mpi_fc_backend"
   echo "mpirun=$mpirun_version"
   echo "flags=$CPU_FLAGS"
+  echo "runtime_check_flag_gate=$runtime_check_flag_gate"
   echo "openacc=OFF"
   echo "fft_backend=fftw"
   echo "gpu_used=NO"
@@ -279,7 +320,7 @@ preflight() {
   echo "git_gate=PASS"
   echo "memory_gate=PASS"
   echo "preflight_gate=PASS"
-  echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_PREFLIGHT_END"
+  echo "${preflight_tag}_END"
 }
 
 prepare_fftw() {
@@ -313,6 +354,8 @@ build_tddft() {
   provenance=$PLATFORM_BIN/BUILD_PROVENANCE.env
   if [ -s "$executable" ] && [ -s "$provenance" ] &&
      grep -Fqx "revision=$revision" "$provenance" &&
+     grep -Fqx "build_variant=$BUILD_VARIANT" "$provenance" &&
+     grep -Fqx "runtime_checks=$RUNTIME_CHECKS" "$provenance" &&
      grep -Fqx "compiler=$nvfortran_version" "$provenance" &&
      grep -Fqx "mpi_compiler_backend=$mpi_fc_backend" "$provenance" &&
      grep -Fqx "flags=$CPU_FLAGS" "$provenance" &&
@@ -329,7 +372,7 @@ build_tddft() {
   [ ! -e "$executable" ] && [ ! -e "$provenance" ] ||
     fail "incomplete or mismatched revision-specific build already exists: $PLATFORM_BIN"
 
-  build_lock=$ROOT_DIR/.cache/cb3x3x3_nvfortran_cpu_build.lock
+  build_lock=$ROOT_DIR/.cache/cb3x3x3_nvfortran_cpu_${BUILD_VARIANT}_build.lock
   if ! mkdir "$build_lock" 2>/dev/null; then
     fail "another cb3x3x3 NVFORTRAN CPU build appears active: $build_lock"
   fi
@@ -337,7 +380,7 @@ build_tddft() {
 
   prepare_fftw
   build_stamp=$(date '+%Y%m%d_%H%M%S')
-  build_tree=$PLATFORM_ROOT/build/${short_revision}_${build_stamp}_$$
+  build_tree=$PLATFORM_ROOT/build/${BUILD_VARIANT}_${short_revision}_${build_stamp}_$$
   mkdir -p "$build_tree"
   git_repo archive HEAD FPSEID21/tddft_2022October | tar -x -C "$build_tree"
   source_dir=$build_tree/FPSEID21/tddft_2022October
@@ -376,6 +419,8 @@ build_tddft() {
   {
     echo "revision=$revision"
     echo "accepted_numerical_source=c46cfa9"
+    echo "build_variant=$BUILD_VARIANT"
+    echo "runtime_checks=$RUNTIME_CHECKS"
     echo "hostname=$host_name"
     echo "cpu_model=$cpu_model"
     echo "sku=$detected_sku"
@@ -431,9 +476,30 @@ prepare_run_dir() {
   link_new Ework "$run_dir/fort.62"
 }
 
+print_runtime_diagnostic_excerpt() {
+  diagnostic_out=$1
+  diagnostic_err=$2
+  echo "runtime_diagnostic_lines_begin"
+  (
+    grep -Ei 'NVFORTRAN|NVFTN|subscript|bounds|NULL pointer|stack|SIGFPE|floating|arithmetic|segmentation|traceback|NaN|abort|error' \
+      "$diagnostic_err" 2>/dev/null || true
+    grep -Ei 'NVFORTRAN|NVFTN|subscript|bounds|NULL pointer|stack|SIGFPE|floating|arithmetic|segmentation|traceback|NaN|abort|error|current J' \
+      "$diagnostic_out" 2>/dev/null || true
+  ) | awk 'NF && !seen[$0]++ {print; count++; if (count >= 40) exit}'
+  echo "runtime_diagnostic_lines_end"
+  echo "stderr_tail_begin"
+  tail -n 30 "$diagnostic_err" 2>/dev/null || true
+  echo "stderr_tail_end"
+}
+
 run_two_steps() {
   timestamp=$(date '+%Y%m%d_%H%M%S')
-  run_label=${LABEL:-"cb3x3x3_${platform_id}_${NPROCS}mpi_${OMP_NUM_THREADS}omp_2step_${timestamp}_${short_revision}"}
+  if [ "$BUILD_VARIANT" = runtime_checks ]; then
+    default_label="cb3x3x3_${platform_id}_${NPROCS}mpi_${OMP_NUM_THREADS}omp_runtime_checks_2step_${timestamp}_${short_revision}"
+  else
+    default_label="cb3x3x3_${platform_id}_${NPROCS}mpi_${OMP_NUM_THREADS}omp_2step_${timestamp}_${short_revision}"
+  fi
+  run_label=${LABEL:-$default_label}
   validate_label "$run_label"
   run_dir=$PLATFORM_RUNS/$run_label
   [ ! -e "$run_dir" ] || fail "run directory already exists: $run_dir"
@@ -450,6 +516,8 @@ run_two_steps() {
   {
     echo "revision=$revision"
     echo "accepted_numerical_source=c46cfa9"
+    echo "build_variant=$BUILD_VARIANT"
+    echo "runtime_checks=$RUNTIME_CHECKS"
     echo "hostname=$host_name"
     echo "cpu_model=$cpu_model"
     echo "sku=$detected_sku"
@@ -477,11 +545,14 @@ run_two_steps() {
     echo "reference_output=$X86_2STEP_REFERENCE/dia-cb3x3x3_tm.out"
   } > "$run_dir/RUN_PROVENANCE.env"
 
-  echo "Running cb3x3x3 NVFORTRAN CPU: steps=2 MPI=$NPROCS OpenMP=$OMP_NUM_THREADS"
+  echo "Running cb3x3x3 NVFORTRAN CPU: variant=$BUILD_VARIANT steps=2 MPI=$NPROCS OpenMP=$OMP_NUM_THREADS"
   run_status=0
   (
     cd "$run_dir"
     ulimit -s unlimited 2>/dev/null || true
+    if [ "$BUILD_VARIANT" = runtime_checks ]; then
+      ulimit -c 0 2>/dev/null || true
+    fi
     export OMP_NUM_THREADS
     export OMP_STACKSIZE
     export OMP_PROC_BIND=true
@@ -493,29 +564,70 @@ run_two_steps() {
       > dia-cb3x3x3_tm.out 2> dia-cb3x3x3_tm.err
   ) || run_status=$?
   echo "$run_status" > "$run_dir/tddft_exit_status.txt"
+  verify_state
   if [ "$run_status" -ne 0 ]; then
-    echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_BEGIN"
-    echo "stage=run"
-    echo "exit_status=$run_status"
-    echo "run_dir=$run_dir"
-    echo "stderr_tail_begin"
-    tail -n 20 "$run_dir/dia-cb3x3x3_tm.err" 2>/dev/null || true
-    echo "stderr_tail_end"
-    echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_END"
+    if [ "$BUILD_VARIANT" = runtime_checks ]; then
+      {
+        echo "exit_status=$run_status"
+        echo "runtime_check_outcome=PROCESS_FAILURE_OR_TRAP"
+        echo "normal_check=NOT_RUN"
+        echo "relaxed_compare=NOT_RUN"
+        echo "initial_state_postrun_sha256_gate=PASS"
+        echo "baseline=NOT_APPLICABLE"
+      } >> "$run_dir/RUN_PROVENANCE.env"
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT_BEGIN"
+      echo "stage=run"
+      echo "outcome=PROCESS_FAILURE_OR_TRAP"
+      echo "exit_status=$run_status"
+      echo "run_dir=$run_dir"
+      print_runtime_diagnostic_excerpt \
+        "$run_dir/dia-cb3x3x3_tm.out" "$run_dir/dia-cb3x3x3_tm.err"
+      echo "initial_state_postrun_sha256_gate=PASS"
+      echo "hundred_step_authorization=BLOCKED_DIAGNOSTIC_ONLY"
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT_END"
+    else
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_BEGIN"
+      echo "stage=run"
+      echo "exit_status=$run_status"
+      echo "run_dir=$run_dir"
+      echo "stderr_tail_begin"
+      tail -n 20 "$run_dir/dia-cb3x3x3_tm.err" 2>/dev/null || true
+      echo "stderr_tail_end"
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_END"
+    fi
     exit 1
   fi
-
-  verify_state
 
   if ! check_summary=$(python3 "$SCRIPT_DIR/check_tddft_result.py" check \
       "$run_dir/dia-cb3x3x3_tm.out" \
       --err "$run_dir/dia-cb3x3x3_tm.err" \
       --expected-steps 2 --expected-atoms 216 2>&1); then
-    echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_BEGIN"
-    echo "stage=normal_check"
-    echo "run_dir=$run_dir"
-    printf '%s\n' "$check_summary"
-    echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_END"
+    if [ "$BUILD_VARIANT" = runtime_checks ]; then
+      {
+        echo "exit_status=0"
+        echo "runtime_check_outcome=NORMAL_CHECK_FAIL"
+        echo "normal_check=FAIL"
+        echo "relaxed_compare=NOT_RUN"
+        echo "initial_state_postrun_sha256_gate=PASS"
+        echo "baseline=NOT_APPLICABLE"
+      } >> "$run_dir/RUN_PROVENANCE.env"
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT_BEGIN"
+      echo "stage=normal_check"
+      echo "outcome=NORMAL_CHECK_FAIL"
+      echo "run_dir=$run_dir"
+      printf '%s\n' "$check_summary"
+      print_runtime_diagnostic_excerpt \
+        "$run_dir/dia-cb3x3x3_tm.out" "$run_dir/dia-cb3x3x3_tm.err"
+      echo "initial_state_postrun_sha256_gate=PASS"
+      echo "hundred_step_authorization=BLOCKED_DIAGNOSTIC_ONLY"
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT_END"
+    else
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_BEGIN"
+      echo "stage=normal_check"
+      echo "run_dir=$run_dir"
+      printf '%s\n' "$check_summary"
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_END"
+    fi
     exit 1
   fi
   printf '%s\n' "$check_summary"
@@ -527,9 +639,14 @@ run_two_steps() {
   ')
   [ -n "$wall_sec" ] || fail "normal-check summary did not contain wall_sec"
 
+  if [ "$BUILD_VARIANT" = runtime_checks ]; then
+    test_platform=XEON_8468_NVFORTRAN_RUNTIME_CHECKS_32MPI_3OMP
+  else
+    test_platform=XEON_8468_NVFORTRAN_32MPI_3OMP
+  fi
   if ! comparison_summary=$(EXPECTED_STEPS=2 EXPECTED_ATOMS=216 \
       REFERENCE_PLATFORM=XEON_8592P_IFX_32MPI_4OMP \
-      TEST_PLATFORM=XEON_8468_NVFORTRAN_32MPI_3OMP \
+      TEST_PLATFORM="$test_platform" \
       "$SCRIPT_DIR/compare_cb3x3x3_platform_results.sh" \
       "$X86_2STEP_REFERENCE" "$run_dir" 2>&1); then
     {
@@ -539,13 +656,26 @@ run_two_steps() {
       echo "initial_state_postrun_sha256_gate=PASS"
       echo "baseline=NOT_APPLICABLE"
     } >> "$run_dir/RUN_PROVENANCE.env"
-    echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_BEGIN"
-    echo "stage=relaxed_compare"
-    echo "run_dir=$run_dir"
-    echo "comparison_output_begin"
-    printf '%s\n' "$comparison_summary"
-    echo "comparison_output_end"
-    echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_END"
+    if [ "$BUILD_VARIANT" = runtime_checks ]; then
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT_BEGIN"
+      echo "stage=relaxed_compare"
+      echo "outcome=RELAXED_COMPARE_FAIL"
+      echo "run_dir=$run_dir"
+      echo "comparison_output_begin"
+      printf '%s\n' "$comparison_summary"
+      echo "comparison_output_end"
+      echo "initial_state_postrun_sha256_gate=PASS"
+      echo "hundred_step_authorization=BLOCKED_DIAGNOSTIC_ONLY"
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT_END"
+    else
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_BEGIN"
+      echo "stage=relaxed_compare"
+      echo "run_dir=$run_dir"
+      echo "comparison_output_begin"
+      printf '%s\n' "$comparison_summary"
+      echo "comparison_output_end"
+      echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_FAILURE_END"
+    fi
     exit 1
   fi
   printf '%s\n' "$comparison_summary"
@@ -557,10 +687,19 @@ run_two_steps() {
     echo "baseline=NOT_APPLICABLE"
   } >> "$run_dir/RUN_PROVENANCE.env"
 
-  echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_PASS_BEGIN"
+  if [ "$BUILD_VARIANT" = runtime_checks ]; then
+    result_tag=FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT
+    result_outcome=CORRECTNESS_PASS_NO_RUNTIME_VIOLATION_DETECTED
+  else
+    result_tag=FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_PASS
+    result_outcome=CORRECTNESS_PASS
+  fi
+  echo "${result_tag}_BEGIN"
   echo "revision=$revision"
   echo "label=$run_label"
   echo "run_dir=$run_dir"
+  echo "outcome=$result_outcome"
+  echo "build_variant=$BUILD_VARIANT"
   echo "configuration=NVFORTRAN_CPU_FFTW_${NPROCS}_MPI_${OMP_NUM_THREADS}_OpenMP"
   echo "wall_sec=$wall_sec"
   echo "normal_check=PASS"
@@ -569,7 +708,7 @@ run_two_steps() {
   echo "compiler_isolation_gate=PASS"
   echo "hundred_step_authorization=BLOCKED_DIAGNOSTIC_ONLY"
   echo "baseline=NOT_APPLICABLE"
-  echo "FPSEID21_CB3X3X3_NVFORTRAN_CPU_2STEP_PASS_END"
+  echo "${result_tag}_END"
 }
 
 case "$ACTION" in
@@ -578,12 +717,12 @@ case "$ACTION" in
     [ -n "$ACTION" ] || exit 2
     exit 0
     ;;
-  preflight|tddft-2) ;;
+  preflight|tddft-2|preflight-runtime-checks|tddft-2-runtime-checks) ;;
   *) usage >&2; fail "unknown action: $ACTION" ;;
 esac
 
 preflight
 case "$ACTION" in
-  preflight) ;;
-  tddft-2) run_two_steps ;;
+  preflight|preflight-runtime-checks) ;;
+  tddft-2|tddft-2-runtime-checks) run_two_steps ;;
 esac

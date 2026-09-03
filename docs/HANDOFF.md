@@ -1517,6 +1517,26 @@ plausible. The `718.925694942`-sec wall is invalid as performance evidence;
 No numerical source rollback is needed because this diagnostic changed only
 the isolated build/run toolchain.
 
+The user then approved preparation of a bounded NVFORTRAN CPU runtime-check
+diagnostic. The existing helper now exposes `preflight-runtime-checks` and
+`tddft-2-runtime-checks`. The latter preserves the same official state,
+POSIX-thread FFTW, no-OpenACC CPU path, 32 MPI x 3 OpenMP placement, and two
+steps, but creates a separate `bin/runtime_checks/<revision>` executable and a
+distinct `runtime_checks_2step` run directory. It uses `-O0 -g -traceback`,
+`-Mbounds`, `-Mchkptr`, `-Mchkstk`, `-Ktrap=fp`, and local real/integer
+initialization sentinels in addition to `-mp -Msave -Mlarge_arrays`.
+
+The runtime-check preflight asks NVFORTRAN to parse the exact flags with a
+read-only `-dryrun` probe. A process trap, normal-check failure, relaxed
+comparison failure, or correctness pass all produce a compact
+`FPSEID21_CB3X3X3_NVFORTRAN_CPU_RUNTIME_CHECK_RESULT` block. Diagnostic lines
+and a bounded stderr tail are printed for photographs while complete output
+remains in the isolated run directory. Core dumps are disabled. Bounds checks
+are limited for assumed-size arrays, and initialization sentinels do not cover
+every allocatable or automatic object, so absence of a trap cannot exclude all
+undefined behavior. No runtime-check build or run has yet occurred. Review the
+new preflight before authorizing its two-step run; 100 steps remain blocked.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for
