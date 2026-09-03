@@ -1458,16 +1458,21 @@ comparison failed by about 595.939 Ha in energy and by 0.2465046 Ha/Bohr in
 force. This is a gross correctness failure, not a tolerable cross-platform
 difference; no H100 performance conclusion or 100-step authorization exists.
 
-The approved next test is one H100-only 2-step diagnostic of the post-TMEVL
-charge-density path. Compile-time macro
-`FPSEID_RHOOFK_SCALAR_DIAGNOSTIC` first synchronizes device-resident `COEF` to
-the host and then selects the pre-batch scalar `RHOOFK`; without the macro,
-the normal batch path is unchanged after preprocessing. The helper action
-`tddft-2-rhoofk-scalar` builds a separately named executable, uses a distinct
-run label, and automatically applies the existing relaxed comparison to the
-fixed Xeon 8592+ 2-step result. It has no 100-step action, cannot establish a
-baseline, and only tests whether the 480-band batch density path causes the
-gross H100 error.
+The approved scalar-RHOOFK diagnostic ran at revision `611c0ac`. Its normal
+check passed, but the relaxed comparison failed with the same observables as
+the batch run: `ETOT=-637.3190723`, total energy `-636.69918884`, and maximum
+force difference `0.2465046` Ha/Bohr. Scalar wall was `1767.65834403` sec;
+it is invalid as performance evidence. Positions and velocities matched, but
+ETOT and total energy still differed from Xeon by about 595.939 Ha. Therefore
+the post-TMEVL batch density path is not the cause of this gross failure.
+
+The user approved rejection and rollback on 2026-09-03. The compile-time
+scalar branch and its H100 helper action are removed by the result commit;
+the numerical source and H100 helper again match their pre-diagnostic
+`507438f` behavior. The failed result directory is preserved. No 100-step
+cb3x3x3 H100 run, performance comparison, archive adoption, or baseline is
+authorized. A later investigation must look upstream of RHOOFK, including the
+480-band TMEVL/coefficient path, before proposing another bounded experiment.
 
 ## Validation Gate
 

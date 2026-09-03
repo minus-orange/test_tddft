@@ -11,16 +11,10 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 ACTION=${1:-}
 BENCHMARK_ROOT=${BENCHMARK_ROOT:-"$ROOT_DIR/run/benchmarks/cb3x3x3"}
 STATE_DIR=$BENCHMARK_ROOT/work/tddft_600K
-X86_2STEP_REFERENCE=${X86_2STEP_REFERENCE:-"$BENCHMARK_ROOT/platforms/8592p_spr10/runs/cb3x3x3_8592p_spr10_32mpi_4omp_2step_20260827_170605_6ddf5ff11ecc"}
 GPU_ID=${CUDA_VISIBLE_DEVICES:-0}
 GPU_ARCH=cc90
 BASE_FLAGS="-O2 -acc -gpu=$GPU_ARCH -mp -Msave -Mlarge_arrays"
-BUILD_FLAGS=$BASE_FLAGS
-EFFECTIVE_FLAGS="$BUILD_FLAGS -gpu=mem:separate:pinnedalloc"
-RHOOFK_PATH=batch
-EXECUTABLE_NAME=tddft_exe
-BUILD_PROVENANCE_NAME=BUILD_PROVENANCE.env
-RUN_LABEL_SUFFIX=2step
+EFFECTIVE_FLAGS="$BASE_FLAGS -gpu=mem:separate:pinnedalloc"
 MIN_FREE_PERCENT=90
 MIN_HOST_AVAILABLE_GIB=64
 OMP_STACKSIZE=${OMP_STACKSIZE:-512M}
@@ -38,10 +32,6 @@ Actions:
              and free-memory checks. No build or simulation.
   tddft-2    Re-run preflight, build TDDFT for cc90 pinned separate memory,
              and run one isolated 2-step startup/memory diagnostic.
-  tddft-2-rhoofk-scalar
-             Re-run preflight, build a separately named diagnostic executable
-             that synchronizes COEF and uses scalar RHOOFK, run exactly two
-             steps, and relaxed-compare with the fixed Xeon 8592+ result.
 
 The fixed execution is 1 H100 / 1 MPI rank / 1 OpenMP thread with diagnostics
 off. There is deliberately no 100-step action; review the 2-step result first.
@@ -165,9 +155,6 @@ preflight() {
     "$STATE_DIR/dia-cb3x3x3_tm.in_2steps" ||
     fail "2-step input has the wrong tstep"
   verify_state
-  if [ "$RHOOFK_PATH" = scalar_diagnostic ]; then
-    require_nonempty "$X86_2STEP_REFERENCE/dia-cb3x3x3_tm.out"
-  fi
 
   device_row=$(nvidia-smi -i "$GPU_ID" \
     --query-gpu=name,compute_cap,memory.total,memory.free,memory.used,driver_version \
@@ -239,11 +226,6 @@ preflight() {
   echo "mpirun=$mpirun_version"
   echo "flags=$EFFECTIVE_FLAGS"
   echo "configuration=1_H100_1_MPI_1_OpenMP_diagnostic_OFF"
-  echo "rhoofk_path=$RHOOFK_PATH"
-  if [ "$RHOOFK_PATH" = scalar_diagnostic ]; then
-    echo "x86_2step_reference=$X86_2STEP_REFERENCE"
-    echo "x86_2step_reference_gate=PASS"
-  fi
   echo "fortran_text_input_line_endings=LF_normalized_in_isolated_run"
   echo "official_input_gate=PASS"
   echo "initial_state_sha256_gate=PASS"
@@ -263,18 +245,18 @@ build_tddft() {
   fi
   trap release_build_lock EXIT HUP INT TERM
 
-  echo "Building cb3x3x3 TDDFT for H100 cc90: rhoofk_path=$RHOOFK_PATH"
-  FPSEID_FRPRMN_DIAGNOSTIC=0 TDDFT_FFLAGS="$BUILD_FLAGS" \
+  echo "Building cb3x3x3 TDDFT for H100 cc90"
+  FPSEID_FRPRMN_DIAGNOSTIC=0 TDDFT_FFLAGS="$BASE_FLAGS" \
   TDDFT_ONLY=1 ENABLE_GPU_FFT=1 ENABLE_PINNED_ALLOC=1 \
   NVFORTRAN="$NVFORTRAN" MPI_FC="$MPI_FC" GPU_CC="$GPU_CC" \
     "$SCRIPT_DIR/build_nvhpc.sh"
 
   source_exe=$ROOT_DIR/FPSEID21/tddft_2022October/tddft_exe
   require_nonempty "$source_exe"
-  executable_part=$PLATFORM_BIN/$EXECUTABLE_NAME.part.$$
+  executable_part=$PLATFORM_BIN/tddft_exe.part.$$
   cp -p "$source_exe" "$executable_part"
-  mv -f "$executable_part" "$PLATFORM_BIN/$EXECUTABLE_NAME"
-  chmod a-w "$PLATFORM_BIN/$EXECUTABLE_NAME"
+  mv -f "$executable_part" "$PLATFORM_BIN/tddft_exe"
+  chmod a-w "$PLATFORM_BIN/tddft_exe"
   {
     echo "revision=$revision"
     echo "accepted_numerical_source=c46cfa9"
@@ -286,9 +268,8 @@ build_tddft() {
     echo "mpi_compiler=$mpi_compiler"
     echo "flags=$EFFECTIVE_FLAGS"
     echo "diagnostic=OFF"
-    echo "rhoofk_path=$RHOOFK_PATH"
-    echo "tddft_executable_sha256=$(sha256_file "$PLATFORM_BIN/$EXECUTABLE_NAME")"
-  } > "$PLATFORM_BIN/$BUILD_PROVENANCE_NAME"
+    echo "tddft_executable_sha256=$(sha256_file "$PLATFORM_BIN/tddft_exe")"
+  } > "$PLATFORM_BIN/BUILD_PROVENANCE.env"
 
   release_build_lock
   trap - EXIT HUP INT TERM
@@ -326,7 +307,7 @@ prepare_run_dir() {
 
 run_two_steps() {
   timestamp=$(date '+%Y%m%d_%H%M%S')
-  run_label=${LABEL:-"cb3x3x3_${platform_id}_1gpu_1mpi_1omp_${RUN_LABEL_SUFFIX}_${timestamp}_${short_revision}"}
+  run_label=${LABEL:-"cb3x3x3_${platform_id}_1gpu_1mpi_1omp_2step_${timestamp}_${short_revision}"}
   validate_label "$run_label"
   run_dir=$PLATFORM_RUNS/$run_label
   [ ! -e "$run_dir" ] || fail "run directory already exists: $run_dir"
@@ -347,14 +328,13 @@ run_two_steps() {
     echo "omp_num_threads=1"
     echo "flags=$EFFECTIVE_FLAGS"
     echo "diagnostic=OFF"
-    echo "rhoofk_path=$RHOOFK_PATH"
     echo "fortran_text_input_line_endings=LF"
     echo "source_input_sha256=$(sha256_file "$STATE_DIR/dia-cb3x3x3_tm.in_2steps")"
     echo "input_sha256=$(sha256_file "$run_dir/dia-cb3x3x3_tm.in_2steps")"
     echo "source_pseudopotential_sha256=$(sha256_file "$STATE_DIR/TR.C95g_asci")"
     echo "pseudopotential_sha256=$(sha256_file "$run_dir/TR.C95g_asci")"
     echo "state_manifest_sha256=$(sha256_file "$run_dir/STATE_MANIFEST.sha256")"
-    echo "tddft_executable_sha256=$(sha256_file "$PLATFORM_BIN/$EXECUTABLE_NAME")"
+    echo "tddft_executable_sha256=$(sha256_file "$PLATFORM_BIN/tddft_exe")"
   } > "$run_dir/RUN_PROVENANCE.env"
 
   echo "Running cb3x3x3 H100 startup: steps=2 GPU=1 MPI=1 OpenMP=1"
@@ -364,7 +344,7 @@ run_two_steps() {
     export OMP_NUM_THREADS=1
     export OMP_STACKSIZE
     export CUDA_VISIBLE_DEVICES=$GPU_ID
-    "$MPIRUN" -np 1 "$PLATFORM_BIN/$EXECUTABLE_NAME" \
+    "$MPIRUN" -np 1 "$PLATFORM_BIN/tddft_exe" \
       < dia-cb3x3x3_tm.in_2steps \
       > dia-cb3x3x3_tm.out 2> dia-cb3x3x3_tm.err &
     run_pid=$!
@@ -443,42 +423,13 @@ run_two_steps() {
     END {print value}
   ')
   [ -n "$wall_sec" ] || fail "normal-check summary did not contain wall_sec"
-  same_input_compare=NOT_AVAILABLE
-  if [ "$RHOOFK_PATH" = scalar_diagnostic ]; then
-    if ! comparison_summary=$(EXPECTED_STEPS=2 EXPECTED_ATOMS=216 \
-      REFERENCE_PLATFORM=XEON_8592P_32MPI_4OMP \
-      TEST_PLATFORM=H100_RHOOFK_SCALAR_1GPU_1MPI_1OMP \
-      "$SCRIPT_DIR/compare_cb3x3x3_platform_results.sh" \
-      "$X86_2STEP_REFERENCE" "$run_dir" 2>&1); then
-      {
-        echo "wall_sec=$wall_sec"
-        echo "peak_memory_used_mib=$peak_memory_used_mib"
-        echo "peak_memory_percent=$peak_memory_percent"
-        echo "minimum_headroom_mib=$minimum_headroom_mib"
-        echo "normal_check=PASS"
-        echo "same_input_compare=FAIL"
-        echo "baseline=NOT_APPLICABLE"
-      } >> "$run_dir/RUN_PROVENANCE.env"
-      echo "FPSEID21_CB3X3X3_H100_RHOOFK_SCALAR_2STEP_FAILURE_BEGIN"
-      echo "stage=relaxed_compare"
-      echo "run_dir=$run_dir"
-      echo "comparison_output_begin"
-      printf '%s\n' "$comparison_summary"
-      echo "comparison_output_end"
-      echo "Stop here; do not run 100 steps."
-      echo "FPSEID21_CB3X3X3_H100_RHOOFK_SCALAR_2STEP_FAILURE_END"
-      exit 1
-    fi
-    printf '%s\n' "$comparison_summary"
-    same_input_compare=PASS
-  fi
   {
     echo "wall_sec=$wall_sec"
     echo "peak_memory_used_mib=$peak_memory_used_mib"
     echo "peak_memory_percent=$peak_memory_percent"
     echo "minimum_headroom_mib=$minimum_headroom_mib"
     echo "normal_check=PASS"
-    echo "same_input_compare=$same_input_compare"
+    echo "same_input_compare=NOT_AVAILABLE"
     echo "baseline=NOT_APPLICABLE"
   } >> "$run_dir/RUN_PROVENANCE.env"
 
@@ -493,14 +444,9 @@ run_two_steps() {
   echo "peak_memory_percent=$peak_memory_percent"
   echo "minimum_headroom_mib=$minimum_headroom_mib"
   echo "normal_check=PASS"
-  echo "rhoofk_path=$RHOOFK_PATH"
-  echo "same_input_compare=$same_input_compare"
+  echo "same_input_compare=NOT_AVAILABLE"
   echo "two_step_memory_gate=PASS"
-  if [ "$RHOOFK_PATH" = scalar_diagnostic ]; then
-    echo "hundred_step_authorization=BLOCKED_DIAGNOSTIC_ONLY"
-  else
-    echo "hundred_step_authorization=PENDING_REVIEW"
-  fi
+  echo "hundred_step_authorization=PENDING_REVIEW"
   echo "baseline=NOT_APPLICABLE"
   echo "FPSEID21_CB3X3X3_H100_2STEP_PASS_END"
 }
@@ -512,19 +458,11 @@ case "$ACTION" in
     exit 0
     ;;
   preflight|tddft-2) ;;
-  tddft-2-rhoofk-scalar)
-    RHOOFK_PATH=scalar_diagnostic
-    BUILD_FLAGS="$BASE_FLAGS -DFPSEID_RHOOFK_SCALAR_DIAGNOSTIC=1"
-    EFFECTIVE_FLAGS="$BUILD_FLAGS -gpu=mem:separate:pinnedalloc"
-    EXECUTABLE_NAME=tddft_exe_rhoofk_scalar
-    BUILD_PROVENANCE_NAME=BUILD_PROVENANCE_RHOOFK_SCALAR.env
-    RUN_LABEL_SUFFIX=rhoofk_scalar_2step
-    ;;
   *) usage >&2; fail "unknown action: $ACTION" ;;
 esac
 
 preflight
 case "$ACTION" in
   preflight) ;;
-  tddft-2|tddft-2-rhoofk-scalar) run_two_steps ;;
+  tddft-2) run_two_steps ;;
 esac

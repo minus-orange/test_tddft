@@ -3380,7 +3380,7 @@ was changed.
 - The H100 wall is not a performance result or baseline. One hundred steps,
   repeat runs, archiving, and adoption are blocked.
 
-### H100 scalar-RHOOFK two-step diagnostic implementation
+### H100 scalar-RHOOFK two-step diagnostic implementation and rejection
 
 - Hypothesis: the post-TMEVL `RHOOFK_ACC_BATCH` path, originally validated on
   the 32-band Si111-H case, is the source of the gross error for the 480-band
@@ -3397,3 +3397,21 @@ was changed.
   216-atom check and then automatically runs the existing relaxed comparison
   against the fixed Xeon 8592+ 2-step result. Failure stops with 100 steps
   blocked. Even a pass is diagnostic-only and cannot become a baseline.
+- Tested revision: `611c0ac`. The H100 process completed two steps and its
+  standalone normal check passed with all 216 observable rows. Scalar wall was
+  `1767.65834403` sec; this failed-correctness wall is not performance data.
+- Scalar observables were `ETOT=-637.3190723` and total energy
+  `-636.69918884`, exactly matching the earlier H100 batch-path values shown
+  by the returned summaries. Against Xeon 8592+, both energy differences
+  remained about 595.939 Ha.
+- Maximum force difference remained `0.2465046` Ha/Bohr at atom 133,
+  component 1 (`ref=-1.106e-4`, `test=0.246394`). Positions and velocities
+  had zero maximum difference. The relaxed comparison emitted FAIL and
+  correctly blocked performance comparison and 100 steps.
+- Conclusion: replacing only post-TMEVL `RHOOFK_ACC_BATCH` with synchronized
+  scalar `RHOOFK` does not change the failure. The batch density path is not
+  its cause, so this hypothesis is rejected.
+- The user approved disposition on 2026-09-03. The scalar source branch and
+  dedicated H100 action are removed by the result/rollback commit, restoring
+  those files exactly to pre-diagnostic revision `507438f`. Result files are
+  preserved; no baseline or accepted numerical source changes.
