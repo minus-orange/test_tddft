@@ -3443,3 +3443,30 @@ was changed.
   of compiler, undefined behavior, Open MPI, and runtime effects.
 - The helper has no long-run action. No build, simulation, result, baseline,
   accepted source change, or GPU authorization is part of this preparation.
+
+### NVFORTRAN CPU/FFTW compiler-isolation diagnostic result
+
+- The user authorized the two-step run after the `spr21` preflight passed at
+  revision `3f83649`. The isolated GCC POSIX-thread FFTW build and NVFORTRAN
+  CPU/FFTW TDDFT build both passed. The run used Xeon Platinum 8468, 32 MPI x
+  3 OpenMP, diagnostics off, no `-acc`, no cuFFT, and no GPU.
+- The executable link gate excluded GCC libgomp and required NVHPC libnvomp,
+  removing mixed OpenMP runtimes from this test. The canonical initial-state
+  hashes passed before the run and again after the process completed.
+- The process completed two steps in `718.925694942` sec and printed all 216
+  force, position, and velocity rows. The normal checker nevertheless failed
+  because `current J(a.u.)` contained three `NaN` values. The helper stopped at
+  `stage=normal_check`, so relaxed comparison was intentionally not run.
+- CPU/NVFORTRAN reported `ETOT=-637.3190723` and total energy
+  `-636.69918884`. These values exactly match both invalid H100 two-step paths,
+  while the fixed Xeon 8592+ ifx reference reports `ETOT=-1233.258088` and
+  total energy `-1232.63820424`.
+- Conclusion: OpenACC, cuFFT, and GPU execution are not necessary to reproduce
+  the gross error. The result narrows investigation to behavior shared by the
+  NVFORTRAN builds, but does not prove an NVFORTRAN defect; source-level
+  undefined behavior such as uninitialized data, out-of-bounds access, or
+  aliasing may be exposed differently by the compiler.
+- The failed wall time is not performance evidence. One hundred steps, repeat
+  timings, cross-platform performance comparison, and baseline adoption remain
+  blocked. The isolated failed run is preserved, the diagnostic helper remains
+  reproducible, and no numerical source or accepted baseline is changed.

@@ -1495,6 +1495,28 @@ differences would remain. No build or run has occurred, and the helper exposes
 no 100-step action or baseline-adoption path. Return and review `preflight`
 before authorizing `tddft-2`.
 
+The authorized NVFORTRAN CPU/FFTW two-step diagnostic then ran on `spr21` at
+revision `3f83649` with 32 MPI x 3 OpenMP. The isolated FFTW and TDDFT builds
+passed, so OpenACC was off, cuFFT and the GPU were absent, POSIX-thread FFTW
+was used, and the executable passed the enforced single-OpenMP-runtime link
+gate. The process completed both steps in `718.925694942` sec and returned 216
+force, position, and velocity rows, but the normal checker rejected one
+suspicious line: all three components of `current J(a.u.)` were `NaN`.
+
+The CPU/NVFORTRAN observables were `ETOT=-637.3190723` and total energy
+`-636.69918884`, exactly the same values reported by both invalid H100 paths.
+The fixed Xeon 8592+ ifx reference is `ETOT=-1233.258088` and total energy
+`-1232.63820424`. Because the normal check failed, the helper correctly did
+not proceed to relaxed comparison. The initial-state hashes had passed both
+before and after execution. This result establishes that GPU execution,
+OpenACC, and cuFFT are not required to reproduce the gross error. It does not
+establish an NVFORTRAN compiler defect: compiler-exposed uninitialized data,
+out-of-bounds access, aliasing, or other undefined source behavior remain
+plausible. The `718.925694942`-sec wall is invalid as performance evidence;
+100 steps, repeat timing, comparison, and baseline adoption remain blocked.
+No numerical source rollback is needed because this diagnostic changed only
+the isolated build/run toolchain.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for
