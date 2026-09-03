@@ -3547,3 +3547,27 @@ was changed.
   numerical source, input/state, MPI/OpenMP placement, prior results, accepted
   source, and all baselines are unchanged. A fresh preflight and separate
   approval are required before the two-step retry.
+
+### Runtime check found an uninitialized ELECTF k-point subscript
+
+- Returned revision: `ee1a949` on the Xeon Platinum 8468 host `spr21`, using
+  32 MPI x 3 OpenMP and the runtime-check flags without `-Ktrap=fp`.
+- The compile and build gates passed. TDDFT then stopped with exit status 127.
+  NVFORTRAN bounds checking reported `electf4_Vext_Avec.f:1047`, where
+  dimension 2 of `OCC` was accessed at subscript 0 although its bounds were
+  1:1. The initial-state post-run SHA-256 gate passed.
+- ELECTF's enclosing loop is `IK=1,NUMK`, but the PXTOT, PYTOT, and PZTOT
+  occupation factors used `OCC(IB,K)`. `K` is an implicit integer and is never
+  assigned in this subroutine. Neighboring kinetic, nonlocal-energy, and force
+  sums use `OCC(IB,IK)`, establishing a local index-contract violation.
+- Git history shows the three `K` indices in the initial imported source and
+  accepted source `c46cfa9`. The runtime result therefore identifies
+  pre-existing source undefined behavior, not an NVFORTRAN-only compiler
+  defect. It plausibly explains the NaN macroscopic current but does not by
+  itself establish the cause of the gross energy or force mismatch.
+- The user approved changing only those three references from `K` to `IK`.
+  The change preserves loop order, array shapes, MPI, OpenACC boundaries, and
+  CPU/FFTW fallback. It is a pending correctness candidate; accepted source,
+  all platform baselines, and prior results remain unchanged. Runtime-check
+  preflight and a separately approved two-step retry are required before any
+  acceptance decision. One hundred steps remain blocked.

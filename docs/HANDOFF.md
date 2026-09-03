@@ -14,6 +14,10 @@ Last updated: 2026-09-03
 - Current configuration: accepted Step 107 numerical path with Step 37 pinned
   allocation mode
 - Current source implementation: Step 107 commit `c46cfa9`
+- Pending correctness candidate: replace the three uninitialized `K` indices
+  in ELECTF macroscopic-current occupation factors with the enclosing k-point
+  loop index `IK`. This shared CPU/GPU source correction is not accepted until
+  the bounded runtime-check and correctness gates pass.
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
@@ -1564,6 +1568,26 @@ integer-sentinel checks remain enabled. This preserves the numerical source
 and lets execution pass MPI initialization so the remaining source runtime
 checks can operate. Review a new preflight before authorizing the bounded
 two-step retry; 100 steps remain blocked.
+
+That retry at revision `ee1a949` passed its build gates and entered TDDFT, then
+stopped with exit status 127 on the first source-level bounds violation.
+NVFORTRAN reported `electf4_Vext_Avec.f:1047`: subscript 0 for dimension 2 of
+`OCC`, whose bounds were 1:1. In the enclosing `IK=1,NUMK` loop, the three
+macroscopic-current sums used `OCC(IB,K)` even though `K` is never assigned in
+ELECTF; adjacent energy and force expressions consistently use `OCC(IB,IK)`.
+The same typo exists in the initial imported source and accepted numerical
+source `c46cfa9`, so this is pre-existing undefined behavior rather than an
+NVFORTRAN-only code-generation fault. The returned initial-state post-run hash
+gate passed and no valid observables or timing were produced.
+
+The user approved one bounded shared-source correction: change only those
+three occupation references from `K` to `IK`. This directly restores the
+enclosing k-point index without changing loop order, array shape, MPI, OpenACC
+ownership, or the CPU/FFTW path. It is a pending correctness candidate, not an
+accepted numerical source or baseline. A new runtime-check preflight and
+separate two-step execution approval are required. The correction may explain
+the NaN macroscopic current, but it does not yet explain the gross energy and
+force mismatch; 100 steps remain blocked.
 
 ## Validation Gate
 

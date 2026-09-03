@@ -1044,9 +1044,9 @@ c        DO 591 IB=1,NFL
         DO 591 IB=1,IOWF(1,IK)
           EKINE=EKINE+EE(IB,IK)*2.D0*WK(IK) * OCC(IB,IK)
 c *** macroscopic current
-          PXTOT=PXTOT+PX(IB,IK)*WK(IK) * OCC(IB,K)
-          PYTOT=PYTOT+PY(IB,IK)*WK(IK) * OCC(IB,K)
-          PZTOT=PZTOT+PZ(IB,IK)*WK(IK) * OCC(IB,K)
+          PXTOT=PXTOT+PX(IB,IK)*WK(IK) * OCC(IB,IK)
+          PYTOT=PYTOT+PY(IB,IK)*WK(IK) * OCC(IB,IK)
+          PZTOT=PZTOT+PZ(IB,IK)*WK(IK) * OCC(IB,IK)
 c
 c +++ for A-vector Y. Miyamoto 2020
           EKINEd=EKINEd+EEd(IB,IK)*2.D0*WK(IK) * OCC(IB,IK)
