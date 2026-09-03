@@ -3484,7 +3484,7 @@ was changed.
   `bin/runtime_checks/<revision>`, and its run label contains
   `runtime_checks_2step`, preventing reuse or mixing with the earlier `-O2`
   CPU diagnostic, Intel x86 results, or H100 results.
-- Flags are fixed to `-O0 -g -traceback -mp -Msave -Mlarge_arrays -Mbounds
+- The initially prepared flags were `-O0 -g -traceback -mp -Msave -Mlarge_arrays -Mbounds
   -Mchkptr -Mchkstk -Ktrap=fp -Minit-real=snan
   -Minit-integer=2147483647`. They target array bounds, NULL pointers, stack
   exhaustion, invalid/divide-by-zero/overflow exceptions, and uninitialized
@@ -3524,3 +3524,26 @@ was changed.
   accepted source `c46cfa9`, and all formal platform baselines are unchanged.
   A new preflight return and separate approval remain required before retrying
   the two-step diagnostic; 100 steps remain blocked.
+
+### Runtime-check floating-point trap stopped inside MPI initialization
+
+- Returned revision: `de50e5a` on the Xeon Platinum 8468 host `spr21`, using
+  32 MPI x 3 OpenMP and the separate runtime-check executable.
+- The compile probe and full build passed. The run then stopped with exit
+  status 136. Multiple ranks reported signal 8 and
+  `Invalid floating point operation`; Open MPI reported a rank exiting on
+  `Floating point exception`.
+- The returned stack trace passes through Open MPI/UCX and `MPI_Init`. FPSEID21
+  calls `MPI_Init` before its application initialization, so global
+  `-Ktrap=fp` trapped inside the communication runtime before the remaining
+  source checks could diagnose TDDFT. This is not evidence of a TDDFT formula
+  error or an NVFORTRAN code-generation defect.
+- No TDDFT observables or valid wall time were produced. The initial-state
+  post-run SHA-256 gate passed. The result is diagnostic only and the helper
+  correctly kept 100 steps blocked.
+- The user approved one bounded follow-up change: remove only `-Ktrap=fp`.
+  `-Mbounds`, `-Mchkptr`, `-Mchkstk`, `-g`, `-traceback`,
+  `-Minit-real=snan`, and `-Minit-integer=2147483647` remain enabled. The
+  numerical source, input/state, MPI/OpenMP placement, prior results, accepted
+  source, and all baselines are unchanged. A fresh preflight and separate
+  approval are required before the two-step retry.

@@ -18,7 +18,7 @@ NPROCS=32
 OMP_NUM_THREADS=3
 MIN_AVAILABLE_GIB=768
 STANDARD_CPU_FLAGS="-O2 -mp -Msave -Mlarge_arrays"
-RUNTIME_CHECK_FLAGS="-O0 -g -traceback -mp -Msave -Mlarge_arrays -Mbounds -Mchkptr -Mchkstk -Ktrap=fp -Minit-real=snan -Minit-integer=2147483647"
+RUNTIME_CHECK_FLAGS="-O0 -g -traceback -mp -Msave -Mlarge_arrays -Mbounds -Mchkptr -Mchkstk -Minit-real=snan -Minit-integer=2147483647"
 case "$ACTION" in
   preflight-runtime-checks|tddft-2-runtime-checks)
     BUILD_VARIANT=runtime_checks
@@ -59,8 +59,9 @@ Actions:
              diagnostic. No build or simulation.
   tddft-2-runtime-checks
              Build and run a separately isolated two-step executable with
-             bounds, NULL-pointer, stack, floating-point-exception, traceback,
-             and local-variable initialization diagnostics enabled.
+             bounds, NULL-pointer, stack, traceback, and local-variable
+             initialization diagnostics enabled. Floating-point traps are
+             excluded because they abort inside Open MPI/UCX initialization.
 
 This diagnostic is fixed to a dual-socket Xeon Platinum 8468 with at least
 96 physical cores and 768 GiB MemAvailable. OpenACC and GPU use are disabled.

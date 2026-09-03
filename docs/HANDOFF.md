@@ -1547,9 +1547,23 @@ and a bounded stderr tail are printed for photographs while complete output
 remains in the isolated run directory. Core dumps are disabled. Bounds checks
 are limited for assumed-size arrays, and initialization sentinels do not cover
 every allocatable or automatic object, so absence of a trap cannot exclude all
-undefined behavior. No runtime-check simulation has yet occurred. Review the
-corrected preflight before authorizing its two-step build/run; 100 steps remain
-blocked.
+undefined behavior.
+
+The corrected revision `de50e5a` built successfully, but its two-step
+runtime-check process stopped with exit status 136 before TDDFT initialization.
+Multiple MPI ranks reported signal 8, `Invalid floating point operation`, and
+the returned stack ended in Open MPI/UCX beneath `MPI_Init`. The FPSEID21 main
+program calls `MPI_Init` before application initialization, so this result
+shows that global `-Ktrap=fp` catches an operation in the communication runtime;
+it does not locate a TDDFT arithmetic fault. No observables or performance
+result were produced. The initial-state post-run hash gate passed.
+
+The user approved removing only `-Ktrap=fp` from the next isolated diagnostic.
+Bounds, NULL-pointer, stack, traceback, real-sNaN initialization, and positive
+integer-sentinel checks remain enabled. This preserves the numerical source
+and lets execution pass MPI initialization so the remaining source runtime
+checks can operate. Review a new preflight before authorizing the bounded
+two-step retry; 100 steps remain blocked.
 
 ## Validation Gate
 
