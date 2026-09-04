@@ -10,7 +10,9 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 
 ACTION=${1:-}
 BENCHMARK_ROOT=${BENCHMARK_ROOT:-"$ROOT_DIR/run/benchmarks/cb3x3x3"}
-STATE_DIR=$BENCHMARK_ROOT/work/tddft_600K
+STATE_DIR=${STATE_DIR:-"$BENCHMARK_ROOT/work/tddft_600K"}
+H100_PLATFORM_ROOT=${H100_PLATFORM_ROOT:-}
+X86_2STEP_REFERENCE=${X86_2STEP_REFERENCE:-"$BENCHMARK_ROOT/platforms/8592p_spr10/runs/cb3x3x3_8592p_spr10_32mpi_4omp_2step_20260827_170605_6ddf5ff11ecc"}
 GPU_ID=${CUDA_VISIBLE_DEVICES:-0}
 GPU_ARCH=cc90
 BASE_FLAGS="-O2 -acc -gpu=$GPU_ARCH -mp -Msave -Mlarge_arrays"
@@ -155,6 +157,7 @@ preflight() {
     "$STATE_DIR/dia-cb3x3x3_tm.in_2steps" ||
     fail "2-step input has the wrong tstep"
   verify_state
+  require_nonempty "$X86_2STEP_REFERENCE/dia-cb3x3x3_tm.out"
 
   device_row=$(nvidia-smi -i "$GPU_ID" \
     --query-gpu=name,compute_cap,memory.total,memory.free,memory.used,driver_version \
@@ -199,9 +202,19 @@ preflight() {
   host_name=$(hostname -s 2>/dev/null || hostname)
   platform_id=$(printf 'h100_%s' "$host_name" |
     tr '[:upper:]' '[:lower:]' | tr '+.' 'pp')
-  PLATFORM_ROOT=$BENCHMARK_ROOT/platforms/$platform_id
+  if [ -n "$H100_PLATFORM_ROOT" ]; then
+    PLATFORM_ROOT=$H100_PLATFORM_ROOT
+  else
+    PLATFORM_ROOT=$BENCHMARK_ROOT/platforms/$platform_id
+  fi
   PLATFORM_BIN=$PLATFORM_ROOT/bin
   PLATFORM_RUNS=$PLATFORM_ROOT/runs
+  state_producer_revision=$(awk -F= '$1 == "revision" {
+    print substr($0, index($0, "=") + 1); exit
+  }' "$STATE_DIR/STATE_PROVENANCE.env")
+  state_lineage=$(awk -F= '$1 == "lineage" {
+    print substr($0, index($0, "=") + 1); exit
+  }' "$STATE_DIR/STATE_PROVENANCE.env")
   compiler=$("$NVFORTRAN" -V 2>&1 | sed -n '/[^[:space:]]/{p;q;}' || true)
   mpi_compiler=$("$MPI_FC" --version 2>&1 | sed -n '/[^[:space:]]/{p;q;}' || true)
   mpirun_version=$("$MPIRUN" --version 2>&1 | sed -n '/[^[:space:]]/{p;q;}' || true)
@@ -209,6 +222,7 @@ preflight() {
   echo "FPSEID21_CB3X3X3_H100_PREFLIGHT_BEGIN"
   echo "revision=$revision"
   echo "accepted_numerical_source=c46cfa9"
+  echo "pending_correctness_candidate=bb5cb58"
   echo "hostname=$host_name"
   echo "gpu_id=$GPU_ID"
   echo "gpu_name=$gpu_name"
@@ -226,9 +240,15 @@ preflight() {
   echo "mpirun=$mpirun_version"
   echo "flags=$EFFECTIVE_FLAGS"
   echo "configuration=1_H100_1_MPI_1_OpenMP_diagnostic_OFF"
+  echo "state_dir=$STATE_DIR"
+  echo "state_producer_revision=${state_producer_revision:-NOT_RECORDED}"
+  echo "state_lineage=${state_lineage:-NOT_RECORDED}"
+  echo "platform_root=$PLATFORM_ROOT"
+  echo "x86_2step_reference=$X86_2STEP_REFERENCE"
   echo "fortran_text_input_line_endings=LF_normalized_in_isolated_run"
   echo "official_input_gate=PASS"
   echo "initial_state_sha256_gate=PASS"
+  echo "reference_gate=PASS"
   echo "gpu_occupancy_gate=PASS"
   echo "gpu_free_memory_gate=PASS"
   echo "host_memory_gate=PASS"
@@ -260,6 +280,7 @@ build_tddft() {
   {
     echo "revision=$revision"
     echo "accepted_numerical_source=c46cfa9"
+    echo "pending_correctness_candidate=bb5cb58"
     echo "hostname=$host_name"
     echo "gpu_name=$gpu_name"
     echo "compute_capability=$compute_cap"
@@ -290,6 +311,8 @@ prepare_run_dir() {
   require_file "$STATE_DIR/SOURCE_MANIFEST.env"
   cp -p "$STATE_DIR/SOURCE_MANIFEST.env" "$run_dir/SOURCE_MANIFEST.env"
   cp -p "$STATE_DIR/STATE_MANIFEST.sha256" "$run_dir/STATE_MANIFEST.sha256"
+  cp -p "$STATE_DIR/STATE_PROVENANCE.env" \
+    "$run_dir/INPUT_STATE_PROVENANCE.env"
   ln "$STATE_DIR/rh.dia-cb3x3x3" "$run_dir/rh.dia-cb3x3x3"
   ln "$STATE_DIR/wf_fft.dia-cb3x3x3" "$run_dir/wf_fft.dia-cb3x3x3"
   link_new rh.dia-cb3x3x3 "$run_dir/fort.20"
@@ -317,6 +340,7 @@ run_two_steps() {
   {
     echo "revision=$revision"
     echo "accepted_numerical_source=c46cfa9"
+    echo "pending_correctness_candidate=bb5cb58"
     echo "hostname=$host_name"
     echo "gpu_name=$gpu_name"
     echo "compute_capability=$compute_cap"
@@ -328,13 +352,19 @@ run_two_steps() {
     echo "omp_num_threads=1"
     echo "flags=$EFFECTIVE_FLAGS"
     echo "diagnostic=OFF"
+    echo "state_dir=$STATE_DIR"
+    echo "state_producer_revision=${state_producer_revision:-NOT_RECORDED}"
+    echo "state_lineage=${state_lineage:-NOT_RECORDED}"
+    echo "platform_root=$PLATFORM_ROOT"
     echo "fortran_text_input_line_endings=LF"
     echo "source_input_sha256=$(sha256_file "$STATE_DIR/dia-cb3x3x3_tm.in_2steps")"
     echo "input_sha256=$(sha256_file "$run_dir/dia-cb3x3x3_tm.in_2steps")"
     echo "source_pseudopotential_sha256=$(sha256_file "$STATE_DIR/TR.C95g_asci")"
     echo "pseudopotential_sha256=$(sha256_file "$run_dir/TR.C95g_asci")"
     echo "state_manifest_sha256=$(sha256_file "$run_dir/STATE_MANIFEST.sha256")"
+    echo "state_provenance_sha256=$(sha256_file "$run_dir/INPUT_STATE_PROVENANCE.env")"
     echo "tddft_executable_sha256=$(sha256_file "$PLATFORM_BIN/tddft_exe")"
+    echo "reference_output=$X86_2STEP_REFERENCE/dia-cb3x3x3_tm.out"
   } > "$run_dir/RUN_PROVENANCE.env"
 
   echo "Running cb3x3x3 H100 startup: steps=2 GPU=1 MPI=1 OpenMP=1"
@@ -366,6 +396,7 @@ run_two_steps() {
   )
 
   run_status=$(sed -n '1p' "$run_dir/tddft_exit_status.txt")
+  verify_state
   peak_memory_used_mib=$(awk '
     NR > 1 {
       gsub(/^[[:space:]]+|[[:space:]]+$/, "", $0)
@@ -390,6 +421,7 @@ run_two_steps() {
     echo "peak_memory_used_mib=$peak_memory_used_mib"
     echo "peak_memory_percent=$peak_memory_percent"
     echo "minimum_headroom_mib=$minimum_headroom_mib"
+    echo "initial_state_postrun_sha256_gate=PASS"
     echo "stderr_tail_begin"
     tail -n 16 "$run_dir/dia-cb3x3x3_tm.err" 2>/dev/null || true
     echo "stderr_tail_end"
@@ -408,6 +440,7 @@ run_two_steps() {
     echo "peak_memory_used_mib=$peak_memory_used_mib"
     echo "peak_memory_percent=$peak_memory_percent"
     echo "minimum_headroom_mib=$minimum_headroom_mib"
+    echo "initial_state_postrun_sha256_gate=PASS"
     echo "normal_check_output_begin"
     printf '%s\n' "$check_summary"
     echo "normal_check_output_end"
@@ -423,13 +456,44 @@ run_two_steps() {
     END {print value}
   ')
   [ -n "$wall_sec" ] || fail "normal-check summary did not contain wall_sec"
+  if ! comparison_summary=$(EXPECTED_STEPS=2 EXPECTED_ATOMS=216 \
+      REFERENCE_PLATFORM=XEON_8592P_IFX_32MPI_4OMP \
+      TEST_PLATFORM=H100_NVFORTRAN_SD_STATE_1GPU_1MPI_1OMP \
+      "$SCRIPT_DIR/compare_cb3x3x3_platform_results.sh" \
+      "$X86_2STEP_REFERENCE" "$run_dir" 2>&1); then
+    {
+      echo "wall_sec=$wall_sec"
+      echo "peak_memory_used_mib=$peak_memory_used_mib"
+      echo "peak_memory_percent=$peak_memory_percent"
+      echo "minimum_headroom_mib=$minimum_headroom_mib"
+      echo "normal_check=PASS"
+      echo "relaxed_compare=FAIL"
+      echo "initial_state_postrun_sha256_gate=PASS"
+      echo "baseline=NOT_APPLICABLE"
+    } >> "$run_dir/RUN_PROVENANCE.env"
+    echo "FPSEID21_CB3X3X3_H100_2STEP_FAILURE_BEGIN"
+    echo "stage=relaxed_compare exit_status=$run_status"
+    echo "run_dir=$run_dir"
+    echo "peak_memory_used_mib=$peak_memory_used_mib"
+    echo "peak_memory_percent=$peak_memory_percent"
+    echo "minimum_headroom_mib=$minimum_headroom_mib"
+    echo "comparison_output_begin"
+    printf '%s\n' "$comparison_summary"
+    echo "comparison_output_end"
+    echo "initial_state_postrun_sha256_gate=PASS"
+    echo "Stop here; do not run 100 steps."
+    echo "FPSEID21_CB3X3X3_H100_2STEP_FAILURE_END"
+    exit 1
+  fi
+  printf '%s\n' "$comparison_summary"
   {
     echo "wall_sec=$wall_sec"
     echo "peak_memory_used_mib=$peak_memory_used_mib"
     echo "peak_memory_percent=$peak_memory_percent"
     echo "minimum_headroom_mib=$minimum_headroom_mib"
     echo "normal_check=PASS"
-    echo "same_input_compare=NOT_AVAILABLE"
+    echo "relaxed_compare=PASS"
+    echo "initial_state_postrun_sha256_gate=PASS"
     echo "baseline=NOT_APPLICABLE"
   } >> "$run_dir/RUN_PROVENANCE.env"
 
@@ -437,6 +501,10 @@ run_two_steps() {
   echo "revision=$revision"
   echo "label=$run_label"
   echo "run_dir=$run_dir"
+  echo "state_dir=$STATE_DIR"
+  echo "state_producer_revision=${state_producer_revision:-NOT_RECORDED}"
+  echo "state_lineage=${state_lineage:-NOT_RECORDED}"
+  echo "platform_root=$PLATFORM_ROOT"
   echo "device=$gpu_name"
   echo "configuration=1_H100_1_MPI_1_OpenMP_diagnostic_OFF"
   echo "wall_sec=$wall_sec"
@@ -444,9 +512,10 @@ run_two_steps() {
   echo "peak_memory_percent=$peak_memory_percent"
   echo "minimum_headroom_mib=$minimum_headroom_mib"
   echo "normal_check=PASS"
-  echo "same_input_compare=NOT_AVAILABLE"
+  echo "relaxed_compare=PASS"
+  echo "initial_state_postrun_sha256_gate=PASS"
   echo "two_step_memory_gate=PASS"
-  echo "hundred_step_authorization=PENDING_REVIEW"
+  echo "hundred_step_authorization=BLOCKED_DIAGNOSTIC_ONLY"
   echo "baseline=NOT_APPLICABLE"
   echo "FPSEID21_CB3X3X3_H100_2STEP_PASS_END"
 }

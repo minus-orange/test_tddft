@@ -1,6 +1,6 @@
 # TDDFT OpenACC GPU Handoff
 
-Last updated: 2026-09-03
+Last updated: 2026-09-04
 
 ## Current State
 
@@ -16,8 +16,10 @@ Last updated: 2026-09-03
 - Current source implementation: Step 107 commit `c46cfa9`
 - Pending correctness candidate: replace the three uninitialized `K` indices
   in ELECTF macroscopic-current occupation factors with the enclosing k-point
-  loop index `IK`. This shared CPU/GPU source correction is not accepted until
-  the bounded runtime-check and correctness gates pass.
+  loop index `IK`. The bounded runtime-check confirmed that it removes the NaN
+  current, but comparison with the canonical ifx-SD-state result still failed
+  grossly; the correction remains unaccepted pending the revised state-lineage
+  correctness gates.
 - Rejected Step 45 implementation: `da24adf`
 - Step 45 rollback: `c406a4a`
 - Validated diagnostic implementation: Step 46 `edfafed` plus enforcement
@@ -25,8 +27,10 @@ Last updated: 2026-09-03
 - Rejected Step 47 implementation: `0252da9`
 - Step 47 and Step 46 source rollback: `35f8542`
 - H100 baseline-adoption record: `7fc0c6d`
-- Current HEAD source status: the numerical path matches accepted Step 107
-  source `c46cfa9`; Step 110 and Step 112 are rejected and restored. Step 117
+- Current HEAD source status: accepted numerical source remains Step 107
+  `c46cfa9`, while the three-reference `K` to `IK` correction is present only
+  as a pending correctness candidate. Step 110 and Step 112 are rejected and
+  restored. Step 117
   consolidates the common CPU/GPU timer in `mod_timer.f90`, directly names
   each region at its call site, and removes `prof_timer.f`. Step 119 adds
   call-path tracking and an indented inclusive-time tree to `[Timer Output]`;
@@ -1623,6 +1627,34 @@ platform subtree; canonical state and existing results are never overwritten.
 No SD or TDDFT run has occurred. Return the read-only chain preflight first,
 then require separate approval for SD and for TDDFT. No 100-step action or
 baseline path exists.
+
+The isolated chain at revision `5917b115d765` has now completed. NVFORTRAN SD
+used the existing ifx CG output and the historically validated O1/Kieee flags.
+Its normal 216-force check passed, and its relaxed comparison with ifx SD was
+exact for ETOT, convergence, forces, and band energies. The private density
+and wavefunction hashes both differ from the canonical ifx-SD state; this
+shows that the state content differs but does not alone prove a binary-format
+incompatibility.
+
+NVFORTRAN CPU/FFTW TDDFT consumed that private state for two steps using
+32 MPI x 3 OpenMP. It passed normal and relaxed checks and matched the fixed
+Xeon 8592+ ifx result exactly in ETOT, total energy, forces, positions, and
+velocities. Its `642.453624964`-sec wall is diagnostic only. This substantially
+reduces suspicion of NVFORTRAN TDDFT arithmetic and implicates the previously
+mixed ifx-SD-state -> NVFORTRAN-TDDFT lineage. The earlier invalid H100 runs
+used that mixed canonical state and therefore do not establish a GPU/OpenACC
+defect.
+
+The next bounded gate is H100 two-step execution with the reviewed
+NVFORTRAN-SD state, not a new source hypothesis. Use
+`tools/run_cb3x3x3_h100_nvfortran_sd.sh`: it fixes state revision
+`5917b115d765`, verifies the recorded lineage and the differing state hashes,
+and isolates output by state and source revisions. The common H100 helper now
+checks the fixed Xeon reference at preflight, hashes the selected state before
+and after execution, and requires normal plus relaxed comparison. Run and
+return `preflight` first; `tddft-2` needs separate approval. The wrapper has no
+100-step action, and accepted source, pending source status, and baselines are
+unchanged.
 
 ## Validation Gate
 

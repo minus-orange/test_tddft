@@ -3628,3 +3628,51 @@ was changed.
 - This is preparation only. No SD or TDDFT process has run. Review the new
   preflight before authorizing SD; review SD before authorizing TDDFT. The
   helper exposes no 100-step or baseline-adoption action.
+
+### Isolated NVFORTRAN SD lineage result
+
+- The reviewed chain at revision `5917b115d765` used the existing ifx CG
+  output, rebuilt only SD with NVFORTRAN using
+  `-O1 -mp -Msave -Mlarge_arrays -Kieee`, and ran SD with one OpenMP thread.
+  Its normal 216-force check passed, and the relaxed comparison with the ifx
+  SD result reported zero difference for ETOT, convergence, forces, and band
+  energies.
+- The resulting private TDDFT state is preserved below
+  `platforms/nvfortran_cpu_8468_spr21/chains/ifx_cg_nvfortran_sd/5917b115d765/state`.
+  Its recorded density and wavefunction SHA-256 values both differ from the
+  canonical ifx-SD state. This establishes different state content, but the
+  hashes alone do not distinguish numerical phase/content differences from a
+  compiler-dependent representation issue.
+- NVFORTRAN CPU/FFTW TDDFT then consumed that private state with the same
+  32 MPI x 3 OpenMP diagnostic configuration. Two steps completed in
+  `642.453624964` sec, passed the normal check, and matched the fixed Xeon
+  8592+ ifx result exactly: zero difference in ETOT, total energy, forces,
+  positions, and velocities under the relaxed comparator.
+- The successful CPU result substantially reduces suspicion of NVFORTRAN
+  TDDFT arithmetic itself. The failed CPU and H100 tests had instead paired
+  NVFORTRAN TDDFT with the canonical ifx-SD state, so that mixed producer /
+  consumer lineage is now the implicated controlled variable. This does not
+  by itself prove a generic file-format incompatibility or validate GPU
+  execution.
+- The `642.453624964`-sec wall is diagnostic only. Accepted numerical source
+  remains `c46cfa9`; the `K` to `IK` correction remains pending; no baseline
+  or 100-step authorization changes.
+
+### H100 diagnostic using the reviewed NVFORTRAN-SD state
+
+- Added `tools/run_cb3x3x3_h100_nvfortran_sd.sh` to fix the H100 input lineage
+  to the reviewed revision `5917b115d765` private state. It verifies the SD
+  provenance and requires both density and wavefunction manifest hashes to
+  differ from the canonical ifx-SD state before entering the common H100
+  preflight.
+- Its output is isolated below an H100 platform chain containing both the
+  state-producer revision and current source revision. Existing canonical-
+  state H100 builds and runs cannot be reused or overwritten.
+- The common H100 two-step gate now accepts explicit state and platform roots,
+  validates the fixed Xeon 8592+ ifx reference during preflight, verifies the
+  selected state SHA-256 before and after execution, and requires both the
+  normal check and relaxed platform comparison.
+- The wrapper exposes only `preflight` and `tddft-2`. No H100 process has run
+  under this lineage yet. Return and review `preflight` before separately
+  authorizing two steps; 100 steps and performance interpretation remain
+  blocked.
