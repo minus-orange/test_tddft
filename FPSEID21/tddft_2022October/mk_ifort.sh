@@ -16,8 +16,9 @@ set -eu
 #   REPORT_FLAGS   Extra compiler report flags when BUILD_REPORT=1.
 #   FPSEID_FRPRMN_DIAGNOSTIC  Set to 1 to enable the bounded FRPRMN host
 #                              preparation timers. Default: 0.
-#   FPSEID_COST_DETAIL_TIMERS  Set to 1 to enable the bounded ELECTF/NONLOCF
-#                              and S2 traversal timers. Default: 0.
+#   FPSEID_COST_DETAIL_TIMERS  Set to 1 to enable the bounded ELECTF/NONLOCF,
+#                              LOCPOTF/EWALDY, and S2 traversal timers on
+#                              either CPU or GPU builds. Default: 0.
 #   FFTW_LIBS  FFTW libraries. Default: -lfftw3_omp -lfftw3
 #   FFT_BACKEND FFT implementation. Default: fftw. Set to cufft for GPU FFT.
 #   CUFFT_LIBS  cuFFT libraries when FFT_BACKEND=cufft.

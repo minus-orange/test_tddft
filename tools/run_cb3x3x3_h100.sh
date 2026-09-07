@@ -26,6 +26,15 @@ MPI_FC=${MPI_FC:-mpifort}
 GPU_CC=${GPU_CC:-nvc}
 COST_DISTRIBUTION=${COST_DISTRIBUTION:-0}
 COST_PLATFORM=${COST_PLATFORM:-H100_NVFORTRAN_OPENACC_CUFFT_1MPI_1OMP}
+COST_DETAIL_TIMERS=${COST_DETAIL_TIMERS:-0}
+case "$COST_DETAIL_TIMERS" in
+  0) BUILD_VARIANT=standard ;;
+  1) BUILD_VARIANT=cost_detail ;;
+  *)
+    echo "ERROR: COST_DETAIL_TIMERS must be 0 or 1" >&2
+    exit 1
+    ;;
+esac
 
 usage() {
   cat <<'EOF'
@@ -38,7 +47,9 @@ Actions:
              and run one isolated 2-step startup/memory diagnostic.
 
 The fixed execution is 1 H100 / 1 MPI rank / 1 OpenMP thread with diagnostics
-off. There is deliberately no 100-step action; review the 2-step result first.
+off. COST_DETAIL_TIMERS=1 enables the same bounded timer labels used by the
+x86 path without enabling broad diagnostics. There is deliberately no
+100-step action; review the 2-step result first.
 EOF
 }
 
@@ -209,8 +220,13 @@ preflight() {
   else
     PLATFORM_ROOT=$BENCHMARK_ROOT/platforms/$platform_id
   fi
-  PLATFORM_BIN=$PLATFORM_ROOT/bin
-  PLATFORM_RUNS=$PLATFORM_ROOT/runs
+  if [ "$BUILD_VARIANT" = cost_detail ]; then
+    PLATFORM_BIN=$PLATFORM_ROOT/bin/cost_detail
+    PLATFORM_RUNS=$PLATFORM_ROOT/runs/cost_detail
+  else
+    PLATFORM_BIN=$PLATFORM_ROOT/bin
+    PLATFORM_RUNS=$PLATFORM_ROOT/runs
+  fi
   state_producer_revision=$(awk -F= '$1 == "revision" {
     print substr($0, index($0, "=") + 1); exit
   }' "$STATE_DIR/STATE_PROVENANCE.env")
@@ -241,6 +257,8 @@ preflight() {
   echo "mpi_compiler=$mpi_compiler"
   echo "mpirun=$mpirun_version"
   echo "flags=$EFFECTIVE_FLAGS"
+  echo "build_variant=$BUILD_VARIANT"
+  echo "cost_detail_timers=$COST_DETAIL_TIMERS"
   echo "configuration=1_H100_1_MPI_1_OpenMP_diagnostic_OFF"
   echo "state_dir=$STATE_DIR"
   echo "state_producer_revision=${state_producer_revision:-NOT_RECORDED}"
@@ -268,7 +286,9 @@ build_tddft() {
   trap release_build_lock EXIT HUP INT TERM
 
   echo "Building cb3x3x3 TDDFT for H100 cc90"
-  FPSEID_FRPRMN_DIAGNOSTIC=0 TDDFT_FFLAGS="$BASE_FLAGS" \
+  FPSEID_FRPRMN_DIAGNOSTIC=0 \
+  FPSEID_COST_DETAIL_TIMERS="$COST_DETAIL_TIMERS" \
+  TDDFT_FFLAGS="$BASE_FLAGS" \
   TDDFT_ONLY=1 ENABLE_GPU_FFT=1 ENABLE_PINNED_ALLOC=1 \
   NVFORTRAN="$NVFORTRAN" MPI_FC="$MPI_FC" GPU_CC="$GPU_CC" \
     "$SCRIPT_DIR/build_nvhpc.sh"
@@ -290,6 +310,8 @@ build_tddft() {
     echo "compiler=$compiler"
     echo "mpi_compiler=$mpi_compiler"
     echo "flags=$EFFECTIVE_FLAGS"
+    echo "build_variant=$BUILD_VARIANT"
+    echo "cost_detail_timers=$COST_DETAIL_TIMERS"
     echo "diagnostic=OFF"
     echo "tddft_executable_sha256=$(sha256_file "$PLATFORM_BIN/tddft_exe")"
   } > "$PLATFORM_BIN/BUILD_PROVENANCE.env"
@@ -353,6 +375,8 @@ run_two_steps() {
     echo "mpi_ranks=1"
     echo "omp_num_threads=1"
     echo "flags=$EFFECTIVE_FLAGS"
+    echo "build_variant=$BUILD_VARIANT"
+    echo "cost_detail_timers=$COST_DETAIL_TIMERS"
     echo "diagnostic=OFF"
     echo "state_dir=$STATE_DIR"
     echo "state_producer_revision=${state_producer_revision:-NOT_RECORDED}"
@@ -509,6 +533,8 @@ run_two_steps() {
   echo "platform_root=$PLATFORM_ROOT"
   echo "device=$gpu_name"
   echo "configuration=1_H100_1_MPI_1_OpenMP_diagnostic_OFF"
+  echo "build_variant=$BUILD_VARIANT"
+  echo "cost_detail_timers=$COST_DETAIL_TIMERS"
   echo "wall_sec=$wall_sec"
   echo "peak_memory_used_mib=$peak_memory_used_mib"
   echo "peak_memory_percent=$peak_memory_percent"
@@ -522,7 +548,8 @@ run_two_steps() {
   echo "FPSEID21_CB3X3X3_H100_2STEP_PASS_END"
   if [ "$COST_DISTRIBUTION" = 1 ]; then
     "$SCRIPT_DIR/report_cb3x3x3_2step_costs.sh" \
-      "$run_dir/dia-cb3x3x3_tm.out" "$COST_PLATFORM"
+      "$run_dir/dia-cb3x3x3_tm.out" "$COST_PLATFORM" \
+      "$COST_DETAIL_TIMERS" GPU
   fi
 }
 

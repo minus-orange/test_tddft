@@ -4,6 +4,7 @@ set -eu
 OUTPUT=${1:-}
 PLATFORM=${2:-UNKNOWN}
 DETAIL_EXPECTED=${3:-0}
+DETAIL_SCOPE=${4:-X86}
 
 fail() {
   echo "ERROR: $*" >&2
@@ -14,6 +15,10 @@ fail() {
 case "$DETAIL_EXPECTED" in
   0|1) ;;
   *) fail "DETAIL_EXPECTED must be 0 or 1" ;;
+esac
+case "$DETAIL_SCOPE" in
+  X86|GPU) ;;
+  *) fail "DETAIL_SCOPE must be X86 or GPU" ;;
 esac
 grep -q 'FPSEID_PROFILE_BEGIN' "$OUTPUT" ||
   fail "FPSEID_PROFILE block is missing: $OUTPUT"
@@ -75,7 +80,7 @@ awk -v denom="$time_step_total" '
   printf "top_inclusive_timer=%s,%s,%.6f,%.2f\n", $1, $2, $3, $4
 }'
 if [ "$DETAIL_EXPECTED" = 1 ]; then
-  echo "FPSEID21_CB3X3X3_X86_COST_DETAIL_BEGIN"
+  echo "FPSEID21_CB3X3X3_${DETAIL_SCOPE}_COST_DETAIL_BEGIN"
   echo "detail_timer_columns=label,count,max_rank_sec,avg_rank_sec,pct_of_time_step"
   awk -v denom="$time_step_total" '
     BEGIN {
@@ -143,7 +148,7 @@ if [ "$DETAIL_EXPECTED" = 1 ]; then
       print "detail_timer_gate=PASS"
     }
   ' "$OUTPUT"
-  echo "FPSEID21_CB3X3X3_X86_COST_DETAIL_END"
+  echo "FPSEID21_CB3X3X3_${DETAIL_SCOPE}_COST_DETAIL_END"
 fi
 echo "measurement_type=two_step_cost_distribution_diagnostic_not_baseline"
 echo "FPSEID21_CB3X3X3_2STEP_COST_DISTRIBUTION_END"

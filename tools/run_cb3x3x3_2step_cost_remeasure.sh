@@ -145,13 +145,15 @@ case "$ACTION" in
   preflight-gpu)
     CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0} STATE_DIR="$STATE_ROOT" \
       H100_PLATFORM_ROOT="$series_root/h100_nvfortran_openacc_cufft" \
+      COST_DETAIL_TIMERS=1 \
       "$SCRIPT_DIR/run_cb3x3x3_h100.sh" preflight
     ;;
   gpu)
     label="cb3x3x3_h100_nvfortran_sd_cost_2step_${timestamp}_${source_short_revision}"
     CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0} STATE_DIR="$STATE_ROOT" \
       H100_PLATFORM_ROOT="$series_root/h100_nvfortran_openacc_cufft" \
-      COST_DISTRIBUTION=1 COST_PLATFORM=H100_NVFORTRAN_OPENACC_CUFFT_1MPI_1OMP \
+      COST_DISTRIBUTION=1 COST_DETAIL_TIMERS=1 \
+      COST_PLATFORM=H100_NVFORTRAN_OPENACC_CUFFT_1MPI_1OMP \
       LABEL="$label" "$SCRIPT_DIR/run_cb3x3x3_h100.sh" tddft-2
     ;;
 esac

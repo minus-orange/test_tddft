@@ -1806,6 +1806,27 @@ internal gates, so no separate preflight output is requested. Return the CPU
 PASS block and complete X86 COST DETAIL block. Do not run GPU or 100 steps;
 accepted source, candidate status, authorization, and baselines are unchanged.
 
+The Ewald MPI-refined x86 run at revision `8680a14262de` passed every gate.
+Its diagnostic wall was `637.700742006` sec. Average-rank EWALD MPI time was
+`82.075418` sec: the 216-call force-reduction loop used `76.411924` sec
+(`93.1%`), the scalar energy reduction used `5.663451` sec, and the final
+force broadcast used `0.000029` sec. The energy reduction's `75.619843`-sec
+maximum additionally shows a large first-collective arrival imbalance on one
+rank. Repeated force reductions are therefore the next CPU implementation
+candidate, but no communication rewrite is included in this timer-parity
+revision.
+
+Per the user's standing instruction, every cost-detail timer must be available
+at the same source boundary in a future GPU comparison. The timer calls are
+in the shared GPU/CPU Fortran source, and the paired H100 action now enables
+the same `FPSEID_COST_DETAIL_TIMERS` macro, passes it explicitly through the
+NVHPC/cuFFT build, isolates the resulting executable and runs under
+`cost_detail`, and enforces the same required labels in the common reporter.
+GPU detail output uses `FPSEID21_CB3X3X3_GPU_COST_DETAIL_BEGIN/END`; x86 keeps
+the X86 block name. No GPU run is authorized by this preparation, and no
+standalone preflight output should be requested. Accepted numerical source,
+pending-candidate status, 100-step authorization, and baselines do not change.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

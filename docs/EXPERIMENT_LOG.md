@@ -3861,3 +3861,35 @@ was changed.
 - No standalone preflight return is requested. H100 and 100-step execution
   remain out of scope. Accepted source `c46cfa9`, pending candidate `bb5cb58`,
   and all formal baselines remain unchanged.
+
+### Xeon 8468 Ewald MPI split result and CPU/GPU timer parity
+
+- The x86-only run at revision `8680a14262de` completed two steps in
+  `637.700742006` sec. The normal 216-atom check, relaxed Xeon 8592+ ifx
+  comparison, post-run state SHA-256 gate, compiler isolation, and complete
+  detail-timer gate all passed. Max-rank `time_step_total` was `657.221919`
+  sec; this diagnostic wall and timer total are not baseline measurements.
+- EWALDY used `201.932605` sec max and `97.868088` sec average. Its MPI region
+  used `186.023930` sec max and `82.075418` sec average. The existing loop of
+  216 three-double force reductions accounted for `76.411924` average-rank
+  seconds, about `93.1%` of average EWALD MPI time. The scalar energy
+  reduction averaged `5.663451` sec but reached `75.619843` sec on one rank,
+  exposing a separate first-collective arrival imbalance. The final force
+  broadcast averaged only `0.000029` sec.
+- This measurement identifies repeated force reductions as the dominant
+  communication operation, but does not yet authorize aggregating them. Any
+  such implementation must preserve the force array layout, MPI reduction
+  semantics, CPU/FFTW fallback, and correctness gates as a separate
+  performance hypothesis.
+- All current detail timers are located around shared source boundaries used
+  by both CPU and `_OPENACC` builds. The H100 cost-distribution path now also
+  sets `FPSEID_COST_DETAIL_TIMERS=1`, explicitly propagates it through the
+  NVHPC build helper, isolates the GPU cost-detail executable and runs below
+  `cost_detail` subdirectories, records the build variant in provenance, and
+  requests the same required timer labels from the common reporter.
+- GPU detail output is bounded by
+  `FPSEID21_CB3X3X3_GPU_COST_DETAIL_BEGIN/END`; x86 retains its existing X86
+  block names. No GPU or additional x86 calculation has run for this parity
+  preparation. No standalone preflight is requested, and 100 steps remain
+  blocked. Accepted source `c46cfa9`, pending candidate `bb5cb58`, and formal
+  baselines remain unchanged.
