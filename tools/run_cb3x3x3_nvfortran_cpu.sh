@@ -45,6 +45,8 @@ MPIRUN=${MPIRUN:-mpirun}
 FFTW_CC=${FFTW_CC:-gcc}
 FFTW_FC=${FFTW_FC:-gfortran}
 FFTW_F77=${FFTW_F77:-$FFTW_FC}
+COST_DISTRIBUTION=${COST_DISTRIBUTION:-0}
+COST_PLATFORM=${COST_PLATFORM:-XEON_8468_NVFORTRAN_CPU_FFTW_32MPI_3OMP}
 
 usage() {
   cat <<'EOF'
@@ -762,6 +764,10 @@ run_two_steps() {
   echo "hundred_step_authorization=BLOCKED_DIAGNOSTIC_ONLY"
   echo "baseline=NOT_APPLICABLE"
   echo "${result_tag}_END"
+  if [ "$COST_DISTRIBUTION" = 1 ]; then
+    "$SCRIPT_DIR/report_cb3x3x3_2step_costs.sh" \
+      "$run_dir/dia-cb3x3x3_tm.out" "$COST_PLATFORM"
+  fi
 }
 
 case "$ACTION" in

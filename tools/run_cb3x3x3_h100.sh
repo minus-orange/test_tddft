@@ -24,6 +24,8 @@ MPIRUN=${MPIRUN:-mpirun}
 NVFORTRAN=${NVFORTRAN:-nvfortran}
 MPI_FC=${MPI_FC:-mpifort}
 GPU_CC=${GPU_CC:-nvc}
+COST_DISTRIBUTION=${COST_DISTRIBUTION:-0}
+COST_PLATFORM=${COST_PLATFORM:-H100_NVFORTRAN_OPENACC_CUFFT_1MPI_1OMP}
 
 usage() {
   cat <<'EOF'
@@ -518,6 +520,10 @@ run_two_steps() {
   echo "hundred_step_authorization=BLOCKED_DIAGNOSTIC_ONLY"
   echo "baseline=NOT_APPLICABLE"
   echo "FPSEID21_CB3X3X3_H100_2STEP_PASS_END"
+  if [ "$COST_DISTRIBUTION" = 1 ]; then
+    "$SCRIPT_DIR/report_cb3x3x3_2step_costs.sh" \
+      "$run_dir/dia-cb3x3x3_tm.out" "$COST_PLATFORM"
+  fi
 }
 
 case "$ACTION" in

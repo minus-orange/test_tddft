@@ -3709,3 +3709,29 @@ was changed.
 - Accepted numerical source remains `c46cfa9`; `bb5cb58` remains the pending
   correctness candidate. No baseline, numerical-source adoption, or
   performance conclusion changes.
+
+### Paired x86/H100 two-step cost-distribution remeasurement preparation
+
+- The 100-step cb3x3x3 validation is deferred because its turnaround is too
+  long for the next diagnosis. The replacement experiment measures exactly
+  two steps on the paired `spr21` paths: Xeon Platinum 8468 NVFORTRAN
+  CPU/FFTW at 32 MPI x 3 OpenMP and H100 NVFORTRAN OpenACC/cuFFT at one GPU,
+  one MPI rank, and one OpenMP thread.
+- Both paths use the same reviewed private `IFX_CG_TO_NVFORTRAN_SD` state
+  produced at revision `5917b115d765`, the same current TDDFT source, and
+  diagnostics off. Both retain the pre/post state SHA-256 gate, normal
+  two-step/216-atom check, and relaxed comparison with the fixed Xeon 8592+
+  ifx two-step result.
+- Added `tools/run_cb3x3x3_2step_cost_remeasure.sh` with separate read-only
+  preflights and separately authorized x86/GPU execution actions. Results are
+  isolated by state revision, source revision, and platform below a dedicated
+  `comparisons/2step_cost_distribution` subtree.
+- Added `tools/report_cb3x3x3_2step_costs.sh`. It prints the same selected
+  timer rows and top 12 inclusive timers for both platforms, normalized to
+  each path's max-rank `time_step_total`. Inclusive percentages overlap and
+  are explicitly not summed to 100%; the output is a cost-distribution
+  diagnostic rather than a performance baseline.
+- This preparation changes no Fortran source, timer boundary, compiler flag,
+  MPI/OpenMP configuration, accepted numerical source, pending-candidate
+  status, or formal baseline. The earlier 100-step preflight remains available
+  but is not the next requested action.

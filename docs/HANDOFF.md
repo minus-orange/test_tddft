@@ -1682,6 +1682,28 @@ then require three diagnostic-off runs and their median. Accepted numerical
 source remains `c46cfa9`, `bb5cb58` remains pending, and every formal baseline
 is unchanged.
 
+The user has deferred that 100-step path because its turnaround is too long
+and requested a paired two-step cost-distribution remeasurement first. The
+bounded comparison uses the same reviewed NVFORTRAN-SD state and current
+source on `spr21`: Xeon 8468 NVFORTRAN CPU/FFTW at 32 MPI x 3 OpenMP, and H100
+NVFORTRAN OpenACC/cuFFT at 1 GPU x 1 MPI x 1 OpenMP. These configurations are
+not treated as equivalent scaling points; compare the relative inclusive
+timer distribution within each path, not only the raw wall ratio.
+
+Use `tools/run_cb3x3x3_2step_cost_remeasure.sh`. It has independent
+`preflight-x86`, `x86`, `preflight-gpu`, and `gpu` actions, and isolates each
+new result below `comparisons/2step_cost_distribution` by state revision,
+source revision, and platform. Each execution still requires normal check,
+relaxed comparison with the fixed Xeon 8592+ ifx two-step result, and the
+post-run state SHA-256 gate. The common compact report prints selected timers
+and the top 12 inclusive timers as percentages of that platform's max-rank
+`time_step_total`; overlapping inclusive percentages must not be added.
+
+The next actions are the two read-only preflights. Review both before starting
+either calculation. This is diagnostic-only: accepted source `c46cfa9`,
+pending candidate `bb5cb58`, the deferred 100-step authorization, and every
+formal baseline remain unchanged.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for
