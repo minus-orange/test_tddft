@@ -1656,6 +1656,32 @@ return `preflight` first; `tddft-2` needs separate approval. The wrapper has no
 100-step action, and accepted source, pending source status, and baselines are
 unchanged.
 
+That H100 two-step gate has now passed at revision `c442b1a` on `spr21` with
+the reviewed NVFORTRAN-SD state. The run used one NVIDIA H100 PCIe, one MPI
+rank, one OpenMP thread, explicit `cc90`, pinned separate memory, and
+diagnostics off. Normal check, relaxed comparison with the fixed Xeon 8592+
+ifx result, and the post-run initial-state SHA-256 gate all passed. Sampled
+peak GPU memory was 55,881 MiB (`68.52%`), leaving 25,678 MiB; wall was about
+`1469.507` sec and remains diagnostic-only. The result is isolated from the
+earlier canonical-state H100 runs.
+
+The next action is only the new read-only `preflight-100` gate in
+`tools/run_cb3x3x3_h100_nvfortran_sd.sh`. It keeps the same state lineage,
+H100 1 GPU / 1 MPI / 1 OpenMP configuration, pinned separate memory, and
+diagnostics-off build intent. It verifies the canonical generated 100-step
+input, the fixed Xeon 8592+ ifx 100-step reference, state/reference hashes,
+clean synchronized Git, H100 availability, and a run-01-only destination
+isolated below `100step_validation`. The terminal contract requires pre/post
+state SHA-256, normal 100-step/216-atom check, and relaxed Xeon comparison for
+the future run.
+
+There is still no 100-step execution action. Run 01 requires separate human
+approval after the preflight is reviewed. Runs 02/03 are blocked until run 01
+passes all state-integrity and correctness gates; performance adoption would
+then require three diagnostic-off runs and their median. Accepted numerical
+source remains `c46cfa9`, `bb5cb58` remains pending, and every formal baseline
+is unchanged.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

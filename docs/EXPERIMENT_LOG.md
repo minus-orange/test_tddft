@@ -3676,3 +3676,36 @@ was changed.
   under this lineage yet. Return and review `preflight` before separately
   authorizing two steps; 100 steps and performance interpretation remain
   blocked.
+
+### H100 reviewed NVFORTRAN-SD-state 2-step result and 100-step preflight gate
+
+- The user-operated H100 two-step run at revision `c442b1a` used the private
+  `IFX_CG_TO_NVFORTRAN_SD` state produced at revision `5917b115d765`, one
+  NVIDIA H100 PCIe, one MPI rank, one OpenMP thread, explicit `cc90`, pinned
+  separate memory, and diagnostics off.
+- The normal 216-atom check and the relaxed comparison with the fixed Xeon
+  Platinum 8592+ ifx two-step result both passed. The initial-state SHA-256
+  gate also passed after execution, proving that the shared private state was
+  not changed by the run.
+- The sampled GPU peak was 55,881 MiB (`68.52%`) with 25,678 MiB minimum
+  headroom. The reported wall was approximately `1469.507` sec. It is a
+  diagnostic startup/capacity value, not a performance result or baseline.
+- This is the first correct H100 result for the reviewed NVFORTRAN-SD lineage.
+  It supports the conclusion that the earlier approximately 595.939-Ha
+  failure was principally associated with the mixed ifx-SD-state to
+  NVFORTRAN-TDDFT lineage rather than being established as an H100,
+  OpenACC, or cuFFT defect.
+- Added a read-only `preflight-100` action to
+  `tools/run_cb3x3x3_h100_nvfortran_sd.sh`. It verifies the same private state
+  lineage and hashes, the fixed 100-step input, the Xeon 8592+ ifx 100-step
+  reference and its normal/relaxed self-check, synchronized clean Git, H100
+  identity and availability, and a run-01-only isolated destination below a
+  `100step_validation` subtree.
+- The preflight records that a future run 01 must repeat state SHA-256 checks
+  before and after execution and must pass the 100-step/216-atom normal check
+  plus the relaxed Xeon comparison. No 100-step execution action exists in
+  this preparation commit. Run 01 requires separate user approval, and runs
+  02/03 remain blocked until run 01 passes every gate.
+- Accepted numerical source remains `c46cfa9`; `bb5cb58` remains the pending
+  correctness candidate. No baseline, numerical-source adoption, or
+  performance conclusion changes.
