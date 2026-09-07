@@ -1827,6 +1827,20 @@ the X86 block name. No GPU run is authorized by this preparation, and no
 standalone preflight output should be requested. Accepted numerical source,
 pending-candidate status, 100-step authorization, and baselines do not change.
 
+The next separate x86 hypothesis batches EWALDY's 216 three-double force
+reductions into one reduction over the identical contiguous
+`FORCE(3,NATOT)` element set. Rank zero receives into a distinct work array,
+copies the active result back, and then executes the unchanged force
+broadcast. The MPI operation, root, communicator, and timer boundary are
+preserved, but message grouping can affect reduction association; require the
+normal and relaxed correctness gates before interpreting timing.
+
+The implementation is shared by CPU and GPU builds and uses the same
+`ewald_force_reduce` timer on both. Test only x86 two-step cost detail first,
+using the direct `./tools/run_cb3x3x3_2step_cost_remeasure.sh x86` action with
+its internal gates. Do not request or return a standalone preflight. GPU and
+100-step runs remain blocked, and no accepted source or baseline changes.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

@@ -3893,3 +3893,23 @@ was changed.
   preparation. No standalone preflight is requested, and 100 steps remain
   blocked. Accepted source `c46cfa9`, pending candidate `bb5cb58`, and formal
   baselines remain unchanged.
+
+### Batched EWALD force-reduction candidate
+
+- The next x86-only performance hypothesis replaces the 216 consecutive
+  three-double `MPI_Reduce` calls inside each EWALDY invocation with one
+  `MPI_Reduce` over the same contiguous `FORCE(3,NATOT)` elements. Rank zero
+  receives into a separate `FORCE_SUM(3,NTAUQ)` work array and copies the
+  active atoms back before the existing force broadcast.
+- This preserves the per-element `MPI_SUM`, root rank, communicator, source
+  force values, final broadcast, and enclosing timer boundaries. It changes
+  collective message grouping and may therefore change floating-point
+  association selected by MPI; the normal check and relaxed Xeon comparison
+  remain mandatory before the candidate can be considered correct.
+- The change is in the common Fortran source and its GNU fallback, so the CPU
+  and GPU paths retain the same operation and timer labels. The first and only
+  authorized measurement is x86 two-step cost detail. GPU and 100-step runs
+  remain blocked, and no standalone preflight return is requested.
+- This is a pending performance candidate, not an adopted numerical source or
+  baseline. Accepted source remains `c46cfa9` and `bb5cb58` remains the
+  pending correctness candidate.
