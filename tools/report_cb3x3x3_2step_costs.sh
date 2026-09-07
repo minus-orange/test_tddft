@@ -79,8 +79,8 @@ if [ "$DETAIL_EXPECTED" = 1 ]; then
   echo "detail_timer_columns=label,count,max_rank_sec,avg_rank_sec,pct_of_time_step"
   awk -v denom="$time_step_total" '
     BEGIN {
-      n_names=split("s2_nonlocal_forward s2_nonlocal_reverse exnlp_gemm_data exnlp_gemm_dot exnlp_gemm_update electf_force electf_locpotf_total locpotf_ewald ewald_g_space ewald_r_space ewald_mpi locpotf_local_mpi locpotf_local_energy locpotf_xc locpotf_hartree electf_nonlocf_total nonlocf_setup nonlocf_kinetic_mpi nonlocf_k_gprep nonlocf_k_reduce nonlocf_k_comm nonlocf_eed_gprep nonlocf_eed_reduce nonlocf_eed_comm nonlocf_ylm_radius nonlocf_getylm nonlocf_seppotf seppotf_phase seppotf_s_projector seppotf_s_band_reduce seppotf_p_projector seppotf_p_band_reduce seppotf_mpi nonlocf_finalize", names, " ")
-      n_required=split("s2_nonlocal_forward s2_nonlocal_reverse exnlp_gemm_data exnlp_gemm_dot electf_force electf_locpotf_total locpotf_ewald ewald_g_space ewald_r_space ewald_mpi locpotf_local_mpi locpotf_local_energy locpotf_xc locpotf_hartree electf_nonlocf_total nonlocf_setup nonlocf_kinetic_mpi nonlocf_getylm nonlocf_seppotf nonlocf_finalize", required, " ")
+      n_names=split("s2_nonlocal_forward s2_nonlocal_reverse exnlp_gemm_data exnlp_gemm_dot exnlp_gemm_update electf_force electf_locpotf_total locpotf_ewald ewald_g_space ewald_r_space ewald_mpi ewald_energy_reduce ewald_force_reduce ewald_force_bcast locpotf_local_mpi locpotf_local_energy locpotf_xc locpotf_hartree electf_nonlocf_total nonlocf_setup nonlocf_kinetic_mpi nonlocf_k_gprep nonlocf_k_reduce nonlocf_k_comm nonlocf_eed_gprep nonlocf_eed_reduce nonlocf_eed_comm nonlocf_ylm_radius nonlocf_getylm nonlocf_seppotf seppotf_phase seppotf_s_projector seppotf_s_band_reduce seppotf_p_projector seppotf_p_band_reduce seppotf_mpi nonlocf_finalize", names, " ")
+      n_required=split("s2_nonlocal_forward s2_nonlocal_reverse exnlp_gemm_data exnlp_gemm_dot electf_force electf_locpotf_total locpotf_ewald ewald_g_space ewald_r_space ewald_mpi ewald_energy_reduce ewald_force_reduce ewald_force_bcast locpotf_local_mpi locpotf_local_energy locpotf_xc locpotf_hartree electf_nonlocf_total nonlocf_setup nonlocf_kinetic_mpi nonlocf_getylm nonlocf_seppotf nonlocf_finalize", required, " ")
     }
     /FPSEID_PROFILE_BEGIN/ {active=1; next}
     /FPSEID_PROFILE_END/ {active=0}
@@ -125,6 +125,8 @@ if [ "$DETAIL_EXPECTED" = 1 ]; then
         -vavg["locpotf_xc"]-vavg["locpotf_hartree"]
       ewald_gap=vavg["locpotf_ewald"]-vavg["ewald_g_space"] \
         -vavg["ewald_r_space"]-vavg["ewald_mpi"]
+      ewald_mpi_gap=vavg["ewald_mpi"]-vavg["ewald_energy_reduce"] \
+        -vavg["ewald_force_reduce"]-vavg["ewald_force_bcast"]
       nonlocf_gap=vavg["electf_nonlocf_total"]-vavg["nonlocf_setup"] \
         -vavg["nonlocf_kinetic_mpi"]-vavg["nonlocf_getylm"] \
         -vavg["nonlocf_seppotf"]-vavg["nonlocf_finalize"]
@@ -135,6 +137,7 @@ if [ "$DETAIL_EXPECTED" = 1 ]; then
       printf "derived_avg_rank_gap=electf_other,%.6f\n", electf_gap
       printf "derived_avg_rank_gap=locpotf_other,%.6f\n", locpotf_gap
       printf "derived_avg_rank_gap=ewald_other,%.6f\n", ewald_gap
+      printf "derived_avg_rank_gap=ewald_mpi_other,%.6f\n", ewald_mpi_gap
       printf "derived_avg_rank_gap=nonlocf_other,%.6f\n", nonlocf_gap
       printf "derived_avg_rank_gap=nonlocf_kinetic_other,%.6f\n", kinetic_gap
       print "detail_timer_gate=PASS"

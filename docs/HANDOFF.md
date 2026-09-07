@@ -1781,6 +1781,31 @@ Do not run the GPU action or any 100-step path. This remains a two-step
 cost-distribution diagnostic and changes no accepted source, pending-candidate
 status, authorization, or baseline.
 
+That LOCPOTF-refined run has passed at revision `bbbfa60b3466`. Its two-step
+wall was `642.733152151` sec with normal check, relaxed Xeon comparison,
+post-run state hash, compiler isolation, and `detail_timer_gate=PASS`.
+Max-rank `time_step_total` was `662.387905` sec. ELECTF averaged
+`112.061372` sec, of which LOCPOTF averaged `100.897018` sec and NONLOCF
+`11.164293` sec.
+
+Within LOCPOTF, EWALDY averaged `100.096320` sec. Its MPI region averaged
+`84.228958` sec and reached `190.285469` sec on the slowest rank, while
+G-space averaged `15.765906` sec and R-space only `0.010464` sec. The
+MPI-region max/average ratio is about 2.26. This is unlike the historical
+one-rank A100 measurement where G-space dominated; do not transfer that GPU
+cost distribution to the current 32-rank x86 path.
+
+The next x86-only timer build subdivides the unchanged EWALD MPI region into
+one scalar energy reduction, the loop of 216 three-double force reductions,
+and the final force broadcast. It retains an enclosing timer and reports the
+average-rank remainder. It does not aggregate collectives or alter their
+ordering; an implementation hypothesis will be selected only after this
+measurement. Invoke `./tools/run_cb3x3x3_2step_cost_remeasure.sh x86`
+directly after updating to the prepared revision. The wrapper performs its
+internal gates, so no separate preflight output is requested. Return the CPU
+PASS block and complete X86 COST DETAIL block. Do not run GPU or 100 steps;
+accepted source, candidate status, authorization, and baselines are unchanged.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

@@ -1067,9 +1067,16 @@ CC        WRITE(6,*) '  EWALD R ',ESUMR
       call start_timer('ewald_mpi')
 #endif
       TEMP=0.d0
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call start_timer('ewald_energy_reduce')
+#endif
        call MPI_Reduce(EWA,TEMP,1,MPI_DOUBLE_PRECISION
      &    ,MPI_SUM, 0,MPI_COMM_WORLD,ierr)
       EWA=TEMP
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call stop_timer('ewald_energy_reduce')
+      call start_timer('ewald_force_reduce')
+#endif
       FSUB(1)=0.d0
       FSUB(2)=0.d0
       FSUB(3)=0.d0
@@ -1080,9 +1087,14 @@ CC        WRITE(6,*) '  EWALD R ',ESUMR
        FORCE(2,it)=FSUB(2)
        FORCE(3,it)=FSUB(3)
       enddo
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call stop_timer('ewald_force_reduce')
+      call start_timer('ewald_force_bcast')
+#endif
       call MPI_Bcast(FORCE,3*NATOT,MPI_DOUBLE_PRECISION,0,
      &        MPI_COMM_WORLD,ierr)
 #ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call stop_timer('ewald_force_bcast')
       call stop_timer('ewald_mpi')
 #endif
 C     DO 17 I=1,NTAUQ

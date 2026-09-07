@@ -3828,3 +3828,36 @@ was changed.
   finer distribution; no standalone preflight return is requested.
 - Accepted source remains `c46cfa9`, `bb5cb58` remains pending, and H100,
   100-step authorization, and every formal baseline remain unchanged.
+
+### Xeon 8468 LOCPOTF/EWALDY split result and MPI refinement
+
+- The x86-only run at revision `bbbfa60b3466` completed two steps in
+  `642.733152151` sec. NVFORTRAN CPU/FFTW used 32 MPI ranks and three OpenMP
+  threads per rank with the reviewed NVFORTRAN-SD state. Normal check,
+  relaxed Xeon 8592+ ifx comparison, post-run state SHA-256, compiler
+  isolation, and the complete detail-timer gate all passed.
+- Max-rank `time_step_total` was `662.387905` sec. `electf_force` used
+  `218.940246` sec max and `112.061372` sec average. Its LOCPOTF child used
+  `207.042919` sec max and `100.897018` sec average, while NONLOCF used only
+  `11.908612` sec max and `11.164293` sec average.
+- EWALDY explains essentially all LOCPOTF time: `206.150818` sec max and
+  `100.096320` sec average. Its MPI parent was `190.285469` sec max and
+  `84.228958` sec average, about `84.1%` of average EWALDY time, with a
+  max/average ratio of about `2.26`. G-space was `17.362690` sec max and
+  `15.765906` sec average; R-space was only `0.011146` sec max. LOCPOTF's
+  other measured children and its average-rank gap were each below one
+  second.
+- This 32-rank CPU result differs materially from the historical one-rank
+  A100 Step 97 result, where G-space dominated and EWALD MPI was negligible.
+  The paths and rank counts are different, so the old GPU distribution must
+  not be projected onto the current x86 configuration.
+- The next instrumentation keeps the enclosing `ewald_mpi` timer and splits
+  it into the scalar energy reduction, the existing loop of 216 three-double
+  force reductions, and the final force broadcast. It changes no collective,
+  buffer, reduction order, equation, or numerical source. Average-rank
+  unclassified MPI time is reported as a gap. A future optimization such as
+  collective aggregation is not authorized until this split identifies the
+  dominant operation.
+- No standalone preflight return is requested. H100 and 100-step execution
+  remain out of scope. Accepted source `c46cfa9`, pending candidate `bb5cb58`,
+  and all formal baselines remain unchanged.
