@@ -1,3 +1,7 @@
+#if defined(FPSEID_COST_DETAIL_TIMERS) && !defined(FPSEID_FRPRMN_DIAGNOSTIC)
+#define FPSEID_FRPRMN_DIAGNOSTIC 1
+#define FPSEID_COST_DETAIL_LOCAL_ALIAS 1
+#endif
 C------------PROGRAM UNIT FORCE-------------------------
 C******************************************************
 C FORCE
@@ -2113,3 +2117,7 @@ c      write(6,*)( eenl(ib),ib=1,nbnd )
 c *** temp check : end
       RETURN
       END
+#ifdef FPSEID_COST_DETAIL_LOCAL_ALIAS
+#undef FPSEID_FRPRMN_DIAGNOSTIC
+#undef FPSEID_COST_DETAIL_LOCAL_ALIAS
+#endif

@@ -3764,3 +3764,33 @@ was changed.
   The H100 half of the paired measurement has not run because the user chose
   to proceed with x86 only. Accepted source `c46cfa9`, pending candidate
   `bb5cb58`, 100-step authorization, and all formal baselines remain unchanged.
+
+### x86-only cb3x3x3 cost-detail timer preparation
+
+- The reviewed NVFORTRAN-SD state may exercise force/nonlocal paths that were
+  not material in the earlier Si111-H measurements. The next bounded x86 run
+  therefore subdivides the two dominant inclusive regions without changing
+  any numerical operation, loop order, array shape, MPI/OpenMP placement, or
+  FFT backend.
+- Added an opt-in `FPSEID_COST_DETAIL_TIMERS` build switch. On the x86
+  cost-distribution path it creates a separate `cost_detail` executable and
+  enables the existing ELECTF/NONLOCF/SEPPOTF timers while leaving runtime
+  checks and the broad `FPSEID_FRPRMN_DIAGNOSTIC` mode off.
+- ELECTF will be split into local and nonlocal force work. NONLOCF will be
+  split into setup, kinetic/MPI preparation and communication, YLM, SEPPOTF,
+  and finalization. The SEPPOTF s/p branch timers report `NOT_CALLED` when a
+  path is absent, making the input-dependent traversal explicit.
+- Added `s2_nonlocal_forward` and `s2_nonlocal_reverse` around the two S2
+  traversals. The report also prints the existing `exnlp_gemm_data`, dot, and
+  update timers, plus average-rank unclassified gaps for ELECTF, NONLOCF, and
+  its kinetic/MPI subtree. Max-rank percentages remain inclusive and must not
+  be summed.
+- The compact detail report is bounded by
+  `FPSEID21_CB3X3X3_X86_COST_DETAIL_BEGIN/END` and requires all structural
+  parent timers before printing `detail_timer_gate=PASS`. Result storage
+  remains isolated by state revision, source revision, and platform.
+- Shell syntax, preprocessing with the detail macro, a synthetic report test,
+  and an isolated GNU CPU/FFTW full build passed. No x86 calculation, H100
+  calculation, or 100-step calculation has run for this preparation.
+  Accepted source `c46cfa9`, pending candidate `bb5cb58`, authorizations, and
+  formal baselines remain unchanged.

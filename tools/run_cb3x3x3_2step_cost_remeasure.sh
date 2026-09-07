@@ -26,6 +26,9 @@ Actions:
 Both paths use the reviewed NVFORTRAN-SD state produced at revision
 5917b115d765 and require normal plus relaxed comparison with the fixed Xeon
 8592+ ifx result. Each run prints the same compact inclusive-timer report.
+The x86 path additionally uses a revision-isolated cost-detail build to split
+ELECTF/NONLOCF and the forward/reverse S2 nonlocal traversals. Runtime checks
+and the broad FRPRMN diagnostic remain off.
 The measurements are diagnostic only and cannot establish a baseline.
 EOF
 }
@@ -125,6 +128,7 @@ case "$ACTION" in
     STATE_DIR="$STATE_ROOT" \
       NVFORTRAN_PLATFORM_ROOT="$series_root/x86_nvfortran_cpu_fftw" \
       NVFORTRAN_FFTW_ROOT="$CPU_FFTW_ROOT" \
+      COST_DETAIL_TIMERS=1 \
       "$SCRIPT_DIR/run_cb3x3x3_nvfortran_cpu.sh" preflight
     ;;
   x86)
@@ -132,6 +136,7 @@ case "$ACTION" in
     STATE_DIR="$STATE_ROOT" \
       NVFORTRAN_PLATFORM_ROOT="$series_root/x86_nvfortran_cpu_fftw" \
       NVFORTRAN_FFTW_ROOT="$CPU_FFTW_ROOT" COST_DISTRIBUTION=1 \
+      COST_DETAIL_TIMERS=1 \
       COST_PLATFORM=XEON_8468_NVFORTRAN_CPU_FFTW_32MPI_3OMP LABEL="$label" \
       "$SCRIPT_DIR/run_cb3x3x3_nvfortran_cpu.sh" tddft-2
     ;;

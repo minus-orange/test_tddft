@@ -1828,6 +1828,9 @@ c ***  temp check for YLM : end
 ! ==============================================================================
       nbndloc=nend-nbegin+1
       call start_timer('s2_nonlocal')
+#ifdef FPSEID_COST_DETAIL_TIMERS
+      call start_timer('s2_nonlocal_forward')
+#endif
       call start_timer('s2_nonlocal_make')
       loopcnt = 0
       dthalf=0.5d0*dt
@@ -1939,6 +1942,9 @@ c ***  temp check for YLM : end
       call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,ngwork,.false.)
       call stop_timer('s2_nonlocal_gemm')
+#ifdef FPSEID_COST_DETAIL_TIMERS
+      call stop_timer('s2_nonlocal_forward')
+#endif
       call stop_timer('s2_nonlocal')
 c ****
 c *****  temp check : orthonormality
@@ -2115,6 +2121,9 @@ c *** temp check:end
 C
 c ** fourth: operate nonlocal potential terms
       call start_timer('s2_nonlocal')
+#ifdef FPSEID_COST_DETAIL_TIMERS
+      call start_timer('s2_nonlocal_reverse')
+#endif
       call start_timer('s2_nonlocal_make')
 ! The second traversal is the exact reverse of the first traversal over
 ! ity/it/il/ip/l.  Reuse the read-only staging columns and reverse their
@@ -2124,6 +2133,9 @@ c ** fourth: operate nonlocal potential terms
       call exnlp_gemm_present_inputs(ng2q,work2_,p,omega,ngnl_,
      &     mxbnd,nbegin,nend,loopcnt,cfac_,ngwork,.true.)
       call stop_timer('s2_nonlocal_gemm')
+#ifdef FPSEID_COST_DETAIL_TIMERS
+      call stop_timer('s2_nonlocal_reverse')
+#endif
       call stop_timer('s2_nonlocal')
 c ****
 c *****  temp check : orthonormality

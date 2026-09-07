@@ -1729,6 +1729,31 @@ instrumentation or running another calculation. Do not start the paired H100
 action or either 100-step path. This result changes no accepted numerical
 source, pending-candidate status, authorization, or baseline.
 
+The selected x86-only follow-up is a cost-detail timer build. The cb3x3x3
+wrapper now enables `FPSEID_COST_DETAIL_TIMERS` only for its x86 path and
+stores the executable below a separate `cost_detail` build subtree. It leaves
+runtime checks and the broad FRPRMN diagnostic off. Existing source timers
+split ELECTF into local/nonlocal work and NONLOCF into setup, kinetic/MPI,
+YLM, SEPPOTF, and finalization; SEPPOTF s/p branch rows explicitly show
+`NOT_CALLED` for paths not traversed. New S2 parent timers distinguish the
+forward and reverse nonlocal traversals, while existing EXNLP rows distinguish
+data, dot, and update work.
+
+The report prints average-rank unclassified gaps, because subtracting maxima
+from potentially different MPI ranks is not a valid partition. Its required
+structural rows are enclosed by
+`FPSEID21_CB3X3X3_X86_COST_DETAIL_BEGIN/END`; missing required timers stop the
+helper instead of yielding a partial PASS. The implementation passed shell
+syntax, preprocessing, a synthetic reporter test, and an isolated GNU
+CPU/FFTW full build. It changes timing observation only, not numerical work.
+
+Run and return only
+`./tools/run_cb3x3x3_2step_cost_remeasure.sh preflight-x86` first. After that
+output is reviewed, the same wrapper's `x86` action requires separate
+execution approval. Do not run its GPU action or any 100-step path. Accepted
+numerical source `c46cfa9`, pending candidate `bb5cb58`, and all formal
+baselines remain unchanged.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

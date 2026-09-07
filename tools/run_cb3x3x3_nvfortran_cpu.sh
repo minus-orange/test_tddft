@@ -47,6 +47,17 @@ FFTW_FC=${FFTW_FC:-gfortran}
 FFTW_F77=${FFTW_F77:-$FFTW_FC}
 COST_DISTRIBUTION=${COST_DISTRIBUTION:-0}
 COST_PLATFORM=${COST_PLATFORM:-XEON_8468_NVFORTRAN_CPU_FFTW_32MPI_3OMP}
+COST_DETAIL_TIMERS=${COST_DETAIL_TIMERS:-0}
+case "$COST_DETAIL_TIMERS" in
+  0|1) ;;
+  *)
+    echo "ERROR: COST_DETAIL_TIMERS must be 0 or 1" >&2
+    exit 1
+    ;;
+esac
+if [ "$BUILD_VARIANT" = standard ] && [ "$COST_DETAIL_TIMERS" = 1 ]; then
+  BUILD_VARIANT=cost_detail
+fi
 
 usage() {
   cat <<'EOF'
@@ -266,11 +277,11 @@ preflight() {
   else
     PLATFORM_ROOT=$BENCHMARK_ROOT/platforms/$platform_id
   fi
-  if [ "$BUILD_VARIANT" = runtime_checks ]; then
-    PLATFORM_BIN=$PLATFORM_ROOT/bin/runtime_checks/$short_revision
-  else
-    PLATFORM_BIN=$PLATFORM_ROOT/bin/$short_revision
-  fi
+  case "$BUILD_VARIANT" in
+    runtime_checks) PLATFORM_BIN=$PLATFORM_ROOT/bin/runtime_checks/$short_revision ;;
+    cost_detail) PLATFORM_BIN=$PLATFORM_ROOT/bin/cost_detail/$short_revision ;;
+    *) PLATFORM_BIN=$PLATFORM_ROOT/bin/$short_revision ;;
+  esac
   PLATFORM_RUNS=$PLATFORM_ROOT/runs
   if [ -n "$NVFORTRAN_FFTW_ROOT" ]; then
     FFTW_ROOT=$NVFORTRAN_FFTW_ROOT
@@ -308,6 +319,7 @@ preflight() {
   echo "configuration=${NPROCS}_MPI_${OMP_NUM_THREADS}_OpenMP_diagnostic_OFF"
   echo "build_variant=$BUILD_VARIANT"
   echo "runtime_checks=$RUNTIME_CHECKS"
+  echo "cost_detail_timers=$COST_DETAIL_TIMERS"
   echo "compiler=$nvfortran_version"
   echo "mpi_compiler=$mpi_fc_version"
   echo "mpi_compiler_backend=$mpi_fc_backend"
@@ -367,6 +379,7 @@ build_tddft() {
      grep -Fqx "revision=$revision" "$provenance" &&
      grep -Fqx "build_variant=$BUILD_VARIANT" "$provenance" &&
      grep -Fqx "runtime_checks=$RUNTIME_CHECKS" "$provenance" &&
+     grep -Fqx "cost_detail_timers=$COST_DETAIL_TIMERS" "$provenance" &&
      grep -Fqx "compiler=$nvfortran_version" "$provenance" &&
      grep -Fqx "mpi_compiler_backend=$mpi_fc_backend" "$provenance" &&
      grep -Fqx "flags=$CPU_FLAGS" "$provenance" &&
@@ -427,6 +440,7 @@ build_tddft() {
     cd "$source_dir"
     FC="$MPI_FC" CC="$MPI_CC" FFLAGS="$CPU_FLAGS" \
       FPSEID_FRPRMN_DIAGNOSTIC=0 FFT_BACKEND=fftw \
+      FPSEID_COST_DETAIL_TIMERS="$COST_DETAIL_TIMERS" \
       FFTW_ROOT="$FFTW_ROOT" FFTW_LIBS="$FFTW_LIBS" ./mk_ifort.sh
   ) || build_status=$?
   if [ "$build_status" -ne 0 ]; then
@@ -471,6 +485,7 @@ build_tddft() {
     echo "accepted_numerical_source=c46cfa9"
     echo "build_variant=$BUILD_VARIANT"
     echo "runtime_checks=$RUNTIME_CHECKS"
+    echo "cost_detail_timers=$COST_DETAIL_TIMERS"
     echo "hostname=$host_name"
     echo "cpu_model=$cpu_model"
     echo "sku=$detected_sku"
@@ -548,6 +563,8 @@ run_two_steps() {
   timestamp=$(date '+%Y%m%d_%H%M%S')
   if [ "$BUILD_VARIANT" = runtime_checks ]; then
     default_label="cb3x3x3_${platform_id}_${NPROCS}mpi_${OMP_NUM_THREADS}omp_runtime_checks_2step_${timestamp}_${short_revision}"
+  elif [ "$BUILD_VARIANT" = cost_detail ]; then
+    default_label="cb3x3x3_${platform_id}_${NPROCS}mpi_${OMP_NUM_THREADS}omp_cost_detail_2step_${timestamp}_${short_revision}"
   else
     default_label="cb3x3x3_${platform_id}_${NPROCS}mpi_${OMP_NUM_THREADS}omp_2step_${timestamp}_${short_revision}"
   fi
@@ -570,6 +587,7 @@ run_two_steps() {
     echo "accepted_numerical_source=c46cfa9"
     echo "build_variant=$BUILD_VARIANT"
     echo "runtime_checks=$RUNTIME_CHECKS"
+    echo "cost_detail_timers=$COST_DETAIL_TIMERS"
     echo "hostname=$host_name"
     echo "cpu_model=$cpu_model"
     echo "sku=$detected_sku"
@@ -755,6 +773,7 @@ run_two_steps() {
   echo "run_dir=$run_dir"
   echo "outcome=$result_outcome"
   echo "build_variant=$BUILD_VARIANT"
+  echo "cost_detail_timers=$COST_DETAIL_TIMERS"
   echo "configuration=NVFORTRAN_CPU_FFTW_${NPROCS}_MPI_${OMP_NUM_THREADS}_OpenMP"
   echo "wall_sec=$wall_sec"
   echo "normal_check=PASS"
@@ -766,7 +785,8 @@ run_two_steps() {
   echo "${result_tag}_END"
   if [ "$COST_DISTRIBUTION" = 1 ]; then
     "$SCRIPT_DIR/report_cb3x3x3_2step_costs.sh" \
-      "$run_dir/dia-cb3x3x3_tm.out" "$COST_PLATFORM"
+      "$run_dir/dia-cb3x3x3_tm.out" "$COST_PLATFORM" \
+      "$COST_DETAIL_TIMERS"
   fi
 }
 

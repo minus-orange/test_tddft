@@ -16,6 +16,8 @@ set -eu
 #   REPORT_FLAGS   Extra compiler report flags when BUILD_REPORT=1.
 #   FPSEID_FRPRMN_DIAGNOSTIC  Set to 1 to enable the bounded FRPRMN host
 #                              preparation timers. Default: 0.
+#   FPSEID_COST_DETAIL_TIMERS  Set to 1 to enable the bounded ELECTF/NONLOCF
+#                              and S2 traversal timers. Default: 0.
 #   FFTW_LIBS  FFTW libraries. Default: -lfftw3_omp -lfftw3
 #   FFT_BACKEND FFT implementation. Default: fftw. Set to cufft for GPU FFT.
 #   CUFFT_LIBS  cuFFT libraries when FFT_BACKEND=cufft.
@@ -31,6 +33,7 @@ FFTW_ROOT=${FFTW_ROOT:-}
 FFT_BACKEND=${FFT_BACKEND:-fftw}
 BUILD_REPORT=${BUILD_REPORT:-0}
 FPSEID_FRPRMN_DIAGNOSTIC=${FPSEID_FRPRMN_DIAGNOSTIC:-0}
+FPSEID_COST_DETAIL_TIMERS=${FPSEID_COST_DETAIL_TIMERS:-0}
 
 FC_PROBE="$FC
 $("$FC" --version 2>/dev/null || true)
@@ -70,6 +73,16 @@ case "$FPSEID_FRPRMN_DIAGNOSTIC" in
     ;;
   *)
     echo "ERROR: FPSEID_FRPRMN_DIAGNOSTIC must be 0 or 1." >&2
+    exit 1
+    ;;
+esac
+case "$FPSEID_COST_DETAIL_TIMERS" in
+  0) ;;
+  1)
+    FFLAGS="$FFLAGS -DFPSEID_COST_DETAIL_TIMERS=1"
+    ;;
+  *)
+    echo "ERROR: FPSEID_COST_DETAIL_TIMERS must be 0 or 1." >&2
     exit 1
     ;;
 esac
@@ -171,6 +184,7 @@ echo "  FC=$FC"
 echo "  CC=$CC"
 echo "  FFLAGS=$FFLAGS"
 echo "  FPSEID_FRPRMN_DIAGNOSTIC=$FPSEID_FRPRMN_DIAGNOSTIC"
+echo "  FPSEID_COST_DETAIL_TIMERS=$FPSEID_COST_DETAIL_TIMERS"
 echo "  CFLAGS=$CFLAGS"
 echo "  LDFLAGS=$LDFLAGS"
 echo "  FFT_INCLUDE=$FFT_INCLUDE"
