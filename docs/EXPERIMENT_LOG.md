@@ -3913,3 +3913,34 @@ was changed.
 - This is a pending performance candidate, not an adopted numerical source or
   baseline. Accepted source remains `c46cfa9` and `bb5cb58` remains the
   pending correctness candidate.
+
+### GPU-oriented cross-platform cost-timer expansion
+
+- Following the user's standing instruction, new cost timers must use the
+  same labels at corresponding CPU and GPU source boundaries wherever both
+  paths exist, and the compact reporter must preserve those rows for later
+  cross-platform comparison. This rule is now recorded in `AGENTS.md`.
+- Historical one-rank GPU evidence identifies Ewald G-space, S2 local
+  scatter/FFT/multiply/gather, S2 nonlocal generation/transfers/GEMM, HLOCAL,
+  and accelerated SEPPOTF as plausible non-MPI costs. The cost-detail build
+  therefore adds no numerical operation but expands timing around those
+  regions.
+- Ewald G-space is split into exponential/setup work and atom-pair work on
+  both CPU and GPU. The OpenACC path further reports data entry, diagonal
+  energy work, the atom-pair kernel, force scaling, and data exit. S2 local
+  now has explicit inverse- and forward-FFT timers alongside its existing
+  zero/scatter/potential/multiply/gather timers.
+- HLOCAL uses the same zero, scatter, inverse FFT, potential multiply,
+  forward FFT, and gather labels on CPU and GPU. GPU-only enclosing data
+  entry/exit and total labels identify transfer overhead. Existing accelerated
+  SEPPOTF project, s/p batch, final, and download timers are included in the
+  GPU detail contract; an absent p branch remains `NOT_CALLED`.
+- The common reporter requires structural shared rows on both platforms and
+  requires the accelerator-specific rows for GPU detail output. It reports
+  average-rank gaps for Ewald G-space, S2 local, the OpenACC Ewald breakdown,
+  and GPU HLOCAL. Inclusive regions still overlap and are not summed globally.
+- This is diagnostic instrumentation only. Broad FRPRMN diagnostics and reuse
+  observers remain off, and no GPU or additional x86 run has occurred. The
+  batched force-reduction candidate remains pending x86 two-step validation;
+  accepted source, correctness-candidate status, 100-step authorization, and
+  baselines remain unchanged.

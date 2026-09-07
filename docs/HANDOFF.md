@@ -1841,6 +1841,27 @@ using the direct `./tools/run_cb3x3x3_2step_cost_remeasure.sh x86` action with
 its internal gates. Do not request or return a standalone preflight. GPU and
 100-step runs remain blocked, and no accepted source or baseline changes.
 
+The user added a standing requirement that every new cost timer be placed at
+equivalent CPU/GPU source boundaries with identical labels whenever both paths
+exist, and be retained in the compact cross-platform report. `AGENTS.md` now
+records this requirement.
+
+The latest cost-detail instrumentation prioritizes plausible one-rank GPU
+costs outside MPI. It splits Ewald G-space into setup and pair work on both
+platforms, with OpenACC-only data entry, diagonal, pair-kernel, force-scale,
+and data-exit children. S2 local gains explicit inverse/forward FFT labels
+beside zero, scatter, potential build, multiply, and gather. HLOCAL now uses
+the same compute/FFT labels on CPU and GPU and adds GPU data-entry/exit and
+total rows. Existing accelerated SEPPOTF project, s/p batch, final, and
+download timers are also required by the GPU detail report, except that an
+input-absent p branch may remain `NOT_CALLED`.
+
+This instrumentation changes no equation, ownership, loop, FFT call, or MPI
+operation and does not enable broad diagnostics or reuse observers. It is
+combined only with the already separate batched-force-Reduce candidate at
+HEAD. Continue with x86 two-step validation first via the direct `x86` wrapper
+action; GPU and 100-step execution remain blocked.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for

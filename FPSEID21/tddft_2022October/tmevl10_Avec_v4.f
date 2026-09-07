@@ -2006,8 +2006,14 @@ c     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
 c *** for Kokubo ASL FFT
 ! ==============================================================================
 c    batched FFTW/cuFFT-compatible path over all local bands
+#ifdef FPSEID_COST_DETAIL_TIMERS
+      call start_timer('s2_inverse_fft')
+#endif
       CALL FFT3BX_fftwASL_ACC_BATCH(NRX,NRY,NRZ,NXYZ,nbndloc,
      &                RHO1_,RHO2_,plancfp,plancbp)
+#ifdef FPSEID_COST_DETAIL_TIMERS
+      call stop_timer('s2_inverse_fft')
+#endif
 ! ==============================================================================
 c *** for Kokubo FFTW
 c      call FFT3BX_fftw(NXYZ,RHO1,plancfp,plancbp)
@@ -2083,8 +2089,14 @@ c     & WSAVEX,WSAVEY,WSAVEZ,IFACX,IFACY,IFACZ,LX1,LX2,LY1,LY2,LZ1,LZ2)
 c *** for Kokubo ASL FFT
 ! ==============================================================================
 c    batched FFTW/cuFFT-compatible path over all local bands
+#ifdef FPSEID_COST_DETAIL_TIMERS
+      call start_timer('s2_forward_fft')
+#endif
       CALL FFT3FX_fftwASL_ACC_BATCH(NRX,NRY,NRZ,NXYZ,nbndloc,
      &                RHO2_,RHO1_,plancfp,plancbp)
+#ifdef FPSEID_COST_DETAIL_TIMERS
+      call stop_timer('s2_forward_fft')
+#endif
 ! ==============================================================================
 c *** for Kokubo FFTW
 c      call FFT3FX_fftw(NXYZ,RHO2,plancfp,plancbp)
@@ -2656,39 +2668,69 @@ C
 #ifdef _OPENACC
 C     Keep both FFTs and their surrounding loops on one temporary device
 C     allocation.  The host fallback below remains the reference path.
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#if defined(FPSEID_FRPRMN_DIAGNOSTIC) || defined(FPSEID_COST_DETAIL_TIMERS)
       call start_timer('hlocal_acc_total')
+      call start_timer('hlocal_acc_enter')
 #endif
 !$acc data copyin(COEF(1:NG2),VG(1:NXYZ),J2G(1:NG2))
 !$acc& copyout(DCOEF(1:NG2))
 !$acc& create(RHO1(1:NXYZ),RHO2(1:NXYZ))
+#if defined(FPSEID_FRPRMN_DIAGNOSTIC) || defined(FPSEID_COST_DETAIL_TIMERS)
+      call stop_timer('hlocal_acc_enter')
+      call start_timer('hlocal_zero')
+#endif
 !$acc parallel loop present(RHO1(1:NXYZ))
          DO JG=1,NXYZ
            RHO1(JG)=(0.D0,0.D0)
          ENDDO
+#if defined(FPSEID_FRPRMN_DIAGNOSTIC) || defined(FPSEID_COST_DETAIL_TIMERS)
+      call stop_timer('hlocal_zero')
+      call start_timer('hlocal_scatter')
+#endif
 !$acc parallel loop present(RHO1(1:NXYZ),COEF(1:NG2),
 !$acc& J2G(1:NG2))
          DO IG=1,NG2
            JG=J2G(IG)
            RHO1(JG)=COEF(IG)
          ENDDO
+#if defined(FPSEID_FRPRMN_DIAGNOSTIC) || defined(FPSEID_COST_DETAIL_TIMERS)
+      call stop_timer('hlocal_scatter')
+      call start_timer('hlocal_inverse_fft')
+#endif
       CALL FFT3BX_fftwASL_ACC(NRX,NRY,NRZ,NXYZ,RHO1,RHO2,
      &                        plancfp,plancbp)
+#if defined(FPSEID_FRPRMN_DIAGNOSTIC) || defined(FPSEID_COST_DETAIL_TIMERS)
+      call stop_timer('hlocal_inverse_fft')
+      call start_timer('hlocal_vg_multiply')
+#endif
 !$acc parallel loop present(RHO1(1:NXYZ),RHO2(1:NXYZ),
 !$acc& VG(1:NXYZ))
          DO I=1,NXYZ
            RHO2(I)=VG(I)*RHO1(I)
          ENDDO
+#if defined(FPSEID_FRPRMN_DIAGNOSTIC) || defined(FPSEID_COST_DETAIL_TIMERS)
+      call stop_timer('hlocal_vg_multiply')
+      call start_timer('hlocal_forward_fft')
+#endif
       CALL FFT3FX_fftwASL_ACC(NRX,NRY,NRZ,NXYZ,RHO2,RHO1,
      &                        plancfp,plancbp)
+#if defined(FPSEID_FRPRMN_DIAGNOSTIC) || defined(FPSEID_COST_DETAIL_TIMERS)
+      call stop_timer('hlocal_forward_fft')
+      call start_timer('hlocal_gather')
+#endif
 !$acc parallel loop present(RHO2(1:NXYZ),DCOEF(1:NG2),
 !$acc& J2G(1:NG2))
          DO IG=1,NG2
            JG=J2G(IG)
            DCOEF(IG)=RHO2(JG)
          ENDDO
+#if defined(FPSEID_FRPRMN_DIAGNOSTIC) || defined(FPSEID_COST_DETAIL_TIMERS)
+      call stop_timer('hlocal_gather')
+      call start_timer('hlocal_acc_exit')
+#endif
 !$acc end data
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#if defined(FPSEID_FRPRMN_DIAGNOSTIC) || defined(FPSEID_COST_DETAIL_TIMERS)
+      call stop_timer('hlocal_acc_exit')
       call stop_timer('hlocal_acc_total')
 #endif
 #else

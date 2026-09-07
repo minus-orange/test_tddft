@@ -52,6 +52,10 @@ human approval boundaries, adoption, and rollback.
   request only targeted follow-up output when necessary.
 - Never treat the newest HEAD as the performance baseline automatically.
 - Measure performance with diagnostics off.
+- When adding cost timers, place equivalent timers at the corresponding CPU
+  and GPU source boundaries wherever both paths exist, use the same labels,
+  and include them in the compact cross-platform report so later x86/GPU
+  distributions remain comparable.
 - Require both the normal result check and relaxed comparison.
 - Accept performance only after three runs and a median comparison.
 - Record rejected experiments, then revert their source changes.

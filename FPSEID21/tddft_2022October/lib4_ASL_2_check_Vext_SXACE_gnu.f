@@ -812,6 +812,7 @@ C    DO G SUM FOR THE CASE WHERE A=B
 C
 #ifdef FPSEID_FORCE_DETAIL_TIMERS
       call start_timer('ewald_g_space')
+      call start_timer('ewald_g_setup')
 #endif
       ESUM0=0.D0
       DO 1530 I=NG,2,-1
@@ -820,21 +821,36 @@ C
         ESUM0=ESUM0+EXPG(I)
  1530 CONTINUE
       ESUM0=ESUM0-0.25D0/EPS
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call stop_timer('ewald_g_setup')
+      call start_timer('ewald_g_pairs')
+#endif
 C
 C     START LOOP OVER ATOMS IN CELL
 C
 #ifdef _OPENACC
       IPBEG=nbegint(my_rank)
       IPEND=nendt(my_rank)
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call start_timer('ewald_g_acc_enter')
+#endif
 !$acc data copy(FORCE(1:3,1:NATOT))
 !$acc& copyin(G(1:4,1:NG),EXPG(1:NG),TAU(1:3,1:NATOT))
 !$acc& copyin(ZZ(1:NATOT))
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call stop_timer('ewald_g_acc_enter')
+      call start_timer('ewald_g_diag')
+#endif
       DO I=1,NATOT
         IPAIR=I*(I-1)/2+1
         if ( IPAIR.ge.IPBEG .and. IPAIR.le.IPEND ) then
           ESUMG=ESUMG+ZZ(I)*ZZ(I)*ESUM0
         endif
       ENDDO
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call stop_timer('ewald_g_diag')
+      call start_timer('ewald_g_acc_pair')
+#endif
 !$acc parallel loop gang collapse(2) default(present)
 !$acc& private(IPAIR,RX,RY,RZ,ESUB,FSX,FSY,FSZ)
 !$acc& reduction(+:ESUMG)
@@ -880,14 +896,27 @@ C
           ENDIF
         ENDDO
       ENDDO
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call stop_timer('ewald_g_acc_pair')
+#endif
       ESUMG=PI2*ESUMG/OMEGA
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call start_timer('ewald_g_force_scale')
+#endif
 !$acc parallel loop collapse(2) default(present)
       DO K=1,3
         DO I=1,NATOT
           FORCE(K,I)=4.D0*PI*ZZ(I)*TPIBA*FORCE(K,I)/OMEGA
         ENDDO
       ENDDO
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call stop_timer('ewald_g_force_scale')
+      call start_timer('ewald_g_acc_exit')
+#endif
 !$acc end data
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call stop_timer('ewald_g_acc_exit')
+#endif
 #else
       iseq=0
       DO 1540 I=1,NATOT
@@ -956,6 +985,7 @@ ccc      endif  ! if i.ge.nbegint(my_rank) .and. i.le.nendt(my_rank)
  1545 CONTINUE
 #endif
 #ifdef FPSEID_FORCE_DETAIL_TIMERS
+      call stop_timer('ewald_g_pairs')
       call stop_timer('ewald_g_space')
 #endif
 C

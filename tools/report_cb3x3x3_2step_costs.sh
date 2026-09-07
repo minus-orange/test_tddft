@@ -82,10 +82,11 @@ awk -v denom="$time_step_total" '
 if [ "$DETAIL_EXPECTED" = 1 ]; then
   echo "FPSEID21_CB3X3X3_${DETAIL_SCOPE}_COST_DETAIL_BEGIN"
   echo "detail_timer_columns=label,count,max_rank_sec,avg_rank_sec,pct_of_time_step"
-  awk -v denom="$time_step_total" '
+  awk -v denom="$time_step_total" -v scope="$DETAIL_SCOPE" '
     BEGIN {
-      n_names=split("s2_nonlocal_forward s2_nonlocal_reverse exnlp_gemm_data exnlp_gemm_dot exnlp_gemm_update electf_force electf_locpotf_total locpotf_ewald ewald_g_space ewald_r_space ewald_mpi ewald_energy_reduce ewald_force_reduce ewald_force_bcast locpotf_local_mpi locpotf_local_energy locpotf_xc locpotf_hartree electf_nonlocf_total nonlocf_setup nonlocf_kinetic_mpi nonlocf_k_gprep nonlocf_k_reduce nonlocf_k_comm nonlocf_eed_gprep nonlocf_eed_reduce nonlocf_eed_comm nonlocf_ylm_radius nonlocf_getylm nonlocf_seppotf seppotf_phase seppotf_s_projector seppotf_s_band_reduce seppotf_p_projector seppotf_p_band_reduce seppotf_mpi nonlocf_finalize", names, " ")
-      n_required=split("s2_nonlocal_forward s2_nonlocal_reverse exnlp_gemm_data exnlp_gemm_dot electf_force electf_locpotf_total locpotf_ewald ewald_g_space ewald_r_space ewald_mpi ewald_energy_reduce ewald_force_reduce ewald_force_bcast locpotf_local_mpi locpotf_local_energy locpotf_xc locpotf_hartree electf_nonlocf_total nonlocf_setup nonlocf_kinetic_mpi nonlocf_getylm nonlocf_seppotf nonlocf_finalize", required, " ")
+      n_names=split("s2_nonlocal_forward s2_nonlocal_reverse s2_nonlocal_make s2_nonlocal_gemm exnlp_gemm_data exnlp_gemm_dot exnlp_gemm_update exnlp_work1_enter exnlp_meta_enter s2_fft_local s2_zero_rho2 s2_scatter_p s2_inverse_fft s2_vg_build s2_local_multiply s2_forward_fft s2_gather_p hlocal_acc_total hlocal_acc_enter hlocal_zero hlocal_scatter hlocal_inverse_fft hlocal_vg_multiply hlocal_forward_fft hlocal_gather hlocal_acc_exit electf_force electf_locpotf_total locpotf_ewald ewald_g_space ewald_g_setup ewald_g_pairs ewald_g_acc_enter ewald_g_diag ewald_g_acc_pair ewald_g_force_scale ewald_g_acc_exit ewald_r_space ewald_mpi ewald_energy_reduce ewald_force_reduce ewald_force_bcast locpotf_local_mpi locpotf_local_energy locpotf_xc locpotf_hartree electf_nonlocf_total nonlocf_setup nonlocf_kinetic_mpi nonlocf_k_gprep nonlocf_k_reduce nonlocf_k_comm nonlocf_eed_gprep nonlocf_eed_reduce nonlocf_eed_comm nonlocf_ylm_radius nonlocf_getylm nonlocf_seppotf seppotf_acc_project seppotf_acc_s_batch seppotf_acc_p_batch seppotf_acc_final seppotf_acc_download seppotf_phase seppotf_s_projector seppotf_s_band_reduce seppotf_p_projector seppotf_p_band_reduce seppotf_mpi nonlocf_finalize", names, " ")
+      n_required=split("s2_nonlocal_forward s2_nonlocal_reverse s2_nonlocal_make s2_nonlocal_gemm exnlp_gemm_data exnlp_gemm_dot s2_fft_local s2_zero_rho2 s2_scatter_p s2_inverse_fft s2_vg_build s2_local_multiply s2_forward_fft s2_gather_p electf_force electf_locpotf_total locpotf_ewald ewald_g_space ewald_g_setup ewald_g_pairs ewald_r_space ewald_mpi ewald_energy_reduce ewald_force_reduce ewald_force_bcast locpotf_local_mpi locpotf_local_energy locpotf_xc locpotf_hartree electf_nonlocf_total nonlocf_setup nonlocf_kinetic_mpi nonlocf_getylm nonlocf_seppotf nonlocf_finalize", required, " ")
+      n_gpu_required=split("hlocal_acc_total hlocal_acc_enter hlocal_zero hlocal_scatter hlocal_inverse_fft hlocal_vg_multiply hlocal_forward_fft hlocal_gather hlocal_acc_exit ewald_g_acc_enter ewald_g_diag ewald_g_acc_pair ewald_g_force_scale ewald_g_acc_exit seppotf_acc_project seppotf_acc_s_batch seppotf_acc_final seppotf_acc_download", gpu_required, " ")
     }
     /FPSEID_PROFILE_BEGIN/ {active=1; next}
     /FPSEID_PROFILE_END/ {active=0}
@@ -117,6 +118,15 @@ if [ "$DETAIL_EXPECTED" = 1 ]; then
           missing=1
         }
       }
+      if (scope == "GPU") {
+        for (i=1; i<=n_gpu_required; i++) {
+          if (count[gpu_required[i]] == "") {
+            printf "ERROR: required GPU detail timer is missing: %s\n",
+              gpu_required[i] > "/dev/stderr"
+            missing=1
+          }
+        }
+      }
       if (missing) exit 2
       if (count["exnlp_gemm_update"] == "") {
         print "exnlp_update_scope=FUSED_INTO_EXNLP_GEMM_DOT"
@@ -132,6 +142,20 @@ if [ "$DETAIL_EXPECTED" = 1 ]; then
         -vavg["ewald_r_space"]-vavg["ewald_mpi"]
       ewald_mpi_gap=vavg["ewald_mpi"]-vavg["ewald_energy_reduce"] \
         -vavg["ewald_force_reduce"]-vavg["ewald_force_bcast"]
+      ewald_g_gap=vavg["ewald_g_space"]-vavg["ewald_g_setup"] \
+        -vavg["ewald_g_pairs"]
+      ewald_g_acc_gap=vavg["ewald_g_pairs"]-vavg["ewald_g_acc_enter"] \
+        -vavg["ewald_g_diag"]-vavg["ewald_g_acc_pair"] \
+        -vavg["ewald_g_force_scale"]-vavg["ewald_g_acc_exit"]
+      s2_local_gap=vavg["s2_fft_local"]-vavg["s2_zero_rho2"] \
+        -vavg["s2_scatter_p"]-vavg["s2_inverse_fft"] \
+        -vavg["s2_vg_build"]-vavg["s2_local_multiply"] \
+        -vavg["s2_forward_fft"]-vavg["s2_gather_p"]
+      hlocal_gap=vavg["hlocal_acc_total"]-vavg["hlocal_acc_enter"] \
+        -vavg["hlocal_zero"]-vavg["hlocal_scatter"] \
+        -vavg["hlocal_inverse_fft"]-vavg["hlocal_vg_multiply"] \
+        -vavg["hlocal_forward_fft"]-vavg["hlocal_gather"] \
+        -vavg["hlocal_acc_exit"]
       nonlocf_gap=vavg["electf_nonlocf_total"]-vavg["nonlocf_setup"] \
         -vavg["nonlocf_kinetic_mpi"]-vavg["nonlocf_getylm"] \
         -vavg["nonlocf_seppotf"]-vavg["nonlocf_finalize"]
@@ -143,6 +167,12 @@ if [ "$DETAIL_EXPECTED" = 1 ]; then
       printf "derived_avg_rank_gap=locpotf_other,%.6f\n", locpotf_gap
       printf "derived_avg_rank_gap=ewald_other,%.6f\n", ewald_gap
       printf "derived_avg_rank_gap=ewald_mpi_other,%.6f\n", ewald_mpi_gap
+      printf "derived_avg_rank_gap=ewald_g_other,%.6f\n", ewald_g_gap
+      printf "derived_avg_rank_gap=s2_local_other,%.6f\n", s2_local_gap
+      if (scope == "GPU") {
+        printf "derived_avg_rank_gap=ewald_g_acc_other,%.6f\n", ewald_g_acc_gap
+        printf "derived_avg_rank_gap=hlocal_acc_other,%.6f\n", hlocal_gap
+      }
       printf "derived_avg_rank_gap=nonlocf_other,%.6f\n", nonlocf_gap
       printf "derived_avg_rank_gap=nonlocf_kinetic_other,%.6f\n", kinetic_gap
       print "detail_timer_gate=PASS"
