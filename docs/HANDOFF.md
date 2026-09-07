@@ -1857,10 +1857,24 @@ download timers are also required by the GPU detail report, except that an
 input-absent p branch may remain `NOT_CALLED`.
 
 This instrumentation changes no equation, ownership, loop, FFT call, or MPI
-operation and does not enable broad diagnostics or reuse observers. It is
-combined only with the already separate batched-force-Reduce candidate at
-HEAD. Continue with x86 two-step validation first via the direct `x86` wrapper
-action; GPU and 100-step execution remain blocked.
+operation and does not enable broad diagnostics or reuse observers. It was
+first measured together with the separate batched-force-Reduce candidate.
+
+The x86 two-step run at `e92c2d7` passed normal and relaxed correctness, state
+hash, and compiler-isolation gates, but rejected the batched EWALD force
+reduction. Wall time was `639.979973` seconds and average-rank
+`time_step_total` was `659.249771` seconds, neither better than the prior
+`637.700742` and `656.992110` seconds. Although average-rank
+`ewald_force_reduce` fell from `76.411924` to `0.000023` seconds, the unchanged
+following broadcast rose from `0.000029` to `76.984278` seconds;
+average-rank `ewald_mpi` remained `82.634830` seconds versus `82.075418`.
+This identifies rank-arrival imbalance rather than collective call count as
+the dominant wait. The original 216 per-atom reductions are restored while
+all cross-platform detail timers are retained. The new detail split measured
+average-rank S2 local at `26.700538` seconds, S2 nonlocal at `112.470878`
+seconds, and the sum of CPU HLOCAL child rows at `40.170181` seconds. GPU and
+100-step runs remain blocked, with no accepted-source, candidate-status, or
+baseline change.
 
 ## Validation Gate
 

@@ -735,7 +735,7 @@ c      include 'ncpuq.h'
       DIMENSION TAU(3,NTAUQ),NUMTY(NTYQ),NIDN(NTAUQ,NTYQ),
      & ZV(NTYQ)
       REAL*8 A1(3),A2(3),A3(3),B1(3),B2(3),B3(3)
-      REAL*8 FSUB(3),RP(3),FORCE_SUM(3,NTAUQ)
+      REAL*8 FSUB(3),RP(3)
       integer status(MPI_STATUS_SIZE),tag
       common/tmod/itmod
 c      common/cputask3/nbegint(0:ncpuq),nendt(0:ncpuq),ncpu
@@ -1107,15 +1107,16 @@ CC        WRITE(6,*) '  EWALD R ',ESUMR
       call stop_timer('ewald_energy_reduce')
       call start_timer('ewald_force_reduce')
 #endif
-      call MPI_Reduce(FORCE,FORCE_SUM,3*NATOT,MPI_DOUBLE_PRECISION
-     &   ,MPI_SUM,0,MPI_COMM_WORLD,ierr)
-      if (my_rank.eq.0) then
-       do it=1,natot
-        FORCE(1,it)=FORCE_SUM(1,it)
-        FORCE(2,it)=FORCE_SUM(2,it)
-        FORCE(3,it)=FORCE_SUM(3,it)
-       enddo
-      endif
+      FSUB(1)=0.d0
+      FSUB(2)=0.d0
+      FSUB(3)=0.d0
+      do it=1,natot
+       call MPI_Reduce(FORCE(1,it),FSUB,3,MPI_DOUBLE_PRECISION
+     &    ,MPI_SUM, 0,MPI_COMM_WORLD,ierr)
+       FORCE(1,it)=FSUB(1)
+       FORCE(2,it)=FSUB(2)
+       FORCE(3,it)=FSUB(3)
+      enddo
 #ifdef FPSEID_FORCE_DETAIL_TIMERS
       call stop_timer('ewald_force_reduce')
       call start_timer('ewald_force_bcast')

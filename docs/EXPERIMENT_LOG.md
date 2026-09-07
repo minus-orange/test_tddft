@@ -3944,3 +3944,35 @@ was changed.
   batched force-reduction candidate remains pending x86 two-step validation;
   accepted source, correctness-candidate status, 100-step authorization, and
   baselines remain unchanged.
+
+### Rejected batched EWALD force-reduction result
+
+- The x86 two-step cost-detail run at revision `e92c2d7` completed with
+  `normal_check=PASS`, `relaxed_compare=PASS`, the post-run initial-state hash
+  gate passing, and compiler isolation passing. It used the fixed
+  NVFORTRAN-SD lineage, 32 MPI ranks, 3 OpenMP threads, and diagnostics off.
+- Wall time was `639.979973` seconds. The maximum-rank `time_step_total` was
+  `659.465021` seconds and its rank average was `659.249771` seconds. The
+  previous unbatched measurement was `637.700742`, `657.221919`, and
+  `656.992110` seconds respectively, so no two-step improvement was observed.
+- Batching reduced `ewald_force_reduce` from average-rank `76.411924` seconds
+  to `0.000023` seconds, but `ewald_force_bcast` increased from `0.000029` to
+  `76.984278` seconds. Total `ewald_mpi` was `82.634830` seconds versus the
+  previous `82.075418` seconds. The apparent reduction cost was therefore
+  synchronization caused by rank arrival imbalance; batching only moved the
+  wait to the following broadcast.
+- The hypothesis is rejected and the 216 per-atom reductions are restored.
+  The cross-platform detail timers remain because they exposed the transfer
+  of wait time and are required for later CPU/GPU comparison. No GPU or
+  100-step execution is authorized by this result, and accepted source,
+  pending correctness candidate, and baselines remain unchanged.
+- The new non-MPI split was internally complete. Average-rank S2 local time
+  was `26.700538` seconds: inverse/forward FFTs contributed `8.351521` and
+  `8.713990` seconds, scatter/gather `4.405928` and `1.970485` seconds, and
+  local multiply `2.186122` seconds. The reported unassigned gap was only
+  `0.000948` seconds.
+- Average-rank S2 nonlocal time was `112.470878` seconds, including
+  `108.981837` seconds in the EXNLP GEMM region. The CPU HLOCAL child rows
+  summed to `40.170181` seconds, led by inverse/forward FFTs at `12.913185`
+  and `13.308183` seconds and scatter/gather at `6.755049` and `3.000504`
+  seconds. These same labels remain available for a later GPU comparison.
