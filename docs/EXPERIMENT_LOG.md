@@ -3794,3 +3794,37 @@ was changed.
   calculation, or 100-step calculation has run for this preparation.
   Accepted source `c46cfa9`, pending candidate `bb5cb58`, authorizations, and
   formal baselines remain unchanged.
+
+### Xeon 8468 x86 cost-detail result and local-force refinement
+
+- The x86-only cost-detail run at revision `55e444e5ee03` completed two steps
+  in `639.815492868` sec with NVFORTRAN CPU/FFTW, 32 MPI ranks, three OpenMP
+  threads per rank, and the reviewed NVFORTRAN-SD state. The normal 216-atom
+  check, relaxed Xeon 8592+ ifx comparison, post-run state SHA-256 gate, and
+  compiler-isolation gate all passed. Its wall differs from the preceding
+  `642.8832999112`-sec diagnostic by about `-0.48%`; neither value is a
+  performance baseline.
+- With max-rank `time_step_total=659.413946` sec, `electf_force` was
+  `218.577716` sec (`33.15%`) and `tmevl_s2` was `146.237160` sec (`22.18%`).
+  The force split was dominated by `electf_locpotf_total`: average-rank time
+  was `100.682311` sec, about `90.0%` of the `111.872628`-sec ELECTF average,
+  versus `11.190240` sec for NONLOCF. LOCPOTF also had the larger rank spread
+  (`max/avg` about `2.05`, versus `1.07` for NONLOCF), making the local-force
+  path the next bounded diagnostic target.
+- The S2 forward and reverse maxima were `61.431472` and `58.201361` sec.
+  Only the SEPPOTF s path was traversed: its average-rank band reduction,
+  projector, phase, and MPI times were `8.428898`, `1.514234`, `0.517353`,
+  and `0.381369` sec respectively; both p-path rows were `NOT_CALLED`.
+- The calculation and all correctness gates succeeded, but the compact
+  reporter subsequently stopped because it incorrectly required a separate
+  `exnlp_gemm_update` row. The current CPU fused loop performs the update in
+  the timed `exnlp_gemm_dot` region, so absence of that row is now reported as
+  `FUSED_INTO_EXNLP_GEMM_DOT` rather than as a failed timer gate.
+- The next cost-detail build enables the pre-existing LOCPOTF/EWALDY timers
+  only under the opt-in timer macro, splitting LOCPOTF into Ewald, local MPI,
+  local energy, XC, and Hartree work, and splitting Ewald into reciprocal,
+  real-space, and MPI work. Broad FRPRMN diagnostics and the Ewald reuse
+  observer remain off. A fresh x86 two-step run is needed only to obtain this
+  finer distribution; no standalone preflight return is requested.
+- Accepted source remains `c46cfa9`, `bb5cb58` remains pending, and H100,
+  100-step authorization, and every formal baseline remain unchanged.

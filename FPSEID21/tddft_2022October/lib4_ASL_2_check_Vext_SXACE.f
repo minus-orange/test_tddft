@@ -1,3 +1,6 @@
+#if defined(FPSEID_FRPRMN_DIAGNOSTIC) || defined(FPSEID_COST_DETAIL_TIMERS)
+#define FPSEID_FORCE_DETAIL_TIMERS 1
+#endif
 cC------------PROGRAM UNIT POTENTIAL AND CHARGE---------------------
 C**************************************************************
       SUBROUTINE VOFRHO(NRX,NRY,NRZ,NXYZ,NG,NGQ,G,TPIBA,
@@ -807,7 +810,7 @@ C*****************************
 C
 C    DO G SUM FOR THE CASE WHERE A=B
 C
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call start_timer('ewald_g_space')
 #endif
       ESUM0=0.D0
@@ -952,7 +955,7 @@ ccc      endif  ! if i.ge.nbegint(my_rank) .and. i.le.nendt(my_rank)
         FORCE(K,I)=4.D0*PI*ZZ(I)*TPIBA*FORCE(K,I)/OMEGA
  1545 CONTINUE
 #endif
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call stop_timer('ewald_g_space')
 #endif
 C
@@ -966,7 +969,7 @@ C****************************
 C
 C     DO R SUM FOR THE CASE WHERE A=B
 C
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call start_timer('ewald_r_space')
 #endif
       ESUM0=0.D0
@@ -1059,7 +1062,7 @@ CC      CALL CLOCK(TIM2)
 CC      WRITE(6,*) '  EWALD R ',ESUMR,TIM2-TIM1
 CC        WRITE(6,*) '  EWALD R ',ESUMR
       EWA=ESUMG+ESUMR
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call stop_timer('ewald_r_space')
       call start_timer('ewald_mpi')
 #endif
@@ -1079,7 +1082,7 @@ CC        WRITE(6,*) '  EWALD R ',ESUMR
       enddo
       call MPI_Bcast(FORCE,3*NATOT,MPI_DOUBLE_PRECISION,0,
      &        MPI_COMM_WORLD,ierr)
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call stop_timer('ewald_mpi')
 #endif
 C     DO 17 I=1,NTAUQ
@@ -1551,7 +1554,7 @@ c *** temp check ; end
 C
 C       EWALD SUM
 C
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call start_timer('locpotf_ewald')
 #endif
       CALL EWALDY(TPIBA,OMEGA,EWA,NGQ,NG,G,EXPG,FORCE,LATQ,EWVEC,
@@ -1559,8 +1562,10 @@ C
      &           A1,A2,A3,B1,B2,B3,itstep
 c
      &          ,nbegintt,nendtt,ncpuq,ncpu )
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call stop_timer('locpotf_ewald')
+#endif
+#ifdef FPSEID_FRPRMN_DIAGNOSTIC
       call ewald_reuse_observe(EWA,FORCE,NTAUQ,NTYQ,NUMTY,NIDN)
 #endif
 C *****   EWALD END
@@ -1593,7 +1598,7 @@ C
 C LOCAL POTENTITAL
 C
 C
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call start_timer('locpotf_local_mpi')
 #endif
       do IG=1,NXYZ
@@ -1733,7 +1738,7 @@ C
             enddo
            endif ! end of if my_rank.ne.0 loop
 c
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call stop_timer('locpotf_local_mpi')
 #endif
 C * TEMP
@@ -1755,7 +1760,7 @@ ccc       write(6,7979)(WEXT(IG),IG=1,NXYZ,NXYZ)
       endif
  7979 format(4f22.16)
 c *** temp check : end
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call start_timer('locpotf_local_energy')
 #endif
       ELOCAL=0.D0
@@ -1776,7 +1781,7 @@ c      endif
 c *** temp check :end
       ELOCAL=OMEGA*ELOCAL
       ELOCALd=OMEGA*ELOCALd
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call stop_timer('locpotf_local_energy')
 #endif
 C
@@ -1800,7 +1805,7 @@ c      write(6,*)' Before calling S2XC2 : EH=',EH
 c      endif
 c *** temp check ; end
 C         EXCHANGE CORRELATION PART
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call start_timer('locpotf_xc')
 #endif
       IF(IGGA.EQ.1) THEN
@@ -1824,7 +1829,7 @@ c *** temp check: end
       CALL S2XC2(NXYZ,RHO,EXC,VG)
       ENDIF
       EXC = OMEGA*EXC/DBLE(NXYZ)
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call stop_timer('locpotf_xc')
 #endif
 C
@@ -1838,7 +1843,7 @@ C     WRITE(6,*) ' EVXC=',EVXC
 C
 C        HARTREE ENERGY
 C
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call start_timer('locpotf_hartree')
 #endif
       EH=0.D0
@@ -1866,7 +1871,7 @@ C
 C
       DELTAd=EHd+ELOCALd
       DELTA=EWA+EH+ELOCAL+EXC+ESELF
-#ifdef FPSEID_FRPRMN_DIAGNOSTIC
+#ifdef FPSEID_FORCE_DETAIL_TIMERS
       call stop_timer('locpotf_hartree')
 #endif
 C

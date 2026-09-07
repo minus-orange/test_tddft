@@ -1754,6 +1754,33 @@ execution approval. Do not run its GPU action or any 100-step path. Accepted
 numerical source `c46cfa9`, pending candidate `bb5cb58`, and all formal
 baselines remain unchanged.
 
+The x86 cost-detail run at revision `55e444e5ee03` has now completed. It used
+NVFORTRAN CPU/FFTW at 32 MPI x 3 OpenMP and took `639.815492868` sec for two
+steps. Normal check, relaxed Xeon 8592+ ifx comparison, post-run state hash,
+and compiler isolation all passed. The reporter's final error was not a
+calculation failure: `exnlp_gemm_update` is absent because the CPU fused loop
+performs that work inside `exnlp_gemm_dot`. The reporter now labels this
+`FUSED_INTO_EXNLP_GEMM_DOT` and does not require a separate update timer.
+
+The main result is that ELECTF's average-rank `111.872628` sec is dominated by
+LOCPOTF at `100.682311` sec (about 90%), while NONLOCF is `11.190240` sec.
+LOCPOTF's max/average ratio is about 2.05, identifying substantial rank
+imbalance in the local-force path. The nonlocal SEPPOTF work traversed only
+the s branch and was dominated by its s-band reduction; both p branches were
+`NOT_CALLED`. Thus the next instrumentation splits LOCPOTF into Ewald, local
+MPI, local energy, XC, and Hartree, with reciprocal-space, real-space, and MPI
+subtimers inside Ewald. These timer guards do not enable the Ewald reuse
+observer or broad FRPRMN diagnostics.
+
+The user requested that separate preflight procedures be omitted from now on.
+For the next x86-only measurement, invoke the single command
+`./tools/run_cb3x3x3_2step_cost_remeasure.sh x86`; the wrapper still performs
+its internal safety gates automatically. Return the PASS/result block and the
+complete `FPSEID21_CB3X3X3_X86_COST_DETAIL_BEGIN/END` block as photographs.
+Do not run the GPU action or any 100-step path. This remains a two-step
+cost-distribution diagnostic and changes no accepted source, pending-candidate
+status, authorization, or baseline.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for
