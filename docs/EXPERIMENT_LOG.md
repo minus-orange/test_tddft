@@ -3735,3 +3735,32 @@ was changed.
   MPI/OpenMP configuration, accepted numerical source, pending-candidate
   status, or formal baseline. The earlier 100-step preflight remains available
   but is not the next requested action.
+
+### Xeon 8468 NVFORTRAN CPU/FFTW two-step cost-distribution result
+
+- The user-operated x86 run at revision `f5d3d1097dc2` used the reviewed
+  `IFX_CG_TO_NVFORTRAN_SD` state produced at revision `5917b115d765`,
+  NVFORTRAN CPU/FFTW, 32 MPI ranks, three OpenMP threads per rank, and
+  diagnostics off. The run completed two steps in `642.8832999112` sec.
+- The normal 216-atom check, relaxed comparison with the fixed Xeon 8592+
+  ifx two-step result, post-run initial-state SHA-256 gate, and compiler
+  isolation gate all passed. The generic platform comparator continued to
+  label its output-only provenance scope `INCOMPLETE`; this is its explicit
+  diagnostic contract and is not an additional failed execution gate.
+- Max-rank `time_step_total` was `662.595020` sec. The largest inclusive
+  timer was `frprmn` at `633.502221` sec (`95.61%`). Its major visible
+  subtrees were `electf_force` at `216.824312` sec (`32.72%`) and
+  `tmevl_total` at `149.010050` sec (`22.49%`).
+- Within the time-evolution work, `tmevl_s2` took `146.553825` sec
+  (`22.12%`). `s2_nonlocal` took `120.043901` sec (`18.12%`), of which
+  `s2_nonlocal_gemm` / `exnlp_gemm_dot` accounted for about `116.792` sec
+  (`17.63%`). `s2_fft_local` took `27.163256` sec (`4.10%`), while the
+  broader `fft_wrapper` accumulated `46.644479` sec (`7.04%`).
+- These are overlapping inclusive timers and must not be summed. On this x86
+  path, the measured nonlocal GEMM/dot subtree is about 4.3 times the
+  `s2_fft_local` time, so the two-step distribution does not support treating
+  FFT as the sole or dominant time-evolution cost.
+- This is a two-step cost-distribution diagnostic, not a performance baseline.
+  The H100 half of the paired measurement has not run because the user chose
+  to proceed with x86 only. Accepted source `c46cfa9`, pending candidate
+  `bb5cb58`, 100-step authorization, and all formal baselines remain unchanged.

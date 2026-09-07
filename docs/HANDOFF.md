@@ -1704,6 +1704,31 @@ either calculation. This is diagnostic-only: accepted source `c46cfa9`,
 pending candidate `bb5cb58`, the deferred 100-step authorization, and every
 formal baseline remain unchanged.
 
+The x86 half has now completed at revision `f5d3d1097dc2`; the H100 half has
+not run. Xeon 8468 NVFORTRAN CPU/FFTW used 32 MPI x 3 OpenMP, the reviewed
+NVFORTRAN-SD state, and diagnostics off. Two steps took `642.8832999112` sec
+and passed the normal check, relaxed Xeon 8592+ ifx comparison, post-run state
+SHA-256 gate, and compiler-isolation gate. The generic platform comparator's
+`provenance_gate=INCOMPLETE` remains its intentional output-observables-only
+scope marker, while the enclosing run helper verified the state and compiler
+provenance required for this experiment.
+
+Using max-rank `time_step_total=662.595020` sec as the per-platform
+normalization, inclusive `frprmn` was `633.502221` sec (`95.61%`),
+`electf_force` was `216.824312` sec (`32.72%`), and `tmevl_total` was
+`149.010050` sec (`22.49%`). Inside the time-evolution subtree,
+`s2_nonlocal=120.043901` sec (`18.12%`) and its GEMM/dot work was about
+`116.792` sec (`17.63%`), versus `s2_fft_local=27.163256` sec (`4.10%`).
+Because these are inclusive parent/child timers, percentages overlap. The
+current x86 evidence points to nonlocal GEMM/dot work, together with the larger
+force subtree, rather than FFT alone as the main optimization targets.
+
+The next decision should remain x86-only until the user requests otherwise:
+review this distribution and select a bounded x86 hypothesis before adding
+instrumentation or running another calculation. Do not start the paired H100
+action or either 100-step path. This result changes no accepted numerical
+source, pending-candidate status, authorization, or baseline.
+
 ## Validation Gate
 
 The authoritative procedure is `docs/VALIDATION_WORKFLOW.md`. In summary, for
